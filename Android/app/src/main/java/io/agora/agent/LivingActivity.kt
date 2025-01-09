@@ -85,6 +85,7 @@ class LivingActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        engine.leaveChannel()
         ConvAIManager.stopAgent { ok ->
             if (ok) {
                 Log.d(TAG, "Agent stopped successfully")
@@ -92,7 +93,6 @@ class LivingActivity : AppCompatActivity() {
                 Log.d(TAG, "Failed to stop agent")
             }
         }
-        engine.leaveChannel()
         RtcEngine.destroy()
         AgoraManager.resetData()
         loadingDialog?.dismiss()
@@ -148,13 +148,13 @@ class LivingActivity : AppCompatActivity() {
     }
 
     private fun onClickEndCall() {
+        engine.leaveChannel()
         loadingDialog?.setMessage(getString(R.string.cov_detail_agent_ending))
         loadingDialog?.show()
         ConvAIManager.stopAgent { ok ->
             loadingDialog?.dismiss()
             if (ok) {
                 Toast.makeText(this, R.string.cov_detail_agent_leave, Toast.LENGTH_SHORT).show()
-                engine.leaveChannel()
                 isAgentStarted = false
                 networkStatus = null
                 AgoraManager.agentStarted = false
@@ -220,7 +220,7 @@ class LivingActivity : AppCompatActivity() {
             override fun onLeaveChannel(stats: RtcStats?) {
                 AgentLogger.d(TAG, "local user didLeaveChannel")
                 runOnUiThread {
-                    updateNetworkStatus(1)
+                    updateNetworkStatus(0)
                 }
             }
 
@@ -379,6 +379,9 @@ class LivingActivity : AppCompatActivity() {
     }
 
     private fun setupView() {
+        mViewBinding.btnBack.setOnClickListener {
+            finish()
+        }
         mViewBinding.btnEnd.setOnClickListener {
             onClickEndCall()
         }
@@ -400,6 +403,9 @@ class LivingActivity : AppCompatActivity() {
             }.show(supportFragmentManager, "StatsDialog")
         }
         mViewBinding.btnWifi.setOnClickListener {
+            if (!AgoraManager.agentStarted) {
+                return@setOnClickListener
+            }
             networkDialog = AgentNetworkDialogFragment().apply {
                 networkStatus?.let { updateNetworkStatus(it) }
                 show(supportFragmentManager, "NetworkDialog")

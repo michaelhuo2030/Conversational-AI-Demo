@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">对话式智能体</string>
+
     <string name="main_terms_info">我同意</string>
     <string name="main_terms_selection"><u>声网 服务条款</u></string>
     <string name="main_get_started">开始使用</string>
@@ -12,7 +12,7 @@
     <string name="scenes_item_digital_human_title">数字人</string>
     <string name="scenes_item_digital_human_info">创建AI驱动的实时语音、视频和聊天体验。</string>
 
-    <string name="call_agent_title">对话智能体</string>
+    <string name="cov_detail_agent_title">对话智能体</string>
     <string name="cov_detail_agent">智能体</string>
     <string name="cov_detail_not_joined">未加入</string>
     <string name="cov_detail_clear_message">清除</string>

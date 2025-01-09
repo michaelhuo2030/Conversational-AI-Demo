@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import io.agora.agent.databinding.ActivityTermsBinding
+import io.agora.agent.rtc.AgoraManager
 
 class TermsActivity : AppCompatActivity() {
 
@@ -16,8 +17,12 @@ class TermsActivity : AppCompatActivity() {
 
         binding.webView.settings.javaScriptEnabled = true
         binding.webView.webViewClient = WebViewClient()
-
-        binding.webView.loadUrl("https://www.agora.io/en/terms-of-service/")
+        val site = if (AgoraManager.isMainlandVersion) {
+            "https://www.agora.io/en/terms-of-service/"
+        } else {
+            "https://www.agora.io/en/terms-of-service/"
+        }
+        binding.webView.loadUrl(site)
     }
 
     override fun onBackPressed() {

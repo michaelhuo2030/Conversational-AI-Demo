@@ -10,6 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentTransaction
 import io.agora.agent.databinding.ActivityMainBinding
 import io.agora.agent.rtc.AgoraManager
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity() {
@@ -19,6 +20,12 @@ class MainActivity : AppCompatActivity() {
     private val mViewBinding by lazy { ActivityMainBinding.inflate(LayoutInflater.from(this)) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        if (AgoraManager.isMainlandVersion) {
+            setLocale("zh")
+        } else {
+            setLocale("en")
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(mViewBinding.root)
         setupView()
@@ -70,5 +77,13 @@ class MainActivity : AppCompatActivity() {
         val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
         fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
         fragmentTransaction.commit()
+    }
+
+    private fun setLocale(lang: String) {
+        val locale = Locale(lang)
+        Locale.setDefault(locale)
+        val config = resources.configuration
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

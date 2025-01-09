@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Convo AI</string>
+
     <string name="main_terms_info">I agree to the</string>
     <string name="main_terms_selection"><u>Agora Terms of Service</u></string>
     <string name="main_get_started">Get Started</string>
@@ -12,7 +12,7 @@
     <string name="scenes_item_digital_human_title">Digital Human</string>
     <string name="scenes_item_digital_human_info">Create AI-powered real-time voice, video, and chat experiences.</string>
 
-    <string name="call_agent_title">Conversational AI Agent</string>
+    <string name="cov_detail_agent_title">Convo AI Agent</string>
     <string name="cov_detail_agent">Agent</string>
     <string name="cov_detail_not_joined">Not Joined</string>
     <string name="cov_detail_clear_message">Clear</string>
@@ -35,7 +35,7 @@
     <string name="cov_info_your_network">Your Network</string>
     <string name="cov_info_your_network_disconnected">Disconnected</string>
     <string name="cov_info_your_network_good">Good</string>
-    <string name="cov_info_your_network_medium">Medium</string>
+    <string name="cov_info_your_network_medium">Okay</string>
     <string name="cov_info_your_network_poor">Poor</string>
     <string name="cov_netwotk_info_title">NETWORK INFO</string>
 

@@ -64,7 +64,7 @@ class AgentNetworkDialogFragment : DialogFragment() {
                 }
                 3, 4 -> {
                     mtvNetworkStatus.text = getString(R.string.cov_info_your_network_medium)
-                    mtvNetworkStatus.setTextColor(Color.parseColor("#FFFF00"))
+                    mtvNetworkStatus.setTextColor(Color.parseColor("#FFAB00"))
                 }
                 else -> {
                     mtvNetworkStatus.text = getString(R.string.cov_info_your_network_poor)

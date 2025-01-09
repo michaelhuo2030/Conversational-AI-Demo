@@ -24,6 +24,9 @@ android {
         buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("AG_APP_ID")}\"")
         buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("AG_APP_CERTIFICATE")}\"")
         buildConfigField("String", "TOOLBOX_SERVER_HOST", "\"${project.getProperty("TOOLBOX_SERVER_HOST")}\"")
+
+        def host = project.getProperty("TOOLBOX_SERVER_HOST")
+        resValue "string", "app_name", host.contains("oversea") ? "Convo AI" : "对话式智能体"
     }
 
     signingConfigs {

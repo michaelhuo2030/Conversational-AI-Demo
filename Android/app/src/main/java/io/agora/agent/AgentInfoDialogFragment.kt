@@ -31,17 +31,23 @@ class AgentInfoDialogFragment : DialogFragment() {
         window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         if (AgoraManager.agentStarted) {
+            binding.mtvRoomStatus.visibility = View.VISIBLE
+            binding.mtvAgentStatus.visibility = View.VISIBLE
             if (isConnected) {
+                binding.mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
+                binding.mtvRoomStatus.setTextColor(Color.parseColor("#36B37E"))
+
                 binding.mtvAgentStatus.text = getString(R.string.cov_info_agent_connected)
                 binding.mtvAgentStatus.setTextColor(Color.parseColor("#36B37E"))
             } else {
+                binding.mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                binding.mtvRoomStatus.setTextColor(Color.parseColor("#FF414D"))
+
                 binding.mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
                 binding.mtvAgentStatus.setTextColor(Color.parseColor("#FF414D"))
             }
             binding.mtvRoomId.text = AgoraManager.channelName
             binding.mtvUidValue.text = AgoraManager.uid.toString()
-            binding.mtvRoomStatus.visibility = View.VISIBLE
-            binding.mtvAgentStatus.visibility = View.VISIBLE
         } else {
             binding.mtvRoomId.visibility = View.INVISIBLE
             binding.mtvUidValue.visibility = View.INVISIBLE
