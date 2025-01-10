@@ -77,7 +77,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<SettingDialogBinding>() {
         val loadingDialog = LoadingDialog(context!!).apply {
             show()
         }
-        ConvAIManager.updateAgent(voice.voiceId) { success ->
+        ConvAIManager.updateAgent(voice.value) { success ->
             loadingDialog.dismiss()
             if (success) {
                 AgoraManager.voiceType = voice
@@ -97,7 +97,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<SettingDialogBinding>() {
 
     private fun updateSpinners() {
         binding?.apply {
-            voiceAdapter.updateItems(voices.map { it.displayName }.toList())
+            voiceAdapter.updateItems(voices.map { it.display }.toList())
             val defaultVoice = AgoraManager.voiceType
             val voicePosition = voices.indexOf(defaultVoice)
             if (voicePosition != -1) {
@@ -105,7 +105,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<SettingDialogBinding>() {
                 spVoice.setSelection(voicePosition)
             }
 
-            modelAdapter.updateItems(LLMs.map { it.value }.toList())
+            modelAdapter.updateItems(LLMs.map { it.display }.toList())
             val defaultModel = AgoraManager.llmType
             val modelPosition = LLMs.indexOf(defaultModel)
             if (modelPosition != -1) {
@@ -288,7 +288,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<SettingDialogBinding>() {
                             show()
                         }
                         AgoraManager.updatePreset(presets[position])
-                        ConvAIManager.updateAgent(AgoraManager.voiceType.voiceId) { success ->
+                        ConvAIManager.updateAgent(AgoraManager.voiceType.value) { success ->
                             loadingDialog.dismiss()
                             if (success) {
                                 updateOptionsByPresets()
@@ -332,7 +332,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<SettingDialogBinding>() {
                 languages = arrayOf(AgentLanguageType.CN, AgentLanguageType.EN)
             }
             AgentPresetType.DEFAULT -> {
-                voices = arrayOf(AgentVoiceType.EMMA, AgentVoiceType.ANDREW, AgentVoiceType.SERENA, AgentVoiceType.DUSTIN)
+                voices = arrayOf(AgentVoiceType.ANDREW, AgentVoiceType.EMMA, AgentVoiceType.DUSTIN, AgentVoiceType.SERENA)
                 LLMs = arrayOf(AgentLLMType.OPEN_AI)
                 languages = arrayOf(AgentLanguageType.EN)
             }

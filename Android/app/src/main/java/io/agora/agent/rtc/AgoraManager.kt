@@ -3,13 +3,13 @@ package io.agora.agent.rtc
 import io.agora.rtc2.RtcEngineEx
 import io.agora.agent.BuildConfig
 
-enum class AgentVoiceType(val voiceId: String, val displayName: String) {
+enum class AgentVoiceType(val value: String, val display: String) {
     FEMALE_SHAONV("female-shaonv", "少女"),
 
     TBD("TBD", "TBD"),
 
-    EMMA("Emma", "en-US-Emma2:DragonHDLatestNeura"),
-    ANDREW("en-US-Andrew2:DragonHDLatestNeural", "Andrew"),
+    EMMA("en-US-EmmaMultilingualNeural", "Emma"),
+    ANDREW("en-US-AndrewMultilingualNeural", "Andrew"),
     SERENA("en-US-SerenaMultilingualNeural", "Serena"),
     DUSTIN("en-US-DustinMultilingualNeural", "Dustin"),
 
@@ -97,10 +97,10 @@ enum class AgentVoiceType(val voiceId: String, val displayName: String) {
     }
 }
 
-enum class AgentLLMType(val value: String) {
-    OPEN_AI("OpenAI (GPT-4o-mini)"),
-    MINIMAX("MiniMax (minimax-abab6.5s-chat)"),
-    TONG_YI("通义千问")
+enum class AgentLLMType(val value: String, val display: String) {
+    OPEN_AI("GPT-4o-mini", "OpenAI"),
+    MINIMAX("minimax-abab6.5s-chat", "MiniMax"),
+    TONG_YI("通义千问", "通义千问"),
 }
 
 enum class AgentLanguageType(val value: String) {
@@ -173,7 +173,7 @@ object AgoraManager {
                 languageType = AgentLanguageType.CN
             }
             AgentPresetType.DEFAULT -> {
-                voiceType = AgentVoiceType.EMMA
+                voiceType = AgentVoiceType.ANDREW
                 llmType = AgentLLMType.OPEN_AI
                 languageType = AgentLanguageType.EN
             }

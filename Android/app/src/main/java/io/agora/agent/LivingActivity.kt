@@ -315,6 +315,7 @@ class LivingActivity : AppCompatActivity() {
             enableAudioVolumeIndication(100, 10, true)
             adjustRecordingSignalVolume(100)
         }
+        AgoraManager.rtcEngine = engine
     }
 
     private fun handleStreamMessage(message: Map<String, Any>) {
