@@ -74,24 +74,31 @@ class AgentSettingsSheetDialog : BaseSheetDialog<SettingDialogBinding>() {
     }
 
     private fun uploadNewSetting(voice: AgentVoiceType, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
-        val loadingDialog = LoadingDialog(context!!).apply {
-            show()
-        }
-        ConvAIManager.updateAgent(voice.value) { success ->
-            loadingDialog.dismiss()
-            if (success) {
-                AgoraManager.voiceType = voice
-                llm?.let { AgoraManager.llmType = llm }
-                language?.let { AgoraManager.languageType = language }
-                updateSpinners()
-            } else {
-                updateSpinners()
-                Toast.makeText(
-                    context,
-                    R.string.cov_setting_network_error,
-                    Toast.LENGTH_SHORT
-                ).show()
+        if (AgoraManager.agentStarted) {
+            val loadingDialog = LoadingDialog(context!!).apply {
+                show()
             }
+            ConvAIManager.updateAgent(voice.value) { success ->
+                loadingDialog.dismiss()
+                if (success) {
+                    AgoraManager.voiceType = voice
+                    llm?.let { AgoraManager.llmType = llm }
+                    language?.let { AgoraManager.languageType = language }
+                    updateSpinners()
+                } else {
+                    updateSpinners()
+                    Toast.makeText(
+                        context,
+                        R.string.cov_setting_network_error,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } else {
+            AgoraManager.voiceType = voice
+            llm?.let { AgoraManager.llmType = llm }
+            language?.let { AgoraManager.languageType = language }
+            updateSpinners()
         }
     }
 
@@ -284,27 +291,33 @@ class AgentSettingsSheetDialog : BaseSheetDialog<SettingDialogBinding>() {
                     val oldPreset = AgoraManager.currentPresetType()
                     val selectedPreset = presets[position]
                     if (AgoraManager.currentPresetType() != selectedPreset) {
-                        val loadingDialog = LoadingDialog(context!!).apply {
-                            show()
-                        }
-                        AgoraManager.updatePreset(presets[position])
-                        ConvAIManager.updateAgent(AgoraManager.voiceType.value) { success ->
-                            loadingDialog.dismiss()
-                            if (success) {
-                                updateOptionsByPresets()
-                                updateSpinners()
-                            } else {
-                                AgoraManager.updatePreset(oldPreset)
-                                AgoraManager.voiceType = oldVoiceType
-                                AgoraManager.llmType = oldLLMType
-                                AgoraManager.languageType = oldLanguageType
-                                updateSpinners()
-                                Toast.makeText(
-                                    context,
-                                    R.string.cov_setting_network_error,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                        if (AgoraManager.agentStarted) {
+                            val loadingDialog = LoadingDialog(context!!).apply {
+                                show()
                             }
+                            AgoraManager.updatePreset(presets[position])
+                            ConvAIManager.updateAgent(AgoraManager.voiceType.value) { success ->
+                                loadingDialog.dismiss()
+                                if (success) {
+                                    updateOptionsByPresets()
+                                    updateSpinners()
+                                } else {
+                                    AgoraManager.updatePreset(oldPreset)
+                                    AgoraManager.voiceType = oldVoiceType
+                                    AgoraManager.llmType = oldLLMType
+                                    AgoraManager.languageType = oldLanguageType
+                                    updateSpinners()
+                                    Toast.makeText(
+                                        context,
+                                        R.string.cov_setting_network_error,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        } else {
+                            AgoraManager.updatePreset(presets[position])
+                            updateOptionsByPresets()
+                            updateSpinners()
                         }
                     }
                 }

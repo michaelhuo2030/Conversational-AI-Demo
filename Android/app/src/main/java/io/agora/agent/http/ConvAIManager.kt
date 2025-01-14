@@ -52,17 +52,38 @@ object ConvAIManager {
             postBody.put("remote_rtc_uid", params.remoteRtcUid)
             params.rtcCodec?.let { postBody.put("rtc_codec", it) }
             params.audioScenario?.let { postBody.put("audio_scenario", it) }
-            params.greeting?.let { postBody.put("custom_llm.greeting", it) }
-            params.prompt?.let { postBody.put("custom_llm.prompt", it) }
-            params.maxHistory?.let { postBody.put("custom_llm.max_history", it) }
-            params.asrLanguage?.let { postBody.put("asr.language", it) }
-            params.vadInterruptThreshold?.let { postBody.put("vad.interrupt_threshold", it) }
-            params.vadPrefixPaddingMs?.let { postBody.put("vad.prefix_padding_ms", it) }
-            params.vadSilenceDurationMs?.let { postBody.put("vad.silence_duration_ms", it) }
-            params.vadThreshold?.let { postBody.put("vad.threshold", it) }
+            
+            val customLlm = JSONObject()
+            params.greeting?.let { customLlm.put("greeting", it) }
+            params.prompt?.let { customLlm.put("prompt", it) }
+            params.maxHistory?.let { customLlm.put("max_history", it) }
+            if (customLlm.length() > 0) {
+                postBody.put("custom_llm", customLlm)
+            }
+            
+            val asr = JSONObject()
+            params.asrLanguage?.let { asr.put("language", it) }
+            if (asr.length() > 0) {
+                postBody.put("asr", asr)
+            }
+            
+            val vad = JSONObject()
+            params.vadInterruptThreshold?.let { vad.put("interrupt_threshold", it) }
+            params.vadPrefixPaddingMs?.let { vad.put("prefix_padding_ms", it) }
+            params.vadSilenceDurationMs?.let { vad.put("silence_duration_ms", it) }
+            params.vadThreshold?.let { vad.put("threshold", it) }
+            if (vad.length() > 0) {
+                postBody.put("vad", vad)
+            }
+            
             params.bsVoiceThreshold?.let { postBody.put("bs_voice_threshold", it) }
             params.idleTimeout?.let { postBody.put("idle_timeout", it) }
-            params.ttsVoiceId?.let { postBody.put("tts.voice_id", it) }
+            
+            val tts = JSONObject()
+            params.ttsVoiceId?.let { tts.put("voice_id", it) }
+            if (tts.length() > 0) {
+                postBody.put("tts", tts)
+            }
         } catch (e: JSONException) {
             AgentLogger.e(TAG, "postBody error ${e.message}")
         }

@@ -123,6 +123,7 @@ class LivingActivity : AppCompatActivity() {
             channelName = channelName,
             remoteRtcUid = localUid,
             agentRtcUid = agentUID,
+            ttsVoiceId = AgoraManager.voiceType.value
         )
         ConvAIManager.startAgent(params) { isAgentOK ->
             if (isAgentOK) {
@@ -249,6 +250,7 @@ class LivingActivity : AppCompatActivity() {
                             channelName = channelName,
                             remoteRtcUid = localUid,
                             agentRtcUid = agentUID,
+                            ttsVoiceId = AgoraManager.voiceType.value
                         )
                         ConvAIManager.startAgent(params) { isAgentOK ->
                             if (!isAgentOK) {
