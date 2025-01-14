@@ -16,6 +16,7 @@ target 'Agent-oversea' do
 
   # Agents
   pod 'VoiceAgent', :path => 'Scenes/VoiceAgent'
+  pod 'DigitalHuman', :path => 'Scenes/DigitalHuman'
 
 end
 
@@ -34,5 +35,6 @@ target 'Agent-cn' do
 
   # Agents
   pod 'VoiceAgent', :path => 'Scenes/VoiceAgent'
+  pod 'DigitalHuman', :path => 'Scenes/DigitalHuman'
 
 end
