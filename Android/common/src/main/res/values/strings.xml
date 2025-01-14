@@ -1,0 +1,62 @@
+<resources>
+
+    <string name="main_terms_info">I agree to the</string>
+    <string name="main_terms_selection"><u>Agora Terms of Service</u></string>
+    <string name="main_get_started">Get Started</string>
+    <string name="scenes_coming_soon">Coming soon</string>
+
+    <string name="scenes_selection_title">SELECT A DEMO</string>
+    <string name="scenes_item_conversation_agent_title">Conversational AI Agent</string>
+    <string name="scenes_item_conversation_agent_info">Create AI-powered real-time voice, video, and chat experiences.</string>
+    <string name="scenes_item_v2v_title">Agora V2V</string>
+    <string name="scenes_item_v2v_info">Create AI-powered real-time voice, video, and chat experiences.</string>
+    <string name="scenes_item_digital_human_title">Digital Human</string>
+    <string name="scenes_item_digital_human_info">Create AI-powered real-time voice, video, and chat experiences.</string>
+
+    <string name="cov_detail_agent_title">Convo AI Agent</string>
+    <string name="cov_detail_agent">Agent</string>
+    <string name="cov_detail_not_joined">Not Joined</string>
+    <string name="cov_detail_clear_message">Clear</string>
+    <string name="cov_detail_join_call">Join Call</string>
+    <string name="cov_detail_agent_joining">Joining</string>
+    <string name="cov_detail_agent_ending">Ending</string>
+    <string name="cov_detail_join_call_failed">Failed to join. Please try again.</string>
+    <string name="cov_detail_join_call_succeed">Agent joined!</string>
+    <string name="cov_detail_agent_leave">Agent Left!</string>
+    <string name="cov_detail_message_list_you">You</string>
+    <string name="cov_detail_message_list_agent">AI Agent</string>
+
+    <string name="cov_info_title">CHANNEL INFO</string>
+    <string name="cov_info_agent_status">Agent Status</string>
+    <string name="cov_info_agent_connected">Connected</string>
+    <string name="cov_info_room_status">Room Status</string>
+    <string name="cov_info_room_id">Room-ID</string>
+    <string name="cov_info_participant_id">Participant-ID</string>
+    <string name="cov_info_your_id">Your-ID</string>
+    <string name="cov_info_your_network">Your Network</string>
+    <string name="cov_info_your_network_disconnected">Disconnected</string>
+    <string name="cov_info_your_network_good">Good</string>
+    <string name="cov_info_your_network_medium">Okay</string>
+    <string name="cov_info_your_network_poor">Poor</string>
+    <string name="cov_netwotk_info_title">NETWORK INFO</string>
+
+    <string name="cov_setting_title">Settings</string>
+    <string name="cov_setting_agent">AGENT</string>
+    <string name="cov_setting_preset">Preset</string>
+    <string name="cov_setting_voice">Voice</string>
+    <string name="cov_setting_model">Model</string>
+    <string name="cov_setting_language">Language</string>
+    <string name="cov_setting_device">DEVICE</string>
+    <string name="cov_setting_microphone">Microphone</string>
+    <string name="cov_setting_speaker">Speaker</string>
+    <string name="cov_setting_noise_cancellation">Noise Cancellation</string>
+    <string name="cov_setting_network_error">Network Error!</string>
+
+    <string-array name="cov_setting_microphone_array">
+        <item>Inbuilt Mic</item>
+    </string-array>
+
+    <string-array name="cov_setting_speaker_array">
+        <item>Inbuilt Speaker</item>
+    </string-array>
+</resources>

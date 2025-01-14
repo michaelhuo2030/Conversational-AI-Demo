@@ -1,35 +1,29 @@
 package io.agora.agent
 
-import android.os.Bundle
 import android.webkit.WebViewClient
-import androidx.appcompat.app.AppCompatActivity
 import io.agora.agent.databinding.ActivityTermsBinding
-import io.agora.agent.rtc.AgoraManager
+import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.ui.BaseActivity
 
-class TermsActivity : AppCompatActivity() {
+class TermsActivity : BaseActivity<ActivityTermsBinding>() {
 
     private lateinit var binding: ActivityTermsBinding
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityTermsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        binding.webView.settings.javaScriptEnabled = true
-        binding.webView.webViewClient = WebViewClient()
-        val site = if (AgoraManager.isMainlandVersion) {
-            "https://www.agora.io/en/terms-of-service/"
-        } else {
-            "https://www.agora.io/en/terms-of-service/"
-        }
-        binding.webView.loadUrl(site)
+    override fun getViewBinding(): ActivityTermsBinding {
+        return  ActivityTermsBinding.inflate(layoutInflater)
     }
 
-    override fun onBackPressed() {
+    override fun initView() {
+        binding.webView.settings.javaScriptEnabled = true
+        binding.webView.webViewClient = WebViewClient()
+        binding.webView.loadUrl(ServerConfig.siteUrl)
+    }
+
+    override fun onHandleOnBackPressed() {
         if (binding.webView.canGoBack()) {
             binding.webView.goBack()
         } else {
-            super.onBackPressed()
+            super.onHandleOnBackPressed()
         }
     }
 }

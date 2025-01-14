@@ -3,38 +3,43 @@ package io.agora.agent
 import android.Manifest
 import android.content.Intent
 import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentTransaction
 import io.agora.agent.databinding.ActivityMainBinding
-import io.agora.agent.rtc.AgoraManager
+import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.ui.BaseActivity
 import java.util.Locale
 
-
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val REQUEST_CODE = 100
 
-    private val mViewBinding by lazy { ActivityMainBinding.inflate(LayoutInflater.from(this)) }
+    override fun getViewBinding(): ActivityMainBinding {
+        return ActivityMainBinding.inflate(layoutInflater)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (AgoraManager.isMainlandVersion) {
+        if (ServerConfig.isMainlandVersion) {
             setLocale("zh")
         } else {
             setLocale("en")
         }
 
         super.onCreate(savedInstanceState)
-        setContentView(mViewBinding.root)
+
+    }
+
+    override fun initView() {
         setupView()
-        if (AgoraManager.isMainlandVersion) {
-            mViewBinding.ivLogo.setImageResource(R.drawable.app_main_logo_cn)
-            mViewBinding.ivLogo.setColorFilter(Color.WHITE)
-        } else {
-            mViewBinding.ivLogo.setImageResource(R.drawable.app_main_logo)
-            mViewBinding.ivLogo.clearColorFilter()
+        mBinding?.apply {
+            if (ServerConfig.isMainlandVersion) {
+                ivLogo.setImageResource(R.drawable.app_main_logo_cn)
+                ivLogo.setColorFilter(Color.WHITE)
+            } else {
+                ivLogo.setImageResource(R.drawable.app_main_logo)
+                ivLogo.clearColorFilter()
+            }
         }
 
         ActivityCompat.requestPermissions(
@@ -45,25 +50,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupView() {
-        mViewBinding.cbTerms.setOnCheckedChangeListener { _, _ ->
+        mBinding?.apply {
+            cbTerms.setOnCheckedChangeListener { _, _ ->
+                updateStartButtonState()
+            }
+            tvTermsSelection.setOnClickListener {
+                onClickTermsDetail()
+            }
+            tvGetStarted.setOnClickListener {
+                onClickGetStarted()
+            }
             updateStartButtonState()
         }
-        mViewBinding.tvTermsSelection.setOnClickListener {
-            onClickTermsDetail()
-        }
-        mViewBinding.tvGetStarted.setOnClickListener {
-            onClickGetStarted()
-        }
-        updateStartButtonState()
     }
 
     private fun updateStartButtonState() {
-        if (mViewBinding.cbTerms.isChecked) {
-            mViewBinding.tvGetStarted.alpha = 1f
-            mViewBinding.tvGetStarted.isEnabled = true
-        } else {
-            mViewBinding.tvGetStarted.alpha = 0.4f
-            mViewBinding.tvGetStarted.isEnabled = false
+        mBinding?.apply {
+            if (cbTerms.isChecked) {
+                tvGetStarted.alpha = 1f
+                tvGetStarted.isEnabled = true
+            } else {
+                tvGetStarted.alpha = 0.4f
+                tvGetStarted.isEnabled = false
+            }
         }
     }
 
@@ -73,10 +82,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onClickGetStarted() {
-        if (!mViewBinding.cbTerms.isChecked) { return }
-        val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
-        fragmentTransaction.commit()
+        mBinding?.apply {
+            if (!cbTerms.isChecked) {
+                return
+            }
+            val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
+            fragmentTransaction.commit()
+        }
+
     }
 
     private fun setLocale(lang: String) {
