@@ -10,11 +10,12 @@ import Common
 import SVProgressHUD
 
 // MARK: - AgentSettingBar
-class AgentSettingBar: UIView {
+class AgentSettingBar: UIView, NetworkSignalViewDelegate {
     // MARK: - Callbacks
     var onBackButtonTapped: (() -> Void)?
     var onTipsButtonTapped: (() -> Void)?
     var onSettingButtonTapped: (() -> Void)?
+    var onNetworkStatusChanged: (() -> Void)?
     
     private let signalBarCount = 5
     private var signalBars: [UIView] = []
@@ -66,6 +67,7 @@ class AgentSettingBar: UIView {
     
     // MARK: - Private Methods
     private func setupViews() {
+        networkSignalView.delegate = self
         [backButton, titleLabel, networkSignalView, tipsButton, settingButton].forEach { addSubview($0) }
     }
     
@@ -118,6 +120,10 @@ class AgentSettingBar: UIView {
     func updateNetworkStatus(_ status: NetworkStatus) {
         networkSignalView.updateStatus(status)
     }
+    
+    func networkSignalView(_ view: NetworkSignalView, didClickNetworkButton button: UIButton) {
+        onNetworkStatusChanged?()
+    }
 }
 
 // MARK: - PreparedToStartViewController
@@ -137,6 +143,9 @@ class PreparedToStartViewController: UIViewController {
         }
         view.onSettingButtonTapped = { [weak self] in
             self?.handleSettingButtonTapped()
+        }
+        view.onNetworkStatusChanged = { [weak self] in
+            self?.handleNetworkButtonTapped()
         }
         view.onBackButtonTapped = { [weak self] in
             self?.navigationController?.popViewController(animated: true)
@@ -300,9 +309,7 @@ class PreparedToStartViewController: UIViewController {
                 }
             }
         }
-        
-        SVProgressHUD.show(withStatus: "loading...")
-        
+                
         NetworkManager.shared.generateToken(
             channelName: "",
             uid: "\(uid)",
@@ -311,12 +318,12 @@ class PreparedToStartViewController: UIViewController {
             guard let self = self else { return }
             
             DispatchQueue.main.async {
-                SVProgressHUD.dismiss()
                 if let token = token {
                     print("rtc token is : \(token)")
                     self.rtcToken = token
                     self.showAgent()
                 } else {
+                    SVProgressHUD.dismiss()
                     SVProgressHUD.showInfo(withStatus: "generate token error")
                 }
             }
@@ -349,6 +356,20 @@ class PreparedToStartViewController: UIViewController {
             make.height.equalTo(290)
         }
         
+    }
+    
+    private func handleNetworkButtonTapped() {
+        selectTableMask.isHidden = false
+        let v = AgentNetworkInfoView()
+        self.view.addSubview(v)
+        selectTable = v
+        let button = topBar.networkSignalView
+        v.snp.makeConstraints { make in
+            make.right.equalTo(button.snp.right).offset(20)
+            make.top.equalTo(button.snp.bottom)
+            make.width.equalTo(304)
+            make.height.equalTo(104)
+        }
     }
     
     @objc func onClickHideTable(_ sender: UIButton) {
