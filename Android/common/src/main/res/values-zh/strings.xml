@@ -1,0 +1,62 @@
+<resources>
+
+    <string name="main_terms_info">我同意</string>
+    <string name="main_terms_selection"><u>声网 服务条款</u></string>
+    <string name="main_get_started">开始使用</string>
+    <string name="scenes_coming_soon">敬请期待</string>
+
+    <string name="scenes_selection_title">选择演示</string>
+    <string name="scenes_item_conversation_agent_title">对话智能体</string>
+    <string name="scenes_item_conversation_agent_info">创建AI驱动的实时语音、视频和聊天体验。</string>
+    <string name="scenes_item_v2v_title">声网 V2V</string>
+    <string name="scenes_item_v2v_info">创建AI驱动的实时语音、视频和聊天体验。</string>
+    <string name="scenes_item_digital_human_title">数字人</string>
+    <string name="scenes_item_digital_human_info">创建AI驱动的实时语音、视频和聊天体验。</string>
+
+    <string name="cov_detail_agent_title">对话智能体</string>
+    <string name="cov_detail_agent">智能体</string>
+    <string name="cov_detail_not_joined">未加入</string>
+    <string name="cov_detail_clear_message">清除</string>
+    <string name="cov_detail_join_call">加入通话</string>
+    <string name="cov_detail_agent_joining">加入中</string>
+    <string name="cov_detail_agent_ending">停止中</string>
+    <string name="cov_detail_join_call_failed">加入频道失败：</string>
+    <string name="cov_detail_join_call_succeed">智能体已加入！</string>
+    <string name="cov_detail_agent_leave">智能体离开</string>
+    <string name="cov_detail_message_list_you">你</string>
+    <string name="cov_detail_message_list_agent">AI 智能体</string>
+
+    <string name="cov_info_title">频道信息</string>
+    <string name="cov_info_agent_status">智能体状态</string>
+    <string name="cov_info_agent_connected">已连接</string>
+    <string name="cov_info_room_status">房间状态</string>
+    <string name="cov_info_room_id">房间ID</string>
+    <string name="cov_info_participant_id">参与者ID</string>
+    <string name="cov_info_your_id">您的ID</string>
+    <string name="cov_info_your_network">您的网络</string>
+    <string name="cov_info_your_network_disconnected">未连接</string>
+    <string name="cov_info_your_network_good">良好</string>
+    <string name="cov_info_your_network_medium">中等</string>
+    <string name="cov_info_your_network_poor">较差</string>
+    <string name="cov_netwotk_info_title">网络状态</string>
+
+    <string name="cov_setting_title">设置</string>
+    <string name="cov_setting_agent">智能体</string>
+    <string name="cov_setting_preset">预设</string>
+    <string name="cov_setting_voice">语音</string>
+    <string name="cov_setting_model">模型</string>
+    <string name="cov_setting_language">语言</string>
+    <string name="cov_setting_device">设备</string>
+    <string name="cov_setting_microphone">麦克风</string>
+    <string name="cov_setting_speaker">扬声器</string>
+    <string name="cov_setting_noise_cancellation">噪声取消</string>
+    <string name="cov_setting_network_error">请求失败：</string>
+
+    <string-array name="cov_setting_microphone_array">
+        <item>内置麦克风</item>
+    </string-array>
+
+    <string-array name="cov_setting_speaker_array">
+        <item>内置扬声器</item>
+    </string-array>
+</resources>

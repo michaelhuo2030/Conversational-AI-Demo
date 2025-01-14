@@ -1,0 +1,56 @@
+[versions]
+agp = "8.7.3"
+kotlin = "1.9.24"
+coreKtx = "1.10.1"
+junit = "4.13.2"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+appcompat = "1.6.1"
+material = "1.10.0"
+activity = "1.8.0"
+constraintlayout = "2.1.4"
+viewbinding = "8.7.3"
+navigation = "2.6.0"
+
+commons-codec = "1.17.0"
+agora-authentication = "2.0.0"
+agora-voice = "4.4.0"
+
+okhttp = "5.0.0-alpha.14"
+gson = "2.11.0"
+mmkv = "2.0.2"
+xlog = "1.11.1"
+toasty = "1.5.0"
+kotlinBom = "1.8.0"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
+androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+androidx-viewbinding = { module = "androidx.databinding:viewbinding", version.ref = "viewbinding" }
+navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
+navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
+okhttp-core = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+mmkv = { module = "com.tencent:mmkv", version.ref = "mmkv" }
+xlog = { module = "com.elvishew:xlog", version.ref = "xlog" }
+toasty = { module = "com.github.GrenderG:Toasty", version.ref = "toasty"}
+
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
+# rtc
+agora-authentication = { module = "io.agora:authentication", version.ref = "agora-authentication" }
+agora-rtc-voice = { module = "io.agora.rtc:voice-sdk", version.ref = "agora-voice" }
+kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlinBom" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+

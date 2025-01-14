@@ -6,11 +6,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.agent.databinding.FragmentSceneSelectionBinding
 import io.agora.agent.databinding.SceneSelectionItemBinding
+import io.agora.scene.common.constant.AgentScenes
 
 class SceneSelectionFragment : Fragment() {
 
@@ -33,26 +36,17 @@ class SceneSelectionFragment : Fragment() {
         sceneListAdapter = SceneListAdapter(requireContext())
         mViewBinding.rvSceneList.layoutManager = LinearLayoutManager(requireContext())
         mViewBinding.rvSceneList.adapter = sceneListAdapter
-        sceneListAdapter.setScenes(listOf(
-            SceneModel(
-                R.drawable.scene_selection_conversation,
-                getString(R.string.scenes_item_conversation_agent_title),
-                getString(R.string.scenes_item_conversation_agent_info),
-                LivingActivity::class.java
-            ),
-//            SceneModel(
-//                R.drawable.scene_selection_v2v,
-//                getString(R.string.scenes_item_v2v_title),
-//                getString(R.string.scenes_item_v2v_info),
-//                LivingActivity::class.java
-//            ),
-//            SceneModel(
-//                R.drawable.scene_selection_digital,
-//                getString(R.string.scenes_item_digital_human_title),
-//                getString(R.string.scenes_item_digital_human_info),
-//                LivingActivity::class.java
-//            )
-        ))
+        sceneListAdapter.setScenes(
+            listOf(
+                SceneModel(
+                    AgentScenes.ConvoAi,
+                    "io.agora.scene.convoai.ui.ConvoAiLivingActivity",
+                    io.agora.scene.common.R.drawable.scene_selection_conversation,
+                    getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_title),
+                    getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_info),
+                ),
+            )
+        )
     }
 
     class SceneListAdapter(private val context: Context) : RecyclerView.Adapter<SceneListAdapter.SceneViewHolder>() {
@@ -79,23 +73,38 @@ class SceneSelectionFragment : Fragment() {
             return scenes.size
         }
 
-        inner class SceneViewHolder(private val binding: SceneSelectionItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class SceneViewHolder(private val binding: SceneSelectionItemBinding) :
+            RecyclerView.ViewHolder(binding.root) {
             fun bind(scene: SceneModel) {
                 binding.ivIcon.setImageResource(scene.imageRes)
                 binding.tvTitle.text = scene.title
                 binding.tvInfo.text = scene.info
                 binding.root.setOnClickListener {
-                    context.startActivity(Intent(context, scene.activityClass))
+                    goScene(scene)
+                }
+            }
+
+            private fun goScene(scenesModel: SceneModel) {
+                val intent = Intent()
+                intent.setClassName(context, scenesModel.clazzName)
+                try {
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        context, io.agora.scene.common.R.string.scenes_coming_soon, Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
-    
+
+
     data class SceneModel(
-        val imageRes: Int,
+        val scene: AgentScenes,
+        val clazzName: String,
+        @DrawableRes val imageRes: Int,
         val title: String,
         val info: String,
-        val activityClass: Class<*>
     )
 }
 
