@@ -1,0 +1,54 @@
+"main.get.start" = "开始使用";
+"main.agree.to" = "我同意";
+"main.terms.vc.title" = "服务条款";
+"main.terms.service" = "声网 服务条款";
+"scene.ai.card.title" = "对话智能体";
+"scene.ai.card.des" = "创建AI驱动的实时语音、视频和聊天体验。";
+"scene.v2v.card.title" = "声网 V2V";
+"scene.v2v.card.des" = "创建AI驱动的实时语音、视频和聊天体验。";
+"scene.dig.card.title" = "数字人";
+"scene.dig.card.des" = "创建AI驱动的实时语音、视频和聊天体验。";
+"scene.title" = "选择演示";
+
+"join.start.title" = "对话智能体";
+"join.start.state" = "未加入";
+"join.start.button.title" = "加入通话";
+"join.start.agent.name" = "智能体";
+
+"conversation.agent.name" = "智能体";
+"conversation.button.end.call" = "结束通话";
+"conversation.agent.loading" = "智能体正在加入";
+"conversation.agent.joined" = "智能体已加入！";
+"conversation.join.failed" = "加入频道失败：";
+"conversation.agent.leave" = "智能体已离开频道";
+"conversation.end.call.loading" = "正在关闭";
+"conversation.end.call.leave" = "智能体离开";
+"conversation.message.you" = "你";
+"conversation.message.agent.name" = "AI 智能体";
+"conversation.message.alert.title" = "清除消息";
+"conversation.message.alert.content" = "您确定要清除所有消息吗？";
+
+"conversation.alert.cancel" = "取消";
+"conversation.alert.clear" = "清除";
+
+"settings.title" = "设置";
+"settings.preset" = "预设";
+"settings.advanced" = "高级设置";
+"settings.device" = "设备";
+"settings.language" = "语言";
+"settings.voice" = "语音";
+"settings.model" = "模型";
+"settings.microphone" = "麦克风";
+"settings.speaker" = "扬声器";
+"settings.noise.cancellation" = "噪声取消";
+
+"channel.info.title" = "频道信息";
+"channel.info.agent.status" = "智能体状态";
+"channel.info.room.status" = "房间状态";
+"channel.info.room.id" = "房间ID";
+"channel.info.your.id" = "您的ID";
+
+"error.network" = "请求失败：";
+"error.room.error" = "房间已经不存在了。请发起一个新的会话。";
+"error.join.error" = "加入失败。请重试。";
+
