@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import Common
+
 public extension UIImage {
     static func va_named(_ name: String) -> UIImage? {
         return ResourceManager.image(named: name)

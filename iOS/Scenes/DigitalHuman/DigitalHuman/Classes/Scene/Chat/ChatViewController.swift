@@ -12,7 +12,7 @@ import SVProgressHUD
 import SwifterSwift
 import Common
 
-class ChatViewController: UIViewController {
+class LivingViewController: UIViewController {
     // MARK: - Properties
     private var showMineContent: Bool = true {
         didSet {
@@ -27,7 +27,7 @@ class ChatViewController: UIViewController {
                           channel: String,
                           showMineContent: Bool = true,
                           vc: UIViewController) {
-        let livingVC = ChatViewController()
+        let livingVC = LivingViewController()
         livingVC.host = host
         livingVC.rtcToken = token
         livingVC.uid = uid
@@ -176,27 +176,7 @@ class ChatViewController: UIViewController {
         return imageView
     }()
     
-    private lazy var messageView: ChatView = {
-        let view = ChatView()
-        view.isHidden = true
-        return view
-    }()
-    
     private var stopInitiative = false
-    
-    private lazy var clearButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setImage(UIImage.va_named("ic_msg_clean_icon"), for: .normal)
-        button.setTitle("Clear", for: .normal)
-        button.setTitleColor(PrimaryColors.c_0097d4, for: .normal)
-        button.titleLabel?.textAlignment = .center
-        button.addTarget(self, action: #selector(handleClearAction), for: .touchUpInside)
-        let spacing: CGFloat = 5
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        button.isHidden = true
-        return button
-    }()
     
     deinit {
         print("liveing view controller deinit")
@@ -235,24 +215,11 @@ class ChatViewController: UIViewController {
         
         contentView.addSubview(waveView)
         contentView.addSubview(aiNameLabel)
-        contentView.addSubview(messageView)
-        
-        messageView.addSubview(clearButton)
         
         mineContentView.addSubview(mineAvatarLabel)
         mineContentView.addSubview(mineNameView)
         mineNameView.addSubview(mineNameLabel)
         mineNameView.addSubview(micStateImageView)
-        
-        messageView.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
-        }
-        
-        clearButton.snp.makeConstraints { make in
-            make.right.equalTo(-20)
-            make.bottom.equalTo(-10)
-            make.height.equalTo(24)
-        }
         
         selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)
         selectTableMask.isHidden = true
@@ -468,25 +435,10 @@ class ChatViewController: UIViewController {
         selectTable = nil
         selectTableMask.isHidden = true
     }
-    
-    @objc private func handleClearAction() {
-        let alert = UIAlertController(
-            title: ResourceManager.L10n.Conversation.clearMessageTitle,
-            message: ResourceManager.L10n.Conversation.clearMessageContent,
-            preferredStyle: .alert
-        )
-        
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Clear", style: .destructive) { [weak self] _ in
-            self?.messageView.clearMessages()
-        })
-        
-        present(alert, animated: true)
-    }
 }
 
 // MARK: - AgoraRtcEngineDelegate
-extension ChatViewController: AgoraRtcEngineDelegate {
+extension LivingViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOccurError errorCode: AgoraErrorCode) {
         addLog("engine didOccurError: \(errorCode.rawValue)")
         SVProgressHUD.dismiss()
@@ -575,43 +527,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     private func handleStreamMessage(_ message: [String: Any]) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            let isFinal = message["is_final"] as? Bool ?? false
-            let streamId = message["stream_id"] as? Int ?? 0
-            let text = message["text"] as? String ?? ""
-            let dataType = message["data_type"] as? String ?? ""
-            
-            // Ignore empty messages
-            guard !text.isEmpty else { return }
-            
-            if dataType == "transcribe" {
-                if streamId == 0 {
-                    // AI response message
-                    if !isFinal {
-                        // Non-final message, update streaming content
-                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            self.messageView.startNewStreamMessage()
-                        }
-                        self.messageView.updateStreamContent(text)
-                    } else {
-                        // Final message, complete current message
-                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            // If it's a new message, create it first
-                            self.messageView.startNewStreamMessage()
-                            self.messageView.updateStreamContent(text)
-                        }
-                        self.messageView.completeStreamMessage()
-                    }
-                } else {
-                    // User message
-                    if isFinal {
-                        self.messageView.addUserMessage(text)
-                    }
-                }
-            }
-        }
+        
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
@@ -640,7 +556,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
 }
 // MARK: - AgentSettingViewDelegate
-extension ChatViewController: AgentSettingViewDelegate {
+extension LivingViewController: AgentSettingViewDelegate {
     func onClickNoiseCancellationChanged(isOn: Bool) {
         isDenoise = isOn
         setupDenoise()
@@ -662,7 +578,7 @@ extension ChatViewController: AgentSettingViewDelegate {
 }
 
 // MARK: - Wave
-extension ChatViewController {
+extension LivingViewController {
     func randomMultiplier() -> CGFloat {
         return CGFloat.random(in: 0.5...1.5) // Generate a random number between 0.5 and 1.5
     }
@@ -705,7 +621,7 @@ extension ChatViewController {
 }
 
 // MARK: - Actions
-private extension ChatViewController {
+private extension LivingViewController {
     func stopPageAction() {
         agentManager.stopAgent(agentUid: self.agent_rtc_id) { err, res in
         }
@@ -762,8 +678,7 @@ private extension ChatViewController {
     
     @objc func handleMsgAction(_ sender: UIButton) {
         sender.isSelected.toggle()
-        messageView.isHidden = !sender.isSelected
-//        clearButton.isHidden = !sender.isSelected
+        
     }
 }
 

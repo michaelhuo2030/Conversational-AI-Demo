@@ -121,8 +121,8 @@ class AgentSettingBar: UIView {
 }
 
 // MARK: - PreparedToStartViewController
-class PreparedToStartViewController: UIViewController {
-    var showMineContent: Bool = false
+public class PreparedToStartViewController: UIViewController {
+    public var showMineContent: Bool = false
     // MARK: - Properties
     private lazy var host: String = AppContext.shared.baseServerUrl
     private lazy var rtcToken: String = ""
@@ -204,7 +204,7 @@ class PreparedToStartViewController: UIViewController {
     private var selectTableMask = UIButton(type: .custom)
         
     // MARK: - Lifecycle
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
         setupConstraints()

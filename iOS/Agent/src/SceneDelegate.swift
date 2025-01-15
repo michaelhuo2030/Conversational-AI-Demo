@@ -16,7 +16,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let window = UIWindow(windowScene: windowScene)
 //        window.rootViewController = setupTabbarController()
-        let navigationVC = UINavigationController(rootViewController: VoiceAgentContext.voiceAgentHomePage())
+        let navigationVC = UINavigationController(rootViewController: AgentHomeViewController())
         window.rootViewController = navigationVC
         self.window = window
         window.makeKeyAndVisible()

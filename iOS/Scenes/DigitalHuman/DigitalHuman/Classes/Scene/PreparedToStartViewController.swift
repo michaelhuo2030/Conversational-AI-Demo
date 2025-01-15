@@ -324,7 +324,7 @@ class PreparedToStartViewController: UIViewController {
     }
     
     private func showAgent() {
-        ChatViewController.showAgent(host: host, token: rtcToken, uid: uid, agentUid: AppContext.agentUid, channel: channelName, showMineContent: showMineContent, vc: self)
+        LivingViewController.showAgent(host: host, token: rtcToken, uid: uid, agentUid: AppContext.agentUid, channel: channelName, showMineContent: showMineContent, vc: self)
     }
     
     // MARK: - Actions

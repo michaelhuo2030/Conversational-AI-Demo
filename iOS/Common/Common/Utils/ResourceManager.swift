@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Common
 
 public class ResourceManager {
     static let sceneName = "VoiceAgent"
