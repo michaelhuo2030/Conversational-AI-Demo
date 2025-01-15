@@ -1,0 +1,62 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+}
+
+if (project.getProperty("AG_APP_ID").toString().isEmpty()) {
+    throw new GradleException("请在 gradle.properties 中配置 Agora ID 和 Certificate")
+}
+
+android {
+    namespace 'io.agora.scene.common'
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdkVersion
+
+        buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("AG_APP_ID")}\"")
+        buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("AG_APP_CERTIFICATE")}\"")
+        buildConfigField("String", "TOOLBOX_SERVER_HOST", "\"${project.getProperty("TOOLBOX_SERVER_HOST")}\"")
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    api libs.androidx.core.ktx
+    api libs.androidx.appcompat
+    api libs.material
+    api libs.androidx.activity
+    api libs.androidx.constraintlayout
+    api libs.androidx.viewbinding
+    api libs.navigation.fragment.ktx
+    api libs.navigation.ui.ktx
+
+    api libs.okhttp.core
+    api libs.okhttp.logging.interceptor
+    api libs.gson
+    api libs.mmkv
+    api libs.xlog
+    api libs.toasty
+
+    api libs.commons.codec
+    api libs.agora.authentication
+    api libs.agora.rtc.voice
+
+}
