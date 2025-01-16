@@ -583,10 +583,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             return
         }
         
-        print("raw string: \(rawString)")
+//        print("raw string: \(rawString)")
         // Use message parser to process the message
         if let message = messageParser.parseMessage(rawString) {
             print("receive msg: \(message)")
+            addLog("receive msg: \(message)")
             handleStreamMessage(message)
         }
     }
@@ -613,12 +614,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                         }
                         self.messageView.updateStreamContent(text)
                     } else {
-                        // Final message, complete current message
+                        // Final message, update and complete
                         if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            // If it's a new message, create it first
                             self.messageView.startNewStreamMessage()
-                            self.messageView.updateStreamContent(text)
                         }
+                        self.messageView.updateStreamContent(text)
                         self.messageView.completeStreamMessage()
                     }
                 } else {

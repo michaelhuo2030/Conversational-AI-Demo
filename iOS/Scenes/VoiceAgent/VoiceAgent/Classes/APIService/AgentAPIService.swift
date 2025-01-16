@@ -109,6 +109,9 @@ class AgentAPIService: AgentAPI {
             "channel_name": channelName,
             "agent_rtc_uid": agentRtcUid,
             "remote_rtc_uid": remote_rtc_uid,
+            "custom_llm": [
+                "prompt": AgentSettingManager.shared.currentPresetType.prompt
+            ],
             "tts": [
                 "voice_id": voiceId
             ]
