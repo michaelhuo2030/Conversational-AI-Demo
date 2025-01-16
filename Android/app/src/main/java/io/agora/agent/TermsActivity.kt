@@ -1,5 +1,6 @@
 package io.agora.agent
 
+import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
 import io.agora.agent.databinding.ActivityTermsBinding
 import io.agora.scene.common.constant.ServerConfig
@@ -7,23 +8,42 @@ import io.agora.scene.common.ui.BaseActivity
 
 class TermsActivity : BaseActivity<ActivityTermsBinding>() {
 
-    private lateinit var binding: ActivityTermsBinding
-
     override fun getViewBinding(): ActivityTermsBinding {
         return  ActivityTermsBinding.inflate(layoutInflater)
     }
 
     override fun initView() {
-        binding.webView.settings.javaScriptEnabled = true
-        binding.webView.webViewClient = WebViewClient()
-        binding.webView.loadUrl(ServerConfig.siteUrl)
+        mBinding?.apply {
+            webView.settings.javaScriptEnabled = true
+            webView.webViewClient = WebViewClient()
+            webView.loadUrl(ServerConfig.siteUrl)
+
+            setSupportActionBar(toolbar)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            supportActionBar?.setDisplayShowHomeEnabled(true)
+            toolbar.setNavigationOnClickListener { onBackPressed() }
+
+            webView.webChromeClient = object : WebChromeClient() {
+                override fun onProgressChanged(view: android.webkit.WebView, newProgress: Int) {
+                    super.onProgressChanged(view, newProgress)
+                    progressBar.progress = newProgress
+                    if (newProgress == 100) {
+                        progressBar.visibility = android.view.View.GONE
+                    } else {
+                        progressBar.visibility = android.view.View.VISIBLE
+                    }
+                }
+            }
+        }
     }
 
     override fun onHandleOnBackPressed() {
-        if (binding.webView.canGoBack()) {
-            binding.webView.goBack()
-        } else {
-            super.onHandleOnBackPressed()
+        mBinding?.let {
+            if (it.webView.canGoBack()) {
+                it.webView.goBack()
+            } else {
+                super.onHandleOnBackPressed()
+            }
         }
     }
 }

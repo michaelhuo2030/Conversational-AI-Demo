@@ -18,6 +18,7 @@
     <string name="cov_detail_not_joined">Not Joined</string>
     <string name="cov_detail_clear_message">Clear</string>
     <string name="cov_detail_join_call">Join Call</string>
+    <string name="cov_detail_end_call">End Call</string>
     <string name="cov_detail_agent_joining">Joining</string>
     <string name="cov_detail_agent_ending">Ending</string>
     <string name="cov_detail_join_call_failed">Failed to join. Please try again.</string>

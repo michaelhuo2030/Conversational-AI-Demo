@@ -2,6 +2,7 @@ package io.agora.agent
 
 import android.Manifest
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
@@ -9,6 +10,7 @@ import androidx.fragment.app.FragmentTransaction
 import io.agora.agent.databinding.ActivityMainBinding
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.convoai.rtc.AgoraManager
 import java.util.Locale
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
@@ -20,14 +22,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (ServerConfig.isMainlandVersion) {
-            setLocale("zh")
-        } else {
-            setLocale("en")
-        }
-
+        setupLocale()
         super.onCreate(savedInstanceState)
-
     }
 
     override fun initView() {
@@ -47,6 +43,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE),
             REQUEST_CODE
         )
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        setupLocale()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupLocale()
     }
 
     private fun setupView() {
@@ -90,10 +96,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
             fragmentTransaction.commit()
         }
-
     }
 
-    private fun setLocale(lang: String) {
+    private fun setupLocale() {
+        var lang = "en"
+        if (ServerConfig.isMainlandVersion) {
+            lang = "zh"
+        }
         val locale = Locale(lang)
         Locale.setDefault(locale)
         val config = resources.configuration

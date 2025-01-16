@@ -410,7 +410,7 @@ class ConvoAiLivingActivity : BaseActivity<ConvoaiActivityLivingBinding>() {
             btnBack.setOnClickListener {
                 finish()
             }
-            btnEnd.setOnClickListener {
+            llEndCall.setOnClickListener {
                 onClickEndCall()
             }
             btnMic.setOnClickListener {

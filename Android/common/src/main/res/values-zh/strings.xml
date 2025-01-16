@@ -18,6 +18,7 @@
     <string name="cov_detail_not_joined">未加入</string>
     <string name="cov_detail_clear_message">清除</string>
     <string name="cov_detail_join_call">加入通话</string>
+    <string name="cov_detail_end_call">结束通话</string>
     <string name="cov_detail_agent_joining">加入中</string>
     <string name="cov_detail_agent_ending">停止中</string>
     <string name="cov_detail_join_call_failed">加入频道失败：</string>

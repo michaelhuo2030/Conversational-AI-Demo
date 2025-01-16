@@ -156,13 +156,29 @@
                     android:src="@drawable/app_chat_list_btn"/>
             </androidx.cardview.widget.CardView>
 
-            <ImageButton
-                android:id="@+id/btn_end"
+            <LinearLayout
+                android:id="@+id/ll_end_call"
                 android:layout_width="172dp"
                 android:layout_height="72dp"
+                android:layout_gravity="center"
                 android:layout_marginStart="16dp"
-                android:background="@drawable/app_living_end" />
+                android:background="@drawable/btn_red_radio_enable"
+                android:gravity="center_horizontal|center_vertical"
+                android:orientation="horizontal">
 
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/app_living_end" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cov_detail_end_call"
+                    android:textColor="#FDFCFB"
+                    android:textSize="18sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
