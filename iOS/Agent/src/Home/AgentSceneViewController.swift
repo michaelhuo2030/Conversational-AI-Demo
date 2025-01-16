@@ -206,15 +206,12 @@ class AgentSceneViewController: UIViewController {
     private func handleItemSelected(_ item: AgentItem) {
         switch item {
         case .conversationalAI:
-            let vc = PreparedToStartViewController()
-            vc.showMineContent = item.shouldShowMineContent
-            self.navigationController?.pushViewController(vc, animated: true)
+            VoiceAgentContext.voiceAgentScene(viewController: self)
 //        case .agoraV2V:
 //            print("Agora V2V selected")
         case .digitalHuman:
             print("Digital Human selected")
-            let vc = DigitalHumanViewController()
-            self.navigationController?.pushViewController(vc)
+            DigitalHumanContext.digitalHumanAgentScene(viewController: self)
         }
     }
 }

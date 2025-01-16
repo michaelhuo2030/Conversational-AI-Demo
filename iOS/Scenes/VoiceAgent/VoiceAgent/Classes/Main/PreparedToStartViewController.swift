@@ -127,7 +127,7 @@ class AgentSettingBar: UIView, NetworkSignalViewDelegate {
 }
 
 // MARK: - PreparedToStartViewController
-public class PreparedToStartViewController: UIViewController {
+class PreparedToStartViewController: UIViewController {
     public var showMineContent: Bool = false
     // MARK: - Properties
     private lazy var host: String = AppContext.shared.baseServerUrl

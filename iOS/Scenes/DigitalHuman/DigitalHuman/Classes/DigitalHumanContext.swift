@@ -12,8 +12,9 @@ import UIKit
 public class DigitalHumanContext: NSObject {
     public static let kSceneName = "DigitalHuman"
 
-    public static func voiceAgentScene(viewController: UIViewController) {
-        
+    public static func digitalHumanAgentScene(viewController: UIViewController) {
+        let vc = DigitalHumanViewController()
+        viewController.navigationController?.pushViewController(vc)
     }
     
 }

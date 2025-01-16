@@ -12,7 +12,7 @@ import SVProgressHUD
 import SwifterSwift
 import Common
 
-public class DigitalHumanViewController: UIViewController {
+class DigitalHumanViewController: UIViewController {
     
     private var host = ""
     private var rtcToken = ""
@@ -49,6 +49,8 @@ public class DigitalHumanViewController: UIViewController {
     private var videoButton: UIButton!
     
     private var stopInitiative = false
+    
+    var onMineContentViewClicked: (() -> Void)?
     
     deinit {
         print("DigitalHumanViewController deinit")
@@ -514,6 +516,9 @@ private extension DigitalHumanViewController {
         mineContentView.backgroundColor = UIColor(hex:0x333333)
         mineContentView.layerCornerRadius = 8
         mineContentView.clipsToBounds = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMineContentViewTapped))
+        mineContentView.addGestureRecognizer(tapGesture)
+        mineContentView.isUserInteractionEnabled = true
         view.addSubview(mineContentView)
         mineContentView.snp.makeConstraints { make in
             make.width.equalTo(215)
@@ -582,5 +587,9 @@ private extension DigitalHumanViewController {
         selectTableMask.snp.makeConstraints { make in
             make.top.left.right.bottom.equalToSuperview()
         }
+    }
+    
+    @objc private func handleMineContentViewTapped() {
+        
     }
 }
