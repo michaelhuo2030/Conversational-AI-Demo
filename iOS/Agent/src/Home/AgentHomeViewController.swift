@@ -10,6 +10,7 @@ import SnapKit
 import AgoraRtcKit
 import SwifterSwift
 import Common
+import DigitalHuman
 
 class AgentHomeViewController: UIViewController {
     private lazy var nextStepButton: UIButton = {
@@ -101,7 +102,10 @@ class AgentHomeViewController: UIViewController {
     }
     
     @objc func onClickNextStep() {
-        let vc = AgentSceneViewController()
+//        let vc = AgentSceneViewController()
+//        self.navigationController?.pushViewController(vc)
+        
+        let vc = DigitalHumanViewController()
         self.navigationController?.pushViewController(vc)
     }
     
