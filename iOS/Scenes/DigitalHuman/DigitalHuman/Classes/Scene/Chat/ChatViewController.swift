@@ -52,7 +52,6 @@ class LivingViewController: UIViewController {
 
     private var selectTable: AgentSettingInfoView? = nil
     private var selectTableMask = UIButton(type: .custom)
-    private let messageParser = MessageParser()
 
     private lazy var topBar: AgentSettingBar = {
         let view = AgentSettingBar()
@@ -513,20 +512,6 @@ extension LivingViewController: AgoraRtcEngineDelegate {
     }
         
     func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
-        guard let rawString = String(data: data, encoding: .utf8) else {
-            print("Failed to convert data to string")
-            return
-        }
-        
-        print("raw string: \(rawString)")
-        // Use message parser to process the message
-        if let message = messageParser.parseMessage(rawString) {
-            print("receive msg: \(message)")
-            handleStreamMessage(message)
-        }
-    }
-    
-    private func handleStreamMessage(_ message: [String: Any]) {
         
     }
     
