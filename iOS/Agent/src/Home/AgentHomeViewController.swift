@@ -102,10 +102,7 @@ class AgentHomeViewController: UIViewController {
     }
     
     @objc func onClickNextStep() {
-//        let vc = AgentSceneViewController()
-//        self.navigationController?.pushViewController(vc)
-        
-        let vc = DigitalHumanViewController()
+        let vc = AgentSceneViewController()
         self.navigationController?.pushViewController(vc)
     }
     

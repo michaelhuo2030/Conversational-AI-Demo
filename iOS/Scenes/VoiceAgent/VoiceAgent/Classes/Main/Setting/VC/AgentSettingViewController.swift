@@ -64,9 +64,12 @@ class AgentSettingViewController: UIViewController {
         selectTableMask.isHidden = false
         let types = AgentPresetType.availablePresets
         let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentPresetType) ?? 0
-        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { index in
+        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { [weak self] index in
+            guard let self = self else { return }
             AgentSettingManager.shared.currentPresetType = types[index]
             self.infoItem.detialLabel.text = types[index].rawValue
+            self.updateUIWithCurrentSettings()
+            self.delegate?.onClickVoice()
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -108,7 +111,8 @@ class AgentSettingViewController: UIViewController {
         let currentPreset = AgentSettingManager.shared.currentPresetType
         let types = AgentModelType.availableModels(for: currentPreset)
         let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentModelType) ?? 0
-        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { index in
+        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { [weak self] index in
+            guard let self = self else { return }
             AgentSettingManager.shared.currentModelType = types[index]
             self.modelItem.detialLabel.text = types[index].rawValue
         }
@@ -129,7 +133,8 @@ class AgentSettingViewController: UIViewController {
         let currentPreset = AgentSettingManager.shared.currentPresetType
         let types = AgentLanguageType.availableLanguages(for: currentPreset)
         let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentLanguageType) ?? 0
-        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { index in
+        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { [weak self] index in
+            guard let self = self else { return }
             AgentSettingManager.shared.currentLanguageType = types[index]
             self.languageItem.detialLabel.text = types[index].rawValue
         }

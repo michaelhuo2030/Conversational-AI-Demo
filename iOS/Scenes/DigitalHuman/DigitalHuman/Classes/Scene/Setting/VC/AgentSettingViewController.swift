@@ -203,7 +203,7 @@ extension AgentSettingViewController {
         self.navigationItem.leftBarButtonItem = leftTitleItem
         
         let closeButton = UIButton(type: .custom)
-        closeButton.setImage(UIImage.va_named("ic_agent_setting_close"), for: .normal)
+        closeButton.setImage(UIImage.dh_named("ic_agent_setting_close"), for: .normal)
         closeButton.addTarget(self, action: #selector(onClickClose(_ :)), for: .touchUpInside)
         
         let rightItem = UIBarButtonItem(customView: closeButton)
@@ -220,7 +220,7 @@ extension AgentSettingViewController {
         
         let customView = UIView()
         customView.backgroundColor = .clear
-        let centerImageView = UIImageView(image: UIImage.va_named("ic_setting_bar_icon"))
+        let centerImageView = UIImageView(image: UIImage.dh_named("ic_setting_bar_icon"))
         customView.addSubview(centerImageView)
         centerImageView.contentMode = .scaleAspectFit
         self.navigationItem.titleView = customView

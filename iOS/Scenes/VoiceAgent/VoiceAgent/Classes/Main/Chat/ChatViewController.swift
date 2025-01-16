@@ -62,6 +62,9 @@ class ChatViewController: UIViewController {
         view.onSettingButtonTapped = { [weak self] in
             self?.handleSettingAction()
         }
+        view.onNetworkStatusChanged = { [weak self] in
+            self?.handleNetworkButtonTapped()
+        }
         view.onBackButtonTapped = { [weak self] in
             self?.stopPageAction()
         }
@@ -456,6 +459,20 @@ class ChatViewController: UIViewController {
         }
     }
     
+    private func handleNetworkButtonTapped() {
+        selectTableMask.isHidden = false
+        let v = AgentNetworkInfoView()
+        self.view.addSubview(v)
+        selectTable = v
+        let button = topBar.networkSignalView
+        v.snp.makeConstraints { make in
+            make.right.equalTo(button.snp.right).offset(20)
+            make.top.equalTo(button.snp.bottom)
+            make.width.equalTo(304)
+            make.height.equalTo(104)
+        }
+    }
+    
     private func extractJsonData(from rawString: String) -> Data? {
         let components = rawString.components(separatedBy: "|")
         guard components.count >= 4 else { return nil }
@@ -566,10 +583,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             return
         }
         
-        print("raw string: \(rawString)")
+//        print("raw string: \(rawString)")
         // Use message parser to process the message
         if let message = messageParser.parseMessage(rawString) {
             print("receive msg: \(message)")
+            addLog("receive msg: \(message)")
             handleStreamMessage(message)
         }
     }
@@ -596,12 +614,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                         }
                         self.messageView.updateStreamContent(text)
                     } else {
-                        // Final message, complete current message
+                        // Final message, update and complete
                         if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            // If it's a new message, create it first
                             self.messageView.startNewStreamMessage()
-                            self.messageView.updateStreamContent(text)
                         }
+                        self.messageView.updateStreamContent(text)
                         self.messageView.completeStreamMessage()
                     }
                 } else {

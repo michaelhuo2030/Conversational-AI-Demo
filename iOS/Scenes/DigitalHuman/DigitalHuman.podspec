@@ -36,7 +36,8 @@ TODO: Add long description of the pod here.
   s.source_files = 'DigitalHuman/Classes/**/*'
   s.resource_bundles = {
     'DigitalHuman' => [
-      'DigitalHuman/Assets/**/*'
+      'DigitalHuman/Assets/**/*',
+      'DigitalHuman/Resources/*.lproj'
     ]
   }
   
