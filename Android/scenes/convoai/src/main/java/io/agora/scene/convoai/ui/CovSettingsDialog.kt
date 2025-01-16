@@ -12,10 +12,10 @@ import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import io.agora.convoai.R
-import io.agora.convoai.databinding.ConvoaiSettingDialogBinding
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.LoadingDialog
+import io.agora.scene.convoai.R
+import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.http.ConvAIManager
 import io.agora.scene.convoai.rtc.AgentLLMType
 import io.agora.scene.convoai.rtc.AgentLanguageType
@@ -23,9 +23,9 @@ import io.agora.scene.convoai.rtc.AgentMicrophoneType
 import io.agora.scene.convoai.rtc.AgentPresetType
 import io.agora.scene.convoai.rtc.AgentSpeakerType
 import io.agora.scene.convoai.rtc.AgentVoiceType
-import io.agora.scene.convoai.rtc.AgoraManager
+import io.agora.scene.convoai.rtc.CovAgoraManager
 
-class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() {
+class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     companion object {
         private const val TAG = "AgentSettingsSheetDialog"
@@ -48,8 +48,8 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
     override fun getViewBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
-    ): ConvoaiSettingDialogBinding {
-        return ConvoaiSettingDialogBinding.inflate(inflater, container, false)
+    ): CovSettingDialogBinding {
+        return CovSettingDialogBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -57,9 +57,9 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
         updateOptionsByPresets()
         binding?.apply {
             setOnApplyWindowInsets(root)
-            cbNoiseCancellation.isChecked = AgoraManager.currentDenoiseStatus()
+            cbNoiseCancellation.isChecked = CovAgoraManager.currentDenoiseStatus()
             cbNoiseCancellation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-                AgoraManager.updateDenoise(isChecked)
+                CovAgoraManager.updateDenoise(isChecked)
             }
             btnClose.setOnClickListener {
                 dismiss()
@@ -76,16 +76,16 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
 
     private fun uploadNewSetting(voice: AgentVoiceType, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
         val context = context?:return
-        if (AgoraManager.agentStarted) {
+        if (CovAgoraManager.agentStarted) {
             val loadingDialog = LoadingDialog(context).apply {
                 show()
             }
             ConvAIManager.updateAgent(voice.value) { success ->
                 loadingDialog.dismiss()
                 if (success) {
-                    AgoraManager.voiceType = voice
-                    llm?.let { AgoraManager.llmType = llm }
-                    language?.let { AgoraManager.languageType = language }
+                    CovAgoraManager.voiceType = voice
+                    llm?.let { CovAgoraManager.llmType = llm }
+                    language?.let { CovAgoraManager.languageType = language }
                     updateSpinners()
                 } else {
                     updateSpinners()
@@ -97,9 +97,9 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
                 }
             }
         } else {
-            AgoraManager.voiceType = voice
-            llm?.let { AgoraManager.llmType = llm }
-            language?.let { AgoraManager.languageType = language }
+            CovAgoraManager.voiceType = voice
+            llm?.let { CovAgoraManager.llmType = llm }
+            language?.let { CovAgoraManager.languageType = language }
             updateSpinners()
         }
     }
@@ -107,7 +107,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
     private fun updateSpinners() {
         binding?.apply {
             voiceAdapter.updateItems(voices.map { it.display }.toList())
-            val defaultVoice = AgoraManager.voiceType
+            val defaultVoice = CovAgoraManager.voiceType
             val voicePosition = voices.indexOf(defaultVoice)
             if (voicePosition != -1) {
                 voiceAdapter.updateSelectedPosition(voicePosition)
@@ -115,7 +115,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
             }
 
             modelAdapter.updateItems(LLMs.map { it.display }.toList())
-            val defaultModel = AgoraManager.llmType
+            val defaultModel = CovAgoraManager.llmType
             val modelPosition = LLMs.indexOf(defaultModel)
             if (modelPosition != -1) {
                 modelAdapter.updateSelectedPosition(modelPosition)
@@ -123,7 +123,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
             }
 
             speakerAdapter.updateItems(speakers.map { it.value }.toList())
-            val defaultSpeaker = AgoraManager.speakerType
+            val defaultSpeaker = CovAgoraManager.speakerType
             val speakerPosition = speakers.indexOf(defaultSpeaker)
             if (speakerPosition != -1) {
                 speakerAdapter.updateSelectedPosition(speakerPosition)
@@ -131,7 +131,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
             }
 
             presetAdapter.updateItems(presets.map { it.value }.toList())
-            val defaultPreset = AgoraManager.currentPresetType()
+            val defaultPreset = CovAgoraManager.currentPresetType()
             val presetPosition = presets.indexOf(defaultPreset)
             if (presetPosition != -1) {
                 presetAdapter.updateSelectedPosition(presetPosition)
@@ -139,7 +139,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
             }
 
             languageAdapter.updateItems(languages.map { it.value }.toList())
-            val defaultLanguage = AgoraManager.languageType
+            val defaultLanguage = CovAgoraManager.languageType
             val languagePosition = languages.indexOf(defaultLanguage)
             if (languagePosition != -1) {
                 languageAdapter.updateSelectedPosition(languagePosition)
@@ -147,7 +147,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
             }
 
             microphoneAdapter.updateItems(microphones.map { it.value }.toList())
-            val defaultMicrophone = AgoraManager.microphoneType
+            val defaultMicrophone = CovAgoraManager.microphoneType
             val microphonePosition = microphones.indexOf(defaultMicrophone)
             if (microphonePosition != -1) {
                 microphoneAdapter.updateSelectedPosition(microphonePosition)
@@ -161,7 +161,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
         binding?.apply {
             voiceAdapter = CustomArrayAdapter(
                 context,
-                R.layout.agent_setting_spinner_list_item,
+                R.layout.cov_setting_spinner_item,
                 mutableListOf()
             )
             spVoice.adapter = voiceAdapter
@@ -173,7 +173,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
                     id: Long
                 ) {
                     val selectedVoice = voices[position]
-                    if (AgoraManager.voiceType != selectedVoice) {
+                    if (CovAgoraManager.voiceType != selectedVoice) {
                         uploadNewSetting(voice = selectedVoice)
                     }
                 }
@@ -188,7 +188,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
         binding?.apply {
             modelAdapter = CustomArrayAdapter(
                 context,
-                R.layout.agent_setting_spinner_list_item,
+                R.layout.cov_setting_spinner_item,
                 mutableListOf()
             )
             spModel.adapter = modelAdapter
@@ -212,7 +212,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
         binding?.apply {
             languageAdapter = CustomArrayAdapter(
                 context,
-                R.layout.agent_setting_spinner_list_item,
+                R.layout.cov_setting_spinner_item,
                 mutableListOf()
             )
             spLanguage.adapter = languageAdapter
@@ -235,7 +235,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
         binding?.apply {
             microphoneAdapter = CustomArrayAdapter(
                 context,
-                R.layout.agent_setting_spinner_list_item,
+                R.layout.cov_setting_spinner_item,
                 mutableListOf()
             )
             spMicrophone.adapter = microphoneAdapter
@@ -259,7 +259,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
         binding?.apply {
             speakerAdapter = CustomArrayAdapter(
                 context,
-                R.layout.agent_setting_spinner_list_item,
+                R.layout.cov_setting_spinner_item,
                 mutableListOf()
             )
             spSpeaker.adapter = speakerAdapter
@@ -282,7 +282,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
         binding?.apply {
             presetAdapter = CustomArrayAdapter(
                 context,
-                R.layout.agent_setting_spinner_list_item,
+                R.layout.cov_setting_spinner_item,
                 mutableListOf()
             )
             spPreset.adapter = presetAdapter
@@ -293,27 +293,27 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
                     position: Int,
                     id: Long
                 ) {
-                    val oldVoiceType = AgoraManager.voiceType
-                    val oldLLMType = AgoraManager.llmType
-                    val oldLanguageType = AgoraManager.languageType
-                    val oldPreset = AgoraManager.currentPresetType()
+                    val oldVoiceType = CovAgoraManager.voiceType
+                    val oldLLMType = CovAgoraManager.llmType
+                    val oldLanguageType = CovAgoraManager.languageType
+                    val oldPreset = CovAgoraManager.currentPresetType()
                     val selectedPreset = presets[position]
-                    if (AgoraManager.currentPresetType() != selectedPreset) {
-                        if (AgoraManager.agentStarted) {
+                    if (CovAgoraManager.currentPresetType() != selectedPreset) {
+                        if (CovAgoraManager.agentStarted) {
                             val loadingDialog = LoadingDialog(context!!).apply {
                                 show()
                             }
-                            AgoraManager.updatePreset(presets[position])
-                            ConvAIManager.updateAgent(AgoraManager.voiceType.value) { success ->
+                            CovAgoraManager.updatePreset(presets[position])
+                            ConvAIManager.updateAgent(CovAgoraManager.voiceType.value) { success ->
                                 loadingDialog.dismiss()
                                 if (success) {
                                     updateOptionsByPresets()
                                     updateSpinners()
                                 } else {
-                                    AgoraManager.updatePreset(oldPreset)
-                                    AgoraManager.voiceType = oldVoiceType
-                                    AgoraManager.llmType = oldLLMType
-                                    AgoraManager.languageType = oldLanguageType
+                                    CovAgoraManager.updatePreset(oldPreset)
+                                    CovAgoraManager.voiceType = oldVoiceType
+                                    CovAgoraManager.llmType = oldLLMType
+                                    CovAgoraManager.languageType = oldLanguageType
                                     updateSpinners()
                                     Toast.makeText(
                                         context,
@@ -323,7 +323,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
                                 }
                             }
                         } else {
-                            AgoraManager.updatePreset(presets[position])
+                            CovAgoraManager.updatePreset(presets[position])
                             updateOptionsByPresets()
                             updateSpinners()
                         }
@@ -336,7 +336,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
     }
 
     private fun updateOptionsByPresets() {
-        when (AgoraManager.currentPresetType()) {
+        when (CovAgoraManager.currentPresetType()) {
             AgentPresetType.VERSION1 -> {
                 voices = arrayOf(AgentVoiceType.AVA_MULTILINGUAL)
                 LLMs = arrayOf(AgentLLMType.OPEN_AI)
@@ -383,7 +383,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = convertView ?: LayoutInflater.from(context).inflate(
-                R.layout.agent_setting_spinner_list_item, parent, false
+                R.layout.cov_setting_spinner_item, parent, false
             )
             val textView = view.findViewById<TextView>(R.id.tv_text)
             val iconView = view.findViewById<ImageView>(R.id.iv_icon)
@@ -394,7 +394,7 @@ class AgentSettingsSheetDialog : BaseSheetDialog<ConvoaiSettingDialogBinding>() 
 
         override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = convertView ?: LayoutInflater.from(context).inflate(
-                R.layout.agent_setting_spinner_list_item, parent, false
+                R.layout.cov_setting_spinner_item, parent, false
             )
             val textView = view.findViewById<TextView>(R.id.tv_text)
             val iconView = view.findViewById<ImageView>(R.id.iv_icon)

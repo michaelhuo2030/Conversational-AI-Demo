@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="RecordingAnimationView">
+        <attr name="horizontalSpacing" format="dimension" />
+        <attr name="barWidth" format="dimension" />
+    </declare-styleable>
+</resources> 

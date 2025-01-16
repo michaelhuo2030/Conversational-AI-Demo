@@ -10,7 +10,6 @@ import androidx.fragment.app.FragmentTransaction
 import io.agora.agent.databinding.ActivityMainBinding
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseActivity
-import io.agora.scene.convoai.rtc.AgoraManager
 import java.util.Locale
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {

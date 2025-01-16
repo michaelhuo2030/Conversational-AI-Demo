@@ -60,4 +60,7 @@
     <string-array name="cov_setting_speaker_array">
         <item>内置扬声器</item>
     </string-array>
+
+    <string name="digital_youselft">你</string>
+    <string name="digital_detail_agent_title">数字人</string>
 </resources>

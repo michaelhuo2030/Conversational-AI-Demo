@@ -133,7 +133,7 @@ enum class AgentSpeakerType(val value: String) {
     SPEAKER1("BoseFlex")
 }
 
-object AgoraManager {
+object CovAgoraManager {
 
     private val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
 

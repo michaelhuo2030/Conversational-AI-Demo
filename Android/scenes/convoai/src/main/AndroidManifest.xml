@@ -3,7 +3,7 @@
 
     <application>
     <activity
-        android:name="io.agora.scene.convoai.ui.ConvoAiLivingActivity"
+        android:name="io.agora.scene.convoai.ui.CovLivingActivity"
         android:keepScreenOn="true"
         android:screenOrientation="portrait"
         android:exported="false" />

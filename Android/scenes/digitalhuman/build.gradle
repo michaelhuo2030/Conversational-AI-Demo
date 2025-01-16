@@ -4,9 +4,9 @@ plugins {
 }
 
 android {
-    namespace 'io.agora.scene.convoai'
+    namespace 'io.agora.scene.digitalhuman'
     compileSdk rootProject.ext.compileSdkVersion
-    resourcePrefix "cov_"
+    resourcePrefix "digital_"
 
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion
