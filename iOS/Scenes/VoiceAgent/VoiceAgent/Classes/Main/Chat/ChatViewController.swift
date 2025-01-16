@@ -62,6 +62,9 @@ class ChatViewController: UIViewController {
         view.onSettingButtonTapped = { [weak self] in
             self?.handleSettingAction()
         }
+        view.onNetworkStatusChanged = { [weak self] in
+            self?.handleNetworkButtonTapped()
+        }
         view.onBackButtonTapped = { [weak self] in
             self?.stopPageAction()
         }
@@ -453,6 +456,20 @@ class ChatViewController: UIViewController {
             make.top.equalTo(button.snp.bottom)
             make.width.equalTo(320)
             make.height.equalTo(290)
+        }
+    }
+    
+    private func handleNetworkButtonTapped() {
+        selectTableMask.isHidden = false
+        let v = AgentNetworkInfoView()
+        self.view.addSubview(v)
+        selectTable = v
+        let button = topBar.networkSignalView
+        v.snp.makeConstraints { make in
+            make.right.equalTo(button.snp.right).offset(20)
+            make.top.equalTo(button.snp.bottom)
+            make.width.equalTo(304)
+            make.height.equalTo(104)
         }
     }
     

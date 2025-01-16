@@ -114,10 +114,12 @@ public extension ResourceManager {
         
         public enum ChannelInfo {
             public static let title = localizedString("channel.info.title")
+            public static let networkInfoTitle = localizedString("channel.network.info.title")
             public static let agentStatus = localizedString("channel.info.agent.status")
             public static let roomStatus = localizedString("channel.info.room.status")
             public static let roomId = localizedString("channel.info.room.id")
             public static let yourId = localizedString("channel.info.your.id")
+            public static let yourNetwork = localizedString("channel.info.your.network")
         }
     }
 }

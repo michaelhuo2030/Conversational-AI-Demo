@@ -325,6 +325,8 @@ class AgentSettingManager {
     
     private(set) var agentStatus: ConnectionStatus = .unload
     private(set) var roomStatus: ConnectionStatus = .unload
+    private(set) var networkStatus: NetworkStatus = .unknown
+
     private(set) var roomId: String = ""
     private(set) var yourId: String = ""
     
@@ -347,6 +349,7 @@ class AgentSettingManager {
         get { presetType }
         set { 
             presetType = newValue
+            updateSettingsForCurrentPreset()
         }
     }
     
@@ -389,6 +392,10 @@ class AgentSettingManager {
     // MARK: - Status Update Methods
     func updateAgentStatus(_ status: ConnectionStatus) {
         agentStatus = status
+    }
+    
+    func updateAgentNetwork(_ status: NetworkStatus) {
+        networkStatus = status
     }
     
     func updateRoomStatus(_ status: ConnectionStatus) {
