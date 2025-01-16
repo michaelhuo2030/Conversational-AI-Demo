@@ -8,12 +8,13 @@
 import UIKit
 import Common
 import VoiceAgent
+import DigitalHuman
 
 // MARK: - Models
 enum AgentItem: CaseIterable {
     case conversationalAI
 //    case agoraV2V
-//    case digitalHuman
+    case digitalHuman
 //    
     var title: String {
         switch self {
@@ -21,8 +22,8 @@ enum AgentItem: CaseIterable {
             return ResourceManager.L10n.Scene.aiCardTitle
 //        case .agoraV2V:
 //            return ResourceManager.L10n.Scene.v2vCardTitle
-//        case .digitalHuman:
-//            return ResourceManager.L10n.Scene.digCardTitle
+        case .digitalHuman:
+            return ResourceManager.L10n.Scene.digCardTitle
         }
     }
     
@@ -32,29 +33,28 @@ enum AgentItem: CaseIterable {
             return ResourceManager.L10n.Scene.aiCardDes
 //        case .agoraV2V:
 //            return ResourceManager.L10n.Scene.v2vCardDes
-//        case .digitalHuman:
-//            return ResourceManager.L10n.Scene.digCardDes
+        case .digitalHuman:
+            return ResourceManager.L10n.Scene.digCardDes
         }
     }
     
     var icon: UIImage? {
         switch self {
         case .conversationalAI:
-            return UIImage.va_named("ic_con_ai_agent_icon")
+            return UIImage(named: "ic_con_ai_agent_icon")
 //        case .agoraV2V:
 //            return UIImage.va_named("ic_v2v_ai_agent_icon")
-//        case .digitalHuman:
-//            return UIImage.va_named("ic_digital_ai_agent_icon")
+        case .digitalHuman:
+            return UIImage(named: "ic_digital_ai_agent_icon")
         }
     }
     
     var shouldShowMineContent: Bool {
         switch self {
-//        case .digitalHuman:
-//            return true
+        case .digitalHuman:
+            return true
 //        case .conversationalAI, .agoraV2V:
         case .conversationalAI:
-
             return false
         }
     }
@@ -211,11 +211,10 @@ class AgentSceneViewController: UIViewController {
             self.navigationController?.pushViewController(vc, animated: true)
 //        case .agoraV2V:
 //            print("Agora V2V selected")
-//        case .digitalHuman:
-//            print("Digital Human selected")
-//            let vc = PreparedToStartViewController()
-//            vc.showMineContent = item.shouldShowMineContent
-//            self.navigationController?.pushViewController(vc, animated: true)
+        case .digitalHuman:
+            print("Digital Human selected")
+            let vc = DigitalHumanViewController()
+            self.navigationController?.pushViewController(vc)
         }
     }
 }

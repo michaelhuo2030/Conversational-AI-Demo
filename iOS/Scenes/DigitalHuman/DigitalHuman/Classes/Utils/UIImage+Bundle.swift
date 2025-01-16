@@ -9,7 +9,7 @@ import Foundation
 import Common
 
 public extension UIImage {
-    static func va_named(_ name: String) -> UIImage? {
-        return ResourceManager.image(named: name)
+    static func dh_named(_ name: String) -> UIImage? {
+        return ResourceManager.image(named: name, bundleName: "DigitalHuman")
     }
 }

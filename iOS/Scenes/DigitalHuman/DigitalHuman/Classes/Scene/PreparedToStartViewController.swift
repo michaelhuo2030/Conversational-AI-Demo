@@ -21,7 +21,7 @@ class AgentSettingBar: UIView {
     
     lazy var backButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage.va_named("ic_agora_back"), for: .normal)
+        button.setImage(UIImage.dh_named("ic_agora_back"), for: .normal)
         button.addTarget(self, action: #selector(backEvent), for: .touchUpInside)
         return button
     }()
@@ -36,13 +36,13 @@ class AgentSettingBar: UIView {
     
     private let tipsButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.va_named("ic_agent_tips_icon"), for: .normal)
+        button.setImage(UIImage.dh_named("ic_agent_tips_icon"), for: .normal)
         return button
     }()
     
     private lazy var settingButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.va_named("ic_agent_setting"), for: .normal)
+        button.setImage(UIImage.dh_named("ic_agent_setting"), for: .normal)
         button.addTarget(self, action: #selector(settingButtonClicked), for: .touchUpInside)
         return button
     }()
@@ -156,7 +156,7 @@ class PreparedToStartViewController: UIViewController {
     private lazy var agentImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage.va_named("ic_agent_circle")
+        imageView.image = UIImage.dh_named("ic_agent_circle")
         return imageView
     }()
     
@@ -191,7 +191,7 @@ class PreparedToStartViewController: UIViewController {
         button.backgroundColor = PrimaryColors.c_0097d4
         button.layer.cornerRadius = 32
         button.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)
-        button.setImage(UIImage.va_named("ic_agent_join_button_icon"), for: .normal)
+        button.setImage(UIImage.dh_named("ic_agent_join_button_icon"), for: .normal)
         
         let spacing: CGFloat = 5
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)

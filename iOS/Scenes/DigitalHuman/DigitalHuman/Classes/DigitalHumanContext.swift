@@ -9,8 +9,8 @@ import UIKit
 
 
 @objcMembers
-public class VoiceAgentContext: NSObject {
-    public static let kSceneName = "VoiceAgent"
+public class DigitalHumanContext: NSObject {
+    public static let kSceneName = "DigitalHuman"
 
     public static func voiceAgentScene(viewController: UIViewController) {
         

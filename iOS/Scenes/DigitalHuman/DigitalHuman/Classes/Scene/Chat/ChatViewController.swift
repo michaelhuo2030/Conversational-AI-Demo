@@ -87,7 +87,7 @@ class LivingViewController: UIViewController {
         button.titleLabel?.textAlignment = .center
         button.layerCornerRadius = 36
         button.clipsToBounds = true
-        button.setImage(UIImage.va_named("ic_agent_detail_phone"), for: .normal)
+        button.setImage(UIImage.dh_named("ic_agent_detail_phone"), for: .normal)
         button.isEnabled = false
         button.alpha = 0.5
         
@@ -118,7 +118,7 @@ class LivingViewController: UIViewController {
         button.titleLabel?.textAlignment = .center
         button.layerCornerRadius = 36
         button.clipsToBounds = true
-        button.setImage(UIImage.va_named("ic_msg_icon"), for: .normal)
+        button.setImage(UIImage.dh_named("ic_msg_icon"), for: .normal)
         button.setBackgroundColor(color: PrimaryColors.c_00c2ff, forState: .normal)
         button.setBackgroundColor(color: PrimaryColors.c_0097d4, forState: .selected)
         if let color = UIColor(hex: 0x333333) {
@@ -171,7 +171,7 @@ class LivingViewController: UIViewController {
     }()
     
     private lazy var micStateImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.va_named("ic_agent_detail_mute"))
+        let imageView = UIImageView(image: UIImage.dh_named("ic_agent_detail_mute"))
         return imageView
     }()
     
@@ -395,8 +395,8 @@ class LivingViewController: UIViewController {
     
     private func updateMuteButtonAppearance() {
         let backgroundColor = isMute ? UIColor(hex: 0x333333) : UIColor(hex: 0x00C2FF)
-        let image = isMute ? UIImage.va_named("ic_agent_detail_mute") : UIImage.va_named("ic_agent_detail_unmute")
-        let smallImage = isMute ? UIImage.va_named("ic_agent_detail_mute_small") : UIImage.va_named("ic_agent_detail_unmute_small")
+        let image = isMute ? UIImage.dh_named("ic_agent_detail_mute") : UIImage.dh_named("ic_agent_detail_unmute")
+        let smallImage = isMute ? UIImage.dh_named("ic_agent_detail_mute_small") : UIImage.dh_named("ic_agent_detail_unmute_small")
         
         muteButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
         muteButton.setImage(image, for: .normal)

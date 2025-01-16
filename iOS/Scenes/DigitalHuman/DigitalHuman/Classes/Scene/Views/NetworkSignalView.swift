@@ -23,13 +23,13 @@ enum NetworkStatus {
     var signalImage: UIImage? {
         switch self {
         case .good:
-            return UIImage.va_named("ic_signal_good")
+            return UIImage.dh_named("ic_signal_good")
         case .poor:
-            return UIImage.va_named("ic_signal_medium")
+            return UIImage.dh_named("ic_signal_medium")
         case .veryBad:
-            return UIImage.va_named("ic_signal_bad")
+            return UIImage.dh_named("ic_signal_bad")
         case .unknown:
-            return UIImage.va_named("ic_signal_bad")
+            return UIImage.dh_named("ic_signal_bad")
         }
     }
 }
@@ -37,7 +37,7 @@ enum NetworkStatus {
 class NetworkSignalView: UIView {
     private lazy var signalButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage.va_named("ic_signal_bad"), for: .normal)
+        button.setImage(UIImage.dh_named("ic_signal_bad"), for: .normal)
         return button
     }()
     

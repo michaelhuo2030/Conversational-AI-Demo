@@ -8,22 +8,22 @@
 import Foundation
 import Common
 
-public class AgentLogger: NSObject {
-    public static let kLogKey = "agent"
+class AgentLogger: NSObject {
+    static let kLogKey = DigitalHumanContext.kSceneName
     
-    public static func info(_ text: String, context: String? = nil) {
+    static func info(_ text: String, context: String? = nil) {
         agoraDoMainThreadTask {
             AgoraEntLog.getSceneLogger(with: kLogKey).info(text, context: context)
         }
     }
 
-    public static func warn(_ text: String, context: String? = nil) {
+    static func warn(_ text: String, context: String? = nil) {
         agoraDoMainThreadTask {
             AgoraEntLog.getSceneLogger(with: kLogKey).warning(text, context: context)
         }
     }
 
-    public static func error(_ text: String, context: String? = nil) {
+    static func error(_ text: String, context: String? = nil) {
         agoraDoMainThreadTask {
             AgoraEntLog.getSceneLogger(with: kLogKey).error(text, context: context)
         }

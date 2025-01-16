@@ -173,8 +173,8 @@ public class DigitalHumanViewController: UIViewController {
     private func updateMuteState() {
         let isMute = audioButton.isSelected
         let backgroundColor = isMute ? UIColor(hex: 0x333333) : UIColor(hex: 0x00C2FF)
-        let image = isMute ? UIImage.va_named("ic_agent_detail_mute") : UIImage.va_named("ic_agent_detail_unmute")
-        let smallImage = isMute ? UIImage.va_named("ic_agent_detail_mute_small") : UIImage.va_named("ic_agent_detail_unmute_small")
+        let image = isMute ? UIImage.dh_named("ic_agent_detail_mute") : UIImage.dh_named("ic_agent_detail_unmute")
+        let smallImage = isMute ? UIImage.dh_named("ic_agent_detail_mute_small") : UIImage.dh_named("ic_agent_detail_unmute_small")
         
         audioButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
         audioButton.setImage(image, for: .normal)
@@ -184,7 +184,7 @@ public class DigitalHumanViewController: UIViewController {
     private func updateVideoState() {
         let isMute = videoButton.isSelected
         let backgroundColor = isMute ? UIColor(hex: 0x333333) : UIColor(hex: 0x00C2FF)
-        let image = isMute ? UIImage.va_named("ic_agent_detail_video_mute") : UIImage.va_named("ic_agent_detail_video_unmute")
+        let image = isMute ? UIImage.dh_named("ic_agent_detail_video_mute") : UIImage.dh_named("ic_agent_detail_video_unmute")
         videoButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
         videoButton.setImage(image, for: .normal)
     }
@@ -432,7 +432,7 @@ private extension DigitalHumanViewController {
         }
         
         agentImageView = UIImageView()
-        agentImageView.image = UIImage.va_named("ic_agent_detail_avatar")
+        agentImageView.image = UIImage.dh_named("ic_agent_detail_avatar")
         agentImageView.contentMode = .scaleAspectFit
         notJoinedView.addSubview(agentImageView)
         agentImageView.snp.makeConstraints { make in
@@ -479,7 +479,7 @@ private extension DigitalHumanViewController {
         videoButton.titleLabel?.textAlignment = .center
         videoButton.layerCornerRadius = 36
         videoButton.clipsToBounds = true
-        videoButton.setImage(UIImage.va_named("ic_msg_icon"), for: .normal)
+        videoButton.setImage(UIImage.dh_named("ic_msg_icon"), for: .normal)
         callingBottomView.addSubview(videoButton)
         videoButton.snp.makeConstraints { make in
             make.left.equalTo(audioButton.snp.right).offset(16)
@@ -493,7 +493,7 @@ private extension DigitalHumanViewController {
         closeButton.titleLabel?.textAlignment = .center
         closeButton.layerCornerRadius = 36
         closeButton.clipsToBounds = true
-        closeButton.setImage(UIImage.va_named("ic_agent_detail_phone"), for: .normal)
+        closeButton.setImage(UIImage.dh_named("ic_agent_detail_phone"), for: .normal)
         closeButton.isEnabled = false
         closeButton.alpha = 0.5
         if let color = UIColor(hex: 0xFF414D) {
@@ -547,7 +547,7 @@ private extension DigitalHumanViewController {
             make.bottom.equalTo(mineContentView).offset(-8)
         }
         
-        micStateImageView = UIImageView(image: UIImage.va_named("ic_agent_detail_mute"))
+        micStateImageView = UIImageView(image: UIImage.dh_named("ic_agent_detail_mute"))
         mineNameView.addSubview(micStateImageView)
         micStateImageView.snp.makeConstraints { make in
             make.left.equalTo(mineNameView).offset(6)
