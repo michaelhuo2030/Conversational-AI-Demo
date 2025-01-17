@@ -29,34 +29,10 @@ enum AgentError: Error {
     }
 }
 
-/// Protocol that defines the core functionality for agent operations
-/// Provides methods to start and stop AI agents in a channel
-protocol AgentAPI {
-    /// Starts an AI agent in the specified channel
-    /// - Parameters:
-    ///   - uid: The unique identifier for the user
-    ///   - agentUid: The unique identifier for the agent
-    ///   - channelName: The name of the channel where the agent will join
-    ///   - completion: Callback with optional error and response data
-    func startAgent(uid: Int, agentUid: Int, channelName: String, completion: @escaping ((AgentError?, String?) -> Void))
+class AgentAPIService {
     
-    /// Stops an AI agent in the specified channel
-    /// - Parameters:
-    ///   - agentUid: The unique identifier for the agent
-    ///   - channelName: The name of the channel where the agent will leave
-    ///   - completion: Callback with optional error and response data
-    func stopAgent(agentUid: String, channelName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void))
+    private var agentId: String? = nil
     
-    /// Update the agent's settings
-    /// - Parameters:
-    ///   - agentUid: The unique identifier for the agent
-    ///   - appId: The unique identifier for the app
-    ///   - voiceId: The unique identifier for the voice
-    ///   - completion: Callback with optional error
-    func updateAgent(agentUid: String, appId: String, voiceId: String, completion: @escaping((AgentError?) -> Void))
-}
-
-class AgentAPIService: AgentAPI {
     init(host: String) {
         AgentServiceUrl.host = host
     }
@@ -65,19 +41,24 @@ class AgentAPIService: AgentAPI {
         _startAgent(appid: AppContext.shared.appId, channelName: channelName, agentRtcUid: agentUid, remote_rtc_uid: uid, completion: completion)
     }
     
-    func stopAgent(agentUid: String, channelName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
-        _stopAgent(appid: AppContext.shared.appId, agentUid: agentUid, completion: completion)
+    func stopAgent(channelName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
+        _stopAgent(appid: AppContext.shared.appId, completion: completion)
     }
     
-    func updateAgent(agentUid: String, appId: String, voiceId: String, completion: @escaping((AgentError?) -> Void)) {
-        _updateAgent(agentUid: agentUid, appId: appId, voiceId: voiceId, completion: completion)
+    func updateAgent(appId: String, voiceId: String, completion: @escaping((AgentError?) -> Void)) {
+        _updateAgent(appId: appId, voiceId: voiceId, completion: completion)
     }
     
-    private func _updateAgent(agentUid: String, appId: String, voiceId: String, retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping((AgentError?) -> Void)) {
+    private func _updateAgent(appId: String, voiceId: String, retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping((AgentError?) -> Void)) {
+        guard let agentId = agentId else {
+            let error = AgentError.serverError(code: -1, message: "agentId is empty")
+            completion(error)
+            return
+        }
         let url = AgentServiceUrl.updateAgentPath("v1/convoai/update").toHttpUrlSting()
         let parameters: [String: Any] = [
             "app_id": appId,
-            "agent_id": agentUid,
+            "agent_id": agentId,
             "voice_id": voiceId
         ]
         
@@ -96,7 +77,7 @@ class AgentAPIService: AgentAPI {
                 let error = AgentError.serverError(code: -1, message: msg)
                 completion(error)
             } else {
-                self._updateAgent(agentUid: agentUid, appId: appId, voiceId: voiceId, retryCount: count, completion: completion)
+                self._updateAgent(appId: appId, voiceId: voiceId, retryCount: count, completion: completion)
             }
         }
     }
@@ -142,11 +123,16 @@ class AgentAPIService: AgentAPI {
         }
     }
     
-    func _stopAgent(appid:String, agentUid: String, retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
+    func _stopAgent(appid:String, retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
+        guard let agentId = agentId else {
+            let error = AgentError.serverError(code: -1, message: "agentId is empty")
+            completion(error, nil)
+            return
+        }
         let url = AgentServiceUrl.stopAgentPath("v1/convoai/stop").toHttpUrlSting()
         let parameters: [String: Any] = [
             "app_id": appid,
-            "agent_id": agentUid
+            "agent_id": agentId
         ]
         AgentLogger.info("request stop api parameters is: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
@@ -163,7 +149,7 @@ class AgentAPIService: AgentAPI {
                 let error = AgentError.serverError(code: -1, message: msg)
                 completion(error, nil)
             } else {
-                self._stopAgent(appid: appid, agentUid: agentUid, retryCount: count, completion: completion)
+                self._stopAgent(appid: appid, retryCount: count, completion: completion)
             }
         }
     }

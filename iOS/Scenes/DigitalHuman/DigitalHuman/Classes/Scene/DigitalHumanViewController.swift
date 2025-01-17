@@ -21,8 +21,7 @@ public class DigitalHumanViewController: UIViewController {
     private var isDenoise = false
     
     private var rtcEngine: AgoraRtcEngineKit!
-    private var agentManager: AgentManager!
-
+    
     private var isLocalAudioMuted = false
     private var networkStatus: Int? = nil
     
@@ -33,10 +32,10 @@ public class DigitalHumanViewController: UIViewController {
             }
         }
     }
-
+    
     private var selectTable: AgentSettingInfoView? = nil
     private var selectTableMask = UIButton(type: .custom)
-
+    
     private var topBar: AgentSettingBar!
     // contentView: [notJoinedView, videoContentView]
     private var contentView: UIView!
@@ -44,7 +43,7 @@ public class DigitalHumanViewController: UIViewController {
     private var notJoinedView: UIView!
     private var notJoinedImageView: UIImageView!
     private var notJoinedLabel: UILabel!
-
+    
     // videoContentView: [agentImageView, statusLabel, aiNameLabel, mineContentView, mineAvatarLabel, mineNameView, mineNameLabel, micStateImageView]
     private var videoContentView: UIView!
     private var aiNameLabel: UILabel!
@@ -62,6 +61,7 @@ public class DigitalHumanViewController: UIViewController {
     private var videoButton: UIButton!
     
     private var stopInitiative = false
+    private var apiService: AgentAPIService!
     
     deinit {
         print("DigitalHumanViewController deinit")
@@ -72,6 +72,7 @@ public class DigitalHumanViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         channelName = "agora_\(Int.random(in: 1..<10000000))"
         localUid = UInt.random(in: 1000..<10000000)
+        createRtcEngine()
         
         setupViews()
         updateMuteState()
@@ -84,11 +85,19 @@ public class DigitalHumanViewController: UIViewController {
     
     private func setupAgentCoordinator() {
         AgentSettingManager.shared.updateRoomId(channelName)
-        agentManager = AgentManager(appId: AppContext.shared.appId,
-                                    channelName: channelName,
-                                    token: rtcToken ?? "",
-                                    host: AppContext.shared.baseServerUrl,
-                                    delegate: self)
+        apiService = AgentAPIService(host: AppContext.shared.baseServerUrl)
+    }
+    
+    private func createRtcEngine() {
+        let config = AgoraRtcEngineConfig()
+        config.appId = AppContext.shared.appId
+        config.channelProfile = .liveBroadcasting
+        config.audioScenario = .default
+        rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self)
+        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
+        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}");
+        AgoraManager.shared.updateDenoise(isOn: false)
+        rtcEngine.enableAudioVolumeIndication(100, smooth: 10, reportVad: false)
     }
 
     private func getToken(complete: @escaping (Bool) -> Void) {
@@ -104,7 +113,6 @@ public class DigitalHumanViewController: UIViewController {
             if let token = token {
                 print("getToken success \(token)")
                 self.rtcToken = token
-                agentManager.token = token
                 complete(true)
             } else {
                 print("getToken error")
@@ -121,12 +129,11 @@ public class DigitalHumanViewController: UIViewController {
         topBar.backButton.isEnabled = false
         topBar.backButton.alpha = 0.5
         
-        agentManager.startAgent(uid: localUid, agentUid: agentUid) { [weak self] err, agentId in
+        apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err, agentId in
             guard let self = self else { return }
             SVProgressHUD.dismiss()
             
             guard let error = err else {
-                self.setupDenoise()
                 AgentSettingManager.shared.updateAgentStatus(.connected)
                 self.selectTable?.updateStatus()
                 addLog("restart agent success")
@@ -146,19 +153,13 @@ public class DigitalHumanViewController: UIViewController {
     }
     
     private func joinChannel() {
-        let config = AgoraRtcEngineConfig()
-        config.appId = AppContext.shared.appId
-        config.channelProfile = .liveBroadcasting
-        config.audioScenario = .default
-        rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self)
-        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
-        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}");
-        AgoraManager.shared.updateDenoise(isOn: false)
-        rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
-        rtcEngine.joinChannel(byToken: rtcToken, channelId: channelName, info: nil, uid: localUid)
-        
-        AgentSettingManager.shared.updateAgentStatus(.connected)
-        let ret = agentManager.joinChannel()
+        let options = AgoraRtcChannelMediaOptions()
+        options.clientRoleType = .broadcaster
+        options.publishMicrophoneTrack = true
+        options.publishCameraTrack = true
+        options.autoSubscribeAudio = true
+        options.autoSubscribeVideo = true
+        let ret = rtcEngine.joinChannel(byToken: rtcToken, channelId: channelName, uid: localUid, mediaOptions: options)
         if (ret == 0) {
             self.addLog("join rtc room success")
             AgentSettingManager.shared.updateRoomStatus(.connected)
@@ -177,17 +178,6 @@ public class DigitalHumanViewController: UIViewController {
         AgentSettingManager.shared.updateRoomStatus(.unload)
         AgentSettingManager.shared.updateAgentStatus(.unload)
         AgentSettingManager.shared.updateRoomId("")
-        agentManager.destroy()
-    }
-    
-    private func setupDenoise() {
-        if isDenoise {
-            addLog("isDenoise true")
-            agentManager.openDenoise()
-        } else {
-            addLog("isDenoise false")
-            agentManager.closeDenoise()
-        }
     }
     
     private func updateMuteState() {
@@ -259,7 +249,7 @@ private extension DigitalHumanViewController {
         topBar.backButton.isEnabled = false
         topBar.backButton.alpha = 0.5
         
-        agentManager.startAgent(uid: localUid, agentUid: agentUid) { [weak self] err, agentId in
+        apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err, agentId in
             guard let self = self else { return }
             if let error = err {
                 SVProgressHUD.dismiss()
@@ -268,7 +258,6 @@ private extension DigitalHumanViewController {
                 self.dismiss(animated: false)
                 return
             }
-            self.setupDenoise()
             if self.rtcToken == nil {
                 self.getToken { [weak self] isTokenOK in
                     if isTokenOK {
@@ -292,14 +281,14 @@ private extension DigitalHumanViewController {
     }
     
     func stopPageAction() {
-        agentManager.stopAgent(agentUid: String(self.agentUid)) { err, res in
+        apiService.stopAgent(channelName: channelName) { err, res in
         }
         stopInitiative = false
         self.leaveChannel()
         self.navigationController?.popViewController(animated: true)
     }
     
-    @objc func onClickStopAgent() {
+    @objc func onClickEndCall() {
         SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.endCallLoading)
         addLog("begin stop agent")
         stopInitiative = true
@@ -307,7 +296,7 @@ private extension DigitalHumanViewController {
         self.topBar.backButton.alpha = 0.5
         closeButton.isEnabled = false
         closeButton.alpha = 0.5
-        agentManager.stopAgent(agentUid: String(self.agentUid)) { [weak self] err, res in
+        apiService.stopAgent(channelName: channelName) { [weak self] err, res in
             guard let self = self else { return }
             SVProgressHUD.dismiss()
             self.closeButton.isEnabled = true
@@ -329,10 +318,9 @@ private extension DigitalHumanViewController {
         }
     }
     
-    @objc func handleMuteAction(_ sender: UIButton) {
+    @objc func onClickAudio(_ sender: UIButton) {
         sender.isSelected.toggle()
-        let isMute = sender.isSelected
-        agentManager.muteVoice(state: isMute)
+        rtcEngine.adjustRecordingSignalVolume(sender.isSelected ? 0 : 100)
         updateMuteState()
     }
     
@@ -405,6 +393,15 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
     public func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
         self.rtcToken = nil
         addLog("tokenPrivilegeWillExpire")
+        getToken { isOK in
+            if isOK, let token = self.rtcToken {
+                self.rtcEngine.renewToken(token)
+            } else {
+                self.onClickEndCall()
+            }
+        }
+        
+        
         NetworkManager.shared.generateToken(
             channelName: "",
             uid: "\(localUid)",
@@ -415,8 +412,7 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
                 return
             }
             self.addLog("will update token: \(token)")
-            let rtcEnigne = self.agentManager.getRtcEntine()
-            rtcEnigne.renewToken(token)
+            
         }
     }
     
@@ -436,13 +432,13 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
 extension DigitalHumanViewController: AgentSettingViewDelegate {
     func onClickNoiseCancellationChanged(isOn: Bool) {
         isDenoise = isOn
-        setupDenoise()
+        AgoraManager.shared.updateDenoise(isOn: isOn)
     }
     
     func onClickVoice() {
         let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
         SVProgressHUD.show()
-        agentManager.updateAgent(agentUid: String(self.agentUid), appId: AppContext.shared.appId, voiceId: voiceId) { error in
+        apiService.updateAgent(appId: AppContext.shared.appId, voiceId: voiceId) { error in
             SVProgressHUD.dismiss()
             guard let error = error else {
                 return
@@ -536,7 +532,7 @@ private extension DigitalHumanViewController {
         }
         
         audioButton = UIButton(type: .custom)
-        audioButton.addTarget(self, action: #selector(handleMuteAction(_ :)), for: .touchUpInside)
+        audioButton.addTarget(self, action: #selector(onClickAudio(_ :)), for: .touchUpInside)
         audioButton.titleLabel?.textAlignment = .center
         audioButton.layerCornerRadius = 36
         audioButton.clipsToBounds = true
@@ -563,7 +559,7 @@ private extension DigitalHumanViewController {
         
         closeButton = UIButton(type: .custom)
         closeButton.setTitle(ResourceManager.L10n.Conversation.buttonEndCall, for: .normal)
-        closeButton.addTarget(self, action: #selector(onClickStopAgent), for: .touchUpInside)
+        closeButton.addTarget(self, action: #selector(onClickEndCall), for: .touchUpInside)
         closeButton.titleLabel?.textAlignment = .center
         closeButton.layerCornerRadius = 36
         closeButton.clipsToBounds = true
@@ -675,5 +671,122 @@ private extension DigitalHumanViewController {
         selectTableMask.snp.makeConstraints { make in
             make.top.left.right.bottom.equalToSuperview()
         }
+    }
+}
+
+// MARK: - AgentSettingBar
+class AgentSettingBar: UIView, NetworkSignalViewDelegate {
+    // MARK: - Callbacks
+    var onBackButtonTapped: (() -> Void)?
+    var onTipsButtonTapped: (() -> Void)?
+    var onSettingButtonTapped: (() -> Void)?
+    var onNetworkStatusChanged: (() -> Void)?
+    
+    private let signalBarCount = 5
+    private var signalBars: [UIView] = []
+    
+    lazy var backButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage.dh_named("ic_agora_back"), for: .normal)
+        button.addTarget(self, action: #selector(backEvent), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = ResourceManager.L10n.Join.title
+        label.font = .systemFont(ofSize: 16)
+        label.textColor = PrimaryColors.c_b3b3b3
+        return label
+    }()
+    
+    private let tipsButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage.dh_named("ic_agent_tips_icon"), for: .normal)
+        return button
+    }()
+    
+    private lazy var settingButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage.dh_named("ic_agent_setting"), for: .normal)
+        button.addTarget(self, action: #selector(settingButtonClicked), for: .touchUpInside)
+        return button
+    }()
+    
+    let networkSignalView: NetworkSignalView = {
+        let view = NetworkSignalView()
+        return view
+    }()
+    
+    // MARK: - Initialization
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupViews()
+        setupConstraints()
+        tipsButton.addTarget(self, action: #selector(tipsButtonClicked), for: .touchUpInside)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Private Methods
+    private func setupViews() {
+        networkSignalView.delegate = self
+        [backButton, titleLabel, networkSignalView, tipsButton, settingButton].forEach { addSubview($0) }
+    }
+    
+    private func setupConstraints() {
+        backButton.snp.makeConstraints { make in
+            make.left.equalToSuperview()
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(48)
+        }
+        
+        titleLabel.snp.makeConstraints { make in
+            make.left.equalTo(backButton.snp.right).offset(4)
+            make.centerY.equalToSuperview()
+        }
+        
+        settingButton.snp.makeConstraints { make in
+            make.right.equalToSuperview()
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(48)
+        }
+        
+        networkSignalView.snp.makeConstraints { make in
+            make.right.equalTo(settingButton.snp.left)
+            make.width.height.equalTo(48)
+            make.centerY.equalToSuperview()
+        }
+        
+        tipsButton.snp.remakeConstraints { make in
+            make.right.equalTo(networkSignalView.snp.left)
+            make.centerY.equalToSuperview()
+            make.width.height.equalTo(48)
+        }
+        
+        
+    }
+    
+    // MARK: - Actions
+    @objc func backEvent() {
+        onBackButtonTapped?()
+    }
+    
+    @objc private func tipsButtonClicked() {
+        onTipsButtonTapped?()
+    }
+    
+    @objc private func settingButtonClicked() {
+        onSettingButtonTapped?()
+    }
+    
+    func updateNetworkStatus(_ status: NetworkStatus) {
+        networkSignalView.updateStatus(status)
+    }
+    
+    func networkSignalView(_ view: NetworkSignalView, didClickNetworkButton button: UIButton) {
+        onNetworkStatusChanged?()
     }
 }
