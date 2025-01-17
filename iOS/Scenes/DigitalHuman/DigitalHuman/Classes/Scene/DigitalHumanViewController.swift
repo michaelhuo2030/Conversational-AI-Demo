@@ -14,25 +14,36 @@ import Common
 
 class DigitalHumanViewController: UIViewController {
     
-    private var host = ""
-    private var rtcToken = ""
-    private var uid = 0
-    private var agentUid = 0
+    private var rtcToken: String? = nil
+    private var localUid: Int = 0
+    private let agentUid = 999
     private var channelName = ""
     private var isDenoise = false
     private var agentManager: AgentManager!
-    private var agent_rtc_id = ""
+
+    private var isLocalAudioMuted = false
+    private var networkStatus: Int? = nil
+    
+    var isAgentStarted = false {
+        didSet {
+            if oldValue != isAgentStarted {
+                updateViewState()
+            }
+        }
+    }
 
     private var selectTable: AgentSettingInfoView? = nil
     private var selectTableMask = UIButton(type: .custom)
 
     private var topBar: AgentSettingBar!
+    // contentView: [notJoinedView, videoContentView]
     private var contentView: UIView!
     // notJoinedView: [agentImageView, statusLabel]
     private var notJoinedView: UIView!
-    private var agentImageView: UIImageView!
-    private var statusLabel: UILabel!
-    // videoContentView: [agentImageView, statusLabel]
+    private var notJoinedImageView: UIImageView!
+    private var notJoinedLabel: UILabel!
+
+    // videoContentView: [agentImageView, statusLabel, aiNameLabel, mineContentView, mineAvatarLabel, mineNameView, mineNameLabel, micStateImageView]
     private var videoContentView: UIView!
     private var aiNameLabel: UILabel!
     private var mineContentView: UIView!
@@ -59,49 +70,45 @@ class DigitalHumanViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
-        setupViews()
+        channelName = "agora_\(Int.random(in: 1..<10000000))"
+        localUid = Int.random(in: 1000..<10000000)
         
+        setupViews()
         updateMuteState()
         updateVideoState()
+        updateViewState()
         
+        getToken { _ in }
         setupAgentCoordinator()
     }
     
     private func setupAgentCoordinator() {
         AgentSettingManager.shared.updateRoomId(channelName)
-        agentManager = AgentManager(appId: AppContext.shared.appId, channelName: channelName, token: rtcToken, host: host, delegate: self)
-//        startAgent()
-        
+        agentManager = AgentManager(appId: AppContext.shared.appId,
+                                    channelName: channelName,
+                                    token: rtcToken ?? "",
+                                    host: AppContext.shared.baseServerUrl,
+                                    delegate: self)
     }
-    
-    private func startAgent() {
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
-        addLog("begin start agent")
-        closeButton.isEnabled = false
-        closeButton.alpha = 0.5
-        topBar.backButton.isEnabled = false
-        topBar.backButton.alpha = 0.5
-        
-        agentManager.startAgent(uid: uid, agentUid: agentUid) { [weak self] err, agentId in
-            guard let self = self else { return }
-            SVProgressHUD.dismiss()
-            
-            guard let error = err else {
-                self.agent_rtc_id = agentId ?? ""
-                self.setupDenoise()
-                self.joinChannel()
-                addLog("start agent success")
-                
-                self.closeButton.isEnabled = true
-                self.closeButton.alpha = 1.0
-                self.topBar.backButton.isEnabled = true
-                self.topBar.backButton.alpha = 1.0
+
+    private func getToken(complete: @escaping (Bool) -> Void) {
+        NetworkManager.shared.generateToken(
+            channelName: "",
+            uid: "\(localUid)",
+            types: [.rtc]
+        ) { [weak self] token in
+            self?.addLog("regenerate token is: \(token ?? "")")
+            guard let self = self else {
                 return
             }
-            
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
-            addLog("start agent failed : \(error.message)")
-            self.dismiss(animated: false)
+            if let token = token {
+                print("getToken success \(token)")
+                self.rtcToken = token
+                complete(true)
+            } else {
+                print("getToken error")
+                complete(false)
+            }
         }
     }
     
@@ -113,12 +120,11 @@ class DigitalHumanViewController: UIViewController {
         topBar.backButton.isEnabled = false
         topBar.backButton.alpha = 0.5
         
-        agentManager.startAgent(uid: uid, agentUid: agentUid) { [weak self] err, agentId in
+        agentManager.startAgent(uid: localUid, agentUid: agentUid) { [weak self] err, agentId in
             guard let self = self else { return }
             SVProgressHUD.dismiss()
             
             guard let error = err else {
-                self.agent_rtc_id = agentId ?? ""
                 self.setupDenoise()
                 AgentSettingManager.shared.updateAgentStatus(.connected)
                 self.selectTable?.updateStatus()
@@ -222,6 +228,20 @@ class DigitalHumanViewController: UIViewController {
         selectTable = nil
         selectTableMask.isHidden = true
     }
+    
+    func updateViewState() {
+        if isAgentStarted {
+            notJoinedView.isHidden = true
+            videoContentView.isHidden = false
+            joinCallButton.isHidden = true
+            callingBottomView.isHidden = false
+        } else {
+            notJoinedView.isHidden = false
+            videoContentView.isHidden = true
+            joinCallButton.isHidden = false
+            callingBottomView.isHidden = true
+        }
+    }
 }
 
 // MARK: - AgoraRtcEngineDelegate
@@ -278,11 +298,11 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
-        self.rtcToken = ""
+        self.rtcToken = nil
         addLog("tokenPrivilegeWillExpire")
         NetworkManager.shared.generateToken(
             channelName: "",
-            uid: "\(uid)",
+            uid: "\(localUid)",
             types: [.rtc]
         ) { [weak self] token in
             self?.addLog("regenerate token is: \(token ?? "")")
@@ -317,7 +337,7 @@ extension DigitalHumanViewController: AgentSettingViewDelegate {
     func onClickVoice() {
         let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
         SVProgressHUD.show()
-        agentManager.updateAgent(agentUid: self.agent_rtc_id, appId: AppContext.shared.appId, voiceId: voiceId) { error in
+        agentManager.updateAgent(agentUid: String(self.agentUid), appId: AppContext.shared.appId, voiceId: voiceId) { error in
             SVProgressHUD.dismiss()
             guard let error = error else {
                 return
@@ -331,15 +351,55 @@ extension DigitalHumanViewController: AgentSettingViewDelegate {
 
 // MARK: - Actions
 private extension DigitalHumanViewController {
+    @objc private func onClickStartAgent() {
+        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
+        addLog("begin start agent")
+        closeButton.isEnabled = false
+        closeButton.alpha = 0.5
+        topBar.backButton.isEnabled = false
+        topBar.backButton.alpha = 0.5
+        
+        agentManager.startAgent(uid: localUid, agentUid: agentUid) { [weak self] err, agentId in
+            guard let self = self else { return }
+            if let error = err {
+                SVProgressHUD.dismiss()
+                SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
+                addLog("start agent failed : \(error.message)")
+                self.dismiss(animated: false)
+                return
+            }
+            self.setupDenoise()
+            if self.rtcToken == nil {
+                self.getToken { [weak self] isTokenOK in
+                    if isTokenOK {
+                        self?.joinChannel()
+                    } else {
+                        SVProgressHUD.dismiss()
+                        self?.addLog("Token error")
+                        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
+                    }
+                }
+            } else {
+                self.joinChannel()
+            }
+            self.closeButton.isEnabled = true
+            self.closeButton.alpha = 1.0
+            self.topBar.backButton.isEnabled = true
+            self.topBar.backButton.alpha = 1.0
+            addLog("start agent success")
+            isAgentStarted = true
+        }
+    }
+    
     func stopPageAction() {
-        agentManager.stopAgent(agentUid: self.agent_rtc_id) { err, res in
+        agentManager.stopAgent(agentUid: String(self.agentUid)) { err, res in
         }
         stopInitiative = false
         self.leaveChannel()
         self.navigationController?.popViewController(animated: true)
     }
     
-    @objc func handleEndCallAction() {
+    @objc func onClickStopAgent() {
         SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.endCallLoading)
         addLog("begin stop agent")
         stopInitiative = true
@@ -347,7 +407,7 @@ private extension DigitalHumanViewController {
         self.topBar.backButton.alpha = 0.5
         closeButton.isEnabled = false
         closeButton.alpha = 0.5
-        agentManager.stopAgent(agentUid: self.agent_rtc_id) { [weak self] err, res in
+        agentManager.stopAgent(agentUid: String(self.agentUid)) { [weak self] err, res in
             guard let self = self else { return }
             SVProgressHUD.dismiss()
             self.closeButton.isEnabled = true
@@ -360,6 +420,7 @@ private extension DigitalHumanViewController {
                 self.leaveChannel()
                 addLog("stop agent success")
                 self.dismiss(animated: false)
+                isAgentStarted = false
                 return
             }
             
@@ -423,39 +484,49 @@ private extension DigitalHumanViewController {
             make.left.equalTo(20)
             make.right.equalTo(-20)
             make.top.equalTo(topBar.snp.bottom).offset(20)
-            make.bottom.equalToSuperview().offset(-120) // 修改为相对父视图约束
+            make.bottom.equalToSuperview().offset(-120)
         }
         
-        // Add notJoinedView and its subviews
+        // Create videoContentView and add it to contentView
+        videoContentView = UIView()
+        contentView.addSubview(videoContentView)
+        videoContentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        // Add notJoinedView and its subviews to videoContentView
         notJoinedView = UIView()
         contentView.addSubview(notJoinedView)
         notJoinedView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         
-        agentImageView = UIImageView()
-        agentImageView.image = UIImage.dh_named("ic_agent_detail_avatar")
-        agentImageView.contentMode = .scaleAspectFit
-        notJoinedView.addSubview(agentImageView)
-        agentImageView.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.centerY.equalToSuperview().offset(-20)
-            make.width.height.equalTo(120)
-        }
+        notJoinedImageView = {
+            let imageView = UIImageView()
+            imageView.contentMode = .scaleAspectFit
+            imageView.image = UIImage.dh_named("ic_agent_circle")
+            notJoinedView.addSubview(imageView)
+            imageView.snp.makeConstraints { make in
+                make.center.equalToSuperview()
+                make.width.height.equalTo(254)
+            }
+            return imageView
+        }()
         
-        statusLabel = UILabel()
-        statusLabel.text = ResourceManager.L10n.Conversation.agentLoading
-        statusLabel.textColor = .white
-        statusLabel.font = UIFont.systemFont(ofSize: 16)
-        statusLabel.textAlignment = .center
-        notJoinedView.addSubview(statusLabel)
-        statusLabel.snp.makeConstraints { make in
-            make.top.equalTo(agentImageView.snp.bottom).offset(16)
-            make.centerX.equalToSuperview()
-        }
+        notJoinedLabel = {
+            let label = UILabel()
+            label.text = ResourceManager.L10n.Join.state
+            label.font = .monospacedSystemFont(ofSize: 20, weight: .regular)
+            label.textColor = PrimaryColors.c_b3b3b3
+            notJoinedView.addSubview(label)
+            label.snp.makeConstraints { make in
+                make.top.equalTo(notJoinedImageView.snp.bottom).offset(20)
+                make.centerX.equalToSuperview()
+            }
+            return label
+        }()
         
-        // 创建底部按钮容器视图
-        let callingBottomView = UIView()
+        callingBottomView = UIView()
         view.addSubview(callingBottomView)
         callingBottomView.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
@@ -491,7 +562,7 @@ private extension DigitalHumanViewController {
         
         closeButton = UIButton(type: .custom)
         closeButton.setTitle(ResourceManager.L10n.Conversation.buttonEndCall, for: .normal)
-        closeButton.addTarget(self, action: #selector(handleEndCallAction), for: .touchUpInside)
+        closeButton.addTarget(self, action: #selector(onClickStopAgent), for: .touchUpInside)
         closeButton.titleLabel?.textAlignment = .center
         closeButton.layerCornerRadius = 36
         closeButton.clipsToBounds = true
@@ -501,15 +572,33 @@ private extension DigitalHumanViewController {
         if let color = UIColor(hex: 0xFF414D) {
             closeButton.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
         }
-        let spacing: CGFloat = 5
-        closeButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
-        closeButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
+        let closeButtonImageSpacing: CGFloat = 5
+        closeButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -closeButtonImageSpacing/2, bottom: 0, right: closeButtonImageSpacing/2)
+        closeButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: closeButtonImageSpacing/2, bottom: 0, right: -closeButtonImageSpacing/2)
         callingBottomView.addSubview(closeButton)
         closeButton.snp.makeConstraints { make in
             make.left.equalTo(videoButton.snp.right).offset(16)
             make.right.equalTo(-20)
             make.width.height.equalTo(72)
             make.centerY.equalToSuperview()
+        }
+        
+        joinCallButton = UIButton(type: .custom)
+        joinCallButton.setTitle(ResourceManager.L10n.Join.buttonTitle, for: .normal)
+        joinCallButton.titleLabel?.font = .systemFont(ofSize: 18)
+        joinCallButton.setTitleColor(PrimaryColors.c_ffffff, for: .normal)
+        joinCallButton.backgroundColor = PrimaryColors.c_0097d4
+        joinCallButton.layer.cornerRadius = 32
+        joinCallButton.addTarget(self, action: #selector(onClickStartAgent), for: .touchUpInside)
+        joinCallButton.setImage(UIImage.dh_named("ic_agent_join_button_icon"), for: .normal)
+        let joinCallButtonImageSpacing: CGFloat = 5
+        joinCallButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -joinCallButtonImageSpacing/2, bottom: 0, right: joinCallButtonImageSpacing/2)
+        joinCallButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: joinCallButtonImageSpacing/2, bottom: 0, right: -joinCallButtonImageSpacing/2)
+        view.addSubview(joinCallButton)
+        joinCallButton.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-20)
+            make.height.equalTo(72)
         }
         
         mineContentView = UIView()
@@ -519,12 +608,12 @@ private extension DigitalHumanViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
         mineContentView.addGestureRecognizer(tapGesture)
         mineContentView.isUserInteractionEnabled = true
-        view.addSubview(mineContentView)
+        contentView.addSubview(mineContentView)
         mineContentView.snp.makeConstraints { make in
             make.width.equalTo(192)
             make.height.equalTo(100)
-            make.top.equalTo(contentView).offset(16)
-            make.right.equalTo(contentView).offset(-16)
+            make.top.equalToSuperview().offset(16)
+            make.right.equalToSuperview().offset(-16)
         }
         
         mineAvatarLabel = UILabel()
@@ -574,13 +663,14 @@ private extension DigitalHumanViewController {
         aiNameLabel.text = ResourceManager.L10n.Conversation.agentName
         aiNameLabel.textAlignment = .center
         aiNameLabel.backgroundColor = UIColor(hex:0x000000, transparency: 0.25)
-        contentView.addSubview(aiNameLabel)
+        videoContentView.addSubview(aiNameLabel)
         aiNameLabel.snp.makeConstraints { make in
             make.width.equalTo(75)
             make.height.equalTo(32)
             make.left.equalTo(12)
             make.bottom.equalTo(-12)
         }
+        
         selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)
         selectTableMask.isHidden = true
         view.addSubview(selectTableMask)
@@ -597,7 +687,7 @@ private extension DigitalHumanViewController {
         pipView.removeFromSuperview()
         
         view.addSubview(mainView)
-        view.addSubview(pipView)
+        mainView.addSubview(pipView)
 
         mainView.snp.makeConstraints { make in
             make.left.equalTo(20)
@@ -609,8 +699,8 @@ private extension DigitalHumanViewController {
         pipView.snp.makeConstraints { make in
             make.width.equalTo(192)
             make.height.equalTo(100)
-            make.top.equalTo(mainView).offset(16)
-            make.right.equalTo(mainView).offset(-16)
+            make.top.equalTo(16)
+            make.right.equalTo(-16)
         }
         
         view.layoutIfNeeded()
