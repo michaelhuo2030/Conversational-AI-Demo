@@ -15,10 +15,12 @@ import Common
 public class DigitalHumanViewController: UIViewController {
     
     private var rtcToken: String? = nil
-    private var localUid: Int = 0
+    private var localUid: UInt = 0
     private let agentUid = 999
     private var channelName = ""
     private var isDenoise = false
+    
+    private var rtcEngine: AgoraRtcEngineKit!
     private var agentManager: AgentManager!
 
     private var isLocalAudioMuted = false
@@ -69,7 +71,7 @@ public class DigitalHumanViewController: UIViewController {
         super.viewDidLoad()
         navigationController?.setNavigationBarHidden(true, animated: false)
         channelName = "agora_\(Int.random(in: 1..<10000000))"
-        localUid = Int.random(in: 1000..<10000000)
+        localUid = UInt.random(in: 1000..<10000000)
         
         setupViews()
         updateMuteState()
@@ -91,7 +93,7 @@ public class DigitalHumanViewController: UIViewController {
 
     private func getToken(complete: @escaping (Bool) -> Void) {
         NetworkManager.shared.generateToken(
-            channelName: "",
+            channelName: channelName,
             uid: "\(localUid)",
             types: [.rtc]
         ) { [weak self] token in
@@ -102,6 +104,7 @@ public class DigitalHumanViewController: UIViewController {
             if let token = token {
                 print("getToken success \(token)")
                 self.rtcToken = token
+                agentManager.token = token
                 complete(true)
             } else {
                 print("getToken error")
@@ -143,6 +146,17 @@ public class DigitalHumanViewController: UIViewController {
     }
     
     private func joinChannel() {
+        let config = AgoraRtcEngineConfig()
+        config.appId = AppContext.shared.appId
+        config.channelProfile = .liveBroadcasting
+        config.audioScenario = .default
+        rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self)
+        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
+        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}");
+        AgoraManager.shared.updateDenoise(isOn: false)
+        rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
+        rtcEngine.joinChannel(byToken: rtcToken, channelId: channelName, info: nil, uid: localUid)
+        
         AgentSettingManager.shared.updateAgentStatus(.connected)
         let ret = agentManager.joinChannel()
         if (ret == 0) {
@@ -214,13 +228,6 @@ public class DigitalHumanViewController: UIViewController {
         }
     }
     
-    private func extractJsonData(from rawString: String) -> Data? {
-        let components = rawString.components(separatedBy: "|")
-        guard components.count >= 4 else { return nil }
-        let base64String = components[3]
-        return Data(base64Encoded: base64String)
-    }
-    
     @objc func onClickHideTable(_ sender: UIButton) {
         selectTable?.removeFromSuperview()
         selectTable = nil
@@ -239,6 +246,106 @@ public class DigitalHumanViewController: UIViewController {
             joinCallButton.isHidden = false
             callingBottomView.isHidden = true
         }
+    }
+}
+
+// MARK: - Actions
+private extension DigitalHumanViewController {
+    @objc private func onClickStartAgent() {
+        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
+        addLog("begin start agent")
+        closeButton.isEnabled = false
+        closeButton.alpha = 0.5
+        topBar.backButton.isEnabled = false
+        topBar.backButton.alpha = 0.5
+        
+        agentManager.startAgent(uid: localUid, agentUid: agentUid) { [weak self] err, agentId in
+            guard let self = self else { return }
+            if let error = err {
+                SVProgressHUD.dismiss()
+                SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
+                addLog("start agent failed : \(error.message)")
+                self.dismiss(animated: false)
+                return
+            }
+            self.setupDenoise()
+            if self.rtcToken == nil {
+                self.getToken { [weak self] isTokenOK in
+                    if isTokenOK {
+                        self?.joinChannel()
+                    } else {
+                        SVProgressHUD.dismiss()
+                        self?.addLog("Token error")
+                        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
+                    }
+                }
+            } else {
+                self.joinChannel()
+            }
+            self.closeButton.isEnabled = true
+            self.closeButton.alpha = 1.0
+            self.topBar.backButton.isEnabled = true
+            self.topBar.backButton.alpha = 1.0
+            addLog("start agent success")
+            isAgentStarted = true
+        }
+    }
+    
+    func stopPageAction() {
+        agentManager.stopAgent(agentUid: String(self.agentUid)) { err, res in
+        }
+        stopInitiative = false
+        self.leaveChannel()
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func onClickStopAgent() {
+        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.endCallLoading)
+        addLog("begin stop agent")
+        stopInitiative = true
+        self.topBar.backButton.isEnabled = false
+        self.topBar.backButton.alpha = 0.5
+        closeButton.isEnabled = false
+        closeButton.alpha = 0.5
+        agentManager.stopAgent(agentUid: String(self.agentUid)) { [weak self] err, res in
+            guard let self = self else { return }
+            SVProgressHUD.dismiss()
+            self.closeButton.isEnabled = true
+            self.closeButton.alpha = 1.0
+            self.topBar.backButton.isEnabled = true
+            self.topBar.backButton.alpha = 1.0
+            if let error = err {
+                SVProgressHUD.showInfo(withStatus: error.localizedDescription)
+                addLog("stop agent failed: \(error.localizedDescription)")
+                stopInitiative = false
+                
+                return
+            }
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
+            self.leaveChannel()
+            addLog("stop agent success")
+            isAgentStarted = false
+            return
+        }
+    }
+    
+    @objc func handleMuteAction(_ sender: UIButton) {
+        sender.isSelected.toggle()
+        let isMute = sender.isSelected
+        agentManager.muteVoice(state: isMute)
+        updateMuteState()
+    }
+    
+    @objc func handleSettingAction() {
+        let settingVc = AgentSettingViewController()
+        settingVc.delegate = self
+        let navigationVC = UINavigationController(rootViewController: settingVc)
+        present(navigationVC, animated: true)
+    }
+    
+    @objc func handleVideoAction(_ sender: UIButton) {
+        sender.isSelected.toggle()
+        updateVideoState()
     }
 }
 
@@ -344,110 +451,6 @@ extension DigitalHumanViewController: AgentSettingViewDelegate {
             SVProgressHUD.showError(withStatus: error.message)
             self.dismiss(animated: false)
         }
-    }
-}
-
-// MARK: - Actions
-private extension DigitalHumanViewController {
-    @objc private func onClickStartAgent() {
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
-        addLog("begin start agent")
-        closeButton.isEnabled = false
-        closeButton.alpha = 0.5
-        topBar.backButton.isEnabled = false
-        topBar.backButton.alpha = 0.5
-        
-        agentManager.startAgent(uid: localUid, agentUid: agentUid) { [weak self] err, agentId in
-            guard let self = self else { return }
-            if let error = err {
-                SVProgressHUD.dismiss()
-                SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
-                addLog("start agent failed : \(error.message)")
-                self.dismiss(animated: false)
-                return
-            }
-            self.setupDenoise()
-            if self.rtcToken == nil {
-                self.getToken { [weak self] isTokenOK in
-                    if isTokenOK {
-                        self?.joinChannel()
-                    } else {
-                        SVProgressHUD.dismiss()
-                        self?.addLog("Token error")
-                        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
-                    }
-                }
-            } else {
-                self.joinChannel()
-            }
-            self.closeButton.isEnabled = true
-            self.closeButton.alpha = 1.0
-            self.topBar.backButton.isEnabled = true
-            self.topBar.backButton.alpha = 1.0
-            addLog("start agent success")
-            isAgentStarted = true
-        }
-    }
-    
-    func stopPageAction() {
-        agentManager.stopAgent(agentUid: String(self.agentUid)) { err, res in
-        }
-        stopInitiative = false
-        self.leaveChannel()
-        self.navigationController?.popViewController(animated: true)
-    }
-    
-    @objc func onClickStopAgent() {
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.endCallLoading)
-        addLog("begin stop agent")
-        stopInitiative = true
-        self.topBar.backButton.isEnabled = false
-        self.topBar.backButton.alpha = 0.5
-        closeButton.isEnabled = false
-        closeButton.alpha = 0.5
-        agentManager.stopAgent(agentUid: String(self.agentUid)) { [weak self] err, res in
-            guard let self = self else { return }
-            SVProgressHUD.dismiss()
-            self.closeButton.isEnabled = true
-            self.closeButton.alpha = 1.0
-            self.topBar.backButton.isEnabled = true
-            self.topBar.backButton.alpha = 1.0
-            
-            guard let error = err else {
-                SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
-                self.leaveChannel()
-                addLog("stop agent success")
-                self.dismiss(animated: false)
-                isAgentStarted = false
-                return
-            }
-            
-            SVProgressHUD.showInfo(withStatus: error.localizedDescription)
-            addLog("stop agent failed: \(error.localizedDescription)")
-            stopInitiative = false
-            
-            self.dismiss(animated: false)
-            return
-        }
-    }
-    
-    @objc func handleMuteAction(_ sender: UIButton) {
-        sender.isSelected.toggle()
-        let isMute = sender.isSelected
-        agentManager.muteVoice(state: isMute)
-        updateMuteState()
-    }
-    
-    @objc func handleSettingAction() {
-        let settingVc = AgentSettingViewController()
-        settingVc.delegate = self
-        let navigationVC = UINavigationController(rootViewController: settingVc)
-        present(navigationVC, animated: true)
-    }
-    
-    @objc func handleVideoAction(_ sender: UIButton) {
-        sender.isSelected.toggle()
-        updateVideoState()
     }
 }
 

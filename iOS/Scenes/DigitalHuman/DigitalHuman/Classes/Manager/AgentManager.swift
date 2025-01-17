@@ -2,51 +2,11 @@ import Foundation
 import AgoraRtcKit
 import Common
 
-protocol AgentProtocol {
-    func getRtcEntine() -> AgoraRtcEngineKit
-    func startAgent(uid: Int, agentUid: Int, completion: @escaping (AgentError?, String?) -> Void)
-    func stopAgent(agentUid: String, completion: @escaping (AgentError?, [String: Any]?) -> Void)
-    func updateAgent(agentUid: String, appId: String, voiceId: String, completion: @escaping((AgentError?) -> Void))
-    func joinChannel() -> Int32
-    func openDenoise()
-    func closeDenoise()
-    func muteVoice(state: Bool)
-    func destroy()
-}
-
-enum RtcEnum {
-    private static let uidKey = "uidKey"
-    private static let channelKey = "channelKey"
-    private static var channelId: String?
-    private static var uid: Int?
-    
-    static func getUid() -> Int {
-        if let uid = uid {
-            return uid
-        } else {
-            let randomUid = Int.random(in: 1000...9999999)
-            uid = randomUid
-            return randomUid
-        }
-    }
-    
-    static func getChannel() -> String {
-        if let channel = channelId {
-            return channel
-        } else {
-            let characters = Array("0123456789abcdefghijklmnopqrstuvwxyz")
-            let randomString = String((0..<4).compactMap { _ in characters.randomElement() })
-            channelId = randomString
-            return randomString
-        }
-    }
-}
-
 class AgentManager: NSObject {
+    var token: String = ""
     private var rtcEngine: AgoraRtcEngineKit!
     private(set) var appId: String = ""
     private(set) var channelName: String = ""
-    private(set) var token: String = ""
     private(set) var uid: String = ""
     private(set) var host: String = ""
     private weak var delegate: AgoraRtcEngineDelegate?
@@ -70,26 +30,97 @@ class AgentManager: NSObject {
     private func initService() {
         agentApiService = AgentAPIService(host: host)
         
-        let config = AgoraRtcEngineConfig()
-        config.appId = appId
-        config.channelProfile = .liveBroadcasting
-        config.audioScenario = .chorus
-        rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self.delegate)
-        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
-        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}");
-        rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\":1}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainlpModelPref\":11}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}");
-        rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\":12}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainsModelPref\":11}");
-        rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\":11}");
-        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}");
-        rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
+        
+    }
+}
+
+class AgoraManager {
+    
+    static let shared = AgoraManager()
+    
+    // MARK: - Properties
+    
+    private var isMainlandVersion: Bool { ServerConfig.isMainlandVersion }
+    
+    // Settings
+    var speakerType: AgentSpeakerType = .speaker1
+    var microphoneType: AgentMicrophoneType = .microphone1
+    private var presetType: AgentPresetType = .version1
+    var voiceType: AgentVoiceType {
+        isMainlandVersion ? .maleQingse : .avaMultilingual
+    }
+    var llmType: AgentLLMType = .openAI
+    var languageType: AgentLanguageType = .en
+    private var isDenoise = false
+    
+    // Status
+    var uid: Int = 0
+    var channelName: String = ""
+    var agentStarted: Bool = false
+    var rtcEngine: RtcEngineEx?
+    
+    // MARK: - Methods
+    
+    func updatePreset(type: AgentPresetType) {
+        presetType = type
+        switch type {
+        case .version1:
+            voiceType = isMainlandVersion ? .maleQingse : .avaMultilingual
+            llmType = .openAI
+            languageType = .en
+        case .xiaoAI:
+            voiceType = .femaleShaonv
+            llmType = .minimax
+            languageType = .cn
+        case .tbd:
+            voiceType = .tbd
+            llmType = .minimax
+            languageType = .cn
+        case .default:
+            voiceType = .andrew
+            llmType = .openAI
+            languageType = .en
+        case .amy:
+            voiceType = .emma
+            llmType = .openAI
+            languageType = .en
+        }
+    }
+    
+    func currentDenoiseStatus() -> Bool {
+        return isDenoise
+    }
+    
+    func updateDenoise(isOn: Bool) {
+        isDenoise = isOn
+        if isDenoise {
+            rtcEngine?.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
+            rtcEngine?.setParameters("{\"che.audio.sf.enabled\":true}")
+            rtcEngine?.setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}")
+            rtcEngine?.setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
+            rtcEngine?.setParameters("{\"che.audio.sf.ainlpModelPref\":11}")
+            rtcEngine?.setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}")
+            rtcEngine?.setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
+            rtcEngine?.setParameters("{\"che.audio.sf.ainsModelPref\":11}")
+            rtcEngine?.setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
+            rtcEngine?.setParameters("{\"che.audio.agc.enable\":false}")
+        } else {
+            rtcEngine?.setParameters("{\"che.audio.sf.enabled\":false}")
+        }
+    }
+    
+    func currentPresetType() -> AgentPresetType {
+        return presetType
+    }
+    
+    func resetData() {
+        rtcEngine = nil
+        updatePreset(isMainlandVersion ? .xiaoAI : .default)
+        isDenoise = false
     }
 }
     
-extension AgentManager: AgentProtocol {
+extension AgentManager {
     func getRtcEntine() -> AgoraRtcEngineKit {
         return rtcEngine
     }
