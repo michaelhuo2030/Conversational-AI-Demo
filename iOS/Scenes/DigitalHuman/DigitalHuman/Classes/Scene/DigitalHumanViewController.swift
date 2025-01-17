@@ -516,12 +516,12 @@ private extension DigitalHumanViewController {
         mineContentView.backgroundColor = UIColor(hex:0x333333)
         mineContentView.layerCornerRadius = 8
         mineContentView.clipsToBounds = true
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMineContentViewTapped))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
         mineContentView.addGestureRecognizer(tapGesture)
         mineContentView.isUserInteractionEnabled = true
         view.addSubview(mineContentView)
         mineContentView.snp.makeConstraints { make in
-            make.width.equalTo(215)
+            make.width.equalTo(192)
             make.height.equalTo(100)
             make.top.equalTo(contentView).offset(16)
             make.right.equalTo(contentView).offset(-16)
@@ -589,7 +589,45 @@ private extension DigitalHumanViewController {
         }
     }
     
-    @objc private func handleMineContentViewTapped() {
+    private func switchVideoLayout(mainView: UIView, pipView: UIView) {
+        mainView.snp.removeConstraints()
+        pipView.snp.removeConstraints()
         
+        mainView.removeFromSuperview()
+        pipView.removeFromSuperview()
+        
+        view.addSubview(mainView)
+        view.addSubview(pipView)
+
+        mainView.snp.makeConstraints { make in
+            make.left.equalTo(20)
+            make.right.equalTo(-20)
+            make.top.equalTo(topBar.snp.bottom).offset(20)
+            make.bottom.equalToSuperview().offset(-120)
+        }
+        
+        pipView.snp.makeConstraints { make in
+            make.width.equalTo(192)
+            make.height.equalTo(100)
+            make.top.equalTo(mainView).offset(16)
+            make.right.equalTo(mainView).offset(-16)
+        }
+        
+        view.layoutIfNeeded()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
+        pipView.addGestureRecognizer(tapGesture)
+        pipView.isUserInteractionEnabled = true
+    }
+
+    @objc private func handlePipViewTapped(_ tap: UIGestureRecognizer) {
+        guard let tappedView = tap.view else { return }
+        tappedView.removeGestureRecognizers()
+        
+        if tappedView == mineContentView {
+            switchVideoLayout(mainView: mineContentView, pipView: contentView)
+        } else {
+            switchVideoLayout(mainView: contentView, pipView: mineContentView)
+        }
     }
 }
