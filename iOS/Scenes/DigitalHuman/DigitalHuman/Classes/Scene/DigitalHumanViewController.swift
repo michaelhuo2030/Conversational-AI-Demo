@@ -12,7 +12,7 @@ import SVProgressHUD
 import SwifterSwift
 import Common
 
-public class DigitalHumanViewController: UIViewController {
+class DigitalHumanViewController: UIViewController {
     
     private var rtcToken: String? = nil
     private var localUid: UInt = 0
@@ -62,6 +62,8 @@ public class DigitalHumanViewController: UIViewController {
     
     private var stopInitiative = false
     private var apiService: AgentAPIService!
+    
+    var onMineContentViewClicked: (() -> Void)?
     
     deinit {
         print("DigitalHumanViewController deinit")
@@ -602,9 +604,12 @@ private extension DigitalHumanViewController {
         mineContentView.backgroundColor = UIColor(hex:0x333333)
         mineContentView.layerCornerRadius = 8
         mineContentView.clipsToBounds = true
-        videoContentView.addSubview(mineContentView)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
+        mineContentView.addGestureRecognizer(tapGesture)
+        mineContentView.isUserInteractionEnabled = true
+        contentView.addSubview(mineContentView)
         mineContentView.snp.makeConstraints { make in
-            make.width.equalTo(215)
+            make.width.equalTo(192)
             make.height.equalTo(100)
             make.top.equalToSuperview().offset(16)
             make.right.equalToSuperview().offset(-16)
@@ -670,6 +675,48 @@ private extension DigitalHumanViewController {
         view.addSubview(selectTableMask)
         selectTableMask.snp.makeConstraints { make in
             make.top.left.right.bottom.equalToSuperview()
+        }
+    }
+    
+    private func switchVideoLayout(mainView: UIView, pipView: UIView) {
+        mainView.snp.removeConstraints()
+        pipView.snp.removeConstraints()
+        
+        mainView.removeFromSuperview()
+        pipView.removeFromSuperview()
+        
+        view.addSubview(mainView)
+        mainView.addSubview(pipView)
+
+        mainView.snp.makeConstraints { make in
+            make.left.equalTo(20)
+            make.right.equalTo(-20)
+            make.top.equalTo(topBar.snp.bottom).offset(20)
+            make.bottom.equalToSuperview().offset(-120)
+        }
+        
+        pipView.snp.makeConstraints { make in
+            make.width.equalTo(192)
+            make.height.equalTo(100)
+            make.top.equalTo(16)
+            make.right.equalTo(-16)
+        }
+        
+        view.layoutIfNeeded()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
+        pipView.addGestureRecognizer(tapGesture)
+        pipView.isUserInteractionEnabled = true
+    }
+
+    @objc private func handlePipViewTapped(_ tap: UIGestureRecognizer) {
+        guard let tappedView = tap.view else { return }
+        tappedView.removeGestureRecognizers()
+        
+        if tappedView == mineContentView {
+            switchVideoLayout(mainView: mineContentView, pipView: contentView)
+        } else {
+            switchVideoLayout(mainView: contentView, pipView: mineContentView)
         }
     }
 }

@@ -13,7 +13,8 @@ public class VoiceAgentContext: NSObject {
     public static let kSceneName = "VoiceAgent"
 
     public static func voiceAgentScene(viewController: UIViewController) {
-        
+        let vc = PreparedToStartViewController()
+        vc.showMineContent = false
+        viewController.navigationController?.pushViewController(vc, animated: true)
     }
-    
 }
