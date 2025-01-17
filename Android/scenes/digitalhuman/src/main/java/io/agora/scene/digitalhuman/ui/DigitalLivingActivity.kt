@@ -191,8 +191,6 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         )
         engine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
         engine.setParameters("{\"che.audio.sf.enabled\":false}")
-        //set audio scenario 10，open AI-QoS
-        engine.setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
         DigitalAgoraManager.updateDenoise(true)
         engine.startPreview()
         val ret = engine.joinChannel(rtcToken, channelName, localUid, channelOption)
@@ -350,6 +348,8 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             }
         }
         engine = (RtcEngineEx.create(config) as RtcEngineEx).apply {
+            //set audio scenario 10，open AI-QoS
+            setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
             enableAudioVolumeIndication(100, 10, true)
             enableVideo()
             adjustRecordingSignalVolume(100)
@@ -457,6 +457,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
 
     private fun setupView() {
         mBinding?.apply {
+            setOnApplyWindowInsetsListener(root)
             btnBack.setOnClickListener {
                 finish()
             }

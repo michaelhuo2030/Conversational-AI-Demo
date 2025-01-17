@@ -119,7 +119,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             channelName = channelName,
             remoteRtcUid = localUid,
             agentRtcUid = agentUID,
-            ttsVoiceId = CovAgoraManager.voiceType.value
+            ttsVoiceId = CovAgoraManager.voiceType.value,
+            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER
         )
         ConvAIManager.startAgent(params) { isAgentOK ->
             if (isAgentOK) {
@@ -257,7 +258,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             channelName = channelName,
                             remoteRtcUid = localUid,
                             agentRtcUid = agentUID,
-                            ttsVoiceId = CovAgoraManager.voiceType.value
+                            ttsVoiceId = CovAgoraManager.voiceType.value,
+                            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER
                         )
                         ConvAIManager.startAgent(params) { isAgentOK ->
                             if (!isAgentOK) {
@@ -324,6 +326,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         }
         engine = (RtcEngine.create(config) as RtcEngineEx).apply {
+            //set audio scenario 10，open AI-QoS
+            setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
             enableAudioVolumeIndication(100, 10, true)
             adjustRecordingSignalVolume(100)
         }
@@ -405,6 +409,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun setupView() {
         mBinding?.apply {
+            setOnApplyWindowInsetsListener(root)
             btnBack.setOnClickListener {
                 finish()
             }

@@ -27,16 +27,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun initView() {
         setupView()
-        mBinding?.apply {
-            if (ServerConfig.isMainlandVersion) {
-                ivLogo.setImageResource(R.drawable.app_main_logo_cn)
-                ivLogo.setColorFilter(Color.WHITE)
-            } else {
-                ivLogo.setImageResource(R.drawable.app_main_logo)
-                ivLogo.clearColorFilter()
-            }
-        }
-
         ActivityCompat.requestPermissions(
             this,
             arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE),
@@ -56,6 +46,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun setupView() {
         mBinding?.apply {
+            setOnApplyWindowInsetsListener(root)
+            if (ServerConfig.isMainlandVersion) {
+                ivLogo.setImageResource(R.drawable.app_main_logo_cn)
+                ivLogo.setColorFilter(Color.WHITE)
+            } else {
+                ivLogo.setImageResource(R.drawable.app_main_logo)
+                ivLogo.clearColorFilter()
+            }
             cbTerms.setOnCheckedChangeListener { _, _ ->
                 updateStartButtonState()
             }
