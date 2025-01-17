@@ -5,28 +5,41 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    android:padding="16dp"
+    android:paddingHorizontal="16dp"
     tools:context=".MainActivity">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineH10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintGuide_percent="0.1"
+        android:orientation="horizontal"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineH30"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintGuide_percent="0.3"
+        android:orientation="horizontal"/>
 
     <ImageView
         android:id="@+id/iv_logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="52dp"
         android:src="@drawable/app_main_logo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="@id/guidelineH10"/>
+
 
     <ImageView
         android:id="@+id/iv_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/app_icon"
-        android:layout_marginTop="140dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iv_logo"/>
+        app:layout_constraintTop_toTopOf="@id/guidelineH30"/>
 
     <ImageView
         android:id="@+id/iv_text"
@@ -76,18 +89,18 @@
 
     <TextView
         android:id="@+id/tv_get_started"
-        android:layout_width="328dp"
+        android:layout_width="0dp"
         android:layout_height="58dp"
         android:text="@string/main_get_started"
         android:gravity="center_horizontal|center_vertical"
         android:textColor="#FDFCFB"
         android:textSize="18sp"
-        android:layout_marginBottom="44dp"
+        android:layout_marginHorizontal="4dp"
+        android:layout_marginBottom="32dp"
         android:background="@drawable/btn_blue_radio_enable"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <FrameLayout
         android:id="@+id/fragment_container"
