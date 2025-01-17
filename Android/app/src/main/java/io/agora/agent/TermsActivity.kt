@@ -14,14 +14,13 @@ class TermsActivity : BaseActivity<ActivityTermsBinding>() {
 
     override fun initView() {
         mBinding?.apply {
+            setOnApplyWindowInsetsListener(root)
+            ivBackIcon.setOnClickListener {
+                onHandleOnBackPressed()
+            }
             webView.settings.javaScriptEnabled = true
             webView.webViewClient = WebViewClient()
             webView.loadUrl(ServerConfig.siteUrl)
-
-            setSupportActionBar(toolbar)
-            supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            supportActionBar?.setDisplayShowHomeEnabled(true)
-            toolbar.setNavigationOnClickListener { onBackPressed() }
 
             webView.webChromeClient = object : WebChromeClient() {
                 override fun onProgressChanged(view: android.webkit.WebView, newProgress: Int) {
