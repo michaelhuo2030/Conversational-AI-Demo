@@ -1,4 +1,4 @@
-package io.agora.scene.convoai.ui
+package io.agora.scene.digitalhuman.ui
 
 import android.app.Dialog
 import android.content.DialogInterface
@@ -9,12 +9,12 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Window
 import android.view.WindowManager
-import io.agora.convoai.databinding.AgentNetworkDialogBinding
-import io.agora.scene.convoai.rtc.AgoraManager
+import io.agora.scene.digitalhuman.databinding.DigitalNetworkDialogBinding
+import io.agora.scene.digitalhuman.rtc.DigitalAgoraManager
 
-class AgentNetworkDialogFragment : DialogFragment() {
+class DigitalNetworkDialog : DialogFragment() {
 
-    private var binding: AgentNetworkDialogBinding? = null
+    private var binding: DigitalNetworkDialogBinding? = null
     private var onDismissListener: (() -> Unit)? = null
 
     private var value: Int = 0
@@ -24,7 +24,7 @@ class AgentNetworkDialogFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        binding = AgentNetworkDialogBinding.inflate(LayoutInflater.from(context))
+        binding = DigitalNetworkDialogBinding.inflate(LayoutInflater.from(context))
         val dialog = Dialog(requireContext(), theme)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setCancelable(true)
@@ -34,7 +34,7 @@ class AgentNetworkDialogFragment : DialogFragment() {
             binding.root.setOnClickListener {
                 dialog.dismiss()
             }
-            if (!AgoraManager.agentStarted) {
+            if (!DigitalAgoraManager.agentStarted) {
                 binding.mtvNetworkStatus.text = getString(io.agora.scene.common.R.string
                     .cov_info_your_network_disconnected)
                 binding.mtvNetworkStatus.setTextColor(Color.parseColor("#FF414D"))

@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.animation.ValueAnimator
 import android.graphics.Color
+import io.agora.scene.common.R
 import kotlin.random.Random
 
 class RecordingAnimationView @JvmOverloads constructor(
@@ -25,6 +26,21 @@ class RecordingAnimationView @JvmOverloads constructor(
 
     var horizontalSpacing = 10
     var barWidth = 50
+
+    init {
+        context.theme.obtainStyledAttributes(
+            attrs,
+            R.styleable.RecordingAnimationView,
+            0, 0
+        ).apply {
+            try {
+                horizontalSpacing = getDimensionPixelSize(R.styleable.RecordingAnimationView_horizontalSpacing, 10)
+                barWidth = getDimensionPixelSize(R.styleable.RecordingAnimationView_barWidth, 50)
+            } finally {
+                recycle()
+            }
+        }
+    }
 
     var barColor: Int = Color.WHITE
         set(value) {

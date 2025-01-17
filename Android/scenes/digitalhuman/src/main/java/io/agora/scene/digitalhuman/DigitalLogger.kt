@@ -1,11 +1,11 @@
-package io.agora.scene.convoai
+package io.agora.scene.digitalhuman
 
 import com.elvishew.xlog.XLog
 import com.elvishew.xlog.printer.Printer
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.util.AgoraLogger
 
-object ConvoAiLogger {
+object DigitalLogger {
 
     private val printers: List<Printer> by lazy {
         AgoraLogger.getPrinter(AgentScenes.ConvoAi)

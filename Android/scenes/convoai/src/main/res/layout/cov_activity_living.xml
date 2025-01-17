@@ -118,7 +118,7 @@
 
         <include
             android:id="@+id/v_not_joined"
-            layout="@layout/agent_not_joined_view" />
+            layout="@layout/cov_not_joined_view" />
     </androidx.cardview.widget.CardView>
 
     <FrameLayout

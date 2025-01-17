@@ -9,6 +9,5 @@ enum class AgentScenes constructor(val value: Int) {
 
     Common(100),
     ConvoAi(101),
-    // et..
-    //DigitalHuman(102),
+    DigitalHuman(102),
 }

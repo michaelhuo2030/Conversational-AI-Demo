@@ -11,7 +11,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import io.agora.scene.convoai.ui.ConvoAiLivingActivity
+import io.agora.scene.convoai.ui.CovLivingActivity
 import io.agora.scene.common.R
 
 class RtcForegroundService : Service() {
@@ -58,14 +58,14 @@ class RtcForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val notificationIntent = Intent(this, ConvoAiLivingActivity::class.java)
+        val notificationIntent = Intent(this, CovLivingActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this,
             0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(io.agora.rtc.R.string.app_name))
+            .setContentTitle(getString(io.agora.agent.R.string.app_name))
             .setContentText("Audio recording in background")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)

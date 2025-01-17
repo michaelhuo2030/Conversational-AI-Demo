@@ -60,4 +60,7 @@
     <string-array name="cov_setting_speaker_array">
         <item>Inbuilt Speaker</item>
     </string-array>
+
+    <string name="digital_youselft">You</string>
+    <string name="digital_detail_agent_title">Digital Human</string>
 </resources>

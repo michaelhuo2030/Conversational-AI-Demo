@@ -1,8 +1,7 @@
-package io.agora.scene.convoai.http
+package io.agora.scene.digitalhuman.http
 
 import android.os.Handler
 import android.os.Looper
-import io.agora.scene.convoai.ConvoAiLogger
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -13,6 +12,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.digitalhuman.DigitalLogger
 
 data class AgentRequestParams(
     val channelName: String,
@@ -33,7 +33,7 @@ data class AgentRequestParams(
     val ttsVoiceId: String? = null
 )
 
-object ConvAIManager {
+object DigitalApiManager {
 
     val TAG = "ConvAIManager"
 
@@ -43,7 +43,7 @@ object ConvAIManager {
 
     fun startAgent(params: AgentRequestParams, succeed: (Boolean) -> Unit) {
         val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/start"
-        ConvoAiLogger.d(TAG, "Start agent request: $requestURL, channelName: ${params.channelName}")
+        DigitalLogger.d(TAG, "Start agent request: $requestURL, channelName: ${params.channelName}")
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
@@ -85,7 +85,7 @@ object ConvAIManager {
                 postBody.put("tts", tts)
             }
         } catch (e: JSONException) {
-            ConvoAiLogger.e(TAG, "postBody error ${e.message}")
+            DigitalLogger.e(TAG, "postBody error ${e.message}")
         }
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = Request.Builder()
@@ -96,7 +96,7 @@ object ConvAIManager {
         OkHttpClient().newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
-                ConvoAiLogger.d(TAG, "Start agent response: $json")
+                DigitalLogger.d(TAG, "Start agent response: $json")
                 if (json == null || response.code != 200) {
                     runOnMainThread {
                         succeed.invoke(false)
@@ -112,13 +112,13 @@ object ConvAIManager {
                                 succeed.invoke(true)
                             }
                         } else {
-                            ConvoAiLogger.e(TAG, "Request failed with code: $code, aid: $aid")
+                            DigitalLogger.e(TAG, "Request failed with code: $code, aid: $aid")
                             runOnMainThread {
                                 succeed.invoke(false)
                             }
                         }
                     } catch (e: JSONException) {
-                        ConvoAiLogger.e(TAG, "JSON parse error: ${e.message}")
+                        DigitalLogger.e(TAG, "JSON parse error: ${e.message}")
                         runOnMainThread {
                             succeed.invoke(false)
                         }
@@ -126,7 +126,7 @@ object ConvAIManager {
                 }
             }
             override fun onFailure(call: Call, e: IOException) {
-                ConvoAiLogger.e(TAG, "Start agent failed: $e")
+                DigitalLogger.e(TAG, "Start agent failed: $e")
                 runOnMainThread {
                     succeed.invoke(false)
                 }
@@ -142,13 +142,13 @@ object ConvAIManager {
             return
         }
         val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/stop"
-        ConvoAiLogger.d(TAG, "Stop agent request: $requestURL, agent_id: $agentId")
+        DigitalLogger.d(TAG, "Stop agent request: $requestURL, agent_id: $agentId")
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
             postBody.put("agent_id", agentId)
         } catch (e: JSONException) {
-            ConvoAiLogger.e(TAG, "postBody error ${e.message}")
+            DigitalLogger.e(TAG, "postBody error ${e.message}")
         }
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = Request.Builder()
@@ -159,14 +159,14 @@ object ConvAIManager {
         OkHttpClient().newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
-                ConvoAiLogger.d(TAG, "Stop agent response: $json")
+                DigitalLogger.d(TAG, "Stop agent response: $json")
                 runOnMainThread {
                     agentId = null
                     succeed.invoke(true)
                 }
             }
             override fun onFailure(call: Call, e: IOException) {
-                ConvoAiLogger.e(TAG, "Stop agent failed: $e")
+                DigitalLogger.e(TAG, "Stop agent failed: $e")
                 runOnMainThread {
                     agentId = null
                     succeed.invoke(true)
@@ -183,14 +183,14 @@ object ConvAIManager {
             return
         }
         val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/update"
-        ConvoAiLogger.d(TAG, "Update agent request: $requestURL, agent_id: $agentId")
+        DigitalLogger.d(TAG, "Update agent request: $requestURL, agent_id: $agentId")
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
             postBody.put("voice_id", voiceId)
             postBody.put("agent_id", agentId)
         } catch (e: JSONException) {
-            ConvoAiLogger.e(TAG, "postBody error ${e.message}")
+            DigitalLogger.e(TAG, "postBody error ${e.message}")
         }
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = Request.Builder()
@@ -201,7 +201,7 @@ object ConvAIManager {
         OkHttpClient().newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
-                ConvoAiLogger.d(TAG, "Update agent response: $json")
+                DigitalLogger.d(TAG, "Update agent response: $json")
                 if (json == null || response.code != 200) {
                     runOnMainThread {
                         succeed.invoke(false)
@@ -213,7 +213,7 @@ object ConvAIManager {
                 }
             }
             override fun onFailure(call: Call, e: IOException) {
-                ConvoAiLogger.e(TAG, "Update agent failed: $e")
+                DigitalLogger.e(TAG, "Update agent failed: $e")
                 runOnMainThread {
                     succeed.invoke(false)
                 }

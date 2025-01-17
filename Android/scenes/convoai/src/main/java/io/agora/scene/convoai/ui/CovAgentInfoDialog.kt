@@ -9,15 +9,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import io.agora.convoai.databinding.AgentInfoDialogBinding
-import io.agora.scene.convoai.rtc.AgoraManager
+import io.agora.scene.convoai.databinding.CovInfoDialogBinding
+import io.agora.scene.convoai.rtc.CovAgoraManager
 
-class AgentInfoDialogFragment : DialogFragment() {
+class CovAgentInfoDialog : DialogFragment() {
 
     var isConnected = false
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val binding = AgentInfoDialogBinding.inflate(LayoutInflater.from(context))
+        val binding = CovInfoDialogBinding.inflate(LayoutInflater.from(context))
 
         val dialog = Dialog(requireContext(), theme)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -30,7 +30,7 @@ class AgentInfoDialogFragment : DialogFragment() {
         window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        if (AgoraManager.agentStarted) {
+        if (CovAgoraManager.agentStarted) {
             binding.mtvRoomStatus.visibility = View.VISIBLE
             binding.mtvAgentStatus.visibility = View.VISIBLE
             if (isConnected) {
@@ -46,8 +46,8 @@ class AgentInfoDialogFragment : DialogFragment() {
                 binding.mtvAgentStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_disconnected)
                 binding.mtvAgentStatus.setTextColor(Color.parseColor("#FF414D"))
             }
-            binding.mtvRoomId.text = AgoraManager.channelName
-            binding.mtvUidValue.text = AgoraManager.uid.toString()
+            binding.mtvRoomId.text = CovAgoraManager.channelName
+            binding.mtvUidValue.text = CovAgoraManager.uid.toString()
         } else {
             binding.mtvRoomId.visibility = View.INVISIBLE
             binding.mtvUidValue.visibility = View.INVISIBLE

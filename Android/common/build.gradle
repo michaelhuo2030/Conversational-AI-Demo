@@ -6,6 +6,17 @@ plugins {
 if (project.getProperty("AG_APP_ID").toString().isEmpty()) {
     throw new GradleException("请在 gradle.properties 中配置 Agora ID 和 Certificate")
 }
+def baseProps = new File(rootProject.projectDir.absolutePath + File.separator + "gradle.properties")
+def properties = new Properties()
+if (baseProps.exists()) {
+    baseProps.withReader('UTF-8') { reader ->
+        properties.load(reader)
+    }
+}
+
+final def USE_LOCAL_SDK = properties.getProperty("USE_LOCAL_SDK").toBoolean()
+
+def localSdkPath = "agora-sdk"
 
 android {
     namespace 'io.agora.scene.common'
@@ -36,6 +47,13 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+    if (USE_LOCAL_SDK) {
+        sourceSets {
+            main {
+                jniLibs.srcDirs += "${localSdkPath}"
+            }
+        }
+    }
 }
 
 dependencies {
@@ -57,6 +75,9 @@ dependencies {
 
     api libs.commons.codec
     api libs.agora.authentication
-    api libs.agora.rtc.voice
-
+    if (USE_LOCAL_SDK) {
+        api fileTree(dir: "${localSdkPath}", include: ['*.jar'])
+    } else {
+        api libs.agora.rtc.voice
+    }
 }

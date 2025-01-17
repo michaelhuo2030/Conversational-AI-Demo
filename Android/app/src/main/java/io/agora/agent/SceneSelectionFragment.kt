@@ -40,11 +40,18 @@ class SceneSelectionFragment : Fragment() {
             listOf(
                 SceneModel(
                     AgentScenes.ConvoAi,
-                    "io.agora.scene.convoai.ui.ConvoAiLivingActivity",
+                    "io.agora.scene.convoai.ui.CovLivingActivity",
                     io.agora.scene.common.R.drawable.scene_selection_conversation,
                     getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_title),
                     getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_info),
                 ),
+                SceneModel(
+                    AgentScenes.DigitalHuman,
+                    "io.agora.scene.digitalhuman.ui.DigitalLivingActivity",
+                    io.agora.scene.common.R.drawable.scene_selection_digital,
+                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_title),
+                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_info),
+                )
             )
         )
     }
