@@ -40,17 +40,26 @@ class DigitalHumanViewController: UIViewController {
     private var topBar: AgentSettingBar!
     // contentView: [notJoinedView, videoContentView]
     private var contentView: UIView!
+    
+    // videoContentView: [notJoinedView, agentVideoView, aiNameView]
+    private var agentContentView: UIView!
+    
     // notJoinedView: [agentImageView, statusLabel]
     private var notJoinedView: UIView!
     private var notJoinedImageView: UIImageView!
     private var notJoinedLabel: UILabel!
-    
-    // videoContentView: [agentImageView, statusLabel, aiNameLabel, mineContentView, mineAvatarLabel, mineNameView, mineNameLabel, micStateImageView]
-    private var videoContentView: UIView!
+    // agentVideoView
+    private var agentVideoView: UIView!
+    // aiNameView: [aiNameLabel, aiNameImage]
+    private var aiNameView: UIView!
     private var aiNameLabel: UILabel!
+    private var aiNameImage: UIImageView!
+    
+    // mineContentView: [mineContentView, mineAvatarLabel, mineVideoView, mineNameView]
     private var mineContentView: UIView!
     private var mineAvatarLabel: UILabel!
     private var mineVideoView: UIView!
+    // mineNameView: [mineNameLabel, micStateImageView]
     private var mineNameView: UIView!
     private var mineNameLabel: UILabel!
     private var micStateImageView: UIImageView!
@@ -68,7 +77,7 @@ class DigitalHumanViewController: UIViewController {
     deinit {
         engine.leaveChannel()
         apiService.stopAgent(channelName: channelName) { err, res in
-            if let e = err {
+            if err != nil {
                 print("Failed to stop agent")
             } else {
                 print("Agent stopped successfully")
@@ -85,12 +94,12 @@ class DigitalHumanViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         channelName = "agora_\(Int.random(in: 1..<10000000))"
         localUid = UInt.random(in: 1000..<10000000)
-        createRtcEngine()
-        
         setupViews()
+        
+        createRtcEngine()
         updateMicState()
         updateVideoState()
-        updateViewState()
+//        updateViewState()
         
         getToken { _ in }
         setupAgentCoordinator()
@@ -103,16 +112,8 @@ class DigitalHumanViewController: UIViewController {
             DispatchQueue.main.async {
                 self.engine.enableVideo()
                 self.engine.enableAudio()
-                self.aa()
             }
         }
-    }
-    
-    private func aa() {
-//        let ret1 = self.engine.enableLocalAudio(true)
-//        let ret2 = self.engine.enableLocalVideo(true)
-        let ret = self.engine.startPreview()
-        print("aaaa")
     }
     
     private func setupAgentCoordinator() {
@@ -136,6 +137,7 @@ class DigitalHumanViewController: UIViewController {
         let localCanvas = AgoraRtcVideoCanvas()
         localCanvas.mirrorMode = .disabled
         localCanvas.setupMode = .add
+        localCanvas.renderMode = .hidden
         localCanvas.view = mineVideoView
         localCanvas.uid = localUid
         engine.setupLocalVideo(localCanvas)
@@ -144,7 +146,8 @@ class DigitalHumanViewController: UIViewController {
         let remoteCanvas = AgoraRtcVideoCanvas()
         remoteCanvas.mirrorMode = .disabled
         remoteCanvas.setupMode = .add
-        remoteCanvas.view = videoContentView
+        remoteCanvas.renderMode = .hidden
+        remoteCanvas.view = agentVideoView
         remoteCanvas.uid = agentUid
         engine.setupRemoteVideo(remoteCanvas)
     }
@@ -237,15 +240,20 @@ class DigitalHumanViewController: UIViewController {
     func updateViewState() {
         if isAgentStarted {
             notJoinedView.isHidden = true
-            videoContentView.isHidden = false
+            agentVideoView.isHidden = false
+            mineContentView.isHidden = false
             joinCallButton.isHidden = true
             callingBottomView.isHidden = false
+            aiNameView.isHidden = false
+            
             let ret = engine.startPreview()
         } else {
             notJoinedView.isHidden = false
-            videoContentView.isHidden = true
+            agentVideoView.isHidden = true
+            mineContentView.isHidden = true
             joinCallButton.isHidden = false
             callingBottomView.isHidden = true
+            aiNameView.isHidden = true
             
             let ret = engine.stopPreview()
         }
@@ -504,16 +512,20 @@ private extension DigitalHumanViewController {
             make.bottom.equalToSuperview().offset(-120)
         }
         
-        // Create videoContentView and add it to contentView
-        videoContentView = UIView()
-        contentView.addSubview(videoContentView)
-        videoContentView.snp.makeConstraints { make in
+        agentContentView = UIView()
+        contentView.addSubview(agentContentView)
+        agentContentView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         
-        // Add notJoinedView and its subviews to videoContentView
+        agentVideoView = UIView()
+        agentContentView.addSubview(agentVideoView)
+        agentVideoView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
         notJoinedView = UIView()
-        contentView.addSubview(notJoinedView)
+        agentContentView.addSubview(notJoinedView)
         notJoinedView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
@@ -647,7 +659,6 @@ private extension DigitalHumanViewController {
         }
         
         mineVideoView = UIView()
-        mineVideoView.backgroundColor = .red
         mineContentView.addSubview(mineVideoView)
         mineVideoView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
@@ -682,17 +693,34 @@ private extension DigitalHumanViewController {
             make.centerY.equalTo(mineNameView)
         }
 
-        aiNameLabel = UILabel()
-        aiNameLabel.textColor = .white
-        aiNameLabel.text = ResourceManager.L10n.Conversation.agentName
-        aiNameLabel.textAlignment = .center
-        aiNameLabel.backgroundColor = UIColor(hex:0x000000, transparency: 0.25)
-        videoContentView.addSubview(aiNameLabel)
-        aiNameLabel.snp.makeConstraints { make in
-            make.width.equalTo(75)
+        aiNameView = UIView()
+        aiNameView.backgroundColor = UIColor(hex:0x000000, transparency: 0.25)
+        aiNameView.layerCornerRadius = 4
+        aiNameView.clipsToBounds = true
+        agentContentView.addSubview(aiNameView)
+        aiNameView.snp.makeConstraints { make in
+            make.width.equalTo(100)
             make.height.equalTo(32)
             make.left.equalTo(12)
             make.bottom.equalTo(-12)
+        }
+
+        aiNameLabel = UILabel()
+        aiNameLabel.textColor = .white
+        aiNameLabel.text = ResourceManager.L10n.Conversation.agentName
+        aiNameLabel.textAlignment = .left
+        aiNameView.addSubview(aiNameLabel)
+        aiNameLabel.snp.makeConstraints { make in
+            make.left.equalTo(12)
+            make.centerY.equalToSuperview()
+        }
+
+        aiNameImage = UIImageView(image: UIImage.dh_named("ic_agent_detail_ai_voice"))
+        aiNameView.addSubview(aiNameImage)
+        aiNameImage.snp.makeConstraints { make in
+            make.right.equalTo(-12)
+            make.width.height.equalTo(20)
+            make.centerY.equalToSuperview()
         }
         
         selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)

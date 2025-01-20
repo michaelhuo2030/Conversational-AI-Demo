@@ -83,7 +83,7 @@ class AgentAPIService {
     }
     
     private func _startAgent(appid: String, channelName: String, agentRtcUid: UInt, remote_rtc_uid: Int, greeting: String = "Hi, how can I assist you today?", retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping ((AgentError?) -> Void)) {
-        let url = AgentServiceUrl.startAgentPath("v1/convoai/start").toHttpUrlSting()
+        let url = AgentServiceUrl.startAgentPath("v1/digitalHuman/start").toHttpUrlSting()
         let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
         let parameters: [String: Any] = [
             "app_id": appid,
@@ -129,7 +129,7 @@ class AgentAPIService {
             completion(error, nil)
             return
         }
-        let url = AgentServiceUrl.stopAgentPath("v1/convoai/stop").toHttpUrlSting()
+        let url = AgentServiceUrl.stopAgentPath("v1/digitalHuman/stop").toHttpUrlSting()
         let parameters: [String: Any] = [
             "app_id": appid,
             "agent_id": agentId
