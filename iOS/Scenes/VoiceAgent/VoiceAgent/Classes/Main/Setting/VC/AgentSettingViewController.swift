@@ -34,7 +34,7 @@ class AgentSettingViewController: UIViewController {
     private let contentView3 = UIView()
 //    private let microphoneItem = AgentSettingTableItemView(frame: .zero)
 //    private let speakerItem = AgentSettingTableItemView(frame: .zero)
-    private let cancellationItem = AgentSettingSwitchItemView(frame: .zero)
+//    private let cancellationItem = AgentSettingSwitchItemView(frame: .zero)
     
     private var selectTable: AgentSelectTableView? = nil
     private var selectTableMask = UIButton(type: .custom)
@@ -53,7 +53,7 @@ class AgentSettingViewController: UIViewController {
         voiceItem.detialLabel.text = AgentSettingManager.shared.currentVoiceType.displayName
         modelItem.detialLabel.text = AgentSettingManager.shared.currentModelType.rawValue
         languageItem.detialLabel.text = AgentSettingManager.shared.currentLanguageType.rawValue
-        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+//        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
     }
     
     @objc func onClickClose(_ sender: UIButton) {
@@ -275,7 +275,7 @@ extension AgentSettingViewController {
         modelItem.button.addTarget(self, action: #selector(onClickModel(_ :)), for: .touchUpInside)
         contentView2.addSubview(modelItem)
         
-        content3Title.text = ResourceManager.L10n.Settings.device
+        content3Title.text = "" /*ResourceManager.L10n.Settings.device*/
         content3Title.font = UIFont.boldSystemFont(ofSize: 16)
         content3Title.textColor = PrimaryColors.c_ffffff_a
         contentView.addSubview(content3Title)
@@ -296,11 +296,11 @@ extension AgentSettingViewController {
 //        speakerItem.button.addTarget(self, action: #selector(onClickSpeaker(_ :)), for: .touchUpInside)
 //        contentView3.addSubview(speakerItem)
         
-        cancellationItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
-        cancellationItem.bottomLine.isHidden = true
-        cancellationItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
-        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-        contentView3.addSubview(cancellationItem)
+//        cancellationItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
+//        cancellationItem.bottomLine.isHidden = true
+//        cancellationItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
+//        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+//        contentView3.addSubview(cancellationItem)
         
         selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)
         selectTableMask.isHidden = true
@@ -367,11 +367,11 @@ extension AgentSettingViewController {
 //            make.left.right.equalToSuperview()
 //            make.height.equalTo(56)
 //        }
-        cancellationItem.snp.makeConstraints { make in
+//        cancellationItem.snp.makeConstraints { make in
 //            make.top.equalTo(speakerItem.snp.bottom)
-            make.top.left.right.bottom.equalToSuperview()
-            make.height.equalTo(56)
-        }
+//            make.top.left.right.bottom.equalToSuperview()
+//            make.height.equalTo(56)
+//        }
         selectTableMask.snp.makeConstraints { make in
             make.top.left.right.bottom.equalToSuperview()
         }

@@ -14,7 +14,7 @@ enum AgentPresetType: String, CaseIterable {
             return [.defaultPreset, .amy]
         }
     }
-    
+        
     var prompt: String {
         switch self {
         case .xiaoi:

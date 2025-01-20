@@ -243,7 +243,7 @@ public class PreparedToStartViewController: UIViewController {
     
     private func setupConstraints() {
         topBar.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(60)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(5)
             make.left.equalTo(20)
             make.right.equalTo(-20)
             make.height.equalTo(48)
@@ -283,7 +283,7 @@ public class PreparedToStartViewController: UIViewController {
         joinButton.snp.makeConstraints { make in
             make.left.right.equalToSuperview().inset(20)
             make.height.equalTo(64)
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-48)
+            make.bottom.equalTo(-40)
         }
         
         selectTableMask.snp.makeConstraints { make in
@@ -310,6 +310,7 @@ public class PreparedToStartViewController: UIViewController {
             }
         }
                 
+        SVProgressHUD.show()
         NetworkManager.shared.generateToken(
             channelName: "",
             uid: "\(uid)",
