@@ -8,7 +8,7 @@ import io.agora.scene.common.util.AgoraLogger
 object DigitalLogger {
 
     private val printers: List<Printer> by lazy {
-        AgoraLogger.getPrinter(AgentScenes.ConvoAi)
+        AgoraLogger.getPrinter(AgentScenes.DigitalHuman)
     }
 
     fun v(tag: String, message: String) {

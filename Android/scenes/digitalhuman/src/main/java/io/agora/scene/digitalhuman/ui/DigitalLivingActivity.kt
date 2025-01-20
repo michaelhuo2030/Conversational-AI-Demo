@@ -2,10 +2,10 @@ package io.agora.scene.digitalhuman.ui
 
 import android.content.Intent
 import android.util.Log
+import android.util.Size
 import android.view.TextureView
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.core.view.isVisible
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
@@ -20,10 +20,12 @@ import io.agora.scene.digitalhuman.rtc.DigitalAgoraManager
 import io.agora.rtc2.ChannelMediaOptions
 import io.agora.rtc2.Constants
 import io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
+import io.agora.rtc2.Constants.ERR_OK
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
 import io.agora.rtc2.video.VideoCanvas
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.digitalhuman.DigitalLogger
 import io.agora.scene.digitalhuman.databinding.DigitalActivityLivingBinding
 import io.agora.scene.digitalhuman.http.DigitalApiManager
@@ -33,7 +35,7 @@ import kotlin.random.Random
 
 class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
 
-    private val TAG = "LivingActivity"
+    private val TAG = "DigitalLivingActivity"
 
     private lateinit var engine: RtcEngineEx
 
@@ -43,7 +45,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
 
     private var isLocalAudioMuted = false
     private var isLocalVideoMuted = false
-    private var isRemoteVideoMuted = false
+    private var isRemoteVideoMuted = true
     private var rtcToken: String? = null
     private var channelName = ""
     private var localUid: Int = 0
@@ -66,9 +68,27 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         TextureView(this)
     }
 
-    override fun getViewBinding(): DigitalActivityLivingBinding {
-        return DigitalActivityLivingBinding.inflate(layoutInflater)
+    // Save video width and height
+    private var mVideoSizes = mutableMapOf<Int, Size>()
+
+    override fun onHandleOnBackPressed() {
+        engine.leaveChannel()
+        DigitalApiManager.stopAgent { ok ->
+            if (ok) {
+                Log.d(TAG, "Agent stopped successfully")
+            } else {
+                Log.d(TAG, "Failed to stop agent")
+            }
+            DigitalApiManager.destroy()
+        }
+        RtcEngineEx.destroy()
+        DigitalAgoraManager.unRegisterDigitalAgentObserver(digitalAgentObserver)
+        DigitalAgoraManager.resetData()
+        loadingDialog?.dismiss()
+        super.onHandleOnBackPressed()
     }
+
+    override fun getViewBinding(): DigitalActivityLivingBinding = DigitalActivityLivingBinding.inflate(layoutInflater)
 
     override fun initView() {
         setupView()
@@ -96,23 +116,6 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        engine.leaveChannel()
-        DigitalApiManager.stopAgent { ok ->
-            if (ok) {
-                Log.d(TAG, "Agent stopped successfully")
-            } else {
-                Log.d(TAG, "Failed to stop agent")
-            }
-            DigitalApiManager.destroy()
-        }
-        RtcEngineEx.destroy()
-        DigitalAgoraManager.unRegisterDigitalAgentObserver(digitalAgentObserver)
-        DigitalAgoraManager.resetData()
-        loadingDialog?.dismiss()
-    }
-
     override fun onPause() {
         super.onPause()
         if (isAgentStarted) {
@@ -126,7 +129,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
-        if (!smallContainerIsLocal){
+        if (!smallContainerIsLocal) {
             exchangeDragWindow()
         }
         loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
@@ -149,9 +152,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         } else {
                             loadingDialog?.dismiss()
                             DigitalLogger.e(TAG, "Token error")
-                            Toast.makeText(
-                                this, io.agora.scene.common.R.string.cov_detail_join_call_failed, Toast.LENGTH_SHORT
-                            ).show()
+                            ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
                         }
                     }
                 } else {
@@ -160,10 +161,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             } else {
                 loadingDialog?.dismiss()
                 DigitalLogger.e(TAG, "Agent error")
-                Toast.makeText(
-                    this,
-                    io.agora.scene.common.R.string.cov_detail_join_call_failed, Toast.LENGTH_SHORT
-                ).show()
+                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
             }
         }
     }
@@ -176,13 +174,13 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         DigitalApiManager.stopAgent { ok ->
             loadingDialog?.dismiss()
             if (ok) {
-                Toast.makeText(this, io.agora.scene.common.R.string.cov_detail_agent_leave, Toast.LENGTH_SHORT).show()
+                ToastUtil.show( io.agora.scene.common.R.string.cov_detail_agent_leave)
                 isAgentStarted = false
                 networkStatus = null
                 DigitalAgoraManager.agentStarted = false
                 resetSceneState()
             } else {
-                Toast.makeText(this, "Agent Leave Failed", Toast.LENGTH_SHORT).show()
+                ToastUtil.show( "Agent Leave Failed")
             }
         }
     }
@@ -202,15 +200,17 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             vDragSmallWindow.canvasContainerAddView(mLocalVideoView)
             vDragBigWindow.canvasContainerAddView(mRemoteVideoView)
         }
-        DigitalLogger.e(
-            TAG,
-            "onClickStartAgent: rtcToken: $rtcToken, channelName: $channelName, localUid: $localUid, agentUID: $agentUID"
-        )
+        DigitalLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $localUid, agentUID: $agentUID")
         engine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
         engine.setParameters("{\"che.audio.sf.enabled\":false}")
         DigitalAgoraManager.updateDenoise(true)
         engine.startPreview()
         val ret = engine.joinChannel(rtcToken, channelName, localUid, channelOption)
+        if (ret!= ERR_OK){
+            loadingDialog?.dismiss()
+            ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
+            return
+        }
         DigitalLogger.d(TAG, "Joining RTC channel: $channelName, uid: $localUid, ret: $ret")
     }
 
@@ -220,7 +220,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             TokenGeneratorType.Token007,
             AgoraTokenType.Rtc,
             success = { token ->
-                DigitalLogger.d(TAG, "getToken success $token")
+                DigitalLogger.d(TAG, "getToken success")
                 rtcToken = token
                 complete.invoke(true)
             },
@@ -267,11 +267,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         isAgentStarted = true
                         DigitalAgoraManager.agentStarted = true
                         loadingDialog?.dismiss()
-                        Toast.makeText(
-                            this@DigitalLivingActivity,
-                            io.agora.scene.common.R.string.cov_detail_join_call_succeed,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed,)
                     }
                 }
                 DigitalLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
@@ -297,11 +293,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         DigitalApiManager.startAgent(params) { isAgentOK ->
                             if (!isAgentOK) {
                                 loadingDialog?.dismiss()
-                                Toast.makeText(
-                                    this@DigitalLivingActivity,
-                                    io.agora.scene.common.R.string.cov_detail_agent_leave,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave,)
                                 engine.leaveChannel()
                                 isAgentStarted = false
                                 DigitalAgoraManager.agentStarted = false
@@ -317,9 +309,20 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                 runOnUiThread { }
             }
 
+            override fun onFirstRemoteVideoFrame(uid: Int, width: Int, height: Int, elapsed: Int) {
+                super.onFirstRemoteVideoFrame(uid, width, height, elapsed)
+                DigitalLogger.d(TAG, "onFirstRemoteVideoFrame uid: $uid, width: $width, height: $height")
+                if (uid != agentUID) return
+                runOnUiThread {
+                    isRemoteVideoMuted = false
+                    updateRemoteViewState(isRemoteVideoMuted)
+                }
+            }
+
             override fun onRemoteVideoStateChanged(uid: Int, state: Int, reason: Int, elapsed: Int) {
                 super.onRemoteVideoStateChanged(uid, state, reason, elapsed)
-                if (uid != DigitalAgoraManager.uid) return
+                DigitalLogger.d(TAG, "onRemoteVideoStateChanged uid: $uid, state: $state, reason: $reason")
+                if (uid != agentUID) return
                 runOnUiThread {
                     if (reason == Constants.REMOTE_VIDEO_STATE_REASON_REMOTE_MUTED) {
                         isRemoteVideoMuted = true
@@ -343,13 +346,28 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             }
 
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
-                DigitalLogger.d(TAG, "onNetworkQuality uid: $uid, txQuality: $txQuality, rxQuality: $rxQuality")
+//                DigitalLogger.d(TAG, "onNetworkQuality uid: $uid, txQuality: $txQuality, rxQuality: $rxQuality")
                 if (uid == 0) {
                     runOnUiThread {
                         Constants.QUALITY_GOOD
                         updateNetworkStatus(rxQuality)
                         networkDialog?.updateNetworkStatus(rxQuality)
                     }
+                }
+            }
+
+            override fun onVideoSizeChanged(
+                source: Constants.VideoSourceType?,
+                uid: Int,
+                width: Int,
+                height: Int,
+                rotation: Int
+            ) {
+                super.onVideoSizeChanged(source, uid, width, height, rotation)
+                mVideoSizes[uid] = Size(width, height)
+                Log.i(TAG, "onVideoSizeChanged->uid:$uid,width:$width,height:$height,rotation:$rotation")
+                runOnUiThread {
+//                    adjustAssistantVideoSize(uid)
                 }
             }
 
@@ -405,9 +423,9 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
 
     private fun setupRemoteView(uid: Int, join: Boolean) {
         if (join) {
-            engine.setupRemoteVideo(VideoCanvas(mRemoteVideoView, VideoCanvas.RENDER_MODE_HIDDEN, uid))
+            engine.setupRemoteVideo(VideoCanvas(mRemoteVideoView, VideoCanvas.RENDER_MODE_FIT, uid))
         } else {
-            engine.setupRemoteVideo(VideoCanvas(null, VideoCanvas.RENDER_MODE_HIDDEN, uid))
+            engine.setupRemoteVideo(VideoCanvas(null, VideoCanvas.RENDER_MODE_FIT, uid))
         }
     }
 
@@ -419,6 +437,54 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             remoteWindow.switchCamera.setOnClickListener(null)
             remoteWindow.switchCamera.isVisible = false
             remoteWindow.canvasContainer.isVisible = !isRemoteVideoMuted
+            adjustAssistantVideoSize(agentUID)
+        }
+    }
+
+    private fun adjustAssistantVideoSize(uid: Int) {
+        if (uid != agentUID) return
+        val videoWidth = mVideoSizes[agentUID]?.width ?: return
+        val videoHeight = mVideoSizes[agentUID]?.height ?: return
+        val remoteWindow = mBinding?.vDragBigWindow ?: return
+        remoteWindow.post {
+            val containerWidth: Int = remoteWindow.measuredWidth
+            val containerHeight: Int = remoteWindow.measuredHeight
+            Log.i(TAG, "adjustAssistantVideoSize->containerWidth:$containerWidth,containerHeight:$containerHeight")
+
+            val videoRatio = videoHeight.toFloat() / videoWidth
+            val containerRatio = containerHeight.toFloat() / containerWidth
+
+            val targetWidth: Int
+            val targetHeight: Int
+
+            if (containerRatio > 1.0f) {
+                // 容器高度大于宽度，以容器高度为基准
+                targetHeight = containerHeight
+                targetWidth = (containerHeight / videoRatio).toInt()
+                // 水平居中
+                val left = (containerWidth - targetWidth) / 2
+                mRemoteVideoView.layout(
+                    left,
+                    0,
+                    left + targetWidth,
+                    targetHeight
+                )
+            } else {
+                // 容器宽度大于高度，以容器宽度为基准
+                targetWidth = containerWidth
+                targetHeight = (containerWidth * videoRatio).toInt()
+                mRemoteVideoView.layout(
+                    0,
+                    0,
+                    targetWidth,
+                    targetHeight
+                )
+            }
+
+            Log.i(
+                TAG,
+                "adjustAssistantVideoSize->layout: width=$targetWidth, height=$targetHeight, containerRatio=$containerRatio"
+            )
         }
     }
 
@@ -478,7 +544,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         mBinding?.apply {
             setOnApplyWindowInsetsListener(root)
             btnBack.setOnClickListener {
-                finish()
+                onHandleOnBackPressed()
             }
             llEndCall.setOnClickListener {
                 onClickEndCall()

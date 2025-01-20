@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.agora.agent.databinding.FragmentSceneSelectionBinding
 import io.agora.agent.databinding.SceneSelectionItemBinding
 import io.agora.scene.common.constant.AgentScenes
+import io.agora.scene.common.util.toast.ToastUtil
 
 class SceneSelectionFragment : Fragment() {
 
@@ -97,9 +97,7 @@ class SceneSelectionFragment : Fragment() {
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    Toast.makeText(
-                        context, io.agora.scene.common.R.string.scenes_coming_soon, Toast.LENGTH_SHORT
-                    ).show()
+                    ToastUtil.show(io.agora.scene.common.R.string.scenes_coming_soon)
                 }
             }
         }

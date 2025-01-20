@@ -213,7 +213,7 @@ object DigitalApiManager {
     private suspend fun updateAgentSuspend(voiceId: String): Boolean = withContext(Dispatchers.IO) {
         if (agentId.isNullOrEmpty()) return@withContext false
         
-        val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/update"
+        val requestURL = "${ServerConfig.toolBoxUrl}/v1/digitalHuman/update"
         DigitalLogger.d(TAG, "Update agent request: $requestURL, agent_id: $agentId")
         
         val postBody = JSONObject().apply {

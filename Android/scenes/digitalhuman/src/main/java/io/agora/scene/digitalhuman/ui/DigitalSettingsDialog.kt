@@ -11,9 +11,9 @@ import android.widget.ArrayAdapter
 import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.LoadingDialog
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.digitalhuman.R
 import io.agora.scene.digitalhuman.databinding.DigitalSettingDialogBinding
 import io.agora.scene.digitalhuman.http.DigitalApiManager
@@ -89,11 +89,7 @@ class DigitalSettingsDialog : BaseSheetDialog<DigitalSettingDialogBinding>() {
                     updateSpinners()
                 } else {
                     updateSpinners()
-                    Toast.makeText(
-                        context,
-                        io.agora.scene.common.R.string.cov_setting_network_error,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
                 }
             }
         } else {
@@ -315,11 +311,7 @@ class DigitalSettingsDialog : BaseSheetDialog<DigitalSettingDialogBinding>() {
                                     DigitalAgoraManager.llmType = oldLLMType
                                     DigitalAgoraManager.languageType = oldLanguageType
                                     updateSpinners()
-                                    Toast.makeText(
-                                        context,
-                                        io.agora.scene.common.R.string.cov_setting_network_error,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
                                 }
                             }
                         } else {
