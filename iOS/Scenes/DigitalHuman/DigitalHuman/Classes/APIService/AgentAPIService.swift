@@ -37,7 +37,7 @@ class AgentAPIService {
         AgentServiceUrl.host = host
     }
     
-    func startAgent(uid: Int, agentUid: Int, channelName: String, completion: @escaping ((AgentError?, String?) -> Void)) {
+    func startAgent(uid: Int, agentUid: UInt, channelName: String, completion: @escaping ((AgentError?) -> Void)) {
         _startAgent(appid: AppContext.shared.appId, channelName: channelName, agentRtcUid: agentUid, remote_rtc_uid: uid, completion: completion)
     }
     
@@ -82,7 +82,7 @@ class AgentAPIService {
         }
     }
     
-    private func _startAgent(appid: String, channelName: String, agentRtcUid: Int, remote_rtc_uid: Int, greeting: String = "Hi, how can I assist you today?", retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping ((AgentError?, String?) -> Void)) {
+    private func _startAgent(appid: String, channelName: String, agentRtcUid: UInt, remote_rtc_uid: Int, greeting: String = "Hi, how can I assist you today?", retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping ((AgentError?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("v1/convoai/start").toHttpUrlSting()
         let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
         let parameters: [String: Any] = [
@@ -100,23 +100,23 @@ class AgentAPIService {
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
-                completion(error, nil)
+                completion(error)
                 return
             }
             
             guard let data = result["data"] as? [String: Any], let agentId = data["agent_id"] as? String else {
                 let error = AgentError.serverError(code: -1, message: "data error")
-                completion(error, nil)
+                completion(error)
                 return
             }
-            
-            completion(nil, agentId)
+            self.agentId = agentId
+            completion(nil)
             
         } failure: { msg in
             let count = retryCount - 1
             if count == 0 {
                 let error = AgentError.serverError(code: -1, message: msg)
-                completion(error, nil)
+                completion(error)
             } else {
                 self._startAgent(appid: appid, channelName: channelName, agentRtcUid: agentRtcUid, remote_rtc_uid: remote_rtc_uid, retryCount: count, completion: completion)
             }

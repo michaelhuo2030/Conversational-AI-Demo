@@ -16,13 +16,14 @@ class DigitalHumanViewController: UIViewController {
     
     private var rtcToken: String? = nil
     private var localUid: UInt = 0
-    private let agentUid = 999
+    private let agentUid: UInt = 999
     private var channelName = ""
     private var isDenoise = false
     
-    private var rtcEngine: AgoraRtcEngineKit!
+    private var isFrontCamera = false
     
-    private var isLocalAudioMuted = false
+    private var engine: AgoraRtcEngineKit!
+    
     private var networkStatus: Int? = nil
     
     var isAgentStarted = false {
@@ -49,6 +50,7 @@ class DigitalHumanViewController: UIViewController {
     private var aiNameLabel: UILabel!
     private var mineContentView: UIView!
     private var mineAvatarLabel: UILabel!
+    private var mineVideoView: UIView!
     private var mineNameView: UIView!
     private var mineNameLabel: UILabel!
     private var micStateImageView: UIImageView!
@@ -57,15 +59,24 @@ class DigitalHumanViewController: UIViewController {
     // callingBottomView: [closeButton, muteButton, videoButton]
     private var callingBottomView: UIView!
     private var closeButton: UIButton!
-    private var audioButton: UIButton!
+    private var micButton: UIButton!
     private var videoButton: UIButton!
     
     private var stopInitiative = false
     private var apiService: AgentAPIService!
-    
-    var onMineContentViewClicked: (() -> Void)?
-    
+        
     deinit {
+        engine.leaveChannel()
+        apiService.stopAgent(channelName: channelName) { err, res in
+            if let e = err {
+                print("Failed to stop agent")
+            } else {
+                print("Agent stopped successfully")
+            }
+        }
+        AgoraRtcEngineKit.destroy()
+        AgoraManager.shared.resetData()
+        SVProgressHUD.dismiss()
         print("DigitalHumanViewController deinit")
     }
     
@@ -77,12 +88,31 @@ class DigitalHumanViewController: UIViewController {
         createRtcEngine()
         
         setupViews()
-        updateMuteState()
+        updateMicState()
         updateVideoState()
         updateViewState()
         
         getToken { _ in }
         setupAgentCoordinator()
+        
+        PermissionManager.checkBothMediaPermissions { a, b in
+            guard a, b else {
+                self.navigationController?.popViewController()
+                return
+            }
+            DispatchQueue.main.async {
+                self.engine.enableVideo()
+                self.engine.enableAudio()
+                self.aa()
+            }
+        }
+    }
+    
+    private func aa() {
+//        let ret1 = self.engine.enableLocalAudio(true)
+//        let ret2 = self.engine.enableLocalVideo(true)
+        let ret = self.engine.startPreview()
+        print("aaaa")
     }
     
     private func setupAgentCoordinator() {
@@ -95,11 +125,28 @@ class DigitalHumanViewController: UIViewController {
         config.appId = AppContext.shared.appId
         config.channelProfile = .liveBroadcasting
         config.audioScenario = .default
-        rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self)
-        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
-        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}");
+        engine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self)
+        engine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
+        engine.setParameters("{\"che.audio.sf.enabled\":true}");
         AgoraManager.shared.updateDenoise(isOn: false)
-        rtcEngine.enableAudioVolumeIndication(100, smooth: 10, reportVad: false)
+        engine.enableAudioVolumeIndication(100, smooth: 10, reportVad: false)
+        engine.setClientRole(.broadcaster)
+        
+        // setup local canvas
+        let localCanvas = AgoraRtcVideoCanvas()
+        localCanvas.mirrorMode = .disabled
+        localCanvas.setupMode = .add
+        localCanvas.view = mineVideoView
+        localCanvas.uid = localUid
+        engine.setupLocalVideo(localCanvas)
+        
+        // setup remote canvas
+        let remoteCanvas = AgoraRtcVideoCanvas()
+        remoteCanvas.mirrorMode = .disabled
+        remoteCanvas.setupMode = .add
+        remoteCanvas.view = videoContentView
+        remoteCanvas.uid = agentUid
+        engine.setupRemoteVideo(remoteCanvas)
     }
 
     private func getToken(complete: @escaping (Bool) -> Void) {
@@ -123,37 +170,6 @@ class DigitalHumanViewController: UIViewController {
         }
     }
     
-    private func restartAgent() {
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
-        addLog("begin restart agent")
-        closeButton.isEnabled = false
-        closeButton.alpha = 0.5
-        topBar.backButton.isEnabled = false
-        topBar.backButton.alpha = 0.5
-        
-        apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err, agentId in
-            guard let self = self else { return }
-            SVProgressHUD.dismiss()
-            
-            guard let error = err else {
-                AgentSettingManager.shared.updateAgentStatus(.connected)
-                self.selectTable?.updateStatus()
-                addLog("restart agent success")
-                
-                self.closeButton.isEnabled = true
-                self.closeButton.alpha = 1.0
-                self.topBar.backButton.isEnabled = true
-                self.topBar.backButton.alpha = 1.0
-                return
-            }
-            
-            SVProgressHUD.showInfo(withStatus: error.message)
-            addLog("restart agent failed : \(error.message)")
-            self.dismiss(animated: false)
-            return
-        }
-    }
-    
     private func joinChannel() {
         let options = AgoraRtcChannelMediaOptions()
         options.clientRoleType = .broadcaster
@@ -161,7 +177,7 @@ class DigitalHumanViewController: UIViewController {
         options.publishCameraTrack = true
         options.autoSubscribeAudio = true
         options.autoSubscribeVideo = true
-        let ret = rtcEngine.joinChannel(byToken: rtcToken, channelId: channelName, uid: localUid, mediaOptions: options)
+        let ret = engine.joinChannel(byToken: rtcToken, channelId: channelName, uid: localUid, mediaOptions: options)
         if (ret == 0) {
             self.addLog("join rtc room success")
             AgentSettingManager.shared.updateRoomStatus(.connected)
@@ -174,22 +190,14 @@ class DigitalHumanViewController: UIViewController {
         }
     }
     
-    private func leaveChannel() {
-        SVProgressHUD.dismiss()
-        
-        AgentSettingManager.shared.updateRoomStatus(.unload)
-        AgentSettingManager.shared.updateAgentStatus(.unload)
-        AgentSettingManager.shared.updateRoomId("")
-    }
-    
-    private func updateMuteState() {
-        let isMute = audioButton.isSelected
+    private func updateMicState() {
+        let isMute = micButton.isSelected
         let backgroundColor = isMute ? UIColor(hex: 0x333333) : UIColor(hex: 0x00C2FF)
         let image = isMute ? UIImage.dh_named("ic_agent_detail_mute") : UIImage.dh_named("ic_agent_detail_unmute")
         let smallImage = isMute ? UIImage.dh_named("ic_agent_detail_mute_small") : UIImage.dh_named("ic_agent_detail_unmute_small")
         
-        audioButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
-        audioButton.setImage(image, for: .normal)
+        micButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
+        micButton.setImage(image, for: .normal)
         micStateImageView.image = smallImage
     }
     
@@ -232,11 +240,22 @@ class DigitalHumanViewController: UIViewController {
             videoContentView.isHidden = false
             joinCallButton.isHidden = true
             callingBottomView.isHidden = false
+            let ret = engine.startPreview()
         } else {
             notJoinedView.isHidden = false
             videoContentView.isHidden = true
             joinCallButton.isHidden = false
             callingBottomView.isHidden = true
+            
+            let ret = engine.stopPreview()
+        }
+    }
+    
+    private func resetSceneState() {
+        if (micButton.isSelected) {
+            micButton.isSelected = false
+            engine.adjustRecordingSignalVolume(100)
+            updateMicState()
         }
     }
 }
@@ -251,7 +270,7 @@ private extension DigitalHumanViewController {
         topBar.backButton.isEnabled = false
         topBar.backButton.alpha = 0.5
         
-        apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err, agentId in
+        apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
             guard let self = self else { return }
             if let error = err {
                 SVProgressHUD.dismiss()
@@ -277,23 +296,19 @@ private extension DigitalHumanViewController {
             self.closeButton.alpha = 1.0
             self.topBar.backButton.isEnabled = true
             self.topBar.backButton.alpha = 1.0
-            addLog("start agent success")
             isAgentStarted = true
+            addLog("start agent success")
         }
     }
     
-    func stopPageAction() {
-        apiService.stopAgent(channelName: channelName) { err, res in
-        }
-        stopInitiative = false
-        self.leaveChannel()
+    func onClickBack() {
         self.navigationController?.popViewController(animated: true)
     }
     
     @objc func onClickEndCall() {
+        engine.leaveChannel()
         SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.endCallLoading)
         addLog("begin stop agent")
-        stopInitiative = true
         self.topBar.backButton.isEnabled = false
         self.topBar.backButton.alpha = 0.5
         closeButton.isEnabled = false
@@ -301,29 +316,23 @@ private extension DigitalHumanViewController {
         apiService.stopAgent(channelName: channelName) { [weak self] err, res in
             guard let self = self else { return }
             SVProgressHUD.dismiss()
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
             self.closeButton.isEnabled = true
             self.closeButton.alpha = 1.0
             self.topBar.backButton.isEnabled = true
             self.topBar.backButton.alpha = 1.0
-            if let error = err {
-                SVProgressHUD.showInfo(withStatus: error.localizedDescription)
-                addLog("stop agent failed: \(error.localizedDescription)")
-                stopInitiative = false
-                
-                return
-            }
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
-            self.leaveChannel()
-            addLog("stop agent success")
+            
+            self.resetSceneState()
             isAgentStarted = false
+            addLog("stop agent success")
             return
         }
     }
     
-    @objc func onClickAudio(_ sender: UIButton) {
+    @objc func onClickMic(_ sender: UIButton) {
         sender.isSelected.toggle()
-        rtcEngine.adjustRecordingSignalVolume(sender.isSelected ? 0 : 100)
-        updateMuteState()
+        engine.adjustRecordingSignalVolume(sender.isSelected ? 0 : 100)
+        updateMicState()
     }
     
     @objc func handleSettingAction() {
@@ -360,13 +369,10 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
             AgentSettingManager.shared.updateAgentStatus(.connected)
             AgentSettingManager.shared.updateRoomStatus(.connected)
         }
-        
         if state == .failed {
             SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.roomError)
-            self.leaveChannel()
-            self.dismiss(animated: false)
+            onClickEndCall()
         } else if state == .disconnected {
-//            SVProgressHUD.showError(withStatus: <#T##String?#>)
         }
     }
     
@@ -377,6 +383,7 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         addLog("remote user didJoinedOfUid uid: \(uid)")
         if (uid == agentUid) {
+            AgoraManager.shared.agentStarted = true
             SVProgressHUD.dismiss()
             SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Conversation.agentJoined)
         }
@@ -387,8 +394,33 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
         if (uid == agentUid && !stopInitiative) {
             AgentSettingManager.shared.updateAgentStatus(.disconnected)
             self.selectTable?.updateStatus()
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Conversation.agentLeave)
-            restartAgent()
+            SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
+            addLog("begin restart agent")
+            closeButton.isEnabled = false
+            closeButton.alpha = 0.5
+            topBar.backButton.isEnabled = false
+            topBar.backButton.alpha = 0.5
+            
+            apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
+                guard let self = self else { return }
+                SVProgressHUD.dismiss()
+                self.closeButton.isEnabled = true
+                self.closeButton.alpha = 1.0
+                self.topBar.backButton.isEnabled = true
+                self.topBar.backButton.alpha = 1.0
+                if let error = err {
+                    SVProgressHUD.showInfo(withStatus: error.message)
+                    engine.leaveChannel()
+                    isAgentStarted = false
+                    AgoraManager.shared.agentStarted = false
+                    self.resetSceneState()
+                    addLog("restart agent failed : \(error.message)")
+                    return
+                }
+                AgentSettingManager.shared.updateAgentStatus(.connected)
+                self.selectTable?.updateStatus()
+                addLog("restart agent success")
+            }
         }
     }
     
@@ -397,24 +429,10 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
         addLog("tokenPrivilegeWillExpire")
         getToken { isOK in
             if isOK, let token = self.rtcToken {
-                self.rtcEngine.renewToken(token)
+                self.engine.renewToken(token)
             } else {
                 self.onClickEndCall()
             }
-        }
-        
-        
-        NetworkManager.shared.generateToken(
-            channelName: "",
-            uid: "\(localUid)",
-            types: [.rtc]
-        ) { [weak self] token in
-            self?.addLog("regenerate token is: \(token ?? "")")
-            guard let self = self, let token = token else {
-                return
-            }
-            self.addLog("will update token: \(token)")
-            
         }
     }
     
@@ -465,7 +483,7 @@ private extension DigitalHumanViewController {
             self?.handleSettingAction()
         }
         topBar.onBackButtonTapped = { [weak self] in
-            self?.stopPageAction()
+            self?.onClickBack()
         }
         view.addSubview(topBar)
         topBar.snp.makeConstraints { make in
@@ -533,14 +551,14 @@ private extension DigitalHumanViewController {
             make.height.equalTo(72)
         }
         
-        audioButton = UIButton(type: .custom)
-        audioButton.addTarget(self, action: #selector(onClickAudio(_ :)), for: .touchUpInside)
-        audioButton.titleLabel?.textAlignment = .center
-        audioButton.layerCornerRadius = 36
-        audioButton.clipsToBounds = true
-        audioButton.setBackgroundImage(UIImage(color: PrimaryColors.c_00c2ff, size: CGSize(width: 1, height: 1)), for: .normal)
-        callingBottomView.addSubview(audioButton)
-        audioButton.snp.makeConstraints { make in
+        micButton = UIButton(type: .custom)
+        micButton.addTarget(self, action: #selector(onClickMic(_ :)), for: .touchUpInside)
+        micButton.titleLabel?.textAlignment = .center
+        micButton.layerCornerRadius = 36
+        micButton.clipsToBounds = true
+        micButton.setBackgroundImage(UIImage(color: PrimaryColors.c_00c2ff, size: CGSize(width: 1, height: 1)), for: .normal)
+        callingBottomView.addSubview(micButton)
+        micButton.snp.makeConstraints { make in
             make.left.equalTo(20)
             make.width.height.equalTo(72)
             make.centerY.equalToSuperview()
@@ -554,7 +572,7 @@ private extension DigitalHumanViewController {
         videoButton.setImage(UIImage.dh_named("ic_msg_icon"), for: .normal)
         callingBottomView.addSubview(videoButton)
         videoButton.snp.makeConstraints { make in
-            make.left.equalTo(audioButton.snp.right).offset(16)
+            make.left.equalTo(micButton.snp.right).offset(16)
             make.width.height.equalTo(72)
             make.centerY.equalToSuperview()
         }
@@ -626,6 +644,13 @@ private extension DigitalHumanViewController {
         mineAvatarLabel.snp.makeConstraints { make in
             make.width.height.equalTo(60)
             make.center.equalTo(mineContentView)
+        }
+        
+        mineVideoView = UIView()
+        mineVideoView.backgroundColor = .red
+        mineContentView.addSubview(mineVideoView)
+        mineVideoView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
 
         mineNameView = UIView()
