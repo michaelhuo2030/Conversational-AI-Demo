@@ -133,9 +133,15 @@ enum class AgentSpeakerType(val value: String) {
     SPEAKER1("BoseFlex")
 }
 
+interface DigitalAgentObserver {
+    fun onPresetType(type: AgentPresetType)
+}
+
 object DigitalAgoraManager {
 
     private val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
+
+    private val digitalAgentObservers: MutableList<DigitalAgentObserver> = mutableListOf()
 
     // Settings
     var speakerType = AgentSpeakerType.SPEAKER1
@@ -148,13 +154,27 @@ object DigitalAgoraManager {
         AgentVoiceType.MALE_QINGSE else AgentVoiceType.AVA_MULTILINGUAL
     var llmType = AgentLLMType.OPEN_AI
     var languageType = AgentLanguageType.EN
-    private var isDenoise = false
+    var isDenoise = false
+        private set(value){
+            field = value
+        }
 
     // Status
     var uid = 0
     var channelName = ""
     var agentStarted = false
     var rtcEngine: RtcEngineEx? = null
+
+    fun registerDigitalAgentObserver(observer: DigitalAgentObserver) {
+        if (digitalAgentObservers.contains(observer)) {
+            return
+        }
+        digitalAgentObservers.add(observer)
+    }
+
+    fun unRegisterDigitalAgentObserver(observer: DigitalAgentObserver) {
+        digitalAgentObservers.remove(observer)
+    }
 
     fun updatePreset(type: AgentPresetType) {
         presetType = type
@@ -186,10 +206,9 @@ object DigitalAgoraManager {
                 languageType = AgentLanguageType.EN
             }
         }
-    }
-
-    fun currentDenoiseStatus(): Boolean {
-        return isDenoise
+        digitalAgentObservers.forEach { handler ->
+            handler.onPresetType(presetType)
+        }
     }
 
     fun updateDenoise(isOn: Boolean) {
@@ -214,12 +233,9 @@ object DigitalAgoraManager {
         }
     }
 
-    fun currentPresetType(): AgentPresetType {
-        return presetType
-    }
-
     fun resetData() {
         rtcEngine = null
+        digitalAgentObservers.clear()
         updatePreset(if (isMainlandVersion) AgentPresetType.XIAO_AI else AgentPresetType.DEFAULT)
         isDenoise = false
     }

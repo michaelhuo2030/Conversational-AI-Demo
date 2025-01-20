@@ -57,7 +57,7 @@ class DigitalSettingsDialog : BaseSheetDialog<DigitalSettingDialogBinding>() {
         updateOptionsByPresets()
         binding?.apply {
             setOnApplyWindowInsets(root)
-            cbNoiseCancellation.isChecked = DigitalAgoraManager.currentDenoiseStatus()
+            cbNoiseCancellation.isChecked = DigitalAgoraManager.isDenoise
             cbNoiseCancellation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
                 DigitalAgoraManager.updateDenoise(isChecked)
             }

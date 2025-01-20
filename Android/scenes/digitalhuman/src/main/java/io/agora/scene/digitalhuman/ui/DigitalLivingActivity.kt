@@ -27,6 +27,8 @@ import io.agora.rtc2.video.VideoCanvas
 import io.agora.scene.digitalhuman.DigitalLogger
 import io.agora.scene.digitalhuman.databinding.DigitalActivityLivingBinding
 import io.agora.scene.digitalhuman.http.DigitalApiManager
+import io.agora.scene.digitalhuman.rtc.AgentPresetType
+import io.agora.scene.digitalhuman.rtc.DigitalAgentObserver
 import kotlin.random.Random
 
 class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
@@ -41,7 +43,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
 
     private var isLocalAudioMuted = false
     private var isLocalVideoMuted = false
-    private var isRemoteVideoMuted = true
+    private var isRemoteVideoMuted = false
     private var rtcToken: String? = null
     private var channelName = ""
     private var localUid: Int = 0
@@ -82,6 +84,16 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             finish()
         }, true
         )
+        DigitalAgoraManager.registerDigitalAgentObserver(digitalAgentObserver)
+    }
+
+    private val digitalAgentObserver = object : DigitalAgentObserver {
+        override fun onPresetType(type: AgentPresetType) {
+            mBinding?.apply {
+                val remoteWindow = vDragBigWindow
+                remoteWindow.setUserName(DigitalAgoraManager.presetType.value, true)
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -93,8 +105,10 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             } else {
                 Log.d(TAG, "Failed to stop agent")
             }
+            DigitalApiManager.destroy()
         }
         RtcEngineEx.destroy()
+        DigitalAgoraManager.unRegisterDigitalAgentObserver(digitalAgentObserver)
         DigitalAgoraManager.resetData()
         loadingDialog?.dismiss()
     }
@@ -112,6 +126,9 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
+        if (!smallContainerIsLocal){
+            exchangeDragWindow()
+        }
         loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
         loadingDialog?.show()
         DigitalAgoraManager.channelName = channelName
@@ -365,11 +382,11 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         }
     }
 
-    private fun updateLocalViewState(mute: Boolean) {
+    private fun updateLocalViewState(isLocalVideoMuted: Boolean) {
         mBinding?.apply {
             val localWindow = vDragSmallWindow
             localWindow.setUserName(getString(io.agora.scene.common.R.string.digital_youselft), false)
-            localWindow.setUserAvatar(mute)
+            localWindow.setUserAvatar(isLocalVideoMuted)
             if (smallContainerIsLocal) {
                 localWindow.switchCamera.setOnClickListener(null)
                 localWindow.switchCamera.isVisible = false
@@ -382,6 +399,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             btnCamera.setBackgroundResource(
                 if (isLocalVideoMuted) io.agora.scene.common.R.drawable.app_living_camera_off else io.agora.scene.common.R.drawable.app_living_camera_on
             )
+            localWindow.canvasContainer.isVisible = !isLocalVideoMuted
         }
     }
 
@@ -400,6 +418,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             remoteWindow.setUserAvatar(isRemoteVideoMuted)
             remoteWindow.switchCamera.setOnClickListener(null)
             remoteWindow.switchCamera.isVisible = false
+            remoteWindow.canvasContainer.isVisible = !isRemoteVideoMuted
         }
     }
 
