@@ -18,7 +18,6 @@ class DigitalHumanViewController: UIViewController {
     private var localUid: UInt = 0
     private let agentUid: UInt = 999
     private var channelName = ""
-    private var isDenoise = false
     
     private var isFrontCamera = false
     
@@ -37,7 +36,7 @@ class DigitalHumanViewController: UIViewController {
     private var selectTable: AgentSettingInfoView? = nil
     private var selectTableMask = UIButton(type: .custom)
     
-    private var topBar: AgentSettingBar!
+    private var topBar: DigitalHumanSettingBar!
     // contentView: [notJoinedView, videoContentView]
     private var contentView: UIView!
     
@@ -72,11 +71,10 @@ class DigitalHumanViewController: UIViewController {
     private var videoButton: UIButton!
     
     private var stopInitiative = false
-    private var apiService: AgentAPIService!
         
     deinit {
         engine.leaveChannel()
-        apiService.stopAgent(channelName: channelName) { err, res in
+        DigitalHumanAPI.shared.stopAgent(channelName: channelName) { err, res in
             if err != nil {
                 print("Failed to stop agent")
             } else {
@@ -99,7 +97,7 @@ class DigitalHumanViewController: UIViewController {
         createRtcEngine()
         updateMicState()
         updateVideoState()
-//        updateViewState()
+        updateViewState()
         
         getToken { _ in }
         setupAgentCoordinator()
@@ -118,7 +116,6 @@ class DigitalHumanViewController: UIViewController {
     
     private func setupAgentCoordinator() {
         AgentSettingManager.shared.updateRoomId(channelName)
-        apiService = AgentAPIService(host: AppContext.shared.baseServerUrl)
     }
     
     private func createRtcEngine() {
@@ -216,7 +213,7 @@ class DigitalHumanViewController: UIViewController {
         AgentLogger.info(txt)
     }
     
-    private func handleTipsAction() {
+    @objc private func onClickRoomInfo(_ sender: UIButton) {
         print("Tips button tapped")
         selectTableMask.isHidden = false
         let v = AgentSettingInfoView()
@@ -278,7 +275,7 @@ private extension DigitalHumanViewController {
         topBar.backButton.isEnabled = false
         topBar.backButton.alpha = 0.5
         
-        apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
+        DigitalHumanAPI.shared.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
             guard let self = self else { return }
             if let error = err {
                 SVProgressHUD.dismiss()
@@ -309,7 +306,7 @@ private extension DigitalHumanViewController {
         }
     }
     
-    func onClickBack() {
+    @objc func onClickBack() {
         self.navigationController?.popViewController(animated: true)
     }
     
@@ -321,7 +318,7 @@ private extension DigitalHumanViewController {
         self.topBar.backButton.alpha = 0.5
         closeButton.isEnabled = false
         closeButton.alpha = 0.5
-        apiService.stopAgent(channelName: channelName) { [weak self] err, res in
+        DigitalHumanAPI.shared.stopAgent(channelName: channelName) { [weak self] err, res in
             guard let self = self else { return }
             SVProgressHUD.dismiss()
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
@@ -343,16 +340,64 @@ private extension DigitalHumanViewController {
         updateMicState()
     }
     
-    @objc func handleSettingAction() {
-        let settingVc = AgentSettingViewController()
-        settingVc.delegate = self
+    @objc func onClickSetting(_ sender: UIButton) {
+        let settingVc = DigitalHumanSettingViewController()
         let navigationVC = UINavigationController(rootViewController: settingVc)
-        present(navigationVC, animated: true)
+        present(settingVc, animated: true)
     }
     
-    @objc func handleVideoAction(_ sender: UIButton) {
+    @objc func onClickCamera(_ sender: UIButton) {
         sender.isSelected.toggle()
+        if (sender.isSelected) {
+            engine.disableVideo()
+            mineVideoView.isHidden = true
+        } else {
+            engine.enableVideo()
+            mineVideoView.isHidden = false
+        }
         updateVideoState()
+    }
+    
+    private func switchVideoLayout(mainView: UIView, pipView: UIView) {
+        mainView.snp.removeConstraints()
+        pipView.snp.removeConstraints()
+        
+        mainView.removeFromSuperview()
+        pipView.removeFromSuperview()
+        
+        view.addSubview(mainView)
+        mainView.addSubview(pipView)
+
+        mainView.snp.makeConstraints { make in
+            make.left.equalTo(20)
+            make.right.equalTo(-20)
+            make.top.equalTo(topBar.snp.bottom).offset(20)
+            make.bottom.equalToSuperview().offset(-120)
+        }
+        
+        pipView.snp.makeConstraints { make in
+            make.width.equalTo(192)
+            make.height.equalTo(100)
+            make.top.equalTo(16)
+            make.right.equalTo(-16)
+        }
+        
+        view.layoutIfNeeded()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
+        pipView.addGestureRecognizer(tapGesture)
+        pipView.isUserInteractionEnabled = true
+    }
+
+    @objc private func handlePipViewTapped(_ tap: UIGestureRecognizer) {
+        guard let tappedView = tap.view else { return }
+        tappedView.removeGestureRecognizers()
+        
+        if tappedView == mineContentView {
+            switchVideoLayout(mainView: mineContentView, pipView: contentView)
+        } else {
+            switchVideoLayout(mainView: contentView, pipView: mineContentView)
+        }
     }
 }
 
@@ -409,7 +454,7 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
             topBar.backButton.isEnabled = false
             topBar.backButton.alpha = 0.5
             
-            apiService.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
+            DigitalHumanAPI.shared.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
                 guard let self = self else { return }
                 SVProgressHUD.dismiss()
                 self.closeButton.isEnabled = true
@@ -456,43 +501,15 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
         
     }
 }
-// MARK: - AgentSettingViewDelegate
-extension DigitalHumanViewController: AgentSettingViewDelegate {
-    func onClickNoiseCancellationChanged(isOn: Bool) {
-        isDenoise = isOn
-        AgoraManager.shared.updateDenoise(isOn: isOn)
-    }
-    
-    func onClickVoice() {
-        let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
-        SVProgressHUD.show()
-        apiService.updateAgent(appId: AppContext.shared.appId, voiceId: voiceId) { error in
-            SVProgressHUD.dismiss()
-            guard let error = error else {
-                return
-            }
-            
-            SVProgressHUD.showError(withStatus: error.message)
-            self.dismiss(animated: false)
-        }
-    }
-}
-
 // MARK: - Views
 private extension DigitalHumanViewController {
     private func setupViews() {
         view.backgroundColor = UIColor(hex: 0x111111)
         
-        topBar = AgentSettingBar()
-        topBar.onTipsButtonTapped = { [weak self] in
-            self?.handleTipsAction()
-        }
-        topBar.onSettingButtonTapped = { [weak self] in
-            self?.handleSettingAction()
-        }
-        topBar.onBackButtonTapped = { [weak self] in
-            self?.onClickBack()
-        }
+        topBar = DigitalHumanSettingBar()
+        topBar.tipsButton.addTarget(self, action: #selector(onClickRoomInfo(_ :)), for: .touchUpInside)
+        topBar.settingButton.addTarget(self, action: #selector(onClickSetting(_ :)), for: .touchUpInside)
+        topBar.backButton.addTarget(self, action: #selector(onClickBack), for: .touchUpInside)
         view.addSubview(topBar)
         topBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
@@ -577,7 +594,7 @@ private extension DigitalHumanViewController {
         }
         
         videoButton = UIButton(type: .custom)
-        videoButton.addTarget(self, action: #selector(handleVideoAction(_ :)), for: .touchUpInside)
+        videoButton.addTarget(self, action: #selector(onClickCamera(_ :)), for: .touchUpInside)
         videoButton.titleLabel?.textAlignment = .center
         videoButton.layerCornerRadius = 36
         videoButton.clipsToBounds = true
@@ -730,100 +747,24 @@ private extension DigitalHumanViewController {
             make.top.left.right.bottom.equalToSuperview()
         }
     }
-    
-    private func switchVideoLayout(mainView: UIView, pipView: UIView) {
-        mainView.snp.removeConstraints()
-        pipView.snp.removeConstraints()
-        
-        mainView.removeFromSuperview()
-        pipView.removeFromSuperview()
-        
-        view.addSubview(mainView)
-        mainView.addSubview(pipView)
-
-        mainView.snp.makeConstraints { make in
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
-            make.top.equalTo(topBar.snp.bottom).offset(20)
-            make.bottom.equalToSuperview().offset(-120)
-        }
-        
-        pipView.snp.makeConstraints { make in
-            make.width.equalTo(192)
-            make.height.equalTo(100)
-            make.top.equalTo(16)
-            make.right.equalTo(-16)
-        }
-        
-        view.layoutIfNeeded()
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
-        pipView.addGestureRecognizer(tapGesture)
-        pipView.isUserInteractionEnabled = true
-    }
-
-    @objc private func handlePipViewTapped(_ tap: UIGestureRecognizer) {
-        guard let tappedView = tap.view else { return }
-        tappedView.removeGestureRecognizers()
-        
-        if tappedView == mineContentView {
-            switchVideoLayout(mainView: mineContentView, pipView: contentView)
-        } else {
-            switchVideoLayout(mainView: contentView, pipView: mineContentView)
-        }
-    }
 }
 
 // MARK: - AgentSettingBar
-class AgentSettingBar: UIView, NetworkSignalViewDelegate {
-    // MARK: - Callbacks
-    var onBackButtonTapped: (() -> Void)?
-    var onTipsButtonTapped: (() -> Void)?
-    var onSettingButtonTapped: (() -> Void)?
-    var onNetworkStatusChanged: (() -> Void)?
+class DigitalHumanSettingBar: UIView, NetworkSignalViewDelegate {
+    func networkSignalView(_ view: NetworkSignalView, didClickNetworkButton button: UIButton) {
+        
+    }
     
-    private let signalBarCount = 5
-    private var signalBars: [UIView] = []
-    
-    lazy var backButton: UIButton = {
-        let button = UIButton()
-        button.setImage(UIImage.dh_named("ic_agora_back"), for: .normal)
-        button.addTarget(self, action: #selector(backEvent), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = ResourceManager.L10n.Join.title
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = PrimaryColors.c_b3b3b3
-        return label
-    }()
-    
-    private let tipsButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setImage(UIImage.dh_named("ic_agent_tips_icon"), for: .normal)
-        return button
-    }()
-    
-    private lazy var settingButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setImage(UIImage.dh_named("ic_agent_setting"), for: .normal)
-        button.addTarget(self, action: #selector(settingButtonClicked), for: .touchUpInside)
-        return button
-    }()
-    
-    let networkSignalView: NetworkSignalView = {
-        let view = NetworkSignalView()
-        return view
-    }()
+    let backButton = UIButton()
+    let titleLabel = UILabel()
+    let tipsButton = UIButton(type: .custom)
+    let settingButton = UIButton(type: .custom)
+    let networkSignalView = NetworkSignalView()
     
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupViews()
-        setupConstraints()
-        tipsButton.addTarget(self, action: #selector(tipsButtonClicked), for: .touchUpInside)
+        setupViewsAndConstraints()
     }
     
     required init?(coder: NSCoder) {
@@ -831,62 +772,46 @@ class AgentSettingBar: UIView, NetworkSignalViewDelegate {
     }
     
     // MARK: - Private Methods
-    private func setupViews() {
-        networkSignalView.delegate = self
-        [backButton, titleLabel, networkSignalView, tipsButton, settingButton].forEach { addSubview($0) }
-    }
-    
-    private func setupConstraints() {
+    private func setupViewsAndConstraints() {
+        backButton.setImage(UIImage.dh_named("ic_agora_back"), for: .normal)
+        addSubview(backButton)
         backButton.snp.makeConstraints { make in
             make.left.equalToSuperview()
             make.centerY.equalToSuperview()
             make.width.height.equalTo(48)
         }
-        
+        titleLabel.text = ResourceManager.L10n.Join.title
+        titleLabel.font = .systemFont(ofSize: 16)
+        titleLabel.textColor = PrimaryColors.c_b3b3b3
+        addSubview(titleLabel)
         titleLabel.snp.makeConstraints { make in
             make.left.equalTo(backButton.snp.right).offset(4)
             make.centerY.equalToSuperview()
         }
-        
+        settingButton.setImage(UIImage.dh_named("ic_agent_setting"), for: .normal)
+        addSubview(settingButton)
         settingButton.snp.makeConstraints { make in
             make.right.equalToSuperview()
             make.centerY.equalToSuperview()
             make.width.height.equalTo(48)
         }
-        
+        addSubview(networkSignalView)
+        networkSignalView.delegate = self
         networkSignalView.snp.makeConstraints { make in
             make.right.equalTo(settingButton.snp.left)
             make.width.height.equalTo(48)
             make.centerY.equalToSuperview()
         }
-        
+        tipsButton.setImage(UIImage.dh_named("ic_agent_tips_icon"), for: .normal)
+        addSubview(tipsButton)
         tipsButton.snp.remakeConstraints { make in
             make.right.equalTo(networkSignalView.snp.left)
             make.centerY.equalToSuperview()
             make.width.height.equalTo(48)
         }
-        
-        
     }
-    
-    // MARK: - Actions
-    @objc func backEvent() {
-        onBackButtonTapped?()
-    }
-    
-    @objc private func tipsButtonClicked() {
-        onTipsButtonTapped?()
-    }
-    
-    @objc private func settingButtonClicked() {
-        onSettingButtonTapped?()
-    }
-    
+     
     func updateNetworkStatus(_ status: NetworkStatus) {
         networkSignalView.updateStatus(status)
-    }
-    
-    func networkSignalView(_ view: NetworkSignalView, didClickNetworkButton button: UIButton) {
-        onNetworkStatusChanged?()
     }
 }
