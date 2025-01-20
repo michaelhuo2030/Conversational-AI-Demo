@@ -37,10 +37,10 @@ class DigitalHumanViewController: UIViewController {
     private var selectTableMask = UIButton(type: .custom)
     
     private var topBar: DigitalHumanSettingBar!
-    // contentView: [notJoinedView, videoContentView]
+    // contentView: [notJoinedView, agentContentView]
     private var contentView: UIView!
     
-    // videoContentView: [notJoinedView, agentVideoView, aiNameView]
+    // agentContentView: [notJoinedView, agentVideoView, aiNameView]
     private var agentContentView: UIView!
     
     // notJoinedView: [agentImageView, statusLabel]
@@ -68,7 +68,7 @@ class DigitalHumanViewController: UIViewController {
     private var callingBottomView: UIView!
     private var closeButton: UIButton!
     private var micButton: UIButton!
-    private var videoButton: UIButton!
+    private var cameraButton: UIButton!
     
     private var stopInitiative = false
         
@@ -96,7 +96,7 @@ class DigitalHumanViewController: UIViewController {
         
         createRtcEngine()
         updateMicState()
-        updateVideoState()
+        updateCameraState()
         updateViewState()
         
         getToken { _ in }
@@ -201,12 +201,12 @@ class DigitalHumanViewController: UIViewController {
         micStateImageView.image = smallImage
     }
     
-    private func updateVideoState() {
-        let isMute = videoButton.isSelected
+    private func updateCameraState() {
+        let isMute = cameraButton.isSelected
         let backgroundColor = isMute ? UIColor(hex: 0x333333) : UIColor(hex: 0x00C2FF)
         let image = isMute ? UIImage.dh_named("ic_agent_detail_video_mute") : UIImage.dh_named("ic_agent_detail_video_unmute")
-        videoButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
-        videoButton.setImage(image, for: .normal)
+        cameraButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
+        cameraButton.setImage(image, for: .normal)
     }
     
     private func addLog(_ txt: String) {
@@ -242,8 +242,6 @@ class DigitalHumanViewController: UIViewController {
             joinCallButton.isHidden = true
             callingBottomView.isHidden = false
             aiNameView.isHidden = false
-            
-            let ret = engine.startPreview()
         } else {
             notJoinedView.isHidden = false
             agentVideoView.isHidden = true
@@ -251,8 +249,6 @@ class DigitalHumanViewController: UIViewController {
             joinCallButton.isHidden = false
             callingBottomView.isHidden = true
             aiNameView.isHidden = true
-            
-            let ret = engine.stopPreview()
         }
     }
     
@@ -261,6 +257,10 @@ class DigitalHumanViewController: UIViewController {
             micButton.isSelected = false
             engine.adjustRecordingSignalVolume(100)
             updateMicState()
+        }
+        if (cameraButton.isSelected) {
+            cameraButton.isSelected = false
+            updateCameraState()
         }
     }
 }
@@ -301,7 +301,6 @@ private extension DigitalHumanViewController {
             self.closeButton.alpha = 1.0
             self.topBar.backButton.isEnabled = true
             self.topBar.backButton.alpha = 1.0
-            isAgentStarted = true
             addLog("start agent success")
         }
     }
@@ -343,7 +342,7 @@ private extension DigitalHumanViewController {
     @objc func onClickSetting(_ sender: UIButton) {
         let settingVc = DigitalHumanSettingViewController()
         let navigationVC = UINavigationController(rootViewController: settingVc)
-        present(settingVc, animated: true)
+        present(navigationVC, animated: true)
     }
     
     @objc func onClickCamera(_ sender: UIButton) {
@@ -355,7 +354,7 @@ private extension DigitalHumanViewController {
             engine.enableVideo()
             mineVideoView.isHidden = false
         }
-        updateVideoState()
+        updateCameraState()
     }
     
     private func switchVideoLayout(mainView: UIView, pipView: UIView) {
@@ -400,6 +399,22 @@ private extension DigitalHumanViewController {
         }
     }
 }
+// MARK: - NetworkSignalViewDelegate
+extension DigitalHumanViewController: NetworkSignalViewDelegate {
+    func networkSignalView(_ view: NetworkSignalView, didClickNetworkButton button: UIButton) {
+        selectTableMask.isHidden = false
+        let v = AgentNetworkInfoView()
+        self.view.addSubview(v)
+        selectTable = v
+        let button = topBar.networkSignalView
+        v.snp.makeConstraints { make in
+            make.right.equalTo(button.snp.right).offset(20)
+            make.top.equalTo(button.snp.bottom)
+            make.width.equalTo(304)
+            make.height.equalTo(104)
+        }
+    }
+}
 
 // MARK: - AgoraRtcEngineDelegate
 extension DigitalHumanViewController: AgoraRtcEngineDelegate {
@@ -437,6 +452,7 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
         addLog("remote user didJoinedOfUid uid: \(uid)")
         if (uid == agentUid) {
             AgoraManager.shared.agentStarted = true
+            isAgentStarted = true
             SVProgressHUD.dismiss()
             SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Conversation.agentJoined)
         }
@@ -510,6 +526,7 @@ private extension DigitalHumanViewController {
         topBar.tipsButton.addTarget(self, action: #selector(onClickRoomInfo(_ :)), for: .touchUpInside)
         topBar.settingButton.addTarget(self, action: #selector(onClickSetting(_ :)), for: .touchUpInside)
         topBar.backButton.addTarget(self, action: #selector(onClickBack), for: .touchUpInside)
+        topBar.networkSignalView.delegate = self
         view.addSubview(topBar)
         topBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
@@ -593,14 +610,14 @@ private extension DigitalHumanViewController {
             make.centerY.equalToSuperview()
         }
         
-        videoButton = UIButton(type: .custom)
-        videoButton.addTarget(self, action: #selector(onClickCamera(_ :)), for: .touchUpInside)
-        videoButton.titleLabel?.textAlignment = .center
-        videoButton.layerCornerRadius = 36
-        videoButton.clipsToBounds = true
-        videoButton.setImage(UIImage.dh_named("ic_msg_icon"), for: .normal)
-        callingBottomView.addSubview(videoButton)
-        videoButton.snp.makeConstraints { make in
+        cameraButton = UIButton(type: .custom)
+        cameraButton.addTarget(self, action: #selector(onClickCamera(_ :)), for: .touchUpInside)
+        cameraButton.titleLabel?.textAlignment = .center
+        cameraButton.layerCornerRadius = 36
+        cameraButton.clipsToBounds = true
+        cameraButton.setImage(UIImage.dh_named("ic_msg_icon"), for: .normal)
+        callingBottomView.addSubview(cameraButton)
+        cameraButton.snp.makeConstraints { make in
             make.left.equalTo(micButton.snp.right).offset(16)
             make.width.height.equalTo(72)
             make.centerY.equalToSuperview()
@@ -623,7 +640,7 @@ private extension DigitalHumanViewController {
         closeButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: closeButtonImageSpacing/2, bottom: 0, right: -closeButtonImageSpacing/2)
         callingBottomView.addSubview(closeButton)
         closeButton.snp.makeConstraints { make in
-            make.left.equalTo(videoButton.snp.right).offset(16)
+            make.left.equalTo(cameraButton.snp.right).offset(16)
             make.right.equalTo(-20)
             make.width.height.equalTo(72)
             make.centerY.equalToSuperview()
@@ -750,10 +767,7 @@ private extension DigitalHumanViewController {
 }
 
 // MARK: - AgentSettingBar
-class DigitalHumanSettingBar: UIView, NetworkSignalViewDelegate {
-    func networkSignalView(_ view: NetworkSignalView, didClickNetworkButton button: UIButton) {
-        
-    }
+class DigitalHumanSettingBar: UIView {
     
     let backButton = UIButton()
     let titleLabel = UILabel()
@@ -796,7 +810,6 @@ class DigitalHumanSettingBar: UIView, NetworkSignalViewDelegate {
             make.width.height.equalTo(48)
         }
         addSubview(networkSignalView)
-        networkSignalView.delegate = self
         networkSignalView.snp.makeConstraints { make in
             make.right.equalTo(settingButton.snp.left)
             make.width.height.equalTo(48)

@@ -10,7 +10,7 @@
 "scene.dig.card.des" = "创建AI驱动的实时语音、视频和聊天体验。";
 "scene.title" = "选择演示";
 
-"join.start.title" = "对话智能体";
+"join.start.title" = "数字人";
 "join.start.state" = "未加入";
 "join.start.button.title" = "加入通话";
 "join.start.agent.name" = "智能体";

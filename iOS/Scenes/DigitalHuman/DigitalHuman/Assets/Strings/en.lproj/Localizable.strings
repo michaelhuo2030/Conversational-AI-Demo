@@ -10,7 +10,7 @@
 "scene.dig.card.des" = "Create AI-powered real-time voice, video, and chat experiences.";
 "scene.title" = "SELECT A DEMO";
 
-"join.start.title" = "Convo AI Agent";
+"join.start.title" = "Digital Human";
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Join Call";
 "join.start.agent.name" = "Agent";

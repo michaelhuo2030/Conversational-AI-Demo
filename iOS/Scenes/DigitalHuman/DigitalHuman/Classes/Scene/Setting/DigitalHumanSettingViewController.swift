@@ -82,7 +82,7 @@ class DigitalHumanSettingViewController: UIViewController {
             guard let self = self else { return }
             AgentSettingManager.shared.currentVoiceType = types[index]
             self.voiceItem.detialLabel.text = types[index].displayName
-//            self.delegate?.onClickVoice()
+            updateVoiceConfig()
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -188,7 +188,7 @@ class DigitalHumanSettingViewController: UIViewController {
         AgoraManager.shared.updateDenoise(isOn: isOn)
     }
     
-    func onClickVoice() {
+    func updateVoiceConfig() {
         let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
         SVProgressHUD.show()
         DigitalHumanAPI.shared.updateAgent(appId: AppContext.shared.appId, voiceId: voiceId) { error in
