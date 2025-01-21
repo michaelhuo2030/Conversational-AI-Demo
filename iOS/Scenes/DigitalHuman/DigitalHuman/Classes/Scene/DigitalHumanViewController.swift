@@ -37,30 +37,31 @@ class DigitalHumanViewController: UIViewController {
     private var selectTableMask = UIButton(type: .custom)
     
     private var topBar: DigitalHumanSettingBar!
-    // contentView: [notJoinedView, agentContentView]
-    private var contentView: UIView!
     
-    // agentContentView: [notJoinedView, agentVideoView, aiNameView]
-    private var agentContentView: UIView!
+    // centerContentView: [notJoinedView, agentVideoView, pipContentView]
+    private var centerView: UIView!
     
     // notJoinedView: [agentImageView, statusLabel]
     private var notJoinedView: UIView!
     private var notJoinedImageView: UIImageView!
     private var notJoinedLabel: UILabel!
-    // agentVideoView
+    // agentContentView: [aiNameView, agentVideoView]
+    private var agentContentView: UIView!
     private var agentVideoView: UIView!
     // aiNameView: [aiNameLabel, aiNameImage]
     private var aiNameView: UIView!
     private var aiNameLabel: UILabel!
     private var aiNameImage: UIImageView!
     
-    // mineContentView: [mineContentView, mineAvatarLabel, mineVideoView, mineNameView]
-    private var mineContentView: UIView!
-    private var mineAvatarLabel: UILabel!
-    private var mineVideoView: UIView!
-    // mineNameView: [mineNameLabel, micStateImageView]
-    private var mineNameView: UIView!
-    private var mineNameLabel: UILabel!
+    // pipContentView: [userVideoView]
+    private var miniView: UIView!
+    // userContentView: [userAvatarLabel, userVideoView, userNameView]
+    private var userContentView: UIView!
+    private var userVideoView: UIView!
+    private var userAvatarLabel: UILabel!
+    // userNameView: [userNameLabel, micStateImageView]
+    private var userNameView: UIView!
+    private var userNameLabel: UILabel!
     private var micStateImageView: UIImageView!
     
     private var joinCallButton: UIButton!
@@ -135,7 +136,7 @@ class DigitalHumanViewController: UIViewController {
         localCanvas.mirrorMode = .disabled
         localCanvas.setupMode = .add
         localCanvas.renderMode = .hidden
-        localCanvas.view = mineVideoView
+        localCanvas.view = userVideoView
         localCanvas.uid = localUid
         engine.setupLocalVideo(localCanvas)
         
@@ -237,15 +238,24 @@ class DigitalHumanViewController: UIViewController {
     func updateViewState() {
         if isAgentStarted {
             notJoinedView.isHidden = true
-            agentVideoView.isHidden = false
-            mineContentView.isHidden = false
+            userContentView.isHidden = false
+            agentContentView.isHidden = false
+            miniView.isHidden = false
             joinCallButton.isHidden = true
             callingBottomView.isHidden = false
             aiNameView.isHidden = false
+            if cameraButton.isSelected {
+                userVideoView.isHidden = true
+                userAvatarLabel.isHidden = false
+            } else {
+                userVideoView.isHidden = false
+                userAvatarLabel.isHidden = true
+            }
         } else {
             notJoinedView.isHidden = false
-            agentVideoView.isHidden = true
-            mineContentView.isHidden = true
+            userContentView.isHidden = true
+            agentContentView.isHidden = true
+            miniView.isHidden = true
             joinCallButton.isHidden = false
             callingBottomView.isHidden = true
             aiNameView.isHidden = true
@@ -262,6 +272,21 @@ class DigitalHumanViewController: UIViewController {
             cameraButton.isSelected = false
             updateCameraState()
         }
+        // reset video view
+        userContentView.removeFromSuperview()
+        miniView.addSubview(userContentView)
+        userContentView.frame = miniView.bounds
+        userContentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        agentContentView.removeFromSuperview()
+        centerView.addSubview(agentContentView)
+        agentContentView.frame = centerView.bounds
+        agentContentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        centerView.bringSubviewToFront(miniView)
     }
 }
 
@@ -349,54 +374,35 @@ private extension DigitalHumanViewController {
         sender.isSelected.toggle()
         if (sender.isSelected) {
             engine.disableVideo()
-            mineVideoView.isHidden = true
+            userContentView.isHidden = true
         } else {
             engine.enableVideo()
-            mineVideoView.isHidden = false
+            userContentView.isHidden = false
         }
         updateCameraState()
     }
-    
-    private func switchVideoLayout(mainView: UIView, pipView: UIView) {
-        mainView.snp.removeConstraints()
-        pipView.snp.removeConstraints()
-        
-        mainView.removeFromSuperview()
-        pipView.removeFromSuperview()
-        
-        view.addSubview(mainView)
-        mainView.addSubview(pipView)
 
-        mainView.snp.makeConstraints { make in
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
-            make.top.equalTo(topBar.snp.bottom).offset(20)
-            make.bottom.equalToSuperview().offset(-120)
+    @objc private func onMiniViewTapped(_ tap: UIGestureRecognizer) {
+        let agentContentView_s = agentContentView.superview
+        let userContentView_s = userContentView.superview
+        agentContentView.removeFromSuperview()
+        userContentView.removeFromSuperview()
+        if let superView = agentContentView_s {
+            superView.addSubview(userContentView)
+            userContentView.frame = superView.bounds
+            userContentView.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
+            }
         }
         
-        pipView.snp.makeConstraints { make in
-            make.width.equalTo(192)
-            make.height.equalTo(100)
-            make.top.equalTo(16)
-            make.right.equalTo(-16)
+        if let superView = userContentView_s {
+            superView.addSubview(agentContentView)
+            agentContentView.frame = superView.bounds
+            agentContentView.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
+            }
         }
-        
-        view.layoutIfNeeded()
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
-        pipView.addGestureRecognizer(tapGesture)
-        pipView.isUserInteractionEnabled = true
-    }
-
-    @objc private func handlePipViewTapped(_ tap: UIGestureRecognizer) {
-        guard let tappedView = tap.view else { return }
-        tappedView.removeGestureRecognizers()
-        
-        if tappedView == mineContentView {
-            switchVideoLayout(mainView: mineContentView, pipView: contentView)
-        } else {
-            switchVideoLayout(mainView: contentView, pipView: mineContentView)
-        }
+        centerView.bringSubviewToFront(miniView)
     }
 }
 // MARK: - NetworkSignalViewDelegate
@@ -534,32 +540,20 @@ private extension DigitalHumanViewController {
             make.height.equalTo(48)
         }
         
-        contentView = UIView()
-        contentView.backgroundColor = UIColor(hex:0x222222)
-        contentView.layerCornerRadius = 16
-        contentView.clipsToBounds = true
-        view.addSubview(contentView)
-        contentView.snp.makeConstraints { make in
+        centerView = UIView()
+        centerView.backgroundColor = UIColor(hex:0x222222)
+        centerView.layerCornerRadius = 16
+        centerView.clipsToBounds = true
+        view.addSubview(centerView)
+        centerView.snp.makeConstraints { make in
             make.left.equalTo(20)
             make.right.equalTo(-20)
             make.top.equalTo(topBar.snp.bottom).offset(20)
             make.bottom.equalToSuperview().offset(-120)
         }
         
-        agentContentView = UIView()
-        contentView.addSubview(agentContentView)
-        agentContentView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-        
-        agentVideoView = UIView()
-        agentContentView.addSubview(agentVideoView)
-        agentVideoView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-        
         notJoinedView = UIView()
-        agentContentView.addSubview(notJoinedView)
+        centerView.addSubview(notJoinedView)
         notJoinedView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
@@ -588,6 +582,119 @@ private extension DigitalHumanViewController {
             }
             return label
         }()
+        
+        agentContentView = UIView()
+        centerView.addSubview(agentContentView)
+        agentContentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        agentVideoView = UIView()
+        agentContentView.addSubview(agentVideoView)
+        agentVideoView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        miniView = UIView()
+        miniView.backgroundColor = UIColor(hex:0x333333)
+        miniView.layerCornerRadius = 8
+        miniView.clipsToBounds = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onMiniViewTapped(_:)))
+        miniView.addGestureRecognizer(tapGesture)
+        miniView.isUserInteractionEnabled = true
+        centerView.addSubview(miniView)
+        miniView.snp.makeConstraints { make in
+            make.width.equalTo(192)
+            make.height.equalTo(100)
+            make.top.equalToSuperview().offset(16)
+            make.right.equalToSuperview().offset(-16)
+        }
+        
+        userContentView = UIView()
+        miniView.addSubview(userContentView)
+        userContentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        userVideoView = UIView()
+        userContentView.addSubview(userVideoView)
+        userVideoView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        userAvatarLabel = UILabel()
+        userAvatarLabel.textColor = UIColor(hex:0x222222)
+        userAvatarLabel.backgroundColor = UIColor(hex:0xBDCFDB)
+        userAvatarLabel.text = "Y"
+        userAvatarLabel.textAlignment = .center
+        userAvatarLabel.layerCornerRadius = 30
+        userAvatarLabel.clipsToBounds = true
+        userContentView.addSubview(userAvatarLabel)
+        userAvatarLabel.snp.makeConstraints { make in
+            make.width.height.equalTo(60)
+            make.center.equalTo(userContentView)
+        }
+        
+        userNameView = UIView()
+        userNameView.backgroundColor = UIColor(hex:0x000000, transparency: 0.25)
+        userNameView.layerCornerRadius = 4
+        userNameView.clipsToBounds = true
+        userContentView.addSubview(userNameView)
+        userNameView.snp.makeConstraints { make in
+            make.width.equalTo(66)
+            make.height.equalTo(32)
+            make.left.equalTo(userContentView).offset(8)
+            make.bottom.equalTo(userContentView).offset(-8)
+        }
+        
+        micStateImageView = UIImageView(image: UIImage.dh_named("ic_agent_detail_mute"))
+        userNameView.addSubview(micStateImageView)
+        micStateImageView.snp.makeConstraints { make in
+            make.left.equalTo(userNameView).offset(6)
+            make.width.height.equalTo(20)
+            make.centerY.equalTo(userNameView)
+        }
+
+        userNameLabel = UILabel()
+        userNameLabel.textColor = .white
+        userNameLabel.text = "You"
+        userNameLabel.font = UIFont.systemFont(ofSize: 12)
+        userNameView.addSubview(userNameLabel)
+        userNameLabel.snp.makeConstraints { make in
+            make.left.equalTo(micStateImageView.snp.right).offset(2)
+            make.centerY.equalTo(userNameView)
+        }
+
+        aiNameView = UIView()
+        aiNameView.backgroundColor = UIColor(hex:0x000000, transparency: 0.25)
+        aiNameView.layerCornerRadius = 4
+        aiNameView.clipsToBounds = true
+        agentContentView.addSubview(aiNameView)
+        aiNameView.snp.makeConstraints { make in
+            make.width.equalTo(100)
+            make.height.equalTo(32)
+            make.left.equalTo(12)
+            make.bottom.equalTo(-12)
+        }
+
+        aiNameLabel = UILabel()
+        aiNameLabel.textColor = .white
+        aiNameLabel.text = ResourceManager.L10n.Conversation.agentName
+        aiNameLabel.font = UIFont.systemFont(ofSize: 14)
+        aiNameLabel.textAlignment = .left
+        aiNameView.addSubview(aiNameLabel)
+        aiNameLabel.snp.makeConstraints { make in
+            make.left.equalTo(12)
+            make.centerY.equalToSuperview()
+        }
+
+        aiNameImage = UIImageView(image: UIImage.dh_named("ic_agent_detail_ai_voice"))
+        aiNameView.addSubview(aiNameImage)
+        aiNameImage.snp.makeConstraints { make in
+            make.right.equalTo(-12)
+            make.width.height.equalTo(20)
+            make.centerY.equalToSuperview()
+        }
         
         callingBottomView = UIView()
         view.addSubview(callingBottomView)
@@ -662,99 +769,6 @@ private extension DigitalHumanViewController {
             make.left.right.equalToSuperview()
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-20)
             make.height.equalTo(72)
-        }
-        
-        mineContentView = UIView()
-        mineContentView.backgroundColor = UIColor(hex:0x333333)
-        mineContentView.layerCornerRadius = 8
-        mineContentView.clipsToBounds = true
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handlePipViewTapped(_:)))
-        mineContentView.addGestureRecognizer(tapGesture)
-        mineContentView.isUserInteractionEnabled = true
-        contentView.addSubview(mineContentView)
-        mineContentView.snp.makeConstraints { make in
-            make.width.equalTo(192)
-            make.height.equalTo(100)
-            make.top.equalToSuperview().offset(16)
-            make.right.equalToSuperview().offset(-16)
-        }
-        
-        mineAvatarLabel = UILabel()
-        mineAvatarLabel.textColor = UIColor(hex:0x222222)
-        mineAvatarLabel.backgroundColor = UIColor(hex:0xBDCFDB)
-        mineAvatarLabel.text = "Y"
-        mineAvatarLabel.textAlignment = .center
-        mineAvatarLabel.layerCornerRadius = 30
-        mineAvatarLabel.clipsToBounds = true
-        mineContentView.addSubview(mineAvatarLabel)
-        mineAvatarLabel.snp.makeConstraints { make in
-            make.width.height.equalTo(60)
-            make.center.equalTo(mineContentView)
-        }
-        
-        mineVideoView = UIView()
-        mineContentView.addSubview(mineVideoView)
-        mineVideoView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-
-        mineNameView = UIView()
-        mineNameView.backgroundColor = UIColor(hex: 0x1D1D1D)
-        mineNameView.layerCornerRadius = 4
-        mineNameView.clipsToBounds = true
-        mineContentView.addSubview(mineNameView)
-        mineNameView.snp.makeConstraints { make in
-            make.width.equalTo(66)
-            make.height.equalTo(32)
-            make.left.equalTo(mineContentView).offset(8)
-            make.bottom.equalTo(mineContentView).offset(-8)
-        }
-        
-        micStateImageView = UIImageView(image: UIImage.dh_named("ic_agent_detail_mute"))
-        mineNameView.addSubview(micStateImageView)
-        micStateImageView.snp.makeConstraints { make in
-            make.left.equalTo(mineNameView).offset(6)
-            make.width.height.equalTo(20)
-            make.centerY.equalTo(mineNameView)
-        }
-
-        mineNameLabel = UILabel()
-        mineNameLabel.textColor = .white
-        mineNameLabel.text = "You"
-        mineNameView.addSubview(mineNameLabel)
-        mineNameLabel.snp.makeConstraints { make in
-            make.left.equalTo(micStateImageView.snp.right).offset(2)
-            make.centerY.equalTo(mineNameView)
-        }
-
-        aiNameView = UIView()
-        aiNameView.backgroundColor = UIColor(hex:0x000000, transparency: 0.25)
-        aiNameView.layerCornerRadius = 4
-        aiNameView.clipsToBounds = true
-        agentContentView.addSubview(aiNameView)
-        aiNameView.snp.makeConstraints { make in
-            make.width.equalTo(100)
-            make.height.equalTo(32)
-            make.left.equalTo(12)
-            make.bottom.equalTo(-12)
-        }
-
-        aiNameLabel = UILabel()
-        aiNameLabel.textColor = .white
-        aiNameLabel.text = ResourceManager.L10n.Conversation.agentName
-        aiNameLabel.textAlignment = .left
-        aiNameView.addSubview(aiNameLabel)
-        aiNameLabel.snp.makeConstraints { make in
-            make.left.equalTo(12)
-            make.centerY.equalToSuperview()
-        }
-
-        aiNameImage = UIImageView(image: UIImage.dh_named("ic_agent_detail_ai_voice"))
-        aiNameView.addSubview(aiNameImage)
-        aiNameImage.snp.makeConstraints { make in
-            make.right.equalTo(-12)
-            make.width.height.equalTo(20)
-            make.centerY.equalToSuperview()
         }
         
         selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)
