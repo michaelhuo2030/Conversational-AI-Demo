@@ -42,11 +42,11 @@ class DigitalHumanSettingViewController: UIViewController {
     
     private func updateUIWithCurrentSettings() {
         // Update UI with current settings
-        infoItem.detialLabel.text = AgentSettingManager.shared.currentPresetType.rawValue
-        voiceItem.detialLabel.text = AgentSettingManager.shared.currentVoiceType.displayName
-        modelItem.detialLabel.text = AgentSettingManager.shared.currentModelType.rawValue
-        languageItem.detialLabel.text = AgentSettingManager.shared.currentLanguageType.rawValue
-        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+        infoItem.detialLabel.text = DHSceneManager.shared.currentPresetType.rawValue
+        voiceItem.detialLabel.text = DHSceneManager.shared.currentVoiceType.displayName
+        modelItem.detialLabel.text = DHSceneManager.shared.currentModelType.rawValue
+        languageItem.detialLabel.text = DHSceneManager.shared.currentLanguageType.rawValue
+        cancellationItem.switcher.isOn = DHSceneManager.shared.getDenoise()
     }
     
     @objc func onClickClose(_ sender: UIButton) {
@@ -56,9 +56,9 @@ class DigitalHumanSettingViewController: UIViewController {
     @objc func onClickPreset(_ sender: UIButton) {
         selectTableMask.isHidden = false
         let types = AgentPresetType.availablePresets
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentPresetType) ?? 0
+        let currentIndex = types.firstIndex(of: DHSceneManager.shared.currentPresetType) ?? 0
         let table = AgentSelectTableView(items: types.map {$0.rawValue}) { index in
-            AgentSettingManager.shared.currentPresetType = types[index]
+            DHSceneManager.shared.currentPresetType = types[index]
             self.infoItem.detialLabel.text = types[index].rawValue
         }
         table.setSelectedIndex(currentIndex)
@@ -75,12 +75,12 @@ class DigitalHumanSettingViewController: UIViewController {
     @objc func onClickVoice(_ sender: UIButton) {
         print("onClickVoice")
         selectTableMask.isHidden = false
-        let currentPreset = AgentSettingManager.shared.currentPresetType
+        let currentPreset = DHSceneManager.shared.currentPresetType
         let types = AgentVoiceType.availableVoices(for: currentPreset)
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentVoiceType) ?? 0
+        let currentIndex = types.firstIndex(of: DHSceneManager.shared.currentVoiceType) ?? 0
         let table = AgentSelectTableView(items: types.map {$0.displayName}) { [weak self] index in
             guard let self = self else { return }
-            AgentSettingManager.shared.currentVoiceType = types[index]
+            DHSceneManager.shared.currentVoiceType = types[index]
             self.voiceItem.detialLabel.text = types[index].displayName
             updateVoiceConfig()
         }
@@ -98,11 +98,11 @@ class DigitalHumanSettingViewController: UIViewController {
     @objc func onClickModel(_ sender: UIButton) {
         print("onClickModel")
         selectTableMask.isHidden = false
-        let currentPreset = AgentSettingManager.shared.currentPresetType
+        let currentPreset = DHSceneManager.shared.currentPresetType
         let types = AgentModelType.availableModels(for: currentPreset)
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentModelType) ?? 0
+        let currentIndex = types.firstIndex(of: DHSceneManager.shared.currentModelType) ?? 0
         let table = AgentSelectTableView(items: types.map {$0.rawValue}) { index in
-            AgentSettingManager.shared.currentModelType = types[index]
+            DHSceneManager.shared.currentModelType = types[index]
             self.modelItem.detialLabel.text = types[index].rawValue
         }
         table.setSelectedIndex(currentIndex)
@@ -119,11 +119,11 @@ class DigitalHumanSettingViewController: UIViewController {
     @objc func onClickLanguage(_ sender: UIButton) {
         print("onClickLanguage")
         selectTableMask.isHidden = false
-        let currentPreset = AgentSettingManager.shared.currentPresetType
+        let currentPreset = DHSceneManager.shared.currentPresetType
         let types = AgentLanguageType.availableLanguages(for: currentPreset)
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentLanguageType) ?? 0
+        let currentIndex = types.firstIndex(of: DHSceneManager.shared.currentLanguageType) ?? 0
         let table = AgentSelectTableView(items: types.map {$0.rawValue}) { index in
-            AgentSettingManager.shared.currentLanguageType = types[index]
+            DHSceneManager.shared.currentLanguageType = types[index]
             self.languageItem.detialLabel.text = types[index].rawValue
         }
         table.setSelectedIndex(currentIndex)
@@ -138,8 +138,7 @@ class DigitalHumanSettingViewController: UIViewController {
     }
     
     @objc func onClickNoiseCancellation(_ sender: UISwitch) {
-        AgentSettingManager.shared.isNoiseCancellationEnabled = sender.isOn
-//        delegate?.onClickNoiseCancellationChanged(isOn: sender.isOn)
+        DHSceneManager.shared.updateDenoise(isOn: sender.isOn)
     }
 
     @objc func onClickMicrophone(_ sender: UIButton) {
@@ -147,7 +146,7 @@ class DigitalHumanSettingViewController: UIViewController {
 //        selectTableMask.isHidden = false
 //        let types = AgentMicrophoneType.allCases
 //        let table = AgentSelectTableView(items: types.map {$0.rawValue}, selected: { index in
-//            AgentSettingManager.shared.currentMicrophoneType = types[index]
+//            DHSceneManager.shared.currentMicrophoneType = types[index]
 //            self.microphoneItem.detialLabel.text = types[index].rawValue
 //        })
 //        view.addSubview(table)
@@ -165,7 +164,7 @@ class DigitalHumanSettingViewController: UIViewController {
 //        selectTableMask.isHidden = false
 //        let types = AgentSpeakerType.allCases
 //        let table = AgentSelectTableView(items: types.map {$0.rawValue}, selected: { index in
-//            AgentSettingManager.shared.currentSpeakerType = types[index]
+//            DHSceneManager.shared.currentSpeakerType = types[index]
 //            self.speakerItem.detialLabel.text = types[index].rawValue
 //        })
 //        view.addSubview(table)
@@ -185,11 +184,11 @@ class DigitalHumanSettingViewController: UIViewController {
     }
     
     func onClickNoiseCancellationChanged(isOn: Bool) {
-        AgoraManager.shared.updateDenoise(isOn: isOn)
+        DHSceneManager.shared.updateDenoise(isOn: isOn)
     }
     
     func updateVoiceConfig() {
-        let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
+        let voiceId = DHSceneManager.shared.currentVoiceType.voiceId
         SVProgressHUD.show()
         DigitalHumanAPI.shared.updateAgent(appId: AppContext.shared.appId, voiceId: voiceId) { error in
             SVProgressHUD.dismiss()
@@ -263,7 +262,7 @@ extension DigitalHumanSettingViewController {
         contentView2.layer.borderColor = PrimaryColors.c_262626.cgColor
         contentView.addSubview(contentView2)
         
-        let currentPreset = AgentSettingManager.shared.currentPresetType
+        let currentPreset = DHSceneManager.shared.currentPresetType
 
         languageItem.titleLabel.text = ResourceManager.L10n.Settings.language
         languageItem.detialLabel.text = AgentLanguageType.availableLanguages(for: currentPreset).first?.rawValue
@@ -292,19 +291,19 @@ extension DigitalHumanSettingViewController {
         contentView.addSubview(contentView3)
         
 //        microphoneItem.titleLabel.text = ResourceManager.L10n.Settings.microphone
-//        microphoneItem.detialLabel.text = AgentSettingManager.shared.currentMicrophoneType.rawValue
+//        microphoneItem.detialLabel.text = DHSceneManager.shared.currentMicrophoneType.rawValue
 //        microphoneItem.button.addTarget(self, action: #selector(onClickMicrophone(_ :)), for: .touchUpInside)
 //        contentView3.addSubview(microphoneItem)
 //        
 //        speakerItem.titleLabel.text = ResourceManager.L10n.Settings.speaker
-//        speakerItem.detialLabel.text = AgentSettingManager.shared.currentSpeakerType.rawValue
+//        speakerItem.detialLabel.text = DHSceneManager.shared.currentSpeakerType.rawValue
 //        speakerItem.button.addTarget(self, action: #selector(onClickSpeaker(_ :)), for: .touchUpInside)
 //        contentView3.addSubview(speakerItem)
         
         cancellationItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
         cancellationItem.bottomLine.isHidden = true
         cancellationItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
-        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+        cancellationItem.switcher.isOn = DHSceneManager.shared.getDenoise()
         contentView3.addSubview(cancellationItem)
         
         selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)

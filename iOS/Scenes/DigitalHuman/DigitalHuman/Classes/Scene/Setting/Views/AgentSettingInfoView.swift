@@ -58,7 +58,7 @@ class AgentNetworkInfoView: AgentSettingInfoView {
     }
     
     override func updateStatus() {
-        let manager = AgentSettingManager.shared
+        let manager = DHSceneManager.shared
         networkItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourNetwork
         networkItem.detialLabel.text = manager.networkStatus == .unknown ? "" : manager.networkStatus.rawValue
         networkItem.detialLabel.textColor = manager.networkStatus.color
@@ -93,7 +93,7 @@ class AgentSettingInfoView: UIView {
     }
     
     func updateStatus() {
-        let manager = AgentSettingManager.shared
+        let manager = DHSceneManager.shared
         
         // Update Agent Status
         agentItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentStatus
@@ -109,13 +109,13 @@ class AgentSettingInfoView: UIView {
         
         // Update Room ID
         roomIDItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomId
-        roomIDItem.detialLabel.text = manager.roomId
+        roomIDItem.detialLabel.text = manager.channelName
         roomIDItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
         roomIDItem.bottomLineStyle2()
         
         // Update Participant ID
         idItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
-        idItem.detialLabel.text = manager.agentStatus == .unload ? "" : manager.yourId
+        idItem.detialLabel.text = manager.agentStatus == .unload ? "" : String(manager.uid)
         idItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
         idItem.bottomLineStyle2()
     }
