@@ -20,7 +20,9 @@ import kotlin.coroutines.suspendCoroutine
 data class AgentRequestParams(
     val channelName: String,
     val agentRtcUid: Int = 999,
-    val remoteRtcUid: Int = 998,
+    val remoteRtcUid: Int = 0,
+    val avatarRtcUid:Int = 998,
+    val avatarId:String? = null,
     val rtcCodec: Int? = null,
     val audioScenario: Int? = null,
     val greeting: String? = null,
@@ -81,6 +83,12 @@ object DigitalApiManager {
             put("remote_rtc_uid", params.remoteRtcUid)
             params.rtcCodec?.let { put("rtc_codec", it) }
             params.audioScenario?.let { put("audio_scenario", it) }
+
+            val avatar = JSONObject().apply {
+                params.avatarId?.let { put("avatar_id",it) }
+                put("rtc_uid", params.avatarRtcUid)
+            }
+            put("avatar", avatar)
             
             val customLlm = JSONObject().apply {
                 params.greeting?.let { put("greeting", it) }
