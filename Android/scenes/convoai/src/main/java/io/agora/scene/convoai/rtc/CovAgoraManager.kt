@@ -145,6 +145,10 @@ object CovAgoraManager {
         AgentVoiceType.MALE_QINGSE else AgentVoiceType.AVA_MULTILINGUAL
     var llmType = AgentLLMType.OPEN_AI
     var languageType = AgentLanguageType.EN
+
+    var isAiVad = true
+    var isForceThreshold = true
+
     private var isDenoise = false
 
     // Status
@@ -185,7 +189,7 @@ object CovAgoraManager {
         }
     }
 
-    fun currentDenoiseStatus(): Boolean {
+    fun getDenoiseStatus(): Boolean {
         return isDenoise
     }
 
@@ -219,5 +223,7 @@ object CovAgoraManager {
         rtcEngine = null
         updatePreset(if (isMainlandVersion) AgentPresetType.XIAO_AI else AgentPresetType.DEFAULT)
         isDenoise = false
+        isAiVad = true
+        isForceThreshold = true
     }
 }

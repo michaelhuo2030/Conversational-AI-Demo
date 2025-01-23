@@ -120,7 +120,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             remoteRtcUid = localUid,
             agentRtcUid = agentUID,
             ttsVoiceId = CovAgoraManager.voiceType.value,
-            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER
+            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
+            enableAiVad = CovAgoraManager.isAiVad,
+            forceThreshold = CovAgoraManager.isForceThreshold,
         )
         ConvAIManager.startAgent(params) { isAgentOK ->
             if (isAgentOK) {

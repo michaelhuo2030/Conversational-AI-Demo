@@ -2,6 +2,7 @@ package io.agora.scene.convoai.http
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import io.agora.scene.convoai.CovLogger
 import okhttp3.Call
 import okhttp3.Callback
@@ -13,6 +14,8 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.convoai.rtc.AgentLanguageType
+import io.agora.scene.convoai.rtc.AgentVoiceType
 
 data class AgentRequestParams(
     val channelName: String,
@@ -30,7 +33,9 @@ data class AgentRequestParams(
     val vadThreshold: Int? = null,
     val bsVoiceThreshold: Int? = null,
     val idleTimeout: Int? = null,
-    val ttsVoiceId: String? = null
+    val ttsVoiceId: String? = null,
+    val enableAiVad: Boolean? = null,
+    val forceThreshold: Boolean? = null
 )
 
 object ConvAIManager {
@@ -78,7 +83,16 @@ object ConvAIManager {
             
             params.bsVoiceThreshold?.let { postBody.put("bs_voice_threshold", it) }
             params.idleTimeout?.let { postBody.put("idle_timeout", it) }
-            
+            params.enableAiVad?.let { postBody.put("enable_aivadmd", it) }
+
+            val aivadmd = JSONObject()
+            if (params.forceThreshold == true) {
+                aivadmd.put("force_threshold", -1)
+            }
+            if (aivadmd.length() > 0) {
+                postBody.put("aivadmd", aivadmd)
+            }
+
             val tts = JSONObject()
             params.ttsVoiceId?.let { tts.put("voice_id", it) }
             if (tts.length() > 0) {
@@ -87,6 +101,7 @@ object ConvAIManager {
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }
+        Log.d(TAG, postBody.toString())
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = Request.Builder()
             .url(requestURL)
@@ -175,7 +190,7 @@ object ConvAIManager {
         })
     }
 
-    fun updateAgent(voiceId: String, succeed: (Boolean) -> Unit) {
+    fun updateAgent(voiceId: String? = null, succeed: (Boolean) -> Unit) {
         if (agentId.isNullOrEmpty()) {
             runOnMainThread {
                 succeed.invoke(false)
@@ -187,8 +202,8 @@ object ConvAIManager {
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
-            postBody.put("voice_id", voiceId)
             postBody.put("agent_id", agentId)
+            voiceId?.let {postBody.put("voice_id", it)}
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }

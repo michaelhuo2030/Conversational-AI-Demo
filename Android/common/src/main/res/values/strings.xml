@@ -51,6 +51,8 @@
     <string name="cov_setting_microphone">Microphone</string>
     <string name="cov_setting_speaker">Speaker</string>
     <string name="cov_setting_noise_cancellation">Noise Cancellation</string>
+    <string name="cov_setting_ai_vad">AI VAD</string>
+    <string name="cov_setting_force_response">Force Response</string>
     <string name="cov_setting_network_error">Network Error!</string>
 
     <string-array name="cov_setting_microphone_array">

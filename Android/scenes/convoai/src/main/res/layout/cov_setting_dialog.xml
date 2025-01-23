@@ -207,6 +207,67 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_ai_vad"
+                android:layout_width="match_parent"
+                android:layout_height="64dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tv_ai_vad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="@string/cov_setting_ai_vad"
+                    android:textColor="#B2FFFFFF"
+                    android:textSize="16sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/cb_ai_vad"
+                    android:layout_width="51dp"
+                    android:layout_height="31dp"
+                    android:layout_marginEnd="16dp"
+                    android:button="@drawable/cb_def_selector"
+                    android:checked="true"
+                    app:buttonTint="@null"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_force_response"
+                android:layout_width="match_parent"
+                android:layout_height="64dp" >
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tv_force_response"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="@string/cov_setting_force_response"
+                    android:textColor="#B2FFFFFF"
+                    android:textSize="16sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/cb_force_response"
+                    android:layout_width="51dp"
+                    android:layout_height="31dp"
+                    android:layout_marginEnd="16dp"
+                    android:button="@drawable/cb_def_selector"
+                    app:buttonTint="@null"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
         </LinearLayout>
 
         <LinearLayout
@@ -322,6 +383,7 @@
                     android:layout_height="31dp"
                     android:layout_marginEnd="16dp"
                     android:button="@drawable/cb_def_selector"
+                    app:buttonTint="@null"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent" />

@@ -57,9 +57,20 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         updateOptionsByPresets()
         binding?.apply {
             setOnApplyWindowInsets(root)
-            cbNoiseCancellation.isChecked = CovAgoraManager.currentDenoiseStatus()
+            cbNoiseCancellation.isChecked = CovAgoraManager.getDenoiseStatus()
             cbNoiseCancellation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
                 CovAgoraManager.updateDenoise(isChecked)
+            }
+            cbAiVad.isChecked = CovAgoraManager.isAiVad
+            cbAiVad.setOnClickListener {
+                CovAgoraManager.isAiVad = cbAiVad.isChecked
+                CovAgoraManager.isForceThreshold = cbAiVad.isChecked
+                updateViewSettings()
+            }
+            cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
+            cbForceResponse.setOnClickListener {
+                CovAgoraManager.isForceThreshold = cbForceResponse.isChecked
+                updateViewSettings()
             }
             btnClose.setOnClickListener {
                 dismiss()
@@ -71,36 +82,36 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         setupMicrophoneSpinner()
         setupSpeakerSpinner()
         setupPresetSpinner()
-        updateSpinners()
+        updateViewSettings()
     }
 
-    private fun uploadNewSetting(voice: AgentVoiceType, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
+    private fun uploadNewSetting(voice: AgentVoiceType? = null, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
         val context = context?:return
         if (CovAgoraManager.agentStarted) {
             val loadingDialog = LoadingDialog(context).apply {
                 show()
             }
-            ConvAIManager.updateAgent(voice.value) { success ->
+            ConvAIManager.updateAgent(voice?.value) { success ->
                 loadingDialog.dismiss()
                 if (success) {
-                    CovAgoraManager.voiceType = voice
+                    voice?.let {CovAgoraManager.voiceType = it}
                     llm?.let { CovAgoraManager.llmType = llm }
                     language?.let { CovAgoraManager.languageType = language }
-                    updateSpinners()
+                    updateViewSettings()
                 } else {
-                    updateSpinners()
+                    updateViewSettings()
                     ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
                 }
             }
         } else {
-            CovAgoraManager.voiceType = voice
+            voice?.let {CovAgoraManager.voiceType = it}
             llm?.let { CovAgoraManager.llmType = llm }
             language?.let { CovAgoraManager.languageType = language }
-            updateSpinners()
+            updateViewSettings()
         }
     }
 
-    private fun updateSpinners() {
+    private fun updateViewSettings() {
         binding?.apply {
             voiceAdapter.updateItems(voices.map { it.display }.toList())
             val defaultVoice = CovAgoraManager.voiceType
@@ -148,6 +159,20 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             if (microphonePosition != -1) {
                 microphoneAdapter.updateSelectedPosition(microphonePosition)
                 spMicrophone.setSelection(microphonePosition)
+            }
+            // ai vad
+            if (CovAgoraManager.agentStarted) {
+                clAiVad.visibility = View.GONE
+                clForceResponse.visibility = View.GONE
+            } else {
+                clAiVad.visibility = View.VISIBLE
+                cbAiVad.isChecked = CovAgoraManager.isAiVad
+                cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
+                if (CovAgoraManager.isAiVad) {
+                    clForceResponse.visibility = View.VISIBLE
+                } else {
+                    clForceResponse.visibility = View.GONE
+                }
             }
         }
     }
@@ -296,7 +321,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                     val selectedPreset = presets[position]
                     if (CovAgoraManager.currentPresetType() != selectedPreset) {
                         if (CovAgoraManager.agentStarted) {
-                            val loadingDialog = LoadingDialog(context!!).apply {
+                            val loadingDialog = LoadingDialog(context).apply {
                                 show()
                             }
                             CovAgoraManager.updatePreset(presets[position])
@@ -304,20 +329,20 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                                 loadingDialog.dismiss()
                                 if (success) {
                                     updateOptionsByPresets()
-                                    updateSpinners()
+                                    updateViewSettings()
                                 } else {
                                     CovAgoraManager.updatePreset(oldPreset)
                                     CovAgoraManager.voiceType = oldVoiceType
                                     CovAgoraManager.llmType = oldLLMType
                                     CovAgoraManager.languageType = oldLanguageType
-                                    updateSpinners()
+                                    updateViewSettings()
                                     ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
                                 }
                             }
                         } else {
                             CovAgoraManager.updatePreset(presets[position])
                             updateOptionsByPresets()
-                            updateSpinners()
+                            updateViewSettings()
                         }
                     }
                 }
