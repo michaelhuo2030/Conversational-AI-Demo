@@ -86,7 +86,7 @@ object ConvAIManager {
             params.enableAiVad?.let { postBody.put("enable_aivadmd", it) }
 
             val aivadmd = JSONObject()
-            if (params.forceThreshold == true) {
+            if (params.forceThreshold == false) {
                 aivadmd.put("force_threshold", -1)
             }
             if (aivadmd.length() > 0) {
