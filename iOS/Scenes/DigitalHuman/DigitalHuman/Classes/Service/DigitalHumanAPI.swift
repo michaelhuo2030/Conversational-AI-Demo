@@ -35,8 +35,43 @@ class DigitalHumanAPI {
     
     private var agentId: String? = nil
     
-    func startAgent(uid: Int, agentUid: UInt, channelName: String, completion: @escaping ((AgentError?) -> Void)) {
-        _startAgent(appid: AppContext.shared.appId, channelName: channelName, agentRtcUid: agentUid, remote_rtc_uid: uid, completion: completion)
+    func startAgent(uid: UInt, agentUid: UInt, avatarUid: UInt, channelName: String, completion: @escaping ((AgentError?) -> Void)) {
+        let url = AgentServiceUrl.startAgentPath("v1/digitalHuman/start").toHttpUrlSting()
+        let voiceId = DHSceneManager.shared.currentVoiceType.voiceId
+        let parameters: [String: Any] = [
+            "app_id": AppContext.shared.appId,
+            "channel_name": channelName,
+            "agent_rtc_uid": agentUid,
+            "remote_rtc_uid": uid,
+            "avatar": [
+//                "avatar_id": "",
+                "rtc_uid": avatarUid
+            ],
+            "tts": [
+                "voice_id": voiceId
+            ]
+        ]
+        AgentLogger.info("request start api parameters is: \(parameters)")
+        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+            if let code = result["code"] as? Int, code != 0 {
+                let msg = result["msg"] as? String ?? "Unknown error"
+                let error = AgentError.serverError(code: code, message: msg)
+                completion(error)
+                return
+            }
+            
+            guard let data = result["data"] as? [String: Any], let agentId = data["agent_id"] as? String else {
+                let error = AgentError.serverError(code: -1, message: "data error")
+                completion(error)
+                return
+            }
+            self.agentId = agentId
+            completion(nil)
+            
+        } failure: { msg in
+            let error = AgentError.serverError(code: -1, message: msg)
+            completion(error)
+        }
     }
     
     func stopAgent(channelName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
@@ -76,47 +111,6 @@ class DigitalHumanAPI {
                 completion(error)
             } else {
                 self._updateAgent(appId: appId, voiceId: voiceId, retryCount: count, completion: completion)
-            }
-        }
-    }
-    
-    private func _startAgent(appid: String, channelName: String, agentRtcUid: UInt, remote_rtc_uid: Int, greeting: String = "Hi, how can I assist you today?", retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping ((AgentError?) -> Void)) {
-        let url = AgentServiceUrl.startAgentPath("v1/digitalHuman/start").toHttpUrlSting()
-        let voiceId = DHSceneManager.shared.currentVoiceType.voiceId
-        let parameters: [String: Any] = [
-            "app_id": appid,
-            "channel_name": channelName,
-            "agent_rtc_uid": agentRtcUid,
-            "remote_rtc_uid": remote_rtc_uid,
-            "tts": [
-                "voice_id": voiceId
-            ]
-        ]
-        
-        AgentLogger.info("request start api parameters is: \(parameters)")
-        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            if let code = result["code"] as? Int, code != 0 {
-                let msg = result["msg"] as? String ?? "Unknown error"
-                let error = AgentError.serverError(code: code, message: msg)
-                completion(error)
-                return
-            }
-            
-            guard let data = result["data"] as? [String: Any], let agentId = data["agent_id"] as? String else {
-                let error = AgentError.serverError(code: -1, message: "data error")
-                completion(error)
-                return
-            }
-            self.agentId = agentId
-            completion(nil)
-            
-        } failure: { msg in
-            let count = retryCount - 1
-            if count == 0 {
-                let error = AgentError.serverError(code: -1, message: msg)
-                completion(error)
-            } else {
-                self._startAgent(appid: appid, channelName: channelName, agentRtcUid: agentRtcUid, remote_rtc_uid: remote_rtc_uid, retryCount: count, completion: completion)
             }
         }
     }

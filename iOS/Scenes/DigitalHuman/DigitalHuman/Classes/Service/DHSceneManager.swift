@@ -11,7 +11,6 @@ class DHSceneManager {
     private var modelType: AgentModelType
     private var languageType: AgentLanguageType
     
-    private(set) var agentStatus: ConnectionStatus = .unload
     private(set) var roomStatus: ConnectionStatus = .unload
     private(set) var networkStatus: NetworkStatus = .unknown
     
@@ -62,7 +61,6 @@ class DHSceneManager {
         rtcEngine = nil
 //        updatePreset(isMainlandVersion ? .xiaoAI : .default)
         isDenoise = false
-        agentStatus = .unload
         roomStatus = .unload
         channelName = ""
         uid = 0
@@ -120,10 +118,6 @@ class DHSceneManager {
     }
     
     // MARK: - Status Update Methods
-    func updateAgentStatus(_ status: ConnectionStatus) {
-        agentStatus = status
-    }
-    
     func updateAgentNetwork(_ status: NetworkStatus) {
         networkStatus = status
     }

@@ -17,6 +17,7 @@ class DigitalHumanViewController: UIViewController {
     private var rtcToken: String? = nil
     private var localUid: UInt = 0
     private let agentUid: UInt = 999
+    private let avatarUid: UInt = 998
     private var channelName = ""
     
     private var isFrontCamera = false
@@ -28,6 +29,12 @@ class DigitalHumanViewController: UIViewController {
     var isAgentStarted = false {
         didSet {
             if oldValue != isAgentStarted {
+                if (isAgentStarted) {
+                    DHSceneManager.shared.updateRoomStatus(.connected)
+                } else {
+                    DHSceneManager.shared.updateRoomStatus(.disconnected)
+                }
+                DHSceneManager.shared.agentStarted = isAgentStarted
                 updateViewState()
             }
         }
@@ -142,7 +149,7 @@ class DigitalHumanViewController: UIViewController {
         remoteCanvas.setupMode = .add
         remoteCanvas.renderMode = .hidden
         remoteCanvas.view = agentVideoView
-        remoteCanvas.uid = agentUid
+        remoteCanvas.uid = avatarUid
         engine.setupRemoteVideo(remoteCanvas)
         
         DHSceneManager.shared.rtcEngine = engine
@@ -184,12 +191,10 @@ class DigitalHumanViewController: UIViewController {
         let ret = engine.joinChannel(byToken: rtcToken, channelId: channelName, uid: localUid, mediaOptions: options)
         if (ret == 0) {
             self.addLog("join rtc room success")
-            DHSceneManager.shared.updateRoomStatus(.connected)
             self.selectTable?.updateStatus()
         }else{
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.joinFailed + "\(ret)")
             self.addLog("join rtc room failed ret: \(ret)")
-            DHSceneManager.shared.updateRoomStatus(.disconnected)
             self.selectTable?.updateStatus()
         }
     }
@@ -296,7 +301,7 @@ private extension DigitalHumanViewController {
         DHSceneManager.shared.uid = localUid
         SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
         addLog("begin start agent")
-        DigitalHumanAPI.shared.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
+        DigitalHumanAPI.shared.startAgent(uid: localUid, agentUid: agentUid, avatarUid: avatarUid, channelName: channelName) { [weak self] err in
             guard let self = self else { return }
             if let error = err {
                 SVProgressHUD.dismiss()
@@ -423,13 +428,6 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
         addLog("connectionChangedTo: \(state), reason: \(reason)")
-        if reason == .reasonInterrupted {
-            DHSceneManager.shared.updateAgentStatus(.disconnected)
-            DHSceneManager.shared.updateRoomStatus(.disconnected)
-        } else if reason == .reasonRejoinSuccess {
-            DHSceneManager.shared.updateAgentStatus(.connected)
-            DHSceneManager.shared.updateRoomStatus(.connected)
-        }
         if state == .failed {
             SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.roomError)
             onClickEndCall()
@@ -443,8 +441,7 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         addLog("remote user didJoinedOfUid uid: \(uid)")
-        if (uid == agentUid) {
-            DHSceneManager.shared.agentStarted = true
+        if (uid == avatarUid) {
             isAgentStarted = true
             SVProgressHUD.dismiss()
             SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Conversation.agentJoined)
@@ -453,24 +450,23 @@ extension DigitalHumanViewController: AgoraRtcEngineDelegate {
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
         addLog("user didOfflineOfUid uid: \(uid)")
-        if (uid == agentUid && !stopInitiative) {
-            DHSceneManager.shared.updateAgentStatus(.disconnected)
+        if (uid == agentUid) {
+            isAgentStarted = false
             self.selectTable?.updateStatus()
             SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
             addLog("begin restart agent")
             
-            DigitalHumanAPI.shared.startAgent(uid: Int(localUid), agentUid: agentUid, channelName: channelName) { [weak self] err in
+            DigitalHumanAPI.shared.startAgent(uid: localUid, agentUid: agentUid, avatarUid: avatarUid, channelName: channelName) { [weak self] err in
                 guard let self = self else { return }
                 SVProgressHUD.dismiss()
                 if let error = err {
                     SVProgressHUD.showInfo(withStatus: error.message)
                     engine.leaveChannel()
                     isAgentStarted = false
-                    DHSceneManager.shared.agentStarted = false
                     addLog("restart agent failed : \(error.message)")
                     return
                 }
-                DHSceneManager.shared.updateAgentStatus(.connected)
+                isAgentStarted = true
                 self.selectTable?.updateStatus()
                 addLog("restart agent success")
             }

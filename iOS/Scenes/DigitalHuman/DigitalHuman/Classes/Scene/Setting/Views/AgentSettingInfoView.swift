@@ -94,16 +94,17 @@ class AgentSettingInfoView: UIView {
     
     func updateStatus() {
         let manager = DHSceneManager.shared
+        let status = DHSceneManager.shared.roomStatus
         
         // Update Agent Status
         agentItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentStatus
-        agentItem.detialLabel.text = manager.agentStatus == .unload ? "" : manager.agentStatus.rawValue
-        agentItem.detialLabel.textColor = manager.agentStatus.color
+        agentItem.detialLabel.text = (status == .unload) ? "" : status.rawValue
+        agentItem.detialLabel.textColor = status.color
         agentItem.bottomLineStyle2()
         
         // Update Room Status
         roomItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomStatus
-        roomItem.detialLabel.text = manager.roomStatus == .unload ? "" : manager.roomStatus.rawValue
+        roomItem.detialLabel.text = (status == .unload) ? "" : status.rawValue
         roomItem.detialLabel.textColor = manager.roomStatus.color
         roomItem.bottomLineStyle2()
         
@@ -115,7 +116,7 @@ class AgentSettingInfoView: UIView {
         
         // Update Participant ID
         idItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
-        idItem.detialLabel.text = manager.agentStatus == .unload ? "" : String(manager.uid)
+        idItem.detialLabel.text = (status == .unload) ? "" : String(manager.uid)
         idItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
         idItem.bottomLineStyle2()
     }
