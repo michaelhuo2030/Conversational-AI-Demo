@@ -4,7 +4,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
@@ -24,6 +23,7 @@ import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.http.ConvAIManager
@@ -131,9 +131,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         } else {
                             loadingDialog?.dismiss()
                             CovLogger.e(TAG, "Token error")
-                            Toast.makeText(this, io.agora.scene.common.R.string.cov_detail_join_call_failed, Toast
-                                .LENGTH_SHORT)
-                                .show()
+                            ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
                         }
                     }
                 } else {
@@ -142,8 +140,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 loadingDialog?.dismiss()
                 CovLogger.e(TAG, "Agent error")
-                Toast.makeText(this, io.agora.scene.common.R.string.cov_detail_join_call_failed, Toast.LENGTH_SHORT)
-                    .show()
+                ToastUtil.show( io.agora.scene.common.R.string.cov_detail_join_call_failed)
             }
         }
     }
@@ -155,22 +152,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         ConvAIManager.stopAgent { ok ->
             loadingDialog?.dismiss()
             if (ok) {
-                Toast.makeText(this, io.agora.scene.common.R.string.cov_detail_agent_leave, Toast.LENGTH_SHORT).show()
+                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
                 isAgentStarted = false
                 networkStatus = null
                 CovAgoraManager.agentStarted = false
                 resetSceneState()
             } else {
-                Toast.makeText(this, "Agent Leave Failed", Toast.LENGTH_SHORT).show()
+                ToastUtil.show( "Agent Leave Failed")
             }
         }
     }
 
     private fun joinChannel() {
-        CovLogger.e(
-            TAG,
-            "onClickStartAgent: rtcToken: $rtcToken, channelName: $channelName, localUid: $localUid, agentUID: $agentUID"
-        )
+        CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $localUid, agentUID: $agentUID")
         val options = ChannelMediaOptions()
         options.clientRoleType = CLIENT_ROLE_BROADCASTER
         options.publishMicrophoneTrack = true
@@ -195,7 +189,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             TokenGeneratorType.Token007,
             AgoraTokenType.Rtc,
             success = { token ->
-                CovLogger.d(TAG, "getToken success $token")
+                CovLogger.d(TAG, "getToken success")
                 rtcToken = token
                 complete.invoke(true)
             },
@@ -235,11 +229,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         isAgentStarted = true
                         CovAgoraManager.agentStarted = true
                         loadingDialog?.dismiss()
-                        Toast.makeText(
-                            this@CovLivingActivity,
-                            io.agora.scene.common.R.string.cov_detail_join_call_succeed,
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed,)
                     }
                 }
                 CovLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
@@ -264,11 +254,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         ConvAIManager.startAgent(params) { isAgentOK ->
                             if (!isAgentOK) {
                                 loadingDialog?.dismiss()
-                                Toast.makeText(
-                                    this@CovLivingActivity,
-                                    io.agora.scene.common.R.string.cov_detail_agent_leave,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
                                 engine.leaveChannel()
                                 isAgentStarted = false
                                 CovAgoraManager.agentStarted = false

@@ -63,4 +63,5 @@
 
     <string name="digital_youselft">You</string>
     <string name="digital_detail_agent_title">Digital Human</string>
+    <string name="digital_timeout">Digital Human joining timeout!</string>
 </resources>

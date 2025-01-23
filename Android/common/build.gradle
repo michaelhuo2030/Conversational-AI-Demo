@@ -21,6 +21,7 @@ def localSdkPath = "agora-sdk"
 android {
     namespace 'io.agora.scene.common'
     compileSdk rootProject.ext.compileSdkVersion
+    resourcePrefix "common_"
 
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion
@@ -71,7 +72,6 @@ dependencies {
     api libs.gson
     api libs.mmkv
     api libs.xlog
-    api libs.toasty
 
     api libs.commons.codec
     api libs.agora.authentication

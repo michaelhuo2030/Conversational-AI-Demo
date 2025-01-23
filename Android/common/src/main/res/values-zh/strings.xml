@@ -63,4 +63,5 @@
 
     <string name="digital_youselft">你</string>
     <string name="digital_detail_agent_title">数字人</string>
+    <string name="digital_timeout">数字人加入超时!</string>
 </resources>

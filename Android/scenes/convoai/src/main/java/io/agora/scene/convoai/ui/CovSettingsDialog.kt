@@ -11,9 +11,9 @@ import android.widget.ArrayAdapter
 import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.LoadingDialog
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.http.ConvAIManager
@@ -89,11 +89,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                     updateSpinners()
                 } else {
                     updateSpinners()
-                    Toast.makeText(
-                        context,
-                        io.agora.scene.common.R.string.cov_setting_network_error,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
                 }
             }
         } else {
@@ -315,11 +311,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                                     CovAgoraManager.llmType = oldLLMType
                                     CovAgoraManager.languageType = oldLanguageType
                                     updateSpinners()
-                                    Toast.makeText(
-                                        context,
-                                        io.agora.scene.common.R.string.cov_setting_network_error,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
                                 }
                             }
                         } else {

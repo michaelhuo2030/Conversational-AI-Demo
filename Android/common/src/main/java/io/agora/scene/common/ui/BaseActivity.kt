@@ -7,6 +7,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.setPadding
 import androidx.viewbinding.ViewBinding
@@ -31,6 +32,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = isLightStatusBars()
+        }
         _binding = getViewBinding()
         if (_binding?.root == null) {
             finish()
@@ -40,6 +44,8 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         initView()
     }
+
+    open fun isLightStatusBars(): Boolean = false
 
     override fun finish() {
         onBackPressedCallback.remove()
@@ -59,8 +65,8 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     fun setOnApplyWindowInsetsListener(view: View) {
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            Log.d("systemBars","$systemBars")
-            Log.d("systemBars","${view.paddingLeft} ${view.paddingTop} ${view.paddingRight} ${view.paddingBottom}")
+            Log.d("systemBars", "$systemBars")
+            Log.d("systemBars", "${view.paddingLeft} ${view.paddingTop} ${view.paddingRight} ${view.paddingBottom}")
             view.setPaddingRelative(
                 systemBars.left + v.paddingLeft,
                 systemBars.top,

@@ -35,7 +35,7 @@ object AgoraLogger {
         for (scene in AgentScenes.entries) {
             val filePrinter = FilePrinter.Builder(logDir.absolutePath)
                 .fileNameGenerator(ChangelessFileNameGenerator("${scene.name}.log"))
-                .backupStrategy(FileSizeBackupStrategy2( 1024L, 1))
+                .backupStrategy(FileSizeBackupStrategy2(2 * 1024L * 1024, 1))
                 .flattener(ClassicFlattener())
                 .build()
 
