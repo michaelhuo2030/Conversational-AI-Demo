@@ -115,7 +115,7 @@ class AgentAPIService: AgentAPI {
                 "enable_aivadmd": true,
                 "enable_bhvs": true,
                 "custom_llm": [
-                    "prompt": AgentSettingManager.shared.currentPresetType.prompt,
+//                    "prompt": AgentSettingManager.shared.currentPresetType.prompt,
                     "max_history": 30
                 ],
                 "vad": [
