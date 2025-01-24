@@ -264,7 +264,7 @@ class ChatViewController: UIViewController {
     
     private func setupConstraints() {
         topBar.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(60)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(5)
             make.left.right.equalToSuperview().inset(20)
             make.height.equalTo(48)
         }
@@ -275,7 +275,7 @@ class ChatViewController: UIViewController {
             make.bottom.equalTo(closeButton.snp.top).offset(-20)
         }
         muteButton.snp.makeConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-48)
+            make.bottom.equalTo(-40)
             make.left.equalTo(20)
             make.width.height.equalTo(72)
         }

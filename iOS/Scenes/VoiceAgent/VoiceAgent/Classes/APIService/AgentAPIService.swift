@@ -109,13 +109,42 @@ class AgentAPIService: AgentAPI {
             "channel_name": channelName,
             "agent_rtc_uid": agentRtcUid,
             "remote_rtc_uid": remote_rtc_uid,
-//            "custom_llm": [
-//                "prompt": AgentSettingManager.shared.currentPresetType.prompt
-//            ],
-//            "tts": [
-//                "voice_id": voiceId
-//            ]
         ]
+//        let presetType = AgentSettingManager.shared.currentPresetType
+//        var parameters:[String: Any] = [:]
+//        if presetType == .defaultPreset {
+//            parameters = [
+//                "app_id": appid,
+//                "channel_name": channelName,
+//                "agent_rtc_uid": agentRtcUid,
+//                "remote_rtc_uid": remote_rtc_uid,
+//                "enable_aivadmd": true,
+//                "enable_bhvs": true,
+//                "custom_llm": [
+//                    "prompt": AgentSettingManager.shared.currentPresetType.prompt,
+//                    "max_history": 30
+//                ],
+//                "vad": [
+//                    "silence_duration_ms": 800
+//                ],
+//                "tts": [
+//                    "voice_id": voiceId
+//                ]
+//            ]
+//        } else {
+//            parameters = [
+//                "app_id": appid,
+//                "channel_name": channelName,
+//                "agent_rtc_uid": agentRtcUid,
+//                "remote_rtc_uid": remote_rtc_uid,
+//                "custom_llm": [
+//                    "prompt": AgentSettingManager.shared.currentPresetType.prompt
+//                ],
+//                "tts": [
+//                    "voice_id": voiceId
+//                ]
+//            ]
+//        }
         
         AgentLogger.info("request start api parameters is: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
