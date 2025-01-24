@@ -160,20 +160,22 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 microphoneAdapter.updateSelectedPosition(microphonePosition)
                 spMicrophone.setSelection(microphonePosition)
             }
+            clAiVad.visibility = View.GONE
+            clForceResponse.visibility = View.GONE
             // ai vad
-            if (CovAgoraManager.agentStarted) {
-                clAiVad.visibility = View.GONE
-                clForceResponse.visibility = View.GONE
-            } else {
-                clAiVad.visibility = View.VISIBLE
-                cbAiVad.isChecked = CovAgoraManager.isAiVad
-                cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
-                if (CovAgoraManager.isAiVad) {
-                    clForceResponse.visibility = View.VISIBLE
-                } else {
-                    clForceResponse.visibility = View.GONE
-                }
-            }
+//            if (CovAgoraManager.agentStarted) {
+//                clAiVad.visibility = View.GONE
+//                clForceResponse.visibility = View.GONE
+//            } else {
+//                clAiVad.visibility = View.VISIBLE
+//                cbAiVad.isChecked = CovAgoraManager.isAiVad
+//                cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
+//                if (CovAgoraManager.isAiVad) {
+//                    clForceResponse.visibility = View.VISIBLE
+//                } else {
+//                    clForceResponse.visibility = View.GONE
+//                }
+//            }
         }
     }
 

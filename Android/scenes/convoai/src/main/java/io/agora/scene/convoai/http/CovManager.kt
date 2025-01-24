@@ -14,8 +14,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.convoai.rtc.AgentLanguageType
-import io.agora.scene.convoai.rtc.AgentVoiceType
 
 data class AgentRequestParams(
     val channelName: String,

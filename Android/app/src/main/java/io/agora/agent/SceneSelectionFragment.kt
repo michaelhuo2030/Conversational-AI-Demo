@@ -45,13 +45,13 @@ class SceneSelectionFragment : Fragment() {
                     getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_title),
                     getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_info),
                 ),
-                SceneModel(
-                    AgentScenes.DigitalHuman,
-                    "io.agora.scene.digitalhuman.ui.DigitalLivingActivity",
-                    io.agora.scene.common.R.drawable.scene_selection_digital,
-                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_title),
-                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_info),
-                )
+//                SceneModel(
+//                    AgentScenes.DigitalHuman,
+//                    "io.agora.scene.digitalhuman.ui.DigitalLivingActivity",
+//                    io.agora.scene.common.R.drawable.scene_selection_digital,
+//                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_title),
+//                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_info),
+//                )
             )
         )
     }

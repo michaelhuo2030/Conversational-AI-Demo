@@ -110,21 +110,25 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         sendBroadcast(intent)
     }
 
+    private fun getAgentParams(): AgentRequestParams {
+        return AgentRequestParams(
+            channelName = channelName,
+            remoteRtcUid = localUid,
+            agentRtcUid = agentUID,
+            ttsVoiceId = if (CovAgoraManager.isMainlandVersion) null else CovAgoraManager.voiceType.value,
+            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
+//            enableAiVad = CovAgoraManager.isAiVad,
+//            forceThreshold = CovAgoraManager.isForceThreshold,
+        )
+    }
+
     private fun onClickStartAgent() {
         loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
         loadingDialog?.show()
         CovAgoraManager.channelName = channelName
         CovAgoraManager.uid = localUid
-        val params = AgentRequestParams(
-            channelName = channelName,
-            remoteRtcUid = localUid,
-            agentRtcUid = agentUID,
-            ttsVoiceId = CovAgoraManager.voiceType.value,
-            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
-            enableAiVad = CovAgoraManager.isAiVad,
-            forceThreshold = CovAgoraManager.isForceThreshold,
-        )
-        ConvAIManager.startAgent(params) { isAgentOK ->
+
+        ConvAIManager.startAgent(getAgentParams()) { isAgentOK ->
             if (isAgentOK) {
                 if (rtcToken == null) {
                     getToken { isTokenOK ->
@@ -246,14 +250,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         // reconnect
                         loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
                         loadingDialog?.show()
-                        val params = AgentRequestParams(
-                            channelName = channelName,
-                            remoteRtcUid = localUid,
-                            agentRtcUid = agentUID,
-                            ttsVoiceId = CovAgoraManager.voiceType.value,
-                            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER
-                        )
-                        ConvAIManager.startAgent(params) { isAgentOK ->
+                        ConvAIManager.startAgent(getAgentParams()) { isAgentOK ->
                             if (!isAgentOK) {
                                 loadingDialog?.dismiss()
                                 ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)

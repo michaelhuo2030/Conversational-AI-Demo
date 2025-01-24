@@ -147,7 +147,8 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="64dp">
+                android:layout_height="64dp"
+                android:visibility="gone">
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tv_model"
@@ -278,6 +279,7 @@
             android:layout_marginHorizontal="16dp"
             android:background="@drawable/settings_item_bg"
             android:orientation="vertical"
+            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/ll_agent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">

@@ -69,6 +69,9 @@ class AgentSettingViewController: UIViewController {
                 aiVadItem.isHidden = false
             }
         }
+        contentView2.snp.remakeConstraints { make in
+            <#code#>
+        }
     }
     
     @objc func onClickClose(_ sender: UIButton) {
