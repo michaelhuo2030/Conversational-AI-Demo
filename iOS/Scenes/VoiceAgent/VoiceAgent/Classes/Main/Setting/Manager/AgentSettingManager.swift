@@ -330,6 +330,9 @@ class AgentSettingManager {
     private(set) var roomId: String = ""
     private(set) var yourId: String = ""
     
+    var isAiVad = true
+    var isForceThreshold = true
+    
     private init() {
         if AppContext.shared.appArea == .mainland {
             presetType = .xiaoi
@@ -430,5 +433,7 @@ class AgentSettingManager {
         roomStatus = .unload
         roomId = ""
         yourId = ""
+        isAiVad = true
+        isForceThreshold = true
     }
 } 

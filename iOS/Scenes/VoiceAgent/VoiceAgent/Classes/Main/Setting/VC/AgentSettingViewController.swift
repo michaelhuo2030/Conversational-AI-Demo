@@ -29,6 +29,8 @@ class AgentSettingViewController: UIViewController {
     private let voiceItem = AgentSettingTableItemView(frame: .zero)
     private let modelItem = AgentSettingTableItemView(frame: .zero)
     private let languageItem = AgentSettingTableItemView(frame: .zero)
+    private let aiVadItem = AgentSettingSwitchItemView(frame: .zero)
+    private let forceResponseItem = AgentSettingSwitchItemView(frame: .zero)
     
     private let content3Title = UILabel()
     private let contentView3 = UIView()
@@ -54,6 +56,19 @@ class AgentSettingViewController: UIViewController {
         modelItem.detialLabel.text = AgentSettingManager.shared.currentModelType.rawValue
         languageItem.detialLabel.text = AgentSettingManager.shared.currentLanguageType.rawValue
         cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+        if (AgentSettingManager.shared.agentStatus == .connected) {
+            aiVadItem.isHidden = true
+            forceResponseItem.isHidden = true
+        } else {
+            aiVadItem.isHidden = false
+            aiVadItem.switcher.isOn = AgentSettingManager.shared.isAiVad
+            forceResponseItem.switcher.isOn = AgentSettingManager.shared.isForceThreshold
+            if (AgentSettingManager.shared.isAiVad) {
+                aiVadItem.isHidden = true
+            } else {
+                aiVadItem.isHidden = false
+            }
+        }
     }
     
     @objc func onClickClose(_ sender: UIButton) {
@@ -274,6 +289,18 @@ extension AgentSettingViewController {
         modelItem.detialLabel.text = AgentModelType.allCases.first?.rawValue
         modelItem.button.addTarget(self, action: #selector(onClickModel(_ :)), for: .touchUpInside)
         contentView2.addSubview(modelItem)
+        
+        aiVadItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
+        aiVadItem.bottomLine.isHidden = true
+        aiVadItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
+        aiVadItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+        contentView2.addSubview(aiVadItem)
+        //
+        forceResponseItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
+        forceResponseItem.bottomLine.isHidden = true
+        forceResponseItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
+        forceResponseItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+        contentView2.addSubview(forceResponseItem)
         
         content3Title.text = ResourceManager.L10n.Settings.device
         content3Title.font = UIFont.boldSystemFont(ofSize: 16)
