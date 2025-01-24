@@ -316,6 +316,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             enableAudioVolumeIndication(100, 10, true)
             adjustRecordingSignalVolume(100)
         }
+        engine.loadExtensionProvider("ai_echo_cancellation_extension")
+        engine.loadExtensionProvider("ai_echo_cancellation_ll_extension")
+        engine.loadExtensionProvider("ai_noise_suppression_extension")
+        engine.loadExtensionProvider("ai_noise_suppression_ll_extension")
         CovAgoraManager.rtcEngine = engine
     }
 

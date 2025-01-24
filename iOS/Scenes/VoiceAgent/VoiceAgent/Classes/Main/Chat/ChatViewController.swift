@@ -46,7 +46,7 @@ class ChatViewController: UIViewController {
     private var agentUid = 0
     private var channelName = ""
     private var isMute = false
-    private var isDenoise = false
+    private var isDenoise = true
     private var agentManager: AgentManager!
     private var agent_rtc_id = ""
 
