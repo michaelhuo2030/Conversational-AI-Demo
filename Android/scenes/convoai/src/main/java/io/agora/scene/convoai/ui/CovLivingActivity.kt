@@ -117,8 +117,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             agentRtcUid = agentUID,
             ttsVoiceId = if (CovAgoraManager.isMainlandVersion) null else CovAgoraManager.voiceType.value,
             audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
-//            enableAiVad = CovAgoraManager.isAiVad,
-//            forceThreshold = CovAgoraManager.isForceThreshold,
+            enableAiVad = CovAgoraManager.isAiVad,
+            forceThreshold = CovAgoraManager.isForceThreshold,
         )
     }
 

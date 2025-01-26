@@ -76,6 +76,8 @@ extension ResourceManager {
             public static let microphone = ResourceManager.localizedString("settings.microphone")
             public static let speaker = ResourceManager.localizedString("settings.speaker")
             public static let noiseCancellation = ResourceManager.localizedString("settings.noise.cancellation")
+            public static let aiVad = ResourceManager.localizedString("settings.noise.aiVad")
+            public static let forceResponse = ResourceManager.localizedString("settings.noise.forceResponse")
             public static let agentConnected = ResourceManager.localizedString("settings.agent.connected")
             public static let agentDisconnected = ResourceManager.localizedString("settings.agent.disconnected")
         }
