@@ -30,6 +30,8 @@
 "settings.microphone" = "麦克风";
 "settings.speaker" = "扬声器";
 "settings.noise.cancellation" = "噪声取消";
+"settings.noise.aiVad" = "AI VAD";
+"settings.noise.forceResponse" = "Force Response";
 
 "channel.info.title" = "频道信息";
 "channel.network.info.title" = "网络信息";

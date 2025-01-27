@@ -58,15 +58,30 @@ class AgentSettingViewController: UIViewController {
         cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
         if (AgentSettingManager.shared.agentStatus == .connected) {
             aiVadItem.isHidden = true
+            aiVadItem.snp.removeConstraints()
             forceResponseItem.isHidden = true
+            forceResponseItem.snp.removeConstraints()
         } else {
             aiVadItem.isHidden = false
+            aiVadItem.snp.remakeConstraints { make in
+                make.top.equalTo(voiceItem.snp.bottom)
+                make.left.right.equalToSuperview()
+                make.height.equalTo(56)
+                make.bottom.equalToSuperview().priority(20)
+            }
             aiVadItem.switcher.isOn = AgentSettingManager.shared.isAiVad
             forceResponseItem.switcher.isOn = AgentSettingManager.shared.isForceThreshold
             if (AgentSettingManager.shared.isAiVad) {
-                aiVadItem.isHidden = true
+                forceResponseItem.isHidden = false
+                forceResponseItem.snp.remakeConstraints { make in
+                    make.top.equalTo(aiVadItem.snp.bottom)
+                    make.left.right.equalToSuperview()
+                    make.height.equalTo(56)
+                    make.bottom.equalToSuperview().priority(30)
+                }
             } else {
-                aiVadItem.isHidden = false
+                forceResponseItem.isHidden = true
+                forceResponseItem.snp.removeConstraints()
             }
         }
     }
@@ -165,11 +180,14 @@ class AgentSettingViewController: UIViewController {
     }
     
     @objc func onClickAiVad(_ sender: UISwitch) {
-        
+        AgentSettingManager.shared.isAiVad = sender.isOn
+        AgentSettingManager.shared.isForceThreshold = sender.isOn
+        updateUIWithCurrentSettings()
     }
     
     @objc func onClickForceResponse(_ sender: UISwitch) {
-        
+        AgentSettingManager.shared.isForceThreshold = sender.isOn
+        updateUIWithCurrentSettings()
     }
     
     @objc func onClickNoiseCancellation(_ sender: UISwitch) {
@@ -298,17 +316,16 @@ extension AgentSettingViewController {
 //        modelItem.button.addTarget(self, action: #selector(onClickModel(_ :)), for: .touchUpInside)
 //        contentView2.addSubview(modelItem)
         
-//        aiVadItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
-//        aiVadItem.bottomLine.isHidden = true
-//        aiVadItem.switcher.addTarget(self, action: #selector(onClickAiVad(_ :)), for: .touchUpInside)
-//        aiVadItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-//        contentView2.addSubview(aiVadItem)
+        aiVadItem.titleLabel.text = ResourceManager.L10n.Settings.aiVad
+        aiVadItem.switcher.addTarget(self, action: #selector(onClickAiVad(_ :)), for: .touchUpInside)
+        aiVadItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+        contentView2.addSubview(aiVadItem)
         
-//        forceResponseItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
-//        forceResponseItem.bottomLine.isHidden = true
-//        forceResponseItem.switcher.addTarget(self, action: #selector(onClickForceResponse(_ :)), for: .touchUpInside)
-//        forceResponseItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-//        contentView2.addSubview(forceResponseItem)
+        forceResponseItem.titleLabel.text = ResourceManager.L10n.Settings.forceResponse
+        forceResponseItem.bottomLine.isHidden = true
+        forceResponseItem.switcher.addTarget(self, action: #selector(onClickForceResponse(_ :)), for: .touchUpInside)
+        forceResponseItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+        contentView2.addSubview(forceResponseItem)
         
 //        content3Title.text = ResourceManager.L10n.Settings.device
 //        content3Title.font = UIFont.boldSystemFont(ofSize: 16)
@@ -375,24 +392,27 @@ extension AgentSettingViewController {
         }
         voiceItem.snp.makeConstraints { make in
             make.top.equalTo(languageItem.snp.bottom)
-            make.left.right.bottom.equalToSuperview()
+            make.left.right.equalToSuperview()
             make.height.equalTo(56)
+            make.bottom.equalToSuperview().priority(10)
         }
 //        modelItem.snp.makeConstraints { make in
 //            make.top.equalTo(voiceItem.snp.bottom)
 //            make.left.right.bottom.equalToSuperview()
 //            make.height.equalTo(56)
 //        }
-//        aiVadItem.snp.makeConstraints { make in
-//            make.top.equalTo(modelItem.snp.bottom)
-//            make.left.right.bottom.equalToSuperview()
-//            make.height.equalTo(56)
-//        }
-//        forceResponseItem.snp.makeConstraints { make in
-//            make.top.equalTo(aiVadItem.snp.bottom)
-//            make.left.right.bottom.equalToSuperview()
-//            make.height.equalTo(56)
-//        }
+        aiVadItem.snp.makeConstraints { make in
+            make.top.equalTo(voiceItem.snp.bottom)
+            make.left.right.equalToSuperview()
+            make.height.equalTo(56)
+            make.bottom.equalToSuperview().priority(20)
+        }
+        forceResponseItem.snp.makeConstraints { make in
+            make.top.equalTo(aiVadItem.snp.bottom)
+            make.left.right.equalToSuperview()
+            make.height.equalTo(56)
+            make.bottom.equalToSuperview().priority(30)
+        }
 //        content3Title.snp.makeConstraints { make in
 //            make.top.equalTo(contentView2.snp.bottom).offset(32)
 //            make.left.equalTo(20)

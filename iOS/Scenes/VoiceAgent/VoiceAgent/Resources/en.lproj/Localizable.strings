@@ -32,6 +32,8 @@
 "settings.microphone" = "Microphone";
 "settings.speaker" = "Speaker";
 "settings.noise.cancellation" = "Noise Cancellation";
+"settings.noise.aiVad" = "AI VAD";
+"settings.noise.forceResponse" = "Force Response";
 
 // Channel Info View
 "channel.info.title" = "CHANNEL INFO";
