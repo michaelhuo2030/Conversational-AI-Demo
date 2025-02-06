@@ -31,7 +31,7 @@
             android:layout_marginTop="26dp"
             android:layout_marginStart="24dp"
             android:text="@string/cov_setting_title"
-            android:textColor="@color/white"
+            android:textColor="@color/ai_icontext1"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_gravity="start"

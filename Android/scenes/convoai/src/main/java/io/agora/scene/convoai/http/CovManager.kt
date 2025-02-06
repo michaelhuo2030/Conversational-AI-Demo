@@ -14,8 +14,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.convoai.rtc.AgentLanguageType
-import io.agora.scene.convoai.rtc.AgentVoiceType
 
 data class AgentRequestParams(
     val channelName: String,
@@ -123,6 +121,7 @@ object ConvAIManager {
                         val aid = jsonObj.optJSONObject("data")?.optString("agent_id")
                         if (code == 0 && !aid.isNullOrEmpty()) {
                             agentId = aid
+                            CovLogger.d(TAG, "Start agent request: $requestURL, agent_id: $agentId")
                             runOnMainThread {
                                 succeed.invoke(true)
                             }

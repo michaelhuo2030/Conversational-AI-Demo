@@ -58,15 +58,30 @@ class AgentSettingViewController: UIViewController {
         cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
         if (AgentSettingManager.shared.agentStatus == .connected) {
             aiVadItem.isHidden = true
+            aiVadItem.snp.removeConstraints()
             forceResponseItem.isHidden = true
+            forceResponseItem.snp.removeConstraints()
         } else {
             aiVadItem.isHidden = false
+            aiVadItem.snp.remakeConstraints { make in
+                make.top.equalTo(voiceItem.snp.bottom)
+                make.left.right.equalToSuperview()
+                make.height.equalTo(56)
+                make.bottom.equalToSuperview().priority(20)
+            }
             aiVadItem.switcher.isOn = AgentSettingManager.shared.isAiVad
             forceResponseItem.switcher.isOn = AgentSettingManager.shared.isForceThreshold
             if (AgentSettingManager.shared.isAiVad) {
-                aiVadItem.isHidden = true
+                forceResponseItem.isHidden = false
+                forceResponseItem.snp.remakeConstraints { make in
+                    make.top.equalTo(aiVadItem.snp.bottom)
+                    make.left.right.equalToSuperview()
+                    make.height.equalTo(56)
+                    make.bottom.equalToSuperview().priority(30)
+                }
             } else {
-                aiVadItem.isHidden = false
+                forceResponseItem.isHidden = true
+                forceResponseItem.snp.removeConstraints()
             }
         }
     }
@@ -164,6 +179,17 @@ class AgentSettingViewController: UIViewController {
         }
     }
     
+    @objc func onClickAiVad(_ sender: UISwitch) {
+        AgentSettingManager.shared.isAiVad = sender.isOn
+        AgentSettingManager.shared.isForceThreshold = sender.isOn
+        updateUIWithCurrentSettings()
+    }
+    
+    @objc func onClickForceResponse(_ sender: UISwitch) {
+        AgentSettingManager.shared.isForceThreshold = sender.isOn
+        updateUIWithCurrentSettings()
+    }
+    
     @objc func onClickNoiseCancellation(_ sender: UISwitch) {
         AgentSettingManager.shared.isNoiseCancellationEnabled = sender.isOn
         delegate?.onClickNoiseCancellationChanged(isOn: sender.isOn)
@@ -196,7 +222,7 @@ class AgentSettingViewController: UIViewController {
 //            self.speakerItem.detialLabel.text = types[index].rawValue
 //        })
 //        view.addSubview(table)
-//        selectTable = table 
+//        selectTable = table
 //        table.snp.makeConstraints { make in
 //            make.top.equalTo(sender.snp.centerY)
 //            make.width.equalTo(table.getWith())
@@ -285,49 +311,47 @@ extension AgentSettingViewController {
         voiceItem.button.addTarget(self, action: #selector(onClickVoice(_ :)), for: .touchUpInside)
         contentView2.addSubview(voiceItem)
         
-        modelItem.titleLabel.text = ResourceManager.L10n.Settings.model
-        modelItem.detialLabel.text = AgentModelType.allCases.first?.rawValue
-        modelItem.button.addTarget(self, action: #selector(onClickModel(_ :)), for: .touchUpInside)
-        contentView2.addSubview(modelItem)
+//        modelItem.titleLabel.text = ResourceManager.L10n.Settings.model
+//        modelItem.detialLabel.text = AgentModelType.allCases.first?.rawValue
+//        modelItem.button.addTarget(self, action: #selector(onClickModel(_ :)), for: .touchUpInside)
+//        contentView2.addSubview(modelItem)
         
-        aiVadItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
-        aiVadItem.bottomLine.isHidden = true
-        aiVadItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
+        aiVadItem.titleLabel.text = ResourceManager.L10n.Settings.aiVad
+        aiVadItem.switcher.addTarget(self, action: #selector(onClickAiVad(_ :)), for: .touchUpInside)
         aiVadItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
         contentView2.addSubview(aiVadItem)
-        //
-        forceResponseItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
+        
+        forceResponseItem.titleLabel.text = ResourceManager.L10n.Settings.forceResponse
         forceResponseItem.bottomLine.isHidden = true
-        forceResponseItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
+        forceResponseItem.switcher.addTarget(self, action: #selector(onClickForceResponse(_ :)), for: .touchUpInside)
         forceResponseItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
         contentView2.addSubview(forceResponseItem)
         
-        content3Title.text = ResourceManager.L10n.Settings.device
-        content3Title.font = UIFont.boldSystemFont(ofSize: 16)
-        content3Title.textColor = PrimaryColors.c_ffffff_a
-        contentView.addSubview(content3Title)
-        
-        contentView3.backgroundColor = PrimaryColors.c_1d1d1d
-        contentView3.layerCornerRadius = 10
-        contentView3.layer.borderWidth = 1.0
-        contentView3.layer.borderColor = PrimaryColors.c_262626.cgColor
-        contentView.addSubview(contentView3)
-        
+//        content3Title.text = ResourceManager.L10n.Settings.device
+//        content3Title.font = UIFont.boldSystemFont(ofSize: 16)
+//        content3Title.textColor = PrimaryColors.c_ffffff_a
+//        contentView.addSubview(content3Title)
+//
+//        contentView3.backgroundColor = PrimaryColors.c_1d1d1d
+//        contentView3.layerCornerRadius = 10
+//        contentView3.layer.borderWidth = 1.0
+//        contentView3.layer.borderColor = PrimaryColors.c_262626.cgColor
+//        contentView.addSubview(contentView3)
 //        microphoneItem.titleLabel.text = ResourceManager.L10n.Settings.microphone
 //        microphoneItem.detialLabel.text = AgentSettingManager.shared.currentMicrophoneType.rawValue
 //        microphoneItem.button.addTarget(self, action: #selector(onClickMicrophone(_ :)), for: .touchUpInside)
 //        contentView3.addSubview(microphoneItem)
-//        
+//
 //        speakerItem.titleLabel.text = ResourceManager.L10n.Settings.speaker
 //        speakerItem.detialLabel.text = AgentSettingManager.shared.currentSpeakerType.rawValue
 //        speakerItem.button.addTarget(self, action: #selector(onClickSpeaker(_ :)), for: .touchUpInside)
 //        contentView3.addSubview(speakerItem)
         
-        cancellationItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
-        cancellationItem.bottomLine.isHidden = true
-        cancellationItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
-        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-        contentView3.addSubview(cancellationItem)
+//        cancellationItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
+//        cancellationItem.bottomLine.isHidden = true
+//        cancellationItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
+//        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
+//        contentView3.addSubview(cancellationItem)
         
         selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)
         selectTableMask.isHidden = true
@@ -360,6 +384,7 @@ extension AgentSettingViewController {
             make.top.equalTo(content2Title.snp.bottom).offset(8)
             make.left.equalTo(20)
             make.right.equalTo(-20)
+            make.bottom.equalToSuperview()
         }
         languageItem.snp.makeConstraints { make in
             make.top.left.right.equalToSuperview()
@@ -369,22 +394,35 @@ extension AgentSettingViewController {
             make.top.equalTo(languageItem.snp.bottom)
             make.left.right.equalToSuperview()
             make.height.equalTo(56)
+            make.bottom.equalToSuperview().priority(10)
         }
-        modelItem.snp.makeConstraints { make in
+//        modelItem.snp.makeConstraints { make in
+//            make.top.equalTo(voiceItem.snp.bottom)
+//            make.left.right.bottom.equalToSuperview()
+//            make.height.equalTo(56)
+//        }
+        aiVadItem.snp.makeConstraints { make in
             make.top.equalTo(voiceItem.snp.bottom)
-            make.left.right.bottom.equalToSuperview()
+            make.left.right.equalToSuperview()
             make.height.equalTo(56)
+            make.bottom.equalToSuperview().priority(20)
         }
-        content3Title.snp.makeConstraints { make in
-            make.top.equalTo(contentView2.snp.bottom).offset(32)
-            make.left.equalTo(20)
+        forceResponseItem.snp.makeConstraints { make in
+            make.top.equalTo(aiVadItem.snp.bottom)
+            make.left.right.equalToSuperview()
+            make.height.equalTo(56)
+            make.bottom.equalToSuperview().priority(30)
         }
-        contentView3.snp.makeConstraints { make in
-            make.top.equalTo(content3Title.snp.bottom).offset(8)
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
-            make.bottom.equalToSuperview()
-        }
+//        content3Title.snp.makeConstraints { make in
+//            make.top.equalTo(contentView2.snp.bottom).offset(32)
+//            make.left.equalTo(20)
+//        }
+//        contentView3.snp.makeConstraints { make in
+//            make.top.equalTo(content3Title.snp.bottom).offset(8)
+//            make.left.equalTo(20)
+//            make.right.equalTo(-20)
+//            make.bottom.equalToSuperview()
+//        }
 //        microphoneItem.snp.makeConstraints { make in
 //            make.top.left.right.equalToSuperview()
 //            make.height.equalTo(56)
@@ -394,11 +432,11 @@ extension AgentSettingViewController {
 //            make.left.right.equalToSuperview()
 //            make.height.equalTo(56)
 //        }
-        cancellationItem.snp.makeConstraints { make in
+//        cancellationItem.snp.makeConstraints { make in
 //            make.top.equalTo(speakerItem.snp.bottom)
-            make.top.left.right.bottom.equalToSuperview()
-            make.height.equalTo(56)
-        }
+//            make.top.left.right.bottom.equalToSuperview()
+//            make.height.equalTo(56)
+//        }
         selectTableMask.snp.makeConstraints { make in
             make.top.left.right.bottom.equalToSuperview()
         }

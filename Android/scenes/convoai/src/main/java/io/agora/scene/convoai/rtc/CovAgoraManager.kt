@@ -118,7 +118,7 @@ enum class AgentPresetType(val value: String) {
     companion object {
         val options: Array<AgentPresetType>
             get() = if (ServerConfig.isMainlandVersion) {
-                arrayOf(XIAO_AI, TBD)
+                arrayOf(XIAO_AI)
             } else {
                 arrayOf(DEFAULT, AMY)
             }
@@ -135,7 +135,7 @@ enum class AgentSpeakerType(val value: String) {
 
 object CovAgoraManager {
 
-    private val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
+    val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
 
     // Settings
     var speakerType = AgentSpeakerType.SPEAKER1

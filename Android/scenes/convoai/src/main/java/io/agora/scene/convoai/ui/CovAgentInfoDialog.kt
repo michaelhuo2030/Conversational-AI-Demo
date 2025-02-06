@@ -3,61 +3,85 @@ package io.agora.scene.convoai.ui
 import android.app.Dialog
 import android.graphics.Color
 import android.os.Bundle
-import androidx.fragment.app.DialogFragment
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
+import io.agora.rtc2.Constants
+import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.rtc.CovAgoraManager
 
-class CovAgentInfoDialog : DialogFragment() {
+class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
 
     var isConnected = false
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val binding = CovInfoDialogBinding.inflate(LayoutInflater.from(context))
+    private var value: Int = 0
 
-        val dialog = Dialog(requireContext(), theme)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setCancelable(true)
-        dialog.setContentView(binding.root)
+    override fun getViewBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): CovInfoDialogBinding {
+        return CovInfoDialogBinding.inflate(inflater, container, false)
+    }
 
-        val window = dialog.window
-        window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT)
-        window?.setGravity(Gravity.TOP)
-        window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        if (CovAgoraManager.agentStarted) {
-            binding.mtvRoomStatus.visibility = View.VISIBLE
-            binding.mtvAgentStatus.visibility = View.VISIBLE
-            if (isConnected) {
-                binding.mtvRoomStatus.text = getString(io.agora.scene.common.R.string.cov_info_agent_connected)
-                binding.mtvRoomStatus.setTextColor(Color.parseColor("#36B37E"))
-
-                binding.mtvAgentStatus.text = getString(io.agora.scene.common.R.string.cov_info_agent_connected)
-                binding.mtvAgentStatus.setTextColor(Color.parseColor("#36B37E"))
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding?.apply {
+            if (!CovAgoraManager.agentStarted) {
+                mtvNetworkStatus.text = getString(io.agora.scene.common.R.string
+                    .cov_info_your_network_disconnected)
+                mtvNetworkStatus.setTextColor(Color.parseColor("#FF414D"))
             } else {
-                binding.mtvRoomStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_disconnected)
-                binding.mtvRoomStatus.setTextColor(Color.parseColor("#FF414D"))
-
-                binding.mtvAgentStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_disconnected)
-                binding.mtvAgentStatus.setTextColor(Color.parseColor("#FF414D"))
+                updateNetworkStatus(value)
             }
-            binding.mtvRoomId.text = CovAgoraManager.channelName
-            binding.mtvUidValue.text = CovAgoraManager.uid.toString()
-        } else {
-            binding.mtvRoomId.visibility = View.INVISIBLE
-            binding.mtvUidValue.visibility = View.INVISIBLE
-            binding.mtvRoomStatus.visibility = View.INVISIBLE
-            binding.mtvAgentStatus.visibility = View.INVISIBLE
-        }
 
-        binding.root.setOnClickListener {
-            dialog.dismiss()
+            if (CovAgoraManager.agentStarted) {
+                mtvRoomStatus.visibility = View.VISIBLE
+                mtvAgentStatus.visibility = View.VISIBLE
+                if (isConnected) {
+                    mtvRoomStatus.text = getString(io.agora.scene.common.R.string.cov_info_agent_connected)
+                    mtvRoomStatus.setTextColor(Color.parseColor("#36B37E"))
+
+                    mtvAgentStatus.text = getString(io.agora.scene.common.R.string.cov_info_agent_connected)
+                    mtvAgentStatus.setTextColor(Color.parseColor("#36B37E"))
+                } else {
+                    mtvRoomStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_disconnected)
+                    mtvRoomStatus.setTextColor(Color.parseColor("#FF414D"))
+
+                    mtvAgentStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_disconnected)
+                    mtvAgentStatus.setTextColor(Color.parseColor("#FF414D"))
+                }
+                mtvRoomId.text = CovAgoraManager.channelName
+                mtvUidValue.text = CovAgoraManager.uid.toString()
+            } else {
+                mtvRoomId.visibility = View.INVISIBLE
+                mtvUidValue.visibility = View.INVISIBLE
+                mtvRoomStatus.visibility = View.INVISIBLE
+                mtvAgentStatus.visibility = View.INVISIBLE
+            }
         }
-        return dialog
+    }
+
+    fun updateNetworkStatus(value: Int) {
+        this.value = value
+        binding?.apply {
+            when (value) {
+                Constants.QUALITY_EXCELLENT, Constants.QUALITY_GOOD -> {
+                    mtvNetworkStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_good)
+                    mtvNetworkStatus.setTextColor(Color.parseColor("#36B37E"))
+                }
+                Constants.QUALITY_POOR, Constants.QUALITY_BAD -> {
+                    mtvNetworkStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_medium)
+                    mtvNetworkStatus.setTextColor(Color.parseColor("#FFAB00"))
+                }
+                else -> {
+                    mtvNetworkStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_poor)
+                    mtvNetworkStatus.setTextColor(Color.parseColor("#FF414D"))
+                }
+            }
+        }
     }
 }

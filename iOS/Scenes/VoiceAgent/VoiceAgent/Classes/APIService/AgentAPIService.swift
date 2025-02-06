@@ -104,18 +104,56 @@ class AgentAPIService: AgentAPI {
     private func _startAgent(appid: String, channelName: String, agentRtcUid: Int, remote_rtc_uid: Int, greeting: String = "Hi, how can I assist you today?", retryCount: Int = AgentServiceUrl.retryCount, completion: @escaping ((AgentError?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("v1/convoai/start").toHttpUrlSting()
         let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
-        let parameters: [String: Any] = [
+        var parameters: [String: Any] = [
             "app_id": appid,
             "channel_name": channelName,
             "agent_rtc_uid": agentRtcUid,
             "remote_rtc_uid": remote_rtc_uid,
-            "custom_llm": [
-                "prompt": AgentSettingManager.shared.currentPresetType.prompt
-            ],
-            "tts": [
-                "voice_id": voiceId
-            ]
+            "enable_aivadmd": AgentSettingManager.shared.isAiVad,
         ]
+        
+        var aivadmd = [String: Any]()
+        if !AgentSettingManager.shared.isForceThreshold {
+            aivadmd["force_threshold"] = -1
+        }
+        if !aivadmd.isEmpty {
+            parameters["aivadmd"] = aivadmd
+        }
+//        let presetType = AgentSettingManager.shared.currentPresetType
+//        var parameters:[String: Any] = [:]
+//        if presetType == .defaultPreset {
+//            parameters = [
+//                "app_id": appid,
+//                "channel_name": channelName,
+//                "agent_rtc_uid": agentRtcUid,
+//                "remote_rtc_uid": remote_rtc_uid,
+//                "enable_aivadmd": true,
+//                "enable_bhvs": true,
+//                "custom_llm": [
+//                    "prompt": AgentSettingManager.shared.currentPresetType.prompt,
+//                    "max_history": 30
+//                ],
+//                "vad": [
+//                    "silence_duration_ms": 800
+//                ],
+//                "tts": [
+//                    "voice_id": voiceId
+//                ]
+//            ]
+//        } else {
+//            parameters = [
+//                "app_id": appid,
+//                "channel_name": channelName,
+//                "agent_rtc_uid": agentRtcUid,
+//                "remote_rtc_uid": remote_rtc_uid,
+//                "custom_llm": [
+//                    "prompt": AgentSettingManager.shared.currentPresetType.prompt
+//                ],
+//                "tts": [
+//                    "voice_id": voiceId
+//                ]
+//            ]
+//        }
         
         AgentLogger.info("request start api parameters is: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in

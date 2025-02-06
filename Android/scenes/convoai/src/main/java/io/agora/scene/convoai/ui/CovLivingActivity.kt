@@ -2,8 +2,10 @@ package io.agora.scene.convoai.ui
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
@@ -25,6 +27,7 @@ import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
+import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.http.ConvAIManager
 import kotlin.random.Random
@@ -36,8 +39,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private lateinit var engine: RtcEngineEx
 
     private var loadingDialog: LoadingDialog? = null
-
-    private var networkDialog: CovNetworkDialog? = null
 
     private var parser = MessageParser()
 
@@ -110,21 +111,25 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         sendBroadcast(intent)
     }
 
+    private fun getAgentParams(): AgentRequestParams {
+        return AgentRequestParams(
+            channelName = channelName,
+            remoteRtcUid = localUid,
+            agentRtcUid = agentUID,
+            ttsVoiceId = if (CovAgoraManager.isMainlandVersion) null else CovAgoraManager.voiceType.value,
+            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
+            enableAiVad = CovAgoraManager.isAiVad,
+            forceThreshold = CovAgoraManager.isForceThreshold,
+        )
+    }
+
     private fun onClickStartAgent() {
         loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
         loadingDialog?.show()
         CovAgoraManager.channelName = channelName
         CovAgoraManager.uid = localUid
-        val params = AgentRequestParams(
-            channelName = channelName,
-            remoteRtcUid = localUid,
-            agentRtcUid = agentUID,
-            ttsVoiceId = CovAgoraManager.voiceType.value,
-            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
-            enableAiVad = CovAgoraManager.isAiVad,
-            forceThreshold = CovAgoraManager.isForceThreshold,
-        )
-        ConvAIManager.startAgent(params) { isAgentOK ->
+
+        ConvAIManager.startAgent(getAgentParams()) { isAgentOK ->
             if (isAgentOK) {
                 if (rtcToken == null) {
                     getToken { isTokenOK ->
@@ -246,14 +251,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         // reconnect
                         loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
                         loadingDialog?.show()
-                        val params = AgentRequestParams(
-                            channelName = channelName,
-                            remoteRtcUid = localUid,
-                            agentRtcUid = agentUID,
-                            ttsVoiceId = CovAgoraManager.voiceType.value,
-                            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER
-                        )
-                        ConvAIManager.startAgent(params) { isAgentOK ->
+                        ConvAIManager.startAgent(getAgentParams()) { isAgentOK ->
                             if (!isAgentOK) {
                                 loadingDialog?.dismiss()
                                 ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
@@ -297,7 +295,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (uid == 0) {
                     runOnUiThread {
                         updateNetworkStatus(rxQuality)
-                        networkDialog?.updateNetworkStatus(rxQuality)
                     }
                 }
             }
@@ -319,6 +316,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             enableAudioVolumeIndication(100, 10, true)
             adjustRecordingSignalVolume(100)
         }
+        engine.loadExtensionProvider("ai_echo_cancellation_extension")
+        engine.loadExtensionProvider("ai_echo_cancellation_ll_extension")
+        engine.loadExtensionProvider("ai_noise_suppression_extension")
+        engine.loadExtensionProvider("ai_noise_suppression_ll_extension")
         CovAgoraManager.rtcEngine = engine
     }
 
@@ -339,7 +340,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             messageListView.clearMessages()
             if (isShowMessageList) {
                 isShowMessageList = false
-                btnText.setBackgroundColor(Color.parseColor("#212121"))
+                btnCc.setBackgroundColor(Color.parseColor("#212121"))
             }
             if (isLocalAudioMuted) {
                 isLocalAudioMuted = false
@@ -380,15 +381,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             when (value) {
                 1, 2 -> {
-                    btnWifi.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_good)
+//                    btnInfo.setColorFilter(ContextCompat.getColor(this, R.color.my_tint_color), PorterDuff.Mode.SRC_IN)
                 }
-
                 3, 4 -> {
-                    btnWifi.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
+                    btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
                 }
-
                 else -> {
-                    btnWifi.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
+                    btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
                 }
             }
         }
@@ -401,7 +400,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             btnBack.setOnClickListener {
                 finish()
             }
-            llEndCall.setOnClickListener {
+            btnEndCall.setOnClickListener {
                 onClickEndCall()
             }
             btnMic.setOnClickListener {
@@ -414,30 +413,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             btnSettings.setOnClickListener {
                 CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
             }
-            btnText.setOnClickListener {
+            btnCc.setOnClickListener {
                 isShowMessageList = !isShowMessageList
-                btnText.setBackgroundColor(
-                    if (isShowMessageList) Color.parseColor("#0097D4") else Color.parseColor(
-                        "#212121"
-                    )
-                )
             }
             btnInfo.setOnClickListener {
                 CovAgentInfoDialog().apply {
-                    isConnected = (networkStatus != 6)
                 }.show(supportFragmentManager, "StatsDialog")
-            }
-            btnWifi.setOnClickListener {
-                if (!CovAgoraManager.agentStarted) {
-                    return@setOnClickListener
-                }
-                networkDialog = CovNetworkDialog().apply {
-                    networkStatus?.let { updateNetworkStatus(it) }
-                    show(supportFragmentManager, "NetworkDialog")
-                    setOnDismissListener {
-                        networkDialog = null
-                    }
-                }
             }
             llJoinCall.setOnClickListener {
                 onClickStartAgent()
