@@ -1,11 +1,14 @@
 package io.agora.scene.convoai.ui
 
+import android.animation.Animator
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.PorterDuff
+import android.graphics.SurfaceTexture
+import android.media.MediaPlayer
 import android.util.Log
+import android.view.Surface
+import android.view.TextureView
 import android.view.View
-import androidx.core.content.ContextCompat
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
@@ -27,9 +30,9 @@ import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
-import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.http.ConvAIManager
+import java.io.File
 import kotlin.random.Random
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
@@ -64,6 +67,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         }
 
+    private var ballMediaPlayer: MediaPlayer? = null
+
+    private val videoRootPath by lazy {
+        filesDir.absolutePath + File.separator
+    }
+
+    private var mCovBallAnim: CovBallAnim? = null
+
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
     }
@@ -74,6 +85,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // data
         CovAgoraManager.resetData()
         createRtcEngine()
+        createMediaPlayer()
         loadingDialog = LoadingDialog(this)
         channelName = "agora_" + Random.nextInt(1, 10000000).toString()
         localUid = Random.nextInt(1000, 10000000)
@@ -97,6 +109,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         RtcEngine.destroy()
         CovAgoraManager.resetData()
         loadingDialog?.dismiss()
+        ballMediaPlayer?.apply {
+            stop()
+            release()
+        }
+        ballMediaPlayer = null
     }
 
     override fun onPause() {
@@ -147,7 +164,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 loadingDialog?.dismiss()
                 CovLogger.e(TAG, "Agent error")
-                ToastUtil.show( io.agora.scene.common.R.string.cov_detail_join_call_failed)
+                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
             }
         }
     }
@@ -165,7 +182,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 CovAgoraManager.agentStarted = false
                 resetSceneState()
             } else {
-                ToastUtil.show( "Agent Leave Failed")
+                ToastUtil.show("Agent Leave Failed")
             }
         }
     }
@@ -236,7 +253,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         isAgentStarted = true
                         CovAgoraManager.agentStarted = true
                         loadingDialog?.dismiss()
-                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed,)
+                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed)
                     }
                 }
                 CovLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
@@ -272,7 +289,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 speakers?.forEach {
                     if (it.uid == agentUID) {
                         runOnUiThread {
-                            mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
+                            // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
+                            if (it.volume > 30) {
+                                mCovBallAnim?.startAgentSpeaker(it.volume)
+                            } else {
+                                mCovBallAnim?.stopAgentSpeaker()
+                            }
                         }
                     }
                 }
@@ -281,9 +303,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
                 data?.let {
                     val rawString = String(it, Charsets.UTF_8)
-//                    ConvoAiLogger.d(TAG, "onStreamMessage rawString: $rawString")
                     val message = parser.parseStreamMessage(rawString)
-//                    ConvoAiLogger.d(TAG, "onStreamMessage message: $message")
                     message?.let { msg ->
                         handleStreamMessage(msg)
                     }
@@ -291,7 +311,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
 
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
-                CovLogger.d(TAG, "onNetworkQuality uid: $uid, txQuality: $txQuality, rxQuality: $rxQuality")
                 if (uid == 0) {
                     runOnUiThread {
                         updateNetworkStatus(rxQuality)
@@ -313,7 +332,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         engine = (RtcEngine.create(config) as RtcEngineEx).apply {
             //set audio scenario 10，open AI-QoS
             setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
-            enableAudioVolumeIndication(100, 10, true)
+            enableAudioVolumeIndication(200, 10, true)
             adjustRecordingSignalVolume(100)
         }
         engine.loadExtensionProvider("ai_echo_cancellation_extension")
@@ -383,9 +402,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 1, 2 -> {
 //                    btnInfo.setColorFilter(ContextCompat.getColor(this, R.color.my_tint_color), PorterDuff.Mode.SRC_IN)
                 }
+
                 3, 4 -> {
                     btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
                 }
+
                 else -> {
                     btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
                 }
@@ -423,6 +444,74 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             llJoinCall.setOnClickListener {
                 onClickStartAgent()
             }
+            mCovBallAnim = CovBallAnim(videoCardView).apply {
+                animatorListener = object : Animator.AnimatorListener {
+                    override fun onAnimationStart(animation: Animator) {
+                        val playbackParams = ballMediaPlayer?.playbackParams ?: return
+                        playbackParams.setSpeed(2.0f)
+                        ballMediaPlayer?.playbackParams = playbackParams
+                    }
+
+                    override fun onAnimationEnd(animation: Animator) {
+                        val playbackParams = ballMediaPlayer?.playbackParams ?: return
+                        playbackParams.setSpeed(0.7f)
+                        ballMediaPlayer?.playbackParams = playbackParams
+                    }
+
+                    override fun onAnimationCancel(animation: Animator) {
+                    }
+
+                    override fun onAnimationRepeat(animation: Animator) {
+                    }
+
+                }
+            }
+        }
+    }
+
+    private fun createMediaPlayer() {
+        val binding = mBinding ?: return
+
+        ballMediaPlayer = MediaPlayer()
+
+        // 创建 TextureView
+        val ballSurfaceView = TextureView(this)
+        binding.videoContainer.addView(ballSurfaceView)
+
+        // 设置 Surface 监听
+        ballSurfaceView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+            override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+                ballMediaPlayer?.setSurface(Surface(surface))
+                playBallVideo()
+            }
+
+            override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
+
+            override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+                return true
+            }
+
+            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
+        }
+    }
+
+    private fun playBallVideo() {
+        try {
+            ballMediaPlayer?.apply {
+                reset()
+                setDataSource(videoRootPath + "ball_small_video.mov")
+                // 添加准备完成监听器
+                setOnPreparedListener { mp ->
+                    mp.isLooping = true
+                    mp.start()
+                }
+                prepareAsync() // 异步准备，避免阻塞主线程
+                val playbackParams = ballMediaPlayer?.playbackParams ?: return
+                playbackParams.setSpeed(0.7f)
+                ballMediaPlayer?.playbackParams = playbackParams
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
