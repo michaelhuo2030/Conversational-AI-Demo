@@ -14,7 +14,6 @@
     <string name="scenes_item_digital_human_info">创建AI驱动的实时语音、视频和聊天体验。</string>
 
     <string name="cov_detail_agent_title">对话智能体</string>
-    <string name="cov_detail_agent">智能体</string>
     <string name="cov_detail_not_joined">未加入</string>
     <string name="cov_detail_clear_message">清除</string>
     <string name="cov_detail_join_call">加入通话</string>
@@ -27,7 +26,8 @@
     <string name="cov_detail_message_list_you">你</string>
     <string name="cov_detail_message_list_agent">AI 智能体</string>
 
-    <string name="cov_info_title">频道信息</string>
+    <string name="cov_info_dialog_title">信息</string>
+    <string name="cov_channel_info_title">频道信息</string>
     <string name="cov_info_agent_status">智能体状态</string>
     <string name="cov_info_agent_connected">已连接</string>
     <string name="cov_info_room_status">房间状态</string>
@@ -48,10 +48,12 @@
     <string name="cov_setting_model">模型</string>
     <string name="cov_setting_language">语言</string>
     <string name="cov_setting_device">设备</string>
+    <string name="cov_setting_advanced_settings">高级设置</string>
     <string name="cov_setting_microphone">麦克风</string>
     <string name="cov_setting_speaker">扬声器</string>
     <string name="cov_setting_noise_cancellation">噪声取消</string>
     <string name="cov_setting_ai_vad">AI VAD</string>
+    <string name="cov_setting_ai_vad_info">根据语义判断用户是否想打断AI</string>
     <string name="cov_setting_force_response">Force Response</string>
     <string name="cov_setting_network_error">请求失败：</string>
 

@@ -31,13 +31,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         private const val TAG = "AgentSettingsSheetDialog"
     }
 
-    private lateinit var voiceAdapter: CustomArrayAdapter
-    private lateinit var modelAdapter: CustomArrayAdapter
-    private lateinit var languageAdapter: CustomArrayAdapter
-    private lateinit var microphoneAdapter: CustomArrayAdapter
-    private lateinit var speakerAdapter: CustomArrayAdapter
-    private lateinit var presetAdapter: CustomArrayAdapter
-
     private val presets = AgentPresetType.options
     private var voices = AgentVoiceType.options
     private var LLMs = AgentLLMType.values()
@@ -57,6 +50,15 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         updateOptionsByPresets()
         binding?.apply {
             setOnApplyWindowInsets(root)
+            clPreset.setOnClickListener {
+                onClickPreset()
+            }
+            clLanguage.setOnClickListener {
+                onClickLanguage()
+            }
+            vOptionsMask.setOnClickListener {
+                onClickMaskView()
+            }
             cbNoiseCancellation.isChecked = CovAgoraManager.getDenoiseStatus()
             cbNoiseCancellation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
                 CovAgoraManager.updateDenoise(isChecked)
@@ -76,12 +78,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 dismiss()
             }
         }
-        setupVoiceSpinner()
-        setupModelSpinner()
-        setupLanguageSpinner()
-        setupMicrophoneSpinner()
-        setupSpeakerSpinner()
         setupPresetSpinner()
+        setupLanguageSpinner()
         updateViewSettings()
     }
 
@@ -113,53 +111,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun updateViewSettings() {
         binding?.apply {
-            voiceAdapter.updateItems(voices.map { it.display }.toList())
-            val defaultVoice = CovAgoraManager.voiceType
-            val voicePosition = voices.indexOf(defaultVoice)
-            if (voicePosition != -1) {
-                voiceAdapter.updateSelectedPosition(voicePosition)
-                spVoice.setSelection(voicePosition)
-            }
-
-            modelAdapter.updateItems(LLMs.map { it.display }.toList())
-            val defaultModel = CovAgoraManager.llmType
-            val modelPosition = LLMs.indexOf(defaultModel)
-            if (modelPosition != -1) {
-                modelAdapter.updateSelectedPosition(modelPosition)
-                spModel.setSelection(modelPosition)
-            }
-
-            speakerAdapter.updateItems(speakers.map { it.value }.toList())
-            val defaultSpeaker = CovAgoraManager.speakerType
-            val speakerPosition = speakers.indexOf(defaultSpeaker)
-            if (speakerPosition != -1) {
-                speakerAdapter.updateSelectedPosition(speakerPosition)
-                spSpeaker.setSelection(speakerPosition)
-            }
-
-            presetAdapter.updateItems(presets.map { it.value }.toList())
-            val defaultPreset = CovAgoraManager.currentPresetType()
-            val presetPosition = presets.indexOf(defaultPreset)
-            if (presetPosition != -1) {
-                presetAdapter.updateSelectedPosition(presetPosition)
-                spPreset.setSelection(presetPosition)
-            }
-
-            languageAdapter.updateItems(languages.map { it.value }.toList())
-            val defaultLanguage = CovAgoraManager.languageType
-            val languagePosition = languages.indexOf(defaultLanguage)
-            if (languagePosition != -1) {
-                languageAdapter.updateSelectedPosition(languagePosition)
-                spLanguage.setSelection(languagePosition)
-            }
-
-            microphoneAdapter.updateItems(microphones.map { it.value }.toList())
-            val defaultMicrophone = CovAgoraManager.microphoneType
-            val microphonePosition = microphones.indexOf(defaultMicrophone)
-            if (microphonePosition != -1) {
-                microphoneAdapter.updateSelectedPosition(microphonePosition)
-                spMicrophone.setSelection(microphonePosition)
-            }
             // ai vad
             if (CovAgoraManager.agentStarted) {
                 clAiVad.visibility = View.GONE
@@ -177,178 +128,18 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
     }
 
-    private fun setupVoiceSpinner() {
+    private fun setupPresetSpinner() {
         val context = context?:return
         binding?.apply {
-            voiceAdapter = CustomArrayAdapter(
-                context,
-                R.layout.cov_setting_spinner_item,
-                mutableListOf()
-            )
-            spVoice.adapter = voiceAdapter
-            spVoice.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val selectedVoice = voices[position]
-                    if (CovAgoraManager.voiceType != selectedVoice) {
-                        uploadNewSetting(voice = selectedVoice)
-                    }
-                }
 
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-        }
-    }
 
-    private fun setupModelSpinner() {
-        val context = context?:return
-        binding?.apply {
-            modelAdapter = CustomArrayAdapter(
-                context,
-                R.layout.cov_setting_spinner_item,
-                mutableListOf()
-            )
-            spModel.adapter = modelAdapter
-            spModel.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
         }
     }
 
     private fun setupLanguageSpinner() {
         val context = context?:return
         binding?.apply {
-            languageAdapter = CustomArrayAdapter(
-                context,
-                R.layout.cov_setting_spinner_item,
-                mutableListOf()
-            )
-            spLanguage.adapter = languageAdapter
-            spLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                }
 
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-        }
-    }
-
-    private fun setupMicrophoneSpinner() {
-        val context = context?:return
-        binding?.apply {
-            microphoneAdapter = CustomArrayAdapter(
-                context,
-                R.layout.cov_setting_spinner_item,
-                mutableListOf()
-            )
-            spMicrophone.adapter = microphoneAdapter
-            spMicrophone.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-        }
-    }
-
-    private fun setupSpeakerSpinner() {
-        val context = context?:return
-        binding?.apply {
-            speakerAdapter = CustomArrayAdapter(
-                context,
-                R.layout.cov_setting_spinner_item,
-                mutableListOf()
-            )
-            spSpeaker.adapter = speakerAdapter
-            spSpeaker.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-        }
-    }
-
-    private fun setupPresetSpinner() {
-        val context = context?:return
-        binding?.apply {
-            presetAdapter = CustomArrayAdapter(
-                context,
-                R.layout.cov_setting_spinner_item,
-                mutableListOf()
-            )
-            spPreset.adapter = presetAdapter
-            spPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val oldVoiceType = CovAgoraManager.voiceType
-                    val oldLLMType = CovAgoraManager.llmType
-                    val oldLanguageType = CovAgoraManager.languageType
-                    val oldPreset = CovAgoraManager.currentPresetType()
-                    val selectedPreset = presets[position]
-                    if (CovAgoraManager.currentPresetType() != selectedPreset) {
-                        if (CovAgoraManager.agentStarted) {
-                            val loadingDialog = LoadingDialog(context).apply {
-                                show()
-                            }
-                            CovAgoraManager.updatePreset(presets[position])
-                            ConvAIManager.updateAgent(CovAgoraManager.voiceType.value) { success ->
-                                loadingDialog.dismiss()
-                                if (success) {
-                                    updateOptionsByPresets()
-                                    updateViewSettings()
-                                } else {
-                                    CovAgoraManager.updatePreset(oldPreset)
-                                    CovAgoraManager.voiceType = oldVoiceType
-                                    CovAgoraManager.llmType = oldLLMType
-                                    CovAgoraManager.languageType = oldLanguageType
-                                    updateViewSettings()
-                                    ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
-                                }
-                            }
-                        } else {
-                            CovAgoraManager.updatePreset(presets[position])
-                            updateOptionsByPresets()
-                            updateViewSettings()
-                        }
-                    }
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
         }
     }
 
@@ -382,53 +173,46 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
     }
 
-    private inner class CustomArrayAdapter(
-        context: Context,
-        resource: Int,
-        private var items: MutableList<String>
-    ) : ArrayAdapter<String>(context, resource, items) {
+    private fun onClickPreset() {
+        binding?.apply {
+            vOptionsMask.visibility = View.VISIBLE
+            cvOptions.visibility = View.VISIBLE
+            val itemLocation = IntArray(2)
+            clPreset.getLocationOnScreen(itemLocation)
+            val maskLocation = IntArray(2)
+            vOptionsMask.getLocationOnScreen(maskLocation)
+            // 获取目标视图的坐标
+            val targetX = itemLocation[0] - maskLocation[0]
+            val targetY = itemLocation[1] - maskLocation[1]
 
-        var selectedPosition: Int = -1
-
-        fun updateItems(newItems: List<String>) {
-            clear()
-            addAll(emptyList())
-            items.clear()
-            items.addAll(newItems)
-            notifyDataSetChanged()
+            // 设置源视图的位置
+            cvOptions.x = targetX.toFloat()
+            cvOptions.y = targetY.toFloat()
         }
+    }
 
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(context).inflate(
-                R.layout.cov_setting_spinner_item, parent, false
-            )
-            val textView = view.findViewById<TextView>(R.id.tv_text)
-            val iconView = view.findViewById<ImageView>(R.id.iv_icon)
-            textView.text = items[position]
-            iconView.visibility = View.GONE
-            return view
+    private fun onClickLanguage() {
+        binding?.apply {
+            vOptionsMask.visibility = View.VISIBLE
+            cvOptions.visibility = View.VISIBLE
+            val itemLocation = IntArray(2)
+            clLanguage.getLocationOnScreen(itemLocation)
+            val maskLocation = IntArray(2)
+            vOptionsMask.getLocationOnScreen(maskLocation)
+            // 获取目标视图的坐标
+            val targetX = itemLocation[0] - maskLocation[0]
+            val targetY = itemLocation[1] - maskLocation[1]
+
+            // 设置源视图的位置
+            cvOptions.x = targetX.toFloat()
+            cvOptions.y = targetY.toFloat()
         }
+    }
 
-        override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view = convertView ?: LayoutInflater.from(context).inflate(
-                R.layout.cov_setting_spinner_item, parent, false
-            )
-            val textView = view.findViewById<TextView>(R.id.tv_text)
-            val iconView = view.findViewById<ImageView>(R.id.iv_icon)
-            textView.text = items[position]
-            if (position == selectedPosition) {
-                textView.setTextColor(Color.parseColor("#00C2FF"))
-                iconView.visibility = View.VISIBLE
-            } else {
-                textView.setTextColor(Color.parseColor("#FFFFFF"))
-                iconView.visibility = View.GONE
-            }
-            return view
-        }
-
-        fun updateSelectedPosition(position: Int) {
-            selectedPosition = position
-            notifyDataSetChanged()
+    private fun onClickMaskView() {
+        binding?.apply {
+            vOptionsMask.visibility = View.GONE
+            cvOptions.visibility = View.GONE
         }
     }
 }

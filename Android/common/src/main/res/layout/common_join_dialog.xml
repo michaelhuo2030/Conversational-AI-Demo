@@ -8,7 +8,7 @@
         android:id="@+id/loading_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
+        android:textColor="@color/ai_icontext1"
         android:textStyle="bold"
         android:text="Agent Joined!"/>
 </LinearLayout>

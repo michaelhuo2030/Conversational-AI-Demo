@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
-    android:paddingHorizontal="16dp"
+    android:background="@color/ai_fill1"
     android:orientation="vertical">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -31,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="@string/cov_detail_agent_title"
-            android:textColor="#C3C3C3"
+            android:textColor="@color/ai_icontext2"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/btn_back"
@@ -42,19 +41,9 @@
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:background="@android:color/transparent"
-            android:src="@drawable/app_living_settings"
+            android:src="@drawable/scene_detail_setting"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageButton
-            android:id="@+id/btn_wifi"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/scene_detail_net_poor"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btn_settings"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
@@ -64,12 +53,12 @@
             android:background="@android:color/transparent"
             android:src="@drawable/app_living_info"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btn_wifi"
+            app:layout_constraintEnd_toStartOf="@+id/btn_settings"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.cardview.widget.CardView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -94,20 +83,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:layout_width="65dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="12dp"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/open_ai_background"
-                android:gravity="center"
-                android:padding="6dp"
-                android:text="@string/cov_detail_agent"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <io.agora.scene.common.ui.widget.MessageListView
@@ -118,13 +93,14 @@
         <include
             android:id="@+id/v_not_joined"
             layout="@layout/cov_not_joined_view" />
-    </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_height="72dp">
+        android:layout_height="72dp"
+        android:paddingHorizontal="40dp">
 
         <LinearLayout
             android:id="@+id/ll_calling"
@@ -137,50 +113,35 @@
             android:visibility="gone" >
 
             <ImageButton
+                android:id="@+id/btn_cc"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:background="@drawable/btn_ai_block1_round"
+                android:src="@drawable/scene_detail_captions" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <ImageButton
                 android:id="@+id/btn_mic"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:background="@drawable/app_living_mic_on" />
+                android:background="@drawable/btn_ai_block1_round"
+                android:src="@drawable/scene_detail_microphone" />
 
-            <androidx.cardview.widget.CardView
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/btn_end_call"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:layout_marginStart="16dp"
-                app:cardElevation="0dp"
-                app:cardCornerRadius="36dp">
-
-                <ImageButton
-                    android:id="@+id/btn_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="#212121"
-                    android:src="@drawable/app_chat_list_btn"/>
-            </androidx.cardview.widget.CardView>
-
-            <LinearLayout
-                android:id="@+id/ll_end_call"
-                android:layout_width="0dp"
-                android:layout_height="72dp"
-                android:layout_weight="1"
-                android:layout_gravity="center"
-                android:layout_marginStart="16dp"
-                android:background="@drawable/btn_red_radio_enable"
-                android:gravity="center_horizontal|center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/app_living_end" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cov_detail_end_call"
-                    android:textColor="#FDFCFB"
-                    android:textSize="18sp" />
-            </LinearLayout>
+                android:background="@drawable/btn_ai_block1_round"
+                android:src="@drawable/scene_detail_close" />
         </LinearLayout>
 
         <LinearLayout
@@ -189,7 +150,7 @@
             android:layout_height="64dp"
             android:layout_gravity="center"
             android:gravity="center_horizontal|center_vertical"
-            android:background="@drawable/btn_blue_radio_enable"
+            android:background="@drawable/btn_join_call_gradient"
             tools:visibility="gone"
             android:orientation="horizontal">
 
@@ -207,5 +168,4 @@
                 android:textSize="18sp" />
         </LinearLayout>
     </FrameLayout>
-
 </LinearLayout>

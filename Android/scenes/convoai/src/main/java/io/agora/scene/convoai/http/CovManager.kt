@@ -121,6 +121,7 @@ object ConvAIManager {
                         val aid = jsonObj.optJSONObject("data")?.optString("agent_id")
                         if (code == 0 && !aid.isNullOrEmpty()) {
                             agentId = aid
+                            CovLogger.d(TAG, "Start agent request: $requestURL, agent_id: $agentId")
                             runOnMainThread {
                                 succeed.invoke(true)
                             }
