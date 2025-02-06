@@ -26,7 +26,7 @@
         android:minWidth="172dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
+        android:textColor="@color/ai_icontext1"
         android:textSize="14sp"
         android:lineSpacingExtra="4dp"
         tools:text="xxxxxxx"/>

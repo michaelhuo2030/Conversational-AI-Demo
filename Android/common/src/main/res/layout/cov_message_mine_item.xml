@@ -23,7 +23,7 @@
             android:id="@+id/tv_message_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
+            android:textColor="@color/ai_icontext1"
             android:text="@string/cov_detail_message_list_you"
             android:textSize="14sp" />
 
@@ -36,7 +36,7 @@
         android:layout_marginTop="8dp"
         android:layout_gravity="end"
         android:textSize="18sp"
-        android:textColor="@color/white"
+        android:textColor="@color/ai_icontext1"
         android:background="@drawable/message_mine_item_border"
         android:paddingHorizontal="16dp"
         android:paddingVertical="12dp"
