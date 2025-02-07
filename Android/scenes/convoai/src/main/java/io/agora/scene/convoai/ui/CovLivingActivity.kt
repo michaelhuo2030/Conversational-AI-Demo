@@ -6,7 +6,6 @@ import android.graphics.PorterDuff
 import android.util.Log
 import android.view.TextureView
 import android.view.View
-import androidx.core.content.ContextCompat
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
@@ -120,8 +119,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun startRecordingService() {
-        val intent = Intent("io.agora.agent.START_FOREGROUND_SERVICE")
-        sendBroadcast(intent)
+        val intent = Intent(this, CovRtcForegroundService::class.java)
+        startForegroundService(intent)
     }
 
     private fun getAgentParams(): AgentRequestParams {

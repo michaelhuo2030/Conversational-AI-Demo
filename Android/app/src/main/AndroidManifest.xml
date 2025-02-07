@@ -47,16 +47,5 @@
             android:screenOrientation="portrait"
             android:configChanges="locale|layoutDirection"
             android:exported="false" />
-
-        <service
-            android:name=".RtcForegroundService"
-            android:exported="false" />
-
-        <receiver android:name=".ServiceStarterReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="io.agora.agent.START_FOREGROUND_SERVICE" />
-            </intent-filter>
-        </receiver>
     </application>
 </manifest>

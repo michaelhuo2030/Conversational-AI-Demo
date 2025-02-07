@@ -20,12 +20,12 @@ class CovBallAnim constructor(private val view: View) {
         private const val MEDIUM_VOLUME = 150
         private const val LOW_VOLUME = 100
 
-        // 缩放范围常量
+        // Scale range constants
         private const val SCALE_HIGH = 0.9f
         private const val SCALE_MEDIUM = 0.94f
         private const val SCALE_LOW = 0.96f
 
-        // 动画时长常量
+        // Animation duration constants
         private const val DURATION_HIGH = 200L
         private const val DURATION_MEDIUM = 300L
         private const val DURATION_LOW = 400L
@@ -44,12 +44,12 @@ class CovBallAnim constructor(private val view: View) {
                 when (value) {
                     AnimState.RUNNING -> animCallback?.onAnimationStart()
                     AnimState.IDLE -> animCallback?.onAnimationEnd()
-                    else -> {} // STOPPING 状态不触发回调
+                    else -> {} // STOPPING state does not trigger callback
                 }
             }
         }
 
-    // 将动画参数计算抽取为单独的方法
+    // Extract animation parameter calculation to separate method
     private fun calculateAnimationParams(volume: Int): AnimParams {
         val safeVolume = volume.coerceIn(MIN_VOLUME, MAX_VOLUME)
         return AnimParams(
@@ -92,8 +92,8 @@ class CovBallAnim constructor(private val view: View) {
     fun stopAgentSpeaker() {
         when (currentState) {
             AnimState.RUNNING -> currentState = AnimState.STOPPING
-            AnimState.STOPPING -> {} // 已经在停止中
-            AnimState.IDLE -> {} // 已经停止
+            AnimState.STOPPING -> {} // Already stopping
+            AnimState.IDLE -> {} // Already stopped
         }
     }
 
@@ -143,12 +143,12 @@ class CovBallAnim constructor(private val view: View) {
 
                 override fun onAnimationEnd(animation: Animator) {
                     when (currentState) {
-                        AnimState.RUNNING -> start() // 继续播放
+                        AnimState.RUNNING -> start() // Continue playing
                         AnimState.STOPPING -> {
                             resetViewScale()
                             currentState = AnimState.IDLE
                         }
-                        AnimState.IDLE -> {} // 不应该发生
+                        AnimState.IDLE -> {} // Should not happen
                     }
                 }
 
