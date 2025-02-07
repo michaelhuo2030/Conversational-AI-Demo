@@ -30,10 +30,6 @@ class MessageListView @JvmOverloads constructor(
         binding.rvMessages.layoutManager = LinearLayoutManager(context)
         binding.rvMessages.adapter = messageAdapter
         binding.rvMessages.itemAnimator = null
-        binding.btnClear.setOnClickListener {
-            clearMessages()
-        }
-        binding.btnClear.visibility = View.GONE
     }
 
     fun clearMessages() {

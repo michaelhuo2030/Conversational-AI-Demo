@@ -16,14 +16,6 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
             android:src="@drawable/scene_detail_message_list_agent" />
-
-        <TextView
-            android:id="@+id/tv_message_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/ai_icontext1"
-            android:text="@string/cov_detail_message_list_agent"
-            android:textSize="14sp" />
     </LinearLayout>
 
     <TextView
@@ -31,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:maxLines="999"
         android:textColor="@color/ai_icontext1" />
 </LinearLayout>

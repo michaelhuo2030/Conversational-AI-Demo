@@ -13,15 +13,4 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <TextView
-        android:id="@+id/btn_clear"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:drawablePadding="4dp"
-        android:text="@string/cov_detail_clear_message"
-        android:textColor="#00C2FF"
-        android:textSize="14sp"
-        app:drawableStartCompat="@drawable/cov_detail_list_clean" />
-
 </LinearLayout>

@@ -1,7 +1,6 @@
 <resources>
     <string name="cov_detail_agent_title">对话智能体</string>
     <string name="cov_detail_not_joined">未加入</string>
-    <string name="cov_detail_clear_message">清除</string>
     <string name="cov_detail_join_call">加入通话</string>
     <string name="cov_detail_end_call">结束通话</string>
     <string name="cov_detail_agent_joining">加入中</string>
@@ -10,7 +9,6 @@
     <string name="cov_detail_join_call_succeed">智能体已加入！</string>
     <string name="cov_detail_agent_leave">智能体离开</string>
     <string name="cov_detail_message_list_you">你</string>
-    <string name="cov_detail_message_list_agent">AI 智能体</string>
 
     <string name="cov_info_dialog_title">信息</string>
     <string name="cov_channel_info_title">频道信息</string>

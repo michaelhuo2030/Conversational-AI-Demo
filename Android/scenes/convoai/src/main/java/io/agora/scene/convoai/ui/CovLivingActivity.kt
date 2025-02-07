@@ -381,7 +381,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             llJoinCall.visibility = View.INVISIBLE
             if (isShowMessageList) {
                 messageListView.visibility = View.VISIBLE
-                clAnimationContent.visibility = View.INVISIBLE
+                clAnimationContent.visibility = View.VISIBLE
             } else {
                 messageListView.visibility = View.INVISIBLE
                 clAnimationContent.visibility = View.VISIBLE
@@ -417,8 +417,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             btnMic.setOnClickListener {
                 isLocalAudioMuted = !isLocalAudioMuted
                 engine.adjustRecordingSignalVolume(if (isLocalAudioMuted) 0 else 100)
-                btnMic.setBackgroundResource(
-                    if (isLocalAudioMuted) io.agora.scene.common.R.drawable.app_living_mic_off else io.agora.scene.common.R.drawable.app_living_mic_on
+                btnMic.setImageResource(
+                    if (isLocalAudioMuted) io.agora.scene.common.R.drawable.app_living_mic_off else io.agora.scene.common.R.drawable.scene_detail_microphone0
                 )
             }
             btnSettings.setOnClickListener {
