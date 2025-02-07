@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentTransaction
@@ -11,6 +12,9 @@ import io.agora.agent.databinding.ActivityMainBinding
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseActivity
 import java.util.Locale
+import android.annotation.SuppressLint
+import androidx.core.os.LocaleListCompat
+import androidx.appcompat.app.AppCompatDelegate
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -96,14 +100,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun setupLocale() {
-        var lang = "en"
-        if (ServerConfig.isMainlandVersion) {
-            lang = "zh"
-        }
+        val lang = if (ServerConfig.isMainlandVersion) "zh" else "en"
         val locale = Locale(lang)
+        
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.create(locale))
+        
+        updateActivityLocale(locale)
+    }
+
+    @SuppressLint("ObsoleteSdkInt")
+    private fun updateActivityLocale(locale: Locale) {
         Locale.setDefault(locale)
+        
         val config = resources.configuration
         config.setLocale(locale)
-        resources.updateConfiguration(config, resources.displayMetrics)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            createConfigurationContext(config)
+        } else {
+            @Suppress("DEPRECATION")
+            resources.updateConfiguration(config, resources.displayMetrics)
+        }
     }
 }

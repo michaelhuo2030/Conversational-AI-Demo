@@ -152,7 +152,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cov_detail_end_call"
+                    android:text="@string/digital_detail_end_call"
                     android:textColor="#FDFCFB"
                     android:textSize="18sp" />
             </LinearLayout>
@@ -177,7 +177,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/cov_detail_join_call"
+                android:text="@string/digital_detail_join_call"
                 android:textColor="#FDFCFB"
                 android:textSize="18sp" />
         </LinearLayout>
