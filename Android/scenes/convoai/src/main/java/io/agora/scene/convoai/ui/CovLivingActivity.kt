@@ -348,7 +348,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.app_living_mic_on)
             }
         }
-
     }
 
     private fun updateCenterView() {

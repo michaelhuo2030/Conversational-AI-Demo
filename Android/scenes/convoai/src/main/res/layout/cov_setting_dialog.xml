@@ -316,24 +316,26 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
-    <View
+    <FrameLayout
         android:id="@+id/v_options_mask"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="gone">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cv_options"
-        android:layout_width="218dp"
-        android:layout_height="150dp"
-        android:backgroundTint="@color/ai_line1"
-        app:cardCornerRadius="12dp">
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_options"
+            android:layout_width="218dp"
+            android:layout_height="150dp"
+            android:backgroundTint="@color/ai_line1"
+            app:cardCornerRadius="12dp">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rc_options"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
-
-    </androidx.cardview.widget.CardView>
+            </androidx.recyclerview.widget.RecyclerView>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
 </FrameLayout>

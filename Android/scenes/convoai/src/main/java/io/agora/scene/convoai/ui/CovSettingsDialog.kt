@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.LoadingDialog
+import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
@@ -35,8 +36,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     private var voices = AgentVoiceType.options
     private var LLMs = AgentLLMType.values()
     private var languages = AgentLanguageType.values()
-    private val microphones = AgentMicrophoneType.values()
-    private val speakers = AgentSpeakerType.values()
 
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -67,20 +66,19 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             cbAiVad.setOnClickListener {
                 CovAgoraManager.isAiVad = cbAiVad.isChecked
                 CovAgoraManager.isForceThreshold = cbAiVad.isChecked
-                updateViewSettings()
+                updateAiVadSettings()
             }
             cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
             cbForceResponse.setOnClickListener {
                 CovAgoraManager.isForceThreshold = cbForceResponse.isChecked
-                updateViewSettings()
+                updateAiVadSettings()
             }
             btnClose.setOnClickListener {
                 dismiss()
             }
         }
-        setupPresetSpinner()
-        setupLanguageSpinner()
-        updateViewSettings()
+        updateBaseSettings()
+        updateAiVadSettings()
     }
 
     private fun uploadNewSetting(voice: AgentVoiceType? = null, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
@@ -95,9 +93,9 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                     voice?.let {CovAgoraManager.voiceType = it}
                     llm?.let { CovAgoraManager.llmType = llm }
                     language?.let { CovAgoraManager.languageType = language }
-                    updateViewSettings()
+                    updateAiVadSettings()
                 } else {
-                    updateViewSettings()
+                    updateAiVadSettings()
                     ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
                 }
             }
@@ -105,11 +103,11 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             voice?.let {CovAgoraManager.voiceType = it}
             llm?.let { CovAgoraManager.llmType = llm }
             language?.let { CovAgoraManager.languageType = language }
-            updateViewSettings()
+            updateAiVadSettings()
         }
     }
 
-    private fun updateViewSettings() {
+    private fun updateAiVadSettings() {
         binding?.apply {
             // ai vad
             if (CovAgoraManager.agentStarted) {
@@ -128,18 +126,10 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
     }
 
-    private fun setupPresetSpinner() {
-        val context = context?:return
+    private fun updateBaseSettings() {
         binding?.apply {
-
-
-        }
-    }
-
-    private fun setupLanguageSpinner() {
-        val context = context?:return
-        binding?.apply {
-
+            tvPreset.text = CovAgoraManager.currentPresetType().value
+            tvLanguage.text = CovAgoraManager.languageType.value
         }
     }
 
@@ -176,43 +166,32 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     private fun onClickPreset() {
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            cvOptions.visibility = View.VISIBLE
             val itemLocation = IntArray(2)
             clPreset.getLocationOnScreen(itemLocation)
             val maskLocation = IntArray(2)
             vOptionsMask.getLocationOnScreen(maskLocation)
-            // 获取目标视图的坐标
-            val targetX = itemLocation[0] - maskLocation[0]
-            val targetY = itemLocation[1] - maskLocation[1]
-
-            // 设置源视图的位置
-            cvOptions.x = targetX.toFloat()
-            cvOptions.y = targetY.toFloat()
+            val targetY = (itemLocation[1] - maskLocation[1]) + 30.dp
+            cvOptions.x = vOptionsMask.width - 250.dp
+            cvOptions.y = targetY
         }
     }
 
     private fun onClickLanguage() {
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            cvOptions.visibility = View.VISIBLE
             val itemLocation = IntArray(2)
             clLanguage.getLocationOnScreen(itemLocation)
             val maskLocation = IntArray(2)
             vOptionsMask.getLocationOnScreen(maskLocation)
-            // 获取目标视图的坐标
-            val targetX = itemLocation[0] - maskLocation[0]
-            val targetY = itemLocation[1] - maskLocation[1]
-
-            // 设置源视图的位置
-            cvOptions.x = targetX.toFloat()
-            cvOptions.y = targetY.toFloat()
+            val targetY = (itemLocation[1] - maskLocation[1]) + 30.dp
+            cvOptions.x = vOptionsMask.width - 250.dp
+            cvOptions.y = targetY
         }
     }
 
     private fun onClickMaskView() {
         binding?.apply {
             vOptionsMask.visibility = View.GONE
-            cvOptions.visibility = View.GONE
         }
     }
 }
