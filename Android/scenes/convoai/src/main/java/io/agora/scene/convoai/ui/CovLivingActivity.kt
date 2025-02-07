@@ -2,10 +2,9 @@ package io.agora.scene.convoai.ui
 
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.util.Log
+import android.view.TextureView
 import android.view.View
-import androidx.core.content.ContextCompat
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
@@ -27,9 +26,9 @@ import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
-import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.http.ConvAIManager
+import io.agora.scene.convoai.ui.CovBallPlayer.SpeedCallback
 import kotlin.random.Random
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
@@ -47,7 +46,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var channelName = ""
     private var localUid: Int = 0
     private val agentUID = 999
-    private var networkStatus: Int? = null
     private var isShowMessageList = false
         set(value) {
             if (field != value) {
@@ -64,6 +62,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         }
 
+    private var mCovBallPlayer: CovBallPlayer? = null
+    private var mCovBallAnim: CovBallAnim? = null
+
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
     }
@@ -74,6 +75,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // data
         CovAgoraManager.resetData()
         createRtcEngine()
+        setupBallPlayer()
         loadingDialog = LoadingDialog(this)
         channelName = "agora_" + Random.nextInt(1, 10000000).toString()
         localUid = Random.nextInt(1000, 10000000)
@@ -97,6 +99,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         RtcEngine.destroy()
         CovAgoraManager.resetData()
         loadingDialog?.dismiss()
+        mCovBallPlayer?.let {
+            it.release()
+            mCovBallPlayer = null
+        }
+        mCovBallAnim?.let {
+            it.release()
+            mCovBallAnim = null
+        }
     }
 
     override fun onPause() {
@@ -147,7 +157,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 loadingDialog?.dismiss()
                 CovLogger.e(TAG, "Agent error")
-                ToastUtil.show( io.agora.scene.common.R.string.cov_detail_join_call_failed)
+                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
             }
         }
     }
@@ -161,11 +171,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             if (ok) {
                 ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
                 isAgentStarted = false
-                networkStatus = null
                 CovAgoraManager.agentStarted = false
                 resetSceneState()
             } else {
-                ToastUtil.show( "Agent Leave Failed")
+                ToastUtil.show("Agent Leave Failed")
             }
         }
     }
@@ -236,7 +245,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         isAgentStarted = true
                         CovAgoraManager.agentStarted = true
                         loadingDialog?.dismiss()
-                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed,)
+                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed)
                     }
                 }
                 CovLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
@@ -272,7 +281,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 speakers?.forEach {
                     if (it.uid == agentUID) {
                         runOnUiThread {
-                            mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
+                            // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
+                            if (it.volume > 30) {
+                                mCovBallAnim?.startAgentSpeaker(it.volume)
+                            } else {
+                                mCovBallAnim?.stopAgentSpeaker()
+                            }
                         }
                     }
                 }
@@ -281,9 +295,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
                 data?.let {
                     val rawString = String(it, Charsets.UTF_8)
-//                    ConvoAiLogger.d(TAG, "onStreamMessage rawString: $rawString")
                     val message = parser.parseStreamMessage(rawString)
-//                    ConvoAiLogger.d(TAG, "onStreamMessage message: $message")
                     message?.let { msg ->
                         handleStreamMessage(msg)
                     }
@@ -291,7 +303,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
 
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
-                CovLogger.d(TAG, "onNetworkQuality uid: $uid, txQuality: $txQuality, rxQuality: $rxQuality")
                 if (uid == 0) {
                     runOnUiThread {
                         updateNetworkStatus(rxQuality)
@@ -313,7 +324,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         engine = (RtcEngine.create(config) as RtcEngineEx).apply {
             //set audio scenario 10，open AI-QoS
             setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
-            enableAudioVolumeIndication(100, 10, true)
+            enableAudioVolumeIndication(200, 10, true)
             adjustRecordingSignalVolume(100)
         }
         engine.loadExtensionProvider("ai_echo_cancellation_extension")
@@ -376,15 +387,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun updateNetworkStatus(value: Int) {
-        networkStatus = value
         mBinding?.apply {
             when (value) {
                 1, 2 -> {
 //                    btnInfo.setColorFilter(ContextCompat.getColor(this, R.color.my_tint_color), PorterDuff.Mode.SRC_IN)
                 }
+
                 3, 4 -> {
                     btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
                 }
+
                 else -> {
                     btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
                 }
@@ -421,6 +433,30 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             llJoinCall.setOnClickListener {
                 onClickStartAgent()
+            }
+            mCovBallAnim = CovBallAnim(videoCardView).apply {
+                animCallback = object : BallAnimCallback {
+                    override fun onAnimationStart() {
+                        mCovBallPlayer?.setSpeed(2.0f)
+                    }
+
+                    override fun onAnimationEnd() {
+                        mCovBallPlayer?.setSpeed(0.7f)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupBallPlayer() {
+        val surfaceView = TextureView(this)
+        mBinding?.videoContainer?.addView(surfaceView)
+        mCovBallPlayer = CovBallPlayer(this).apply {
+            create(surfaceView)
+            speedCallback = object : SpeedCallback{
+                override fun onSpeedChanged(speed: Float) {
+                   CovLogger.d(TAG,"mediaPlayer onSpeedChanged:$speed")
+                }
             }
         }
     }

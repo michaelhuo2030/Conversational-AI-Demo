@@ -71,18 +71,29 @@ class ChatViewController: UIViewController {
         return view
     }()
     
+//    private lazy var waveVC: WaveWebViewController = {
+//        let vc = VoiceAgentContext.waveWebView
+//        return vc
+//    }()
+    
+    private lazy var videoView: VideoPlayerView = {
+        let view = VideoPlayerView()
+        return view
+    }()
+    
     private lazy var contentView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(hex:0x222222)
+//        view.backgroundColor = UIColor(hex:0x222222)
+        view.backgroundColor = .black
         view.layerCornerRadius = 16
         view.clipsToBounds = true
         return view
     }()
     
-    private lazy var waveView: AgoraWaveGroupView = {
-        let view = AgoraWaveGroupView(frame: CGRect(x: 0, y: 0, width: 200, height: 200), count: 4, padding: 10)
-        return view
-    }()
+//    private lazy var waveView: AgoraWaveGroupView = {
+//        let view = AgoraWaveGroupView(frame: CGRect(x: 0, y: 0, width: 200, height: 200), count: 4, padding: 10)
+//        return view
+//    }()
     
     private lazy var closeButton: UIButton = {
         let button = UIButton(type: .custom)
@@ -207,6 +218,7 @@ class ChatViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         setupAgentCoordinator()
         setupViews()
         setupConstraints()
@@ -220,7 +232,7 @@ class ChatViewController: UIViewController {
         let centerX = contentView.bounds.width / 2
         let centerY = contentView.bounds.height / 2
         
-        waveView.center = CGPoint(x: centerX, y: centerY)
+//        waveView.center = CGPoint(x: centerX, y: centerY)
     }
     
     private func setupAgentCoordinator() {
@@ -236,7 +248,8 @@ class ChatViewController: UIViewController {
         [topBar, contentView, closeButton, muteButton, 
          msgButton, mineContentView].forEach { view.addSubview($0) }
         
-        contentView.addSubview(waveView)
+//        contentView.addSubview(waveView)
+        contentView.addSubview(videoView)
         contentView.addSubview(aiNameLabel)
         contentView.addSubview(messageView)
         
@@ -246,6 +259,10 @@ class ChatViewController: UIViewController {
         mineContentView.addSubview(mineNameView)
         mineNameView.addSubview(mineNameLabel)
         mineNameView.addSubview(micStateImageView)
+        
+        videoView.snp.makeConstraints { make in
+            make.edges.equalTo(UIEdgeInsets.zero)
+        }
         
         messageView.snp.makeConstraints { make in
             make.edges.equalTo(UIEdgeInsets.zero)
@@ -635,23 +652,27 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         speakers.forEach { info in
             if (info.uid == agentUid) {
                 var currentVolume: CGFloat = 0
-                let minValue = (self.waveView.getWaveWidth()) * 1.2
-                let maxValue = minValue * 2
+//                let minValue = (self.waveView.getWaveWidth()) * 1.2
+//                let maxValue = minValue * 2
                 for volumeInfo in speakers {
                     if (volumeInfo.uid == 0) {
                     } else {
-                        currentVolume = CGFloat(volumeInfo.volume) / 256
+//                        currentVolume = CGFloat(volumeInfo.volume) / 256
+                        currentVolume = CGFloat(volumeInfo.volume)
+                        print("current volume is \(currentVolume)")
                         break
                     }
                 }
-                
-                let heights = [
-                    mapValueToRange1(value1: currentVolume, x: minValue, y: maxValue),
-                    mapValueToRange2(value1: currentVolume, x: minValue, y: maxValue),
-                    mapValueToRange3(value1: currentVolume, x: minValue, y: maxValue),
-                    mapValueToRange4(value1: currentVolume, x: minValue, y: maxValue),
-                ]
-                self.waveView.updateAnimation(duration: 0.2, heights: heights)
+                            
+                videoView.updateWithVolume(Float(currentVolume))
+//                self.waveVC.updateVolume(volume: currentVolume)
+//                let heights = [
+//                    mapValueToRange1(value1: currentVolume, x: minValue, y: maxValue),
+//                    mapValueToRange2(value1: currentVolume, x: minValue, y: maxValue),
+//                    mapValueToRange3(value1: currentVolume, x: minValue, y: maxValue),
+//                    mapValueToRange4(value1: currentVolume, x: minValue, y: maxValue),
+//                ]
+//                self.waveView.updateAnimation(duration: 0.2, heights: heights)
             }
         }
     }
