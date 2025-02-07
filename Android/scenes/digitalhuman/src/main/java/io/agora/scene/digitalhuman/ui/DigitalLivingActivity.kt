@@ -142,7 +142,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         if (!smallContainerIsLocal) {
             exchangeDragWindow()
         }
-        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
+        loadingDialog?.setMessage(getString(R.string.cov_detail_agent_joining))
         loadingDialog?.show()
         DigitalAgoraManager.channelName = channelName
         DigitalAgoraManager.uid = localUid
@@ -164,7 +164,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         } else {
                             loadingDialog?.dismiss()
                             DigitalLogger.e(TAG, "Token error")
-                            ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
+                            ToastUtil.show(R.string.cov_detail_join_call_failed)
                         }
                     }
                 } else {
@@ -173,7 +173,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             } else {
                 loadingDialog?.dismiss()
                 DigitalLogger.e(TAG, "Agent error")
-                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
+                ToastUtil.show(R.string.cov_detail_join_call_failed)
             }
         }
         scope.launch {
@@ -183,7 +183,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                 engine.stopPreview()
                 engine.leaveChannel()
                 DigitalApiManager.stopAgent { ok ->
-                    ToastUtil.show(io.agora.scene.common.R.string.digital_timeout)
+                    ToastUtil.show(R.string.digital_timeout)
                     startAgentSuccess = false
                     loadingDialog?.dismiss()
                     if (ok) {
@@ -200,12 +200,12 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
     private fun onClickEndCall() {
         engine.stopPreview()
         engine.leaveChannel()
-        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_ending))
+        loadingDialog?.setMessage(getString(R.string.cov_detail_agent_ending))
         loadingDialog?.show()
         DigitalApiManager.stopAgent { ok ->
             loadingDialog?.dismiss()
             if (ok) {
-                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
+                ToastUtil.show(R.string.cov_detail_agent_leave)
                 isAgentStarted = false
                 networkStatus = null
                 DigitalAgoraManager.agentStarted = false
@@ -242,7 +242,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         val ret = engine.joinChannel(rtcToken, channelName, localUid, channelOption)
         if (ret != ERR_OK) {
             loadingDialog?.dismiss()
-            ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
+            ToastUtil.show(R.string.cov_detail_join_call_failed)
             return
         }
         DigitalLogger.d(TAG, "Joining RTC channel: $channelName, uid: $localUid, ret: $ret")
@@ -302,7 +302,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         isAgentStarted = true
                         DigitalAgoraManager.agentStarted = true
                         loadingDialog?.dismiss()
-                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed)
+                        ToastUtil.show(R.string.cov_detail_join_call_succeed)
                     }
                 }
                 DigitalLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
@@ -316,7 +316,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         DigitalLogger.d(TAG, "start agent reconnect")
                         rtcToken = null
                         // reconnect
-                        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
+                        loadingDialog?.setMessage(getString(R.string.cov_detail_agent_joining))
                         loadingDialog?.show()
                         val params = AgentRequestParams(
                             channelName = channelName,
@@ -329,7 +329,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         DigitalApiManager.startAgent(params) { isAgentOK ->
                             if (!isAgentOK) {
                                 loadingDialog?.dismiss()
-                                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
+                                ToastUtil.show(R.string.cov_detail_agent_leave)
                                 engine.leaveChannel()
                                 isAgentStarted = false
                                 DigitalAgoraManager.agentStarted = false
@@ -438,7 +438,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
     private fun updateLocalViewState(isLocalVideoMuted: Boolean) {
         mBinding?.apply {
             val localWindow = vDragSmallWindow
-            localWindow.setUserName(getString(io.agora.scene.common.R.string.digital_youselft), false)
+            localWindow.setUserName(getString(R.string.digital_youselft), false)
             localWindow.setUserAvatar(isLocalVideoMuted)
             if (smallContainerIsLocal) {
                 localWindow.switchCamera.setOnClickListener(null)

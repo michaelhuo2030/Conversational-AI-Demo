@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import io.agora.scene.digitalhuman.R
 import io.agora.scene.digitalhuman.databinding.DigitalAgentInfoDialogBinding
 import io.agora.scene.digitalhuman.rtc.DigitalAgoraManager
 
@@ -34,16 +35,16 @@ class DigitalAgentInfoDialog : DialogFragment() {
             binding.mtvRoomStatus.visibility = View.VISIBLE
             binding.mtvAgentStatus.visibility = View.VISIBLE
             if (isConnected) {
-                binding.mtvRoomStatus.text = getString(io.agora.scene.common.R.string.cov_info_agent_connected)
+                binding.mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
                 binding.mtvRoomStatus.setTextColor(Color.parseColor("#36B37E"))
 
-                binding.mtvAgentStatus.text = getString(io.agora.scene.common.R.string.cov_info_agent_connected)
+                binding.mtvAgentStatus.text = getString(R.string.cov_info_agent_connected)
                 binding.mtvAgentStatus.setTextColor(Color.parseColor("#36B37E"))
             } else {
-                binding.mtvRoomStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_disconnected)
+                binding.mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
                 binding.mtvRoomStatus.setTextColor(Color.parseColor("#FF414D"))
 
-                binding.mtvAgentStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_disconnected)
+                binding.mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
                 binding.mtvAgentStatus.setTextColor(Color.parseColor("#FF414D"))
             }
             binding.mtvRoomId.text = DigitalAgoraManager.channelName

@@ -1,28 +1,23 @@
 package io.agora.scene.convoai.ui
 
-import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.CompoundButton
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.LoadingDialog
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
+import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.http.ConvAIManager
 import io.agora.scene.convoai.rtc.AgentLLMType
 import io.agora.scene.convoai.rtc.AgentLanguageType
-import io.agora.scene.convoai.rtc.AgentMicrophoneType
 import io.agora.scene.convoai.rtc.AgentPresetType
-import io.agora.scene.convoai.rtc.AgentSpeakerType
 import io.agora.scene.convoai.rtc.AgentVoiceType
 import io.agora.scene.convoai.rtc.CovAgoraManager
 
@@ -37,6 +32,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     private var LLMs = AgentLLMType.values()
     private var languages = AgentLanguageType.values()
 
+    private val optionsAdapter = OptionsAdapter()
+
     override fun getViewBinding(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -49,6 +46,9 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         updateOptionsByPresets()
         binding?.apply {
             setOnApplyWindowInsets(root)
+            rcOptions.adapter = optionsAdapter
+            rcOptions.layoutManager = LinearLayoutManager(context)
+
             clPreset.setOnClickListener {
                 onClickPreset()
             }
@@ -96,7 +96,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                     updateAiVadSettings()
                 } else {
                     updateAiVadSettings()
-                    ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
+                    ToastUtil.show(R.string.cov_setting_network_error)
                 }
             }
         } else {
@@ -173,6 +173,13 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             val targetY = (itemLocation[1] - maskLocation[1]) + 30.dp
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
+            val params = cvOptions.layoutParams
+            params.height = (48.dp * presets.size).toInt()
+            cvOptions.layoutParams = params
+            // update options and select action
+            optionsAdapter.updateOptions(presets.map { it.value }.toTypedArray()) { index ->
+                CovAgoraManager.updatePreset(presets[index])
+            }
         }
     }
 
@@ -186,12 +193,52 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             val targetY = (itemLocation[1] - maskLocation[1]) + 30.dp
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
+            val params = cvOptions.layoutParams
+            params.height = (48.dp * languages.size).toInt()
+            cvOptions.layoutParams = params
+            // update options and select action
+            optionsAdapter.updateOptions(languages.map { it.value }.toTypedArray()) { index ->
+
+            }
         }
     }
 
     private fun onClickMaskView() {
         binding?.apply {
             vOptionsMask.visibility = View.GONE
+        }
+    }
+
+    inner class OptionsAdapter : RecyclerView.Adapter<OptionsAdapter.ViewHolder>() {
+
+        private var options: Array<String> = emptyArray()
+        private var listener: ((Int) -> Unit)? = null
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            return ViewHolder(CovSettingOptionItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.bind(options[position])
+            holder.itemView.setOnClickListener {
+                listener?.invoke(position)
+            }
+        }
+
+        override fun getItemCount(): Int {
+            return options.size
+        }
+
+        fun updateOptions(newOptions: Array<String>, newListener: (Int) -> Unit) {
+            options = newOptions
+            listener = newListener
+            notifyDataSetChanged()
+        }
+
+        inner class ViewHolder(private val binding: CovSettingOptionItemBinding) : RecyclerView.ViewHolder(binding.root) {
+            fun bind(option: String) {
+                binding.tvText.text = option
+            }
         }
     }
 }

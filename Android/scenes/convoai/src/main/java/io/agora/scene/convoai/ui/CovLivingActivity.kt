@@ -26,6 +26,7 @@ import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
+import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.http.ConvAIManager
 import io.agora.scene.convoai.ui.CovBallPlayer.SpeedCallback
@@ -134,7 +135,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
-        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
+        loadingDialog?.setMessage(getString(R.string.cov_detail_agent_joining))
         loadingDialog?.show()
         CovAgoraManager.channelName = channelName
         CovAgoraManager.uid = localUid
@@ -148,7 +149,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         } else {
                             loadingDialog?.dismiss()
                             CovLogger.e(TAG, "Token error")
-                            ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
+                            ToastUtil.show(R.string.cov_detail_join_call_failed)
                         }
                     }
                 } else {
@@ -157,19 +158,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 loadingDialog?.dismiss()
                 CovLogger.e(TAG, "Agent error")
-                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
+                ToastUtil.show(R.string.cov_detail_join_call_failed)
             }
         }
     }
 
     private fun onClickEndCall() {
         engine.leaveChannel()
-        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_ending))
+        loadingDialog?.setMessage(getString(R.string.cov_detail_agent_ending))
         loadingDialog?.show()
         ConvAIManager.stopAgent { ok ->
             loadingDialog?.dismiss()
             if (ok) {
-                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
+                ToastUtil.show(R.string.cov_detail_agent_leave)
                 isAgentStarted = false
                 CovAgoraManager.agentStarted = false
                 resetSceneState()
@@ -245,7 +246,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         isAgentStarted = true
                         CovAgoraManager.agentStarted = true
                         loadingDialog?.dismiss()
-                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed)
+                        ToastUtil.show(R.string.cov_detail_join_call_succeed)
                     }
                 }
                 CovLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
@@ -258,12 +259,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         CovLogger.d(TAG, "start agent reconnect")
                         rtcToken = null
                         // reconnect
-                        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
+                        loadingDialog?.setMessage(getString(R.string.cov_detail_agent_joining))
                         loadingDialog?.show()
                         ConvAIManager.startAgent(getAgentParams()) { isAgentOK ->
                             if (!isAgentOK) {
                                 loadingDialog?.dismiss()
-                                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
+                                ToastUtil.show(R.string.cov_detail_agent_leave)
                                 engine.leaveChannel()
                                 isAgentStarted = false
                                 CovAgoraManager.agentStarted = false
