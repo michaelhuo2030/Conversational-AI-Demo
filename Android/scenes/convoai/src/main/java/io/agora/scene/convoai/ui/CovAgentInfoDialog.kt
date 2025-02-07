@@ -1,6 +1,5 @@
 package io.agora.scene.convoai.ui
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,8 +11,6 @@ import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.rtc.CovAgoraManager
 
 class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
-
-    var isConnected = false
 
     private var value: Int = 0
 
@@ -29,53 +26,54 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
         binding?.apply {
             if (!CovAgoraManager.agentStarted) {
                 mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                mtvNetworkStatus.setTextColor(Color.parseColor("#FF414D"))
+                context?.let {
+                    mtvNetworkStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+                }
             } else {
                 updateNetworkStatus(value)
             }
-
             if (CovAgoraManager.agentStarted) {
-                mtvRoomStatus.visibility = View.VISIBLE
-                mtvAgentStatus.visibility = View.VISIBLE
-                if (isConnected) {
+                mtvRoomId.visibility = View.VISIBLE
+                mtvUidValue.visibility = View.VISIBLE
+                context?.let {
                     mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
-                    mtvRoomStatus.setTextColor(Color.parseColor("#36B37E"))
+                    mtvRoomStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
 
                     mtvAgentStatus.text = getString(R.string.cov_info_agent_connected)
-                    mtvAgentStatus.setTextColor(Color.parseColor("#36B37E"))
-                } else {
-                    mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvRoomStatus.setTextColor(Color.parseColor("#FF414D"))
-
-                    mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvAgentStatus.setTextColor(Color.parseColor("#FF414D"))
+                    mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
                 }
                 mtvRoomId.text = CovAgoraManager.channelName
                 mtvUidValue.text = CovAgoraManager.uid.toString()
             } else {
+                context?.let {
+                    mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                    mtvRoomStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+
+                    mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                    mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+                }
                 mtvRoomId.visibility = View.INVISIBLE
                 mtvUidValue.visibility = View.INVISIBLE
-                mtvRoomStatus.visibility = View.INVISIBLE
-                mtvAgentStatus.visibility = View.INVISIBLE
             }
         }
     }
 
     fun updateNetworkStatus(value: Int) {
         this.value = value
+        val context = context ?: return
         binding?.apply {
             when (value) {
                 Constants.QUALITY_EXCELLENT, Constants.QUALITY_GOOD -> {
                     mtvNetworkStatus.text = getString(R.string.cov_info_your_network_good)
-                    mtvNetworkStatus.setTextColor(Color.parseColor("#36B37E"))
+                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_green6))
                 }
                 Constants.QUALITY_POOR, Constants.QUALITY_BAD -> {
                     mtvNetworkStatus.text = getString(R.string.cov_info_your_network_medium)
-                    mtvNetworkStatus.setTextColor(Color.parseColor("#FFAB00"))
+                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_yellow6))
                 }
                 else -> {
                     mtvNetworkStatus.text = getString(R.string.cov_info_your_network_poor)
-                    mtvNetworkStatus.setTextColor(Color.parseColor("#FF414D"))
+                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
                 }
             }
         }

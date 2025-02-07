@@ -2,9 +2,11 @@ package io.agora.scene.convoai.ui
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.util.Log
 import android.view.TextureView
 import android.view.View
+import androidx.core.content.ContextCompat
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
@@ -391,19 +393,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             when (value) {
                 1, 2 -> {
-//                    btnInfo.setColorFilter(ContextCompat.getColor(this, R.color.my_tint_color), PorterDuff.Mode.SRC_IN)
+                    btnInfo.setColorFilter(this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
                 }
-
                 3, 4 -> {
-                    btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
+                    btnInfo.setColorFilter(this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_yellow6), PorterDuff.Mode.SRC_IN)
                 }
-
                 else -> {
-                    btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
+                    btnInfo.setColorFilter(this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_red6), PorterDuff.Mode.SRC_IN)
                 }
             }
         }
-
     }
 
     private fun setupView() {
