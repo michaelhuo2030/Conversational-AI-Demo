@@ -1,12 +1,8 @@
 package io.agora.scene.convoai.ui
 
-import android.animation.Animator
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.SurfaceTexture
-import android.media.MediaPlayer
 import android.util.Log
-import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import io.agora.scene.common.AgentApp
@@ -32,7 +28,7 @@ import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.http.ConvAIManager
-import java.io.File
+import io.agora.scene.convoai.ui.CovBallPlayer.SpeedCallback
 import kotlin.random.Random
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
@@ -50,7 +46,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var channelName = ""
     private var localUid: Int = 0
     private val agentUID = 999
-    private var networkStatus: Int? = null
     private var isShowMessageList = false
         set(value) {
             if (field != value) {
@@ -67,12 +62,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         }
 
-    private var ballMediaPlayer: MediaPlayer? = null
-
-    private val videoRootPath by lazy {
-        filesDir.absolutePath + File.separator
-    }
-
+    private var mCovBallPlayer: CovBallPlayer? = null
     private var mCovBallAnim: CovBallAnim? = null
 
     override fun getViewBinding(): CovActivityLivingBinding {
@@ -85,7 +75,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // data
         CovAgoraManager.resetData()
         createRtcEngine()
-        createMediaPlayer()
+        setupBallPlayer()
         loadingDialog = LoadingDialog(this)
         channelName = "agora_" + Random.nextInt(1, 10000000).toString()
         localUid = Random.nextInt(1000, 10000000)
@@ -109,11 +99,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         RtcEngine.destroy()
         CovAgoraManager.resetData()
         loadingDialog?.dismiss()
-        ballMediaPlayer?.apply {
-            stop()
-            release()
+        mCovBallPlayer?.let {
+            it.release()
+            mCovBallPlayer = null
         }
-        ballMediaPlayer = null
+        mCovBallAnim?.let {
+            it.release()
+            mCovBallAnim = null
+        }
     }
 
     override fun onPause() {
@@ -178,7 +171,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             if (ok) {
                 ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
                 isAgentStarted = false
-                networkStatus = null
                 CovAgoraManager.agentStarted = false
                 resetSceneState()
             } else {
@@ -396,7 +388,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun updateNetworkStatus(value: Int) {
-        networkStatus = value
         mBinding?.apply {
             when (value) {
                 1, 2 -> {
@@ -445,73 +436,29 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 onClickStartAgent()
             }
             mCovBallAnim = CovBallAnim(videoCardView).apply {
-                animatorListener = object : Animator.AnimatorListener {
-                    override fun onAnimationStart(animation: Animator) {
-                        val playbackParams = ballMediaPlayer?.playbackParams ?: return
-                        playbackParams.setSpeed(2.0f)
-                        ballMediaPlayer?.playbackParams = playbackParams
+                animCallback = object : BallAnimCallback {
+                    override fun onAnimationStart() {
+                        mCovBallPlayer?.setSpeed(2.0f)
                     }
 
-                    override fun onAnimationEnd(animation: Animator) {
-                        val playbackParams = ballMediaPlayer?.playbackParams ?: return
-                        playbackParams.setSpeed(0.7f)
-                        ballMediaPlayer?.playbackParams = playbackParams
+                    override fun onAnimationEnd() {
+                        mCovBallPlayer?.setSpeed(0.7f)
                     }
-
-                    override fun onAnimationCancel(animation: Animator) {
-                    }
-
-                    override fun onAnimationRepeat(animation: Animator) {
-                    }
-
                 }
             }
         }
     }
 
-    private fun createMediaPlayer() {
-        val binding = mBinding ?: return
-
-        ballMediaPlayer = MediaPlayer()
-
-        // 创建 TextureView
-        val ballSurfaceView = TextureView(this)
-        binding.videoContainer.addView(ballSurfaceView)
-
-        // 设置 Surface 监听
-        ballSurfaceView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-            override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-                ballMediaPlayer?.setSurface(Surface(surface))
-                playBallVideo()
-            }
-
-            override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
-
-            override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-                return true
-            }
-
-            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
-        }
-    }
-
-    private fun playBallVideo() {
-        try {
-            ballMediaPlayer?.apply {
-                reset()
-                setDataSource(videoRootPath + "ball_small_video.mov")
-                // 添加准备完成监听器
-                setOnPreparedListener { mp ->
-                    mp.isLooping = true
-                    mp.start()
+    private fun setupBallPlayer() {
+        val surfaceView = TextureView(this)
+        mBinding?.videoContainer?.addView(surfaceView)
+        mCovBallPlayer = CovBallPlayer(this).apply {
+            create(surfaceView)
+            speedCallback = object : SpeedCallback{
+                override fun onSpeedChanged(speed: Float) {
+                   CovLogger.d(TAG,"mediaPlayer onSpeedChanged:$speed")
                 }
-                prepareAsync() // 异步准备，避免阻塞主线程
-                val playbackParams = ballMediaPlayer?.playbackParams ?: return
-                playbackParams.setSpeed(0.7f)
-                ballMediaPlayer?.playbackParams = playbackParams
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 }

@@ -7,74 +7,120 @@ import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 
-class CovBallAnim constructor(val view:View) {
+interface BallAnimCallback {
+    fun onAnimationStart()
+    fun onAnimationEnd()
+}
+
+class CovBallAnim constructor(private val view: View) {
+    companion object {
+        private const val MIN_VOLUME = 0
+        private const val MAX_VOLUME = 255
+        private const val HIGH_VOLUME = 200
+        private const val MEDIUM_VOLUME = 150
+        private const val LOW_VOLUME = 100
+
+        // 缩放范围常量
+        private const val SCALE_HIGH = 0.9f
+        private const val SCALE_MEDIUM = 0.94f
+        private const val SCALE_LOW = 0.96f
+
+        // 动画时长常量
+        private const val DURATION_HIGH = 200L
+        private const val DURATION_MEDIUM = 300L
+        private const val DURATION_LOW = 400L
+    }
 
     private var sizeAnimator: Animator? = null
-    private var isAgentStop = false
+    var animCallback: BallAnimCallback? = null
 
-    var animatorListener:Animator.AnimatorListener?=null
-
-    fun startAgentSpeaker(currentVolume:Int) {
-        if (sizeAnimator?.isStarted == true) {
-            // 如果动画正在运行，只需要更新状态
-            isAgentStop = false
-            return
+    private enum class AnimState {
+        IDLE, RUNNING, STOPPING
+    }
+    private var currentState = AnimState.IDLE
+        private set(value) {
+            if (field != value) {
+                field = value
+                when (value) {
+                    AnimState.RUNNING -> animCallback?.onAnimationStart()
+                    AnimState.IDLE -> animCallback?.onAnimationEnd()
+                    else -> {} // STOPPING 状态不触发回调
+                }
+            }
         }
-        // 开始新动画
-        isAgentStop = false
-        startSizeAnimation(currentVolume)
+
+    // 将动画参数计算抽取为单独的方法
+    private fun calculateAnimationParams(volume: Int): AnimParams {
+        val safeVolume = volume.coerceIn(MIN_VOLUME, MAX_VOLUME)
+        return AnimParams(
+            minScale = calculateMinScale(safeVolume),
+            duration = calculateDuration(safeVolume)
+        )
+    }
+    
+    private data class AnimParams(
+        val minScale: Float,
+        val duration: Long
+    )
+
+    private fun calculateMinScale(volume: Int): Float {
+        return when {
+            volume > HIGH_VOLUME -> SCALE_HIGH
+            volume > MEDIUM_VOLUME -> SCALE_MEDIUM
+            volume > LOW_VOLUME -> SCALE_LOW
+            else -> SCALE_LOW
+        }
+    }
+
+    private fun calculateDuration(volume: Int): Long {
+        return when {
+            volume > HIGH_VOLUME -> DURATION_HIGH
+            volume > MEDIUM_VOLUME -> DURATION_MEDIUM
+            volume > LOW_VOLUME -> DURATION_LOW
+            else -> DURATION_LOW
+        }
+    }
+
+    fun startAgentSpeaker(currentVolume: Int) {
+        when (currentState) {
+            AnimState.RUNNING -> return
+            AnimState.STOPPING -> currentState = AnimState.RUNNING
+            AnimState.IDLE -> startSizeAnimation(currentVolume)
+        }
     }
 
     fun stopAgentSpeaker() {
-        if (sizeAnimator?.isStarted == true) {
-            isAgentStop = true
-        } else {
-            sizeAnimator?.cancel()
+        when (currentState) {
+            AnimState.RUNNING -> currentState = AnimState.STOPPING
+            AnimState.STOPPING -> {} // 已经在停止中
+            AnimState.IDLE -> {} // 已经停止
         }
     }
 
-    private fun startSizeAnimation(currentVolume:Int) {
+    private fun startSizeAnimation(currentVolume: Int) {
+        val params = calculateAnimationParams(currentVolume)
         sizeAnimator?.cancel()
-        // 根据音量(0-255)计算缩放范围
-        val minScale = when {
-            currentVolume > 200 -> 0.9f  // 音量很大 (200-255)
-            currentVolume > 150 -> 0.94f  // 音量大 (150-200)
-            currentVolume > 100 -> 0.94f  // 音量中等 (100-150)
-            currentVolume > 50 -> 0.96f   // 音量小 (50-100)
-            else -> 0.96f                 // 音量很小 (0-50)
-        }
-
-        // 根据音量调整动画速度
-        val baseDuration = when {
-            currentVolume > 200 -> 250L   // 最快
-            currentVolume > 150 -> 300L   // 较快
-            currentVolume > 100 -> 350L   // 中速
-            currentVolume > 50 -> 400L    // 较慢
-            else -> 450L                  // 最慢
-        }
-
-        // 创建四段动画
-        val anim1 = ValueAnimator.ofFloat(1f, minScale).apply {
-            duration = baseDuration
+        
+        val anim1 = ValueAnimator.ofFloat(1f, params.minScale).apply {
+            duration = params.duration
             interpolator = DecelerateInterpolator()
         }
 
-        val anim2 = ValueAnimator.ofFloat(minScale, minScale + 0.03f).apply {
-            duration = baseDuration / 3
+        val anim2 = ValueAnimator.ofFloat(params.minScale, params.minScale + 0.03f).apply {
+            duration = params.duration / 3
             interpolator = AccelerateInterpolator()
         }
 
-        val anim3 = ValueAnimator.ofFloat(minScale + 0.03f, minScale).apply {
-            duration = baseDuration / 3
+        val anim3 = ValueAnimator.ofFloat(params.minScale + 0.03f, params.minScale).apply {
+            duration = params.duration / 3
             interpolator = DecelerateInterpolator()
         }
 
-        val anim4 = ValueAnimator.ofFloat(minScale, 1f).apply {
-            duration = baseDuration
+        val anim4 = ValueAnimator.ofFloat(params.minScale, 1f).apply {
+            duration = params.duration
             interpolator = AccelerateInterpolator()
         }
 
-        // 为所有动画添加更新监听
         val updateListener = ValueAnimator.AnimatorUpdateListener { animator ->
             val scale = animator.animatedValue as Float
             view.apply {
@@ -88,49 +134,47 @@ class CovBallAnim constructor(val view:View) {
         anim3.addUpdateListener(updateListener)
         anim4.addUpdateListener(updateListener)
 
-        // 创建动画集合
         val animatorSet = AnimatorSet().apply {
             playSequentially(anim1, anim2, anim3, anim4)
             addListener(object : Animator.AnimatorListener {
                 override fun onAnimationStart(animation: Animator) {
-                    animatorListener?.onAnimationStart(animation)
+                    currentState = AnimState.RUNNING
                 }
 
                 override fun onAnimationEnd(animation: Animator) {
-                    if (!isAgentStop) {
-                        start()
-                    } else {
-                        view.apply {
-                            scaleX = 1f
-                            scaleY = 1f
+                    when (currentState) {
+                        AnimState.RUNNING -> start() // 继续播放
+                        AnimState.STOPPING -> {
+                            resetViewScale()
+                            currentState = AnimState.IDLE
                         }
-                        isAgentStop = false
-                        animatorListener?.onAnimationEnd(animation)
+                        AnimState.IDLE -> {} // 不应该发生
                     }
                 }
 
                 override fun onAnimationCancel(animation: Animator) {
-                    view.apply {
-                        scaleX = 1f
-                        scaleY = 1f
-                    }
-                    isAgentStop = false
+                    resetViewScale()
+                    currentState = AnimState.IDLE
                 }
 
                 override fun onAnimationRepeat(animation: Animator) {}
             })
         }
-
-        // 根据音量调整视频播放速度
-//        val playbackSpeed = when {
-//            currentVolume > 200 -> 3.0f    // 音量很大
-//            currentVolume > 120 -> 2.0f   // 音量大
-////            currentVolume > 80 -> 160    // 音量中等
-////            currentVolume > 50 -> 10     // 音量小
-//            else -> 1.0f                  // 音量很小
-//        }
-
         sizeAnimator = animatorSet
         animatorSet.start()
+    }
+
+    private fun resetViewScale() {
+        view.apply {
+            scaleX = 1f
+            scaleY = 1f
+        }
+    }
+
+    fun release() {
+        sizeAnimator?.cancel()
+        sizeAnimator = null
+        animCallback = null
+        currentState = AnimState.IDLE
     }
 }
