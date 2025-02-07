@@ -6,17 +6,6 @@ import android.graphics.PorterDuff
 import android.util.Log
 import android.view.TextureView
 import android.view.View
-import io.agora.scene.common.AgentApp
-import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.net.AgoraTokenType
-import io.agora.scene.common.net.TokenGenerator
-import io.agora.scene.common.net.TokenGeneratorType
-import io.agora.scene.common.ui.BaseActivity
-import io.agora.scene.common.ui.LoadingDialog
-import io.agora.scene.common.util.PermissionHelp
-import io.agora.scene.convoai.http.AgentRequestParams
-import io.agora.scene.convoai.rtc.CovAgoraManager
-import io.agora.scene.convoai.utils.MessageParser
 import io.agora.rtc2.ChannelMediaOptions
 import io.agora.rtc2.Constants
 import io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
@@ -25,13 +14,25 @@ import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
+import io.agora.scene.common.AgentApp
+import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.net.AgoraTokenType
+import io.agora.scene.common.net.TokenGenerator
+import io.agora.scene.common.net.TokenGeneratorType
+import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.ui.LoadingDialog
+import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
+import io.agora.scene.convoai.http.AgentRequestParams
 import io.agora.scene.convoai.http.ConvAIManager
+import io.agora.scene.convoai.rtc.CovAgoraManager
 import io.agora.scene.convoai.ui.CovBallPlayer.SpeedCallback
+import io.agora.scene.convoai.utils.MessageParser
 import kotlin.random.Random
+
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
@@ -295,9 +296,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         0 -> {
                             runOnUiThread {
                                 if (it.volume > 50) {
+                                    // todo  0～10000
+                                    mBinding?.btnMic?.setImageLevel(it.volume*50)
                                     mCovBallAnim?.startUserSpeaker()
                                 } else {
                                     mCovBallAnim?.stopAgentSpeaker()
+                                    mBinding?.btnMic?.setImageLevel(0)
                                 }
                             }
                         }
