@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center_vertical"
-        android:text="@string/cov_channel_info_title"
+        android:text="@string/digital_channel_info_title"
         android:textColor="#4DFFFFFF"
         android:textSize="14sp"
         android:textStyle="bold"
@@ -67,7 +67,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
                 android:gravity="center"
-                android:text="@string/cov_info_agent_status"
+                android:text="@string/digital_info_agent_status"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -79,7 +79,7 @@
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical|end"
-                android:text="@string/cov_info_agent_connected"
+                android:text="@string/digital_info_agent_connected"
                 android:textColor="#36B37E"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -99,7 +99,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
                 android:gravity="center"
-                android:text="@string/cov_info_room_status"
+                android:text="@string/digital_info_room_status"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp" />
 
@@ -110,7 +110,7 @@
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical|end"
-                android:text="@string/cov_info_agent_connected"
+                android:text="@string/digital_info_agent_connected"
                 android:textColor="#36B37E"
                 android:textSize="16sp" />
         </LinearLayout>
@@ -129,7 +129,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
                 android:gravity="center"
-                android:text="@string/cov_info_room_id"
+                android:text="@string/digital_info_room_id"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp" />
 
@@ -160,7 +160,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
                 android:gravity="center"
-                android:text="@string/cov_info_your_id"
+                android:text="@string/digital_info_your_id"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp" />
 
