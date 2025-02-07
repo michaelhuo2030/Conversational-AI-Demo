@@ -281,13 +281,24 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             ) {
                 super.onAudioVolumeIndication(speakers, totalVolume)
                 speakers?.forEach {
-                    if (it.uid == agentUID) {
-                        runOnUiThread {
-                            // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
-                            if (it.volume > 30) {
-                                mCovBallAnim?.startAgentSpeaker(it.volume)
-                            } else {
-                                mCovBallAnim?.stopAgentSpeaker()
+                    when (it.uid) {
+                        agentUID -> {
+                            runOnUiThread {
+                                // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
+                                if (it.volume > 30) {
+                                    mCovBallAnim?.startAgentSpeaker(it.volume)
+                                } else {
+                                    mCovBallAnim?.stopAgentSpeaker()
+                                }
+                            }
+                        }
+                        0 -> {
+                            runOnUiThread {
+                                if (it.volume > 50) {
+                                    mCovBallAnim?.startUserSpeaker()
+                                } else {
+                                    mCovBallAnim?.stopAgentSpeaker()
+                                }
                             }
                         }
                     }
@@ -454,7 +465,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             create(surfaceView)
             speedCallback = object : SpeedCallback{
                 override fun onSpeedChanged(speed: Float) {
-                   CovLogger.d(TAG,"mediaPlayer onSpeedChanged:$speed")
+//                   CovLogger.d(TAG,"mediaPlayer onSpeedChanged:$speed")
                 }
             }
         }

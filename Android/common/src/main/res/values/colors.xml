@@ -34,4 +34,8 @@
     <color name="ai_yellow6">#ffffc700</color>
     <color name="ai_brand_lightbrand6">#ffa0faff</color>
     <color name="ai_line3">#19ffffff</color>
+    <array name="gradient_border_default_colors">
+        <item>#FF00C2FF</item>
+        <item>#19FFFFFF</item>
+    </array>
 </resources>
