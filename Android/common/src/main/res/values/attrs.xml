@@ -3,4 +3,9 @@
         <attr name="horizontalSpacing" format="dimension" />
         <attr name="barWidth" format="dimension" />
     </declare-styleable>
+    <declare-styleable name="GradientBorderView">
+        <attr name="borderWidth" format="dimension"/>
+        <attr name="cornerRadius" format="dimension"/>
+        <attr name="gradientColors" format="reference"/>
+    </declare-styleable>
 </resources> 

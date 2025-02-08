@@ -33,6 +33,7 @@ import io.agora.scene.convoai.http.ConvAIManager
 import io.agora.scene.convoai.ui.CovBallPlayer.SpeedCallback
 import kotlin.random.Random
 
+
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val TAG = "LivingActivity"
@@ -128,8 +129,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun startRecordingService() {
-        val intent = Intent("io.agora.agent.START_FOREGROUND_SERVICE")
-        sendBroadcast(intent)
+        val intent = Intent(this, CovRtcForegroundService::class.java)
+        startForegroundService(intent)
     }
 
     private fun getAgentParams(): AgentRequestParams {
@@ -290,13 +291,27 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             ) {
                 super.onAudioVolumeIndication(speakers, totalVolume)
                 speakers?.forEach {
-                    if (it.uid == agentUID) {
-                        runOnUiThread {
-                            // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
-                            if (it.volume > 30) {
-                                mCovBallAnim?.startAgentSpeaker(it.volume)
-                            } else {
-                                mCovBallAnim?.stopAgentSpeaker()
+                    when (it.uid) {
+                        agentUID -> {
+                            runOnUiThread {
+                                // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
+                                if (it.volume > 30) {
+                                    mCovBallAnim?.startAgentSpeaker(it.volume)
+                                } else {
+                                    mCovBallAnim?.stopAgentSpeaker()
+                                }
+                            }
+                        }
+                        0 -> {
+                            runOnUiThread {
+                                if (it.volume > 50) {
+                                    // todo  0～10000
+                                    mBinding?.btnMic?.setImageLevel(it.volume*50)
+                                    mCovBallAnim?.startUserSpeaker()
+                                } else {
+                                    mCovBallAnim?.stopAgentSpeaker()
+                                    mBinding?.btnMic?.setImageLevel(0)
+                                }
                             }
                         }
                     }
@@ -475,7 +490,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             create(surfaceView)
             speedCallback = object : SpeedCallback{
                 override fun onSpeedChanged(speed: Float) {
-                   CovLogger.d(TAG,"mediaPlayer onSpeedChanged:$speed")
+//                   CovLogger.d(TAG,"mediaPlayer onSpeedChanged:$speed")
                 }
             }
         }

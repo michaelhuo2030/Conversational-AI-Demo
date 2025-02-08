@@ -133,8 +133,8 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
     }
 
     private fun startRecordingService() {
-        val intent = Intent("io.agora.agent.START_FOREGROUND_SERVICE")
-        sendBroadcast(intent)
+        val intent = Intent(this, DigitalRtcForegroundService::class.java)
+        startForegroundService(intent)
     }
 
     private var startAgentSuccess = false

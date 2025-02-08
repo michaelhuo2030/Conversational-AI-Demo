@@ -7,5 +7,9 @@
             android:exported="false"
             android:keepScreenOn="true"
             android:screenOrientation="portrait" />
+
+        <service
+            android:name=".ui.DigitalRtcForegroundService"
+            android:foregroundServiceType="microphone|camera|mediaPlayback" />
     </application>
 </manifest>

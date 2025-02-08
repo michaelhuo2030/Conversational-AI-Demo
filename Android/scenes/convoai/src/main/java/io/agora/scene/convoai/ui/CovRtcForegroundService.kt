@@ -1,4 +1,4 @@
-package io.agora.agent
+package io.agora.scene.convoai.ui
 
 import android.util.Log
 import android.app.Notification
@@ -11,13 +11,12 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import io.agora.scene.convoai.ui.CovLivingActivity
 import io.agora.scene.common.R
 
-class RtcForegroundService : Service() {
+class CovRtcForegroundService : Service() {
 
-    private val TAG = "RtcForegroundService"
-    private val CHANNEL_ID = "RtcForegroundServiceChannel"
+    private val TAG = "CovRtcForegroundService"
+    private val CHANNEL_ID = "CovRtcForegroundServiceChannel"
     private val NOTIFICATION_ID = 1
 
     override fun onCreate() {
@@ -65,7 +64,7 @@ class RtcForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(io.agora.agent.R.string.app_name))
+            .setContentTitle(getString(io.agora.scene.convoai.R.string.cov_detail_agent_title))
             .setContentText("Audio recording in background")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)

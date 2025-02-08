@@ -115,6 +115,25 @@
         <include
             android:id="@+id/v_not_joined"
             layout="@layout/cov_not_joined_view" />
+
+        <io.agora.scene.common.ui.widget.GradientBorderView
+            android:id="@+id/gradientConnecting"
+            android:layout_width="108dp"
+            android:layout_height="39dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="30dp"
+            app:borderWidth="2dp"
+            app:cornerRadius="99dp"
+            app:gradientColors="@array/gradient_border_default_colors">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:text="Connecting..." />
+        </io.agora.scene.common.ui.widget.GradientBorderView>
     </FrameLayout>
 
     <FrameLayout
@@ -152,7 +171,7 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:background="@drawable/btn_ai_block1_round"
-                android:src="@drawable/scene_detail_microphone" />
+                android:src="@drawable/agent_user_speaker" />
 
             <Space
                 android:layout_width="0dp"
