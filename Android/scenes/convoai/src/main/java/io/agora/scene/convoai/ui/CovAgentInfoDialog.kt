@@ -1,5 +1,6 @@
 package io.agora.scene.convoai.ui
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +11,7 @@ import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.rtc.CovAgoraManager
 
-class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
+class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<CovInfoDialogBinding>() {
 
     private var value: Int = 0
 
@@ -19,6 +20,11 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
         container: ViewGroup?
     ): CovInfoDialogBinding {
         return CovInfoDialogBinding.inflate(inflater, container, false)
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onDismiss.invoke()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -54,6 +60,9 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
                 }
                 mtvRoomId.visibility = View.INVISIBLE
                 mtvUidValue.visibility = View.INVISIBLE
+            }
+            btnClose.setOnClickListener {
+                dismiss()
             }
         }
     }

@@ -35,7 +35,7 @@
     <string name="cov_setting_advanced_settings">Advanced Settings</string>
     <string name="cov_setting_microphone">Microphone</string>
     <string name="cov_setting_speaker">Speaker</string>
-    <string name="cov_setting_noise_cancellation">Noise Cancellation</string>
+    <string name="cov_setting_noise_cancellation">Background Human Voice Suppression</string>
     <string name="cov_setting_ai_vad">AI VAD</string>
     <string name="cov_setting_ai_vad_info">根据语义判断用户是否想打断AI</string>
     <string name="cov_setting_force_response">Force Response</string>

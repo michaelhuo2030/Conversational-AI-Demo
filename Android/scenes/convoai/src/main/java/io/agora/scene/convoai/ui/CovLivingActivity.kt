@@ -6,7 +6,6 @@ import android.graphics.PorterDuff
 import android.util.Log
 import android.view.TextureView
 import android.view.View
-import androidx.core.content.ContextCompat
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
@@ -42,9 +41,18 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private var loadingDialog: LoadingDialog? = null
 
+    private var infoDialog: CovAgentInfoDialog? = null
+    private var networkValue: Int = 0
+
     private var parser = MessageParser()
 
     private var isLocalAudioMuted = false
+        set(value) {
+            if (field != value) {
+                field = value
+                updateMicrophoneView()
+            }
+        }
     private var rtcToken: String? = null
     private var channelName = ""
     private var localUid: Int = 0
@@ -238,7 +246,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onLeaveChannel(stats: RtcStats?) {
                 CovLogger.d(TAG, "local user didLeaveChannel")
                 runOnUiThread {
-                    updateNetworkStatus(0)
+                    updateNetworkStatus(1)
                 }
             }
 
@@ -389,7 +397,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
+    private fun updateMicrophoneView() {
+        mBinding?.apply {
+            if (isLocalAudioMuted) {
+                btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone)
+            } else {
+                btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
+            }
+        }
+    }
+
     private fun updateNetworkStatus(value: Int) {
+        networkValue = value
+        infoDialog?.updateNetworkStatus(value)
         mBinding?.apply {
             when (value) {
                 1, 2 -> {
@@ -417,9 +437,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             btnMic.setOnClickListener {
                 isLocalAudioMuted = !isLocalAudioMuted
                 engine.adjustRecordingSignalVolume(if (isLocalAudioMuted) 0 else 100)
-                btnMic.setImageResource(
-                    if (isLocalAudioMuted) io.agora.scene.common.R.drawable.app_living_mic_off else io.agora.scene.common.R.drawable.scene_detail_microphone0
-                )
             }
             btnSettings.setOnClickListener {
                 CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
@@ -428,8 +445,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 isShowMessageList = !isShowMessageList
             }
             btnInfo.setOnClickListener {
-                CovAgentInfoDialog().apply {
-                }.show(supportFragmentManager, "StatsDialog")
+                infoDialog = CovAgentInfoDialog {
+                    infoDialog = null
+                }
+                infoDialog?.updateNetworkStatus(networkValue)
+                infoDialog?.show(supportFragmentManager, "InfoDialog")
             }
             llJoinCall.setOnClickListener {
                 onClickStartAgent()
