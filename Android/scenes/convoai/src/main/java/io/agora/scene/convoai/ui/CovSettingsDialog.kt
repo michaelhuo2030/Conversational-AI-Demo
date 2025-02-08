@@ -15,6 +15,7 @@ import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.http.ConvAIManager
+import io.agora.scene.convoai.rtc.AgentConnectionState
 import io.agora.scene.convoai.rtc.AgentLLMType
 import io.agora.scene.convoai.rtc.AgentLanguageType
 import io.agora.scene.convoai.rtc.AgentPresetType
@@ -79,11 +80,12 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
         updateBaseSettings()
         updateAiVadSettings()
+        updatePageEnable()
     }
 
     private fun uploadNewSetting(voice: AgentVoiceType? = null, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
         val context = context?:return
-        if (CovAgoraManager.agentStarted) {
+        if (CovAgoraManager.connectionState == AgentConnectionState.CONNECTED) {
             val loadingDialog = LoadingDialog(context).apply {
                 show()
             }
@@ -110,7 +112,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     private fun updateAiVadSettings() {
         binding?.apply {
             // ai vad
-            if (CovAgoraManager.agentStarted) {
+            if (CovAgoraManager.connectionState == AgentConnectionState.CONNECTED) {
                 clAiVad.visibility = View.GONE
                 clForceResponse.visibility = View.GONE
             } else {
@@ -128,8 +130,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun updateBaseSettings() {
         binding?.apply {
-            tvPreset.text = CovAgoraManager.currentPresetType().value
-            tvLanguage.text = CovAgoraManager.languageType.value
+            tvPresetDetail.text = CovAgoraManager.currentPresetType().value
+            tvLanguageDetail.text = CovAgoraManager.languageType.value
         }
     }
 
@@ -159,6 +161,35 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 voices = arrayOf(AgentVoiceType.EMMA)
                 LLMs = arrayOf(AgentLLMType.OPEN_AI)
                 languages = arrayOf(AgentLanguageType.EN)
+            }
+        }
+    }
+
+    private fun updatePageEnable() {
+        val context = context ?: return
+        if (CovAgoraManager.connectionState == AgentConnectionState.CONNECTED) {
+            binding?.apply {
+                tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                clPreset.isEnabled = false
+                clLanguage.isEnabled = false
+                cbNoiseCancellation.isEnabled = false
+                cbAiVad.isEnabled = false
+                cbForceResponse.isEnabled = false
+            }
+        } else {
+            binding?.apply {
+                tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
+                tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
+                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
+                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
+                clPreset.isEnabled = true
+                clLanguage.isEnabled = true
+                cbNoiseCancellation.isEnabled = true
+                cbAiVad.isEnabled = true
+                cbForceResponse.isEnabled = true
             }
         }
     }
@@ -205,7 +236,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun onClickMaskView() {
         binding?.apply {
-            vOptionsMask.visibility = View.GONE
+            vOptionsMask.visibility = View.INVISIBLE
         }
     }
 

@@ -9,6 +9,7 @@ import io.agora.rtc2.Constants
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovInfoDialogBinding
+import io.agora.scene.convoai.rtc.AgentConnectionState
 import io.agora.scene.convoai.rtc.CovAgoraManager
 
 class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<CovInfoDialogBinding>() {
@@ -30,36 +31,53 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding?.apply {
-            if (!CovAgoraManager.agentStarted) {
-                mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                context?.let {
-                    mtvNetworkStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
-                }
-            } else {
-                updateNetworkStatus(value)
-            }
-            if (CovAgoraManager.agentStarted) {
-                mtvRoomId.visibility = View.VISIBLE
-                mtvUidValue.visibility = View.VISIBLE
-                context?.let {
-                    mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
-                    mtvRoomStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
+            when (CovAgoraManager.connectionState) {
+                AgentConnectionState.IDLE -> {
+                    context?.let {
+                        mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                        mtvNetworkStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
 
-                    mtvAgentStatus.text = getString(R.string.cov_info_agent_connected)
-                    mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
-                }
-                mtvRoomId.text = CovAgoraManager.channelName
-                mtvUidValue.text = CovAgoraManager.uid.toString()
-            } else {
-                context?.let {
-                    mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvRoomStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+                        mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                        mtvRoomStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
 
-                    mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+                        mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                        mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+
+                        mtvRoomId.text = getString(R.string.cov_info_empty)
+                        mtvUidValue.text = getString(R.string.cov_info_empty)
+                    }
                 }
-                mtvRoomId.visibility = View.INVISIBLE
-                mtvUidValue.visibility = View.INVISIBLE
+                AgentConnectionState.CONNECTING -> {
+                    context?.let {
+                        mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                        mtvNetworkStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+
+                        mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                        mtvNetworkStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+
+                        mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                        mtvRoomStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+
+                        mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                        mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
+
+                        mtvRoomId.text = CovAgoraManager.channelName
+                        mtvUidValue.text = CovAgoraManager.uid.toString()
+                    }
+                }
+                AgentConnectionState.CONNECTED -> {
+                    context?.let {
+                        updateNetworkStatus(value)
+                        mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
+                        mtvRoomStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
+
+                        mtvAgentStatus.text = getString(R.string.cov_info_agent_connected)
+                        mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
+
+                        mtvRoomId.text = CovAgoraManager.channelName
+                        mtvUidValue.text = CovAgoraManager.uid.toString()
+                    }
+                }
             }
             btnClose.setOnClickListener {
                 dismiss()

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="429dp"
+    android:layout_height="456dp"
     android:background="@drawable/bottom_dialog_bg"
     tools:theme="@style/Theme.AppCompat">
 
@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="26dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/cov_setting_title"
                 android:textColor="@color/ai_icontext1"
                 android:textSize="14sp"
@@ -194,19 +194,32 @@
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp">
+                    android:layout_height="72dp">
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tv_noise_cancellation"
+                        android:id="@+id/tv_bhvs"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:text="@string/cov_setting_noise_cancellation"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/cov_setting_bhvs"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_bhvs_info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="10dp"
+                        android:text="@string/cov_setting_bhvs_info"
+                        android:textColor="@color/ai_icontext3"
+                        android:textSize="12sp"
+                        app:layout_constraintEnd_toStartOf="@+id/cb_noise_cancellation"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tv_bhvs" />
 
                     <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/cb_noise_cancellation"
@@ -237,7 +250,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="18dp"
                         android:text="@string/cov_setting_ai_vad"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
@@ -252,9 +265,8 @@
                         android:text="@string/cov_setting_ai_vad_info"
                         android:textColor="@color/ai_icontext3"
                         android:textSize="12sp"
-                        app:layout_constraintTop_toBottomOf="@+id/tv_ai_vad"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/tv_ai_vad" />
 
                     <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/cb_ai_vad"
@@ -320,7 +332,7 @@
         android:id="@+id/v_options_mask"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="invisible">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_options"

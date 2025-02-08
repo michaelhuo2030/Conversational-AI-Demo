@@ -132,3 +132,9 @@ enum class AgentMicrophoneType(val value: String) {
 enum class AgentSpeakerType(val value: String) {
     SPEAKER1("BoseFlex")
 }
+
+enum class AgentConnectionState() {
+    IDLE,
+    CONNECTING,
+    CONNECTED,
+}

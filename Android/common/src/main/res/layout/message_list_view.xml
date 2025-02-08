@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingHorizontal="20dp"
-    android:paddingBottom="20dp">
+    android:paddingBottom="20dp"
+    android:background="#D9121212">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_messages"

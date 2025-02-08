@@ -16,6 +16,7 @@
     <string name="cov_info_agent_connected">已连接</string>
     <string name="cov_info_room_status">房间状态</string>
     <string name="cov_info_room_id">房间ID</string>
+    <string name="cov_info_empty">--</string>
     <string name="cov_info_participant_id">参与者ID</string>
     <string name="cov_info_your_id">您的ID</string>
     <string name="cov_info_your_network">您的网络</string>
@@ -35,8 +36,9 @@
     <string name="cov_setting_advanced_settings">高级设置</string>
     <string name="cov_setting_microphone">麦克风</string>
     <string name="cov_setting_speaker">扬声器</string>
-    <string name="cov_setting_noise_cancellation">背景人声消除</string>
-    <string name="cov_setting_ai_vad">AI VAD</string>
+    <string name="cov_setting_bhvs">启用BHVS</string>
+    <string name="cov_setting_bhvs_info">背景人声抑制，屏蔽背景人声干扰，保留对话人清晰人声</string>
+    <string name="cov_setting_ai_vad">启用AI-VAD</string>
     <string name="cov_setting_ai_vad_info">根据语义判断用户是否想打断AI</string>
     <string name="cov_setting_force_response">Force Response</string>
     <string name="cov_setting_network_error">请求失败：</string>
