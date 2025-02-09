@@ -2,6 +2,7 @@ package io.agora.scene.convoai.ui
 
 import android.content.Intent
 import android.graphics.PorterDuff
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import io.agora.scene.common.ui.BaseActivity
@@ -10,6 +11,7 @@ import io.agora.scene.convoai.manager.CovRtcManager
 import io.agora.scene.convoai.utils.MessageParser
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
+import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
@@ -247,6 +249,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 CovLogger.d(TAG, "remote user onUserOffline uid: $uid")
                 if (uid == CovAgentManager.agentUID) {
                     runOnUiThread {
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC, 0)
                         CovLogger.d(TAG, "start agent reconnect")
                         // toast error message, guide user to click to end call
                         ToastUtil.show(R.string.cov_detail_agent_leave)
@@ -295,6 +298,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     when (it.uid) {
                         CovAgentManager.agentUID -> {
                             runOnUiThread {
+                                if (BuildConfig.DEBUG){
+                                    Log.d(TAG,"onAudioVolumeIndication ${it.uid} ${it.volume}")
+                                }
                                 // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
                                 if (it.volume > 0) {
                                     mCovBallAnim?.updateAgentState(AgentState.SPEAKING,it.volume)
@@ -325,6 +331,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
                 if (uid == 0) {
                     runOnUiThread {
+                        CovLogger.d(TAG, "onNetworkQuality $rxQuality")
                         updateNetworkStatus(rxQuality)
                     }
                 }
@@ -431,14 +438,25 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         infoDialog?.updateNetworkStatus(value)
         mBinding?.apply {
             when (value) {
-                1, 2 -> {
-                    btnInfo.setColorFilter(this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
-                }
                 3, 4 -> {
-                    btnInfo.setColorFilter(this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_yellow6), PorterDuff.Mode.SRC_IN)
+                    btnInfo.setColorFilter(
+                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_yellow6),
+                        PorterDuff.Mode.SRC_IN
+                    )
                 }
+
+                5, 6 -> {
+                    btnInfo.setColorFilter(
+                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_red6),
+                        PorterDuff.Mode.SRC_IN
+                    )
+                }
+
                 else -> {
-                    btnInfo.setColorFilter(this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_red6), PorterDuff.Mode.SRC_IN)
+                    btnInfo.setColorFilter(
+                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_icontext1),
+                        PorterDuff.Mode.SRC_IN
+                    )
                 }
             }
         }
@@ -479,11 +497,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun setupBallAnimView() {
         val binding = mBinding ?: return
         mCovBallAnim = CovBallAnim(this, binding.videoView).apply {
-            setupMediaPlayer(object : MediaPlayerCallback {
-                override fun onError(error: MediaPlayerError) {
-                    CovLogger.e(TAG, "MediaPlayer error：$error")
-                }
-            })
+            CovRtcManager.rtcEngine?.let {
+                setupMediaPlayer(it)
+            }
         }
     }
 }

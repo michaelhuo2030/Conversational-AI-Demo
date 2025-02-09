@@ -17,7 +17,7 @@ object CovRtcManager {
 
     private val TAG = "CovAgoraManager"
 
-    private var rtcEngine: RtcEngineEx? = null
+    var rtcEngine: RtcEngineEx? = null
     // values
     val uid = Random.nextInt(1000, 10000000)
     var channelName = ""
