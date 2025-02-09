@@ -32,6 +32,7 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding?.apply {
+            setOnApplyWindowInsets(root)
             when (CovAgentManager.connectionState) {
                 AgentConnectionState.IDLE -> {
                     context?.let {

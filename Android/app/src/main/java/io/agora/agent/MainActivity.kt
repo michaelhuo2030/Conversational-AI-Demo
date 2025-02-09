@@ -77,7 +77,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 tvGetStarted.alpha = 1f
                 tvGetStarted.isEnabled = true
             } else {
-                tvGetStarted.alpha = 0.4f
+                tvGetStarted.alpha = 0.6f
                 tvGetStarted.isEnabled = false
             }
         }

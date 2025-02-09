@@ -42,6 +42,7 @@
     <string name="cov_setting_ai_vad">启用 优雅打断</string>
     <string name="cov_setting_ai_vad_info">根据语义判断用户是否想打断AI</string>
     <string name="cov_setting_network_error">请求失败：</string>
+    <string name="cov_agent_connecting">连接中...</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>内置麦克风</item>

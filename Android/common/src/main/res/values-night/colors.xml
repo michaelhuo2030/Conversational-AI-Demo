@@ -18,6 +18,7 @@
     <color name="ai_line2">#cc535268</color>
     <color name="ai_block2">#f21d1d1d</color>
     <color name="ai_block1">#2dacacef</color>
+    <color name="ai_block1_50">#80acacef</color>
     <color name="ai_block4_chat">#ff2b2b2b</color>
     <color name="ai_icontext4">#4cffffff</color>
     <color name="ai_red6">#ffe6544b</color>

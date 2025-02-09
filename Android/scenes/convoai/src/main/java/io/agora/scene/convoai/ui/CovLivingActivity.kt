@@ -3,6 +3,7 @@ package io.agora.scene.convoai.ui
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.view.View
+import android.widget.Toast
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.convoai.manager.CovRtcManager
@@ -55,6 +56,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 field = value
                 CovAgentManager.connectionState = value
                 updateStateView()
+                if (connectionState == AgentConnectionState.CONNECTED) {
+                    waitingAgentJob?.let {
+                        it.cancel()
+                        waitingAgentJob = null
+                    }
+                }
             }
         }
 
@@ -118,39 +125,48 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
+    private var waitingAgentJob:Job?=null
+
     private fun onClickStartAgent() {
         mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
         connectionState = AgentConnectionState.CONNECTING
         CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
         coroutineScope.launch {
-            val agentDeferred = async { startAgentAsync() }
-            val tokenDeferred = if (CovRtcManager.rtcToken == null) async { updateTokenAsync() } else null
+            CovLogger.d(TAG, "onClickStartAgent call startAgent")
+            val agentDeferred = async(start = CoroutineStart.DEFAULT) { startAgentAsync() }
+            val tokenDeferred = async(start = CoroutineStart.DEFAULT) { CovRtcManager.rtcToken?.let { true } ?: updateTokenAsync() }
 
-            val isAgentOK = agentDeferred.await()
-            if (!isAgentOK) {
-                connectionState = AgentConnectionState.IDLE
-                CovLogger.e(TAG, "Agent error")
-                ToastUtil.show(R.string.cov_detail_join_call_failed)
-                return@launch
-            } else {
-                // check agent connection after 10s
-                mBinding?.root?.postDelayed({
-                    if (connectionState == AgentConnectionState.CONNECTING) {
-                        stopAgentAndLeaveChannel()
-                        CovLogger.e(TAG, "Agent connection timeout")
-                        ToastUtil.show(R.string.cov_detail_join_call_failed)
-                    }
-                }, 10000)
-            }
-
-            val isTokenOK = tokenDeferred?.await() ?: true
+            //先等待token完成，立即调用 joinChannel
+            CovLogger.d(TAG, "onClickStartAgent await token 11")
+            val isTokenOK = tokenDeferred.await()
+            CovLogger.d(TAG, "onClickStartAgent await token 22")
             if (!isTokenOK) {
                 connectionState = AgentConnectionState.IDLE
                 CovLogger.e(TAG, "Token error")
-                ToastUtil.show(R.string.cov_detail_join_call_failed)
+                ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
                 return@launch
             }
+            CovLogger.d(TAG, "onClickStartAgent call join")
             CovRtcManager.joinChannel()
+
+            CovLogger.d(TAG, "onClickStartAgent await agent 11")
+            val isAgentOK = agentDeferred.await()
+            CovLogger.d(TAG, "onClickStartAgent await agent 22")
+            if (isAgentOK) {
+                // check agent connection after 10s
+                waitingAgentJob = launch(Dispatchers.Main) {
+                    delay(10000)
+                    if (connectionState == AgentConnectionState.CONNECTING) {
+                        stopAgentAndLeaveChannel()
+                        CovLogger.e(TAG, "Agent connection timeout")
+                        ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
+                    }
+                }
+            } else {
+                connectionState = AgentConnectionState.IDLE
+                CovLogger.e(TAG, "Agent error")
+                ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
+            }
         }
     }
 
@@ -266,7 +282,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (state == Constants.CONNECTION_STATE_FAILED) {
                     runOnUiThread {
                         stopAgentAndLeaveChannel()
-                        ToastUtil.show(R.string.cov_detail_join_call_failed)
+                        ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
                     }
                 }
             }
@@ -390,10 +406,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             if (isLocalAudioMuted) {
                 btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.color.ai_brand_white10)
+                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_brand_white_selector)
             } else {
                 btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.color.ai_block1)
+                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
             }
         }
     }
@@ -462,7 +478,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun setupBallAnimView() {
         val binding = mBinding ?: return
-        mCovBallAnim = CovBallAnim(this, binding.videoContainer).apply {
+        mCovBallAnim = CovBallAnim(this, binding.videoView).apply {
             setupMediaPlayer(object : MediaPlayerCallback {
                 override fun onError(error: MediaPlayerError) {
                     CovLogger.e(TAG, "MediaPlayer error：$error")

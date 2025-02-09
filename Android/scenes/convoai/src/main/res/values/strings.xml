@@ -42,6 +42,7 @@
     <string name="cov_setting_ai_vad">Enable AI-VAD</string>
     <string name="cov_setting_ai_vad_info">根据语义判断用户是否想打断AI</string>
     <string name="cov_setting_network_error">Network Error!</string>
+    <string name="cov_agent_connecting">Connecting…</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>Inbuilt Mic</item>

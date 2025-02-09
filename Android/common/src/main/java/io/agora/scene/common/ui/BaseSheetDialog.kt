@@ -2,10 +2,13 @@ package io.agora.scene.common.ui
 
 import android.content.DialogInterface
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -30,9 +33,7 @@ abstract class BaseSheetDialog<B : ViewBinding?> : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        dialog?.window?.let {
-            WindowCompat.setDecorFitsSystemWindows(it, false)
-        }
+        setupFullScreen()
         dialog?.setOnShowListener { _: DialogInterface? ->
             (view.parent as ViewGroup).setBackgroundColor(Color.TRANSPARENT)
         }
@@ -57,5 +58,29 @@ abstract class BaseSheetDialog<B : ViewBinding?> : BottomSheetDialogFragment() {
 
     open fun onHandleOnBackPressed() {
         dismiss()
+    }
+
+    private fun setupFullScreen() {
+        dialog?.window?.apply {
+            statusBarColor = Color.TRANSPARENT
+            navigationBarColor = Color.TRANSPARENT
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // For Android 11+ use WindowInsetsController
+                decorView.windowInsetsController?.apply {
+                    hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                }
+            } else {
+                // For Android 10 and below, use the deprecated systemUiVisibility
+                @Suppress("DEPRECATION")
+                decorView.systemUiVisibility =
+                    (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+            }
+        }
     }
 }
