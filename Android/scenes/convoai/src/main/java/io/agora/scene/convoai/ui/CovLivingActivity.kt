@@ -287,12 +287,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         }
                         0 -> {
                             runOnUiThread {
-                                if (it.volume > 50) {
-                                    // todo  0～10000
-                                    mBinding?.btnMic?.setImageLevel(it.volume*50)
-                                } else {
-                                    mBinding?.btnMic?.setImageLevel(0)
-                                }
+                                updateUserVolumeAnim(it.volume)
                             }
                         }
                     }
@@ -343,6 +338,17 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
+    private fun updateUserVolumeAnim(volume: Int){
+        if (volume > 10) {
+            // todo  0～10000
+            var level = volume * 50 + 1000
+            if (level > 10000) level = 10000
+            mBinding?.btnMic?.setImageLevel(level)
+        } else {
+            mBinding?.btnMic?.setImageLevel(0)
+        }
+    }
+
     private fun resetSceneState() {
         mBinding?.apply {
             messageListView.clearMessages()
@@ -384,7 +390,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
                 btnMic.setBackgroundResource(io.agora.scene.common.R.color.ai_brand_white10)
             } else {
-                btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone)
+                btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
                 btnMic.setBackgroundResource(io.agora.scene.common.R.color.ai_block1)
             }
         }
@@ -456,7 +462,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         val binding = mBinding ?: return
         mCovBallAnim = CovBallAnim(this, binding.videoContainer).apply {
             setupMediaPlayer(object : MediaPlayerCallback {
-                override fun onError(error: Exception) {
+                override fun onError(error: MediaPlayerError) {
                     CovLogger.e(TAG, "MediaPlayer error：$error")
                 }
             })
