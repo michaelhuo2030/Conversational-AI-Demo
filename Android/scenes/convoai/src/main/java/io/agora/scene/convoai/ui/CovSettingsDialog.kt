@@ -68,12 +68,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             cbAiVad.isChecked = CovAgentManager.isAiVad
             cbAiVad.setOnClickListener {
                 CovAgentManager.isAiVad = cbAiVad.isChecked
-                CovAgentManager.isForceThreshold = cbAiVad.isChecked
-                updateAiVadSettings()
-            }
-            cbForceResponse.isChecked = CovAgentManager.isForceThreshold
-            cbForceResponse.setOnClickListener {
-                CovAgentManager.isForceThreshold = cbForceResponse.isChecked
                 updateAiVadSettings()
             }
             btnClose.setOnClickListener {
@@ -116,12 +110,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             // ai vad
             clAiVad.visibility = View.VISIBLE
             cbAiVad.isChecked = CovAgentManager.isAiVad
-            cbForceResponse.isChecked = CovAgentManager.isForceThreshold
-            if (CovAgentManager.isAiVad) {
-                clForceResponse.visibility = View.VISIBLE
-            } else {
-                clForceResponse.visibility = View.GONE
-            }
         }
     }
 
@@ -174,7 +162,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clLanguage.isEnabled = false
                 cbNoiseCancellation.isEnabled = false
                 cbAiVad.isEnabled = false
-                cbForceResponse.isEnabled = false
             }
         } else {
             binding?.apply {
@@ -186,7 +173,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clLanguage.isEnabled = true
                 cbNoiseCancellation.isEnabled = true
                 cbAiVad.isEnabled = true
-                cbForceResponse.isEnabled = true
             }
         }
     }

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="456dp"
+    android:layout_height="420dp"
     android:background="@drawable/bottom_dialog_bg"
     tools:theme="@style/Theme.AppCompat">
 
@@ -287,36 +287,6 @@
                     android:layout_height="0.5dp"
                     android:layout_marginStart="16dp"
                     android:background="@color/ai_line1" />
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cl_force_response"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp">
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tv_force_response"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:text="@string/cov_setting_force_response"
-                        android:textColor="@color/ai_icontext1"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <androidx.appcompat.widget.AppCompatCheckBox
-                        android:id="@+id/cb_force_response"
-                        android:layout_width="51dp"
-                        android:layout_height="31dp"
-                        android:layout_marginEnd="16dp"
-                        android:button="@drawable/cb_def_selector"
-                        app:buttonTint="@null"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </LinearLayout>
 

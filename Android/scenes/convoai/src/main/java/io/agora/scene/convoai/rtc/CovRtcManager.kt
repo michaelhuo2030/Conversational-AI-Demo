@@ -10,38 +10,18 @@ import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.net.AgoraTokenType
-import io.agora.scene.common.net.TokenGenerator
-import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.convoai.CovLogger
+import kotlin.random.Random
 
 object CovRtcManager {
 
     private val TAG = "CovAgoraManager"
 
-    var rtcToken: String? = null
-
-    // Status
-    var uid = 0
+    private var rtcEngine: RtcEngineEx? = null
+    // values
+    val uid = Random.nextInt(1000, 10000000)
     var channelName = ""
-    val agentUID = 999
-    var rtcEngine: RtcEngineEx? = null
-
-    fun updateToken(complete: (Boolean) -> Unit) {
-        TokenGenerator.generateToken("",
-            uid.toString(),
-            TokenGeneratorType.Token007,
-            AgoraTokenType.Rtc,
-            success = { token ->
-                CovLogger.d(TAG, "getToken success")
-                rtcToken = token
-                complete.invoke(true)
-            },
-            failure = { e ->
-                CovLogger.d(TAG, "getToken error $e")
-                complete.invoke(false)
-            })
-    }
+    var rtcToken: String? = null
 
     fun createRtcEngine(rtcCallback: IRtcEngineEventHandler): RtcEngineEx {
         val config = RtcEngineConfig()
@@ -64,7 +44,7 @@ object CovRtcManager {
     }
 
     fun joinChannel() {
-        CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $uid, agentUID: $agentUID")
+        CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $uid")
         setAudioConfig()
         val options = ChannelMediaOptions()
         options.clientRoleType = CLIENT_ROLE_BROADCASTER
@@ -98,7 +78,22 @@ object CovRtcManager {
         }
     }
 
+    fun leaveChannel() {
+        rtcEngine?.leaveChannel()
+    }
+
+    fun renewRtcToken() {
+        val rtcToken = rtcToken ?: return
+        val engine = rtcEngine ?: return
+        engine.renewToken(rtcToken)
+    }
+
+    fun muteLocalAudio(mute: Boolean) {
+        rtcEngine?.adjustRecordingSignalVolume(if (mute) 0 else 100)
+    }
+
     fun resetData() {
         rtcEngine = null
+        RtcEngine.destroy()
     }
 }

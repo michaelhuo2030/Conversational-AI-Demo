@@ -15,15 +15,9 @@ object CovAgentManager {
     var llmType = AgentLLMType.OPEN_AI
     var languageType = AgentLanguageType.EN
     var isAiVad = true
-    var isForceThreshold = true
     var enableBHVS = false
     var connectionState = AgentConnectionState.IDLE
 
-    var rtcToken: String? = null
-
-    // Status
-    var uid = 0
-    var channelName = ""
     val agentUID = 999
 
     fun updatePreset(type: AgentPresetType) {
@@ -65,6 +59,5 @@ object CovAgentManager {
     fun resetData() {
         updatePreset(if (isMainlandVersion) AgentPresetType.XIAO_AI else AgentPresetType.DEFAULT)
         isAiVad = true
-        isForceThreshold = true
     }
 }

@@ -10,8 +10,9 @@ import io.agora.scene.convoai.rtc.CovRtcManager
 import io.agora.scene.convoai.utils.MessageParser
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
-import io.agora.rtc2.RtcEngine
-import io.agora.rtc2.RtcEngineEx
+import io.agora.scene.common.net.AgoraTokenType
+import io.agora.scene.common.net.TokenGenerator
+import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
@@ -24,8 +25,6 @@ import kotlin.random.Random
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val TAG = "LivingActivity"
-
-    private lateinit var engine: RtcEngineEx
 
     private var infoDialog: CovAgentInfoDialog? = null
 
@@ -68,9 +67,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         setupView()
         updateStateView()
         // data
-        CovRtcManager.uid = Random.nextInt(1000, 10000000)
-        CovRtcManager.updateToken {  }
-        CovRtcManager.resetData()
+        updateToken {  }
+        CovAgentManager.resetData()
         createRtcEngine()
         setupBallAnimView()
         PermissionHelp(this).checkMicPerm({}, {
@@ -84,7 +82,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         if (connectionState == AgentConnectionState.CONNECTED) {
             stopAgentAndLeaveChannel()
         }
-        RtcEngine.destroy()
+        CovRtcManager.resetData()
+        CovAgentManager.resetData()
         mCovBallAnim?.let {
             it.release()
             mCovBallAnim = null
@@ -107,11 +106,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         return AgentRequestParams(
             channelName = CovRtcManager.channelName,
             remoteRtcUid = CovRtcManager.uid,
-            agentRtcUid = CovRtcManager.agentUID,
+            agentRtcUid = CovAgentManager.agentUID,
             ttsVoiceId = if (CovAgentManager.isMainlandVersion) null else CovAgentManager.voiceType.value,
             audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
             enableAiVad = CovAgentManager.isAiVad,
-            forceThreshold = CovAgentManager.isForceThreshold,
         )
     }
 
@@ -125,7 +123,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     return@startAgent
                 }
                 if (CovRtcManager.rtcToken == null) {
-                    CovRtcManager.updateToken { isTokenOK ->
+                    updateToken { isTokenOK ->
                         if (isTokenOK) {
                             if (connectionState == AgentConnectionState.IDLE) {
                                 return@updateToken
@@ -166,17 +164,33 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             return
         }
         connectionState = AgentConnectionState.IDLE
-        engine.leaveChannel()
+        CovRtcManager.leaveChannel()
         mCovBallAnim?.updateAgentState(AgentState.STATIC)
         ConvAIManager.stopAgent {}
         resetSceneState()
     }
 
+    private fun updateToken(complete: (Boolean) -> Unit) {
+        TokenGenerator.generateToken("",
+            CovRtcManager.uid.toString(),
+            TokenGeneratorType.Token007,
+            AgoraTokenType.Rtc,
+            success = { token ->
+                CovLogger.d(TAG, "getToken success")
+                CovRtcManager.rtcToken = token
+                complete.invoke(true)
+            },
+            failure = { e ->
+                CovLogger.d(TAG, "getToken error $e")
+                complete.invoke(false)
+            })
+    }
+
     private fun createRtcEngine() {
-        engine = CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
+        CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
             override fun onError(err: Int) {
                 super.onError(err)
-                CovLogger.e(TAG, "Rtc Error code:$err, msg:" + RtcEngine.getErrorDescription(err))
+                CovLogger.e(TAG, "Rtc Error code:$err")
             }
 
             override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
@@ -193,7 +207,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
             override fun onUserJoined(uid: Int, elapsed: Int) {
                 runOnUiThread {
-                    if (uid == CovRtcManager.agentUID) {
+                    if (uid == CovAgentManager.agentUID) {
                         connectionState = AgentConnectionState.CONNECTED
                         ToastUtil.show(R.string.cov_detail_join_call_succeed)
                     }
@@ -203,7 +217,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
             override fun onUserOffline(uid: Int, reason: Int) {
                 CovLogger.d(TAG, "remote user onUserOffline uid: $uid")
-                if (uid == CovRtcManager.agentUID) {
+                if (uid == CovAgentManager.agentUID) {
                     runOnUiThread {
                         CovLogger.d(TAG, "start agent reconnect")
                         // toast error message, guide user to click to end call
@@ -251,7 +265,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 super.onAudioVolumeIndication(speakers, totalVolume)
                 speakers?.forEach {
                     when (it.uid) {
-                        CovRtcManager.agentUID -> {
+                        CovAgentManager.agentUID -> {
                             runOnUiThread {
                                 // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
                                 if (it.volume > 0) {
@@ -295,9 +309,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
             override fun onTokenPrivilegeWillExpire(token: String?) {
                 CovLogger.d(TAG, "onTokenPrivilegeWillExpire")
-                CovRtcManager.updateToken { isOK ->
+                updateToken { isOK ->
                     if (isOK) {
-                        engine.renewToken(CovRtcManager.rtcToken)
+                        CovRtcManager.renewRtcToken()
                     } else {
                         stopAgentAndLeaveChannel()
                         ToastUtil.show("renew token error")
@@ -327,7 +341,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             if (isLocalAudioMuted) {
                 isLocalAudioMuted = false
-                engine.adjustRecordingSignalVolume(100)
+                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
         }
     }
@@ -407,7 +421,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             btnMic.setOnClickListener {
                 isLocalAudioMuted = !isLocalAudioMuted
-                engine.adjustRecordingSignalVolume(if (isLocalAudioMuted) 0 else 100)
+                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
             btnSettings.setOnClickListener {
                 CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
