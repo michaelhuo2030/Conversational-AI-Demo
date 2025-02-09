@@ -3,6 +3,8 @@ package io.agora.scene.convoai.manager
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.convoai.CovLogger
 import okhttp3.Call
@@ -21,66 +23,51 @@ object CovAgentManager {
 
     val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
 
-
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     private var agentId: String? = null
 
     // Settings
-    private var presetType = AgentPresetType.VERSION1
-    var voiceType = if (isMainlandVersion)
-        AgentVoiceType.MALE_QINGSE else AgentVoiceType.AVA_MULTILINGUAL
-    var llmType = AgentLLMType.OPEN_AI
-    var languageType = AgentLanguageType.EN
-    var isAiVad = true
-    var enableBHVS = false
+    private var presetList: List<CovAgentPreset>? = null
+    private var preset: CovAgentPreset? = null
+    var language: CovAgentLanguage? = null
+
+    var enableAiVad = true
+    var enableBHVS = true
     var connectionState = AgentConnectionState.IDLE
 
     val agentUID = 999
+    private const val SERVICE_VERSION = "v2"
 
-    fun updatePreset(type: AgentPresetType) {
-        presetType = type
-        when (type) {
-            AgentPresetType.VERSION1 -> {
-                voiceType = if (isMainlandVersion)
-                    AgentVoiceType.MALE_QINGSE else AgentVoiceType.AVA_MULTILINGUAL
-                llmType = AgentLLMType.OPEN_AI
-                languageType = AgentLanguageType.EN
-            }
-            AgentPresetType.XIAO_AI -> {
-                voiceType = AgentVoiceType.FEMALE_SHAONV
-                llmType = AgentLLMType.MINIMAX
-                languageType = AgentLanguageType.CN
-            }
-            AgentPresetType.TBD -> {
-                voiceType = AgentVoiceType.TBD
-                llmType = AgentLLMType.MINIMAX
-                languageType = AgentLanguageType.CN
-            }
-            AgentPresetType.DEFAULT -> {
-                voiceType = AgentVoiceType.ANDREW
-                llmType = AgentLLMType.OPEN_AI
-                languageType = AgentLanguageType.EN
-            }
-            AgentPresetType.AMY -> {
-                voiceType = AgentVoiceType.EMMA
-                llmType = AgentLLMType.OPEN_AI
-                languageType = AgentLanguageType.EN
-            }
-        }
+    fun setPresetList(l: List<CovAgentPreset>) {
+        presetList = l
+        setPreset(presetList?.firstOrNull())
     }
 
-    fun getPresetType(): AgentPresetType {
-        return presetType
+    fun getPresetList(): List<CovAgentPreset>? {
+        return presetList
+    }
+
+    fun setPreset(p: CovAgentPreset?) {
+        preset = p
+        language = p?.support_languages?.firstOrNull { it.language_code == p.default_language_code }
+    }
+
+    fun getLanguages(): List<CovAgentLanguage>? {
+        return preset?.support_languages
+    }
+
+    fun getPreset(): CovAgentPreset? {
+        return preset
     }
 
     fun resetData() {
-        updatePreset(if (isMainlandVersion) AgentPresetType.XIAO_AI else AgentPresetType.DEFAULT)
-        isAiVad = true
+        enableAiVad = true
+        enableBHVS = true
     }
 
     fun startAgent(params: AgentRequestParams, succeed: (Boolean) -> Unit) {
-        val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/start"
+        val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/start"
         CovLogger.d(TAG, "Start agent request: $requestURL, channelName: ${params.channelName}")
         val postBody = JSONObject()
         try {
@@ -116,7 +103,9 @@ object CovAgentManager {
 
             params.bsVoiceThreshold?.let { postBody.put("bs_voice_threshold", it) }
             params.idleTimeout?.let { postBody.put("idle_timeout", it) }
+            params.enableBHVS?.let { postBody.put("enable_bhvs", it) }
             params.enableAiVad?.let { postBody.put("enable_aivadmd", it) }
+            params.presetName?.let { postBody.put("preset_name", it) }
 
             val aivadmd = JSONObject()
             if (params.forceThreshold == false) {
@@ -143,9 +132,9 @@ object CovAgentManager {
             .build()
         OkHttpClient().newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val json = response.body?.string()
+                val json = response.body.string()
                 CovLogger.d(TAG, "Start agent response: $json")
-                if (json == null || response.code != 200) {
+                if (response.code != 200) {
                     runOnMainThread {
                         succeed.invoke(false)
                     }
@@ -190,7 +179,7 @@ object CovAgentManager {
             }
             return
         }
-        val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/stop"
+        val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/stop"
         CovLogger.d(TAG, "Stop agent request: $requestURL, agent_id: $agentId")
         val postBody = JSONObject()
         try {
@@ -207,7 +196,7 @@ object CovAgentManager {
             .build()
         OkHttpClient().newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val json = response.body?.string()
+                val json = response.body.string()
                 CovLogger.d(TAG, "Stop agent response: $json")
                 runOnMainThread {
                     agentId = null
@@ -231,7 +220,7 @@ object CovAgentManager {
             }
             return
         }
-        val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/update"
+        val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/update"
         CovLogger.d(TAG, "Update agent request: $requestURL, agent_id: $agentId")
         val postBody = JSONObject()
         try {
@@ -249,9 +238,9 @@ object CovAgentManager {
             .build()
         OkHttpClient().newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val json = response.body?.string()
+                val json = response.body.string()
                 CovLogger.d(TAG, "Update agent response: $json")
-                if (json == null || response.code != 200) {
+                if (response.code != 200) {
                     runOnMainThread {
                         succeed.invoke(false)
                     }
@@ -266,6 +255,34 @@ object CovAgentManager {
                 runOnMainThread {
                     succeed.invoke(false)
                 }
+            }
+        })
+    }
+
+    fun fetchPresets() {
+        val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/presetAgents"
+        CovLogger.d(TAG, "fetchPresets start: $requestURL")
+        val request = Request.Builder()
+            .url(requestURL)
+            .addHeader("Content-Type", "application/json")
+            .get()
+            .build()
+        OkHttpClient().newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                val json = response.body.string()
+                CovLogger.d(TAG, "fetchPresets result: $json")
+                val gson = Gson()
+                val jsonObject = gson.fromJson(json, JsonObject::class.java)
+                val code = jsonObject.get("code").asInt
+                if (code == 0) {
+                    val data = gson.fromJson(jsonObject.getAsJsonArray("data"), Array<CovAgentPreset>::class.java).toList()
+                    setPresetList(data)
+                } else {
+                    CovLogger.d(TAG, "fetch presets failed: $code")
+                }
+            }
+            override fun onFailure(call: Call, e: IOException) {
+                CovLogger.e(TAG, "fetch presets failed: $e")
             }
         })
     }

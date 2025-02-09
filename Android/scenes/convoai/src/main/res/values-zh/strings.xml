@@ -9,6 +9,7 @@
     <string name="cov_detail_join_call_succeed">智能体已加入！</string>
     <string name="cov_detail_agent_leave">智能体离开</string>
     <string name="cov_detail_message_list_you">你</string>
+    <string name="cov_detail_connecting">连接中…</string>
 
     <string name="cov_info_dialog_title">信息</string>
     <string name="cov_channel_info_title">频道信息</string>
@@ -36,11 +37,10 @@
     <string name="cov_setting_advanced_settings">高级设置</string>
     <string name="cov_setting_microphone">麦克风</string>
     <string name="cov_setting_speaker">扬声器</string>
-    <string name="cov_setting_bhvs">启用BHVS</string>
+    <string name="cov_setting_bhvs">启用 对话人声锁定</string>
     <string name="cov_setting_bhvs_info">背景人声抑制，屏蔽背景人声干扰，保留对话人清晰人声</string>
-    <string name="cov_setting_ai_vad">启用AI-VAD</string>
+    <string name="cov_setting_ai_vad">启用 优雅打断</string>
     <string name="cov_setting_ai_vad_info">根据语义判断用户是否想打断AI</string>
-    <string name="cov_setting_force_response">Force Response</string>
     <string name="cov_setting_network_error">请求失败：</string>
 
     <string-array name="cov_setting_microphone_array">

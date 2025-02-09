@@ -70,6 +70,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // data
         updateToken {  }
         CovAgentManager.resetData()
+        CovAgentManager.fetchPresets()
         createRtcEngine()
         setupBallAnimView()
         PermissionHelp(this).checkMicPerm({}, {
@@ -106,18 +107,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun getAgentParams(): AgentRequestParams {
         return AgentRequestParams(
             channelName = CovRtcManager.channelName,
-            remoteRtcUid = CovRtcManager.uid,
-            agentRtcUid = CovAgentManager.agentUID,
-            ttsVoiceId = if (CovAgentManager.isMainlandVersion) null else CovAgentManager.voiceType.value,
+            remoteRtcUid = CovRtcManager.uid.toString(),
+            agentRtcUid = CovAgentManager.agentUID.toString(),
             audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
-            enableAiVad = CovAgentManager.isAiVad,
+            enableAiVad = CovAgentManager.enableAiVad,
+            enableBHVS = CovAgentManager.enableBHVS,
+            presetName = CovAgentManager.getPreset()?.name
         )
     }
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     private fun onClickStartAgent() {
-        mBinding?.messageListView?.updateAgentName(CovAgentManager.getPresetType().value)
+        mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
         connectionState = AgentConnectionState.CONNECTING
         CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
         coroutineScope.launch {
