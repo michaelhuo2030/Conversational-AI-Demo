@@ -38,6 +38,7 @@ object CovAgentManager {
 
     val agentUID = 999
     private const val SERVICE_VERSION = "v2"
+    private var channelName: String? = null
 
     fun setPresetList(l: List<CovAgentPreset>) {
         presetList = l
@@ -67,6 +68,7 @@ object CovAgentManager {
     }
 
     fun startAgent(params: AgentRequestParams, succeed: (Boolean) -> Unit) {
+        channelName = params.channelName
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/start"
         CovLogger.d(TAG, "Start agent request: $requestURL, channelName: ${params.channelName}")
         val postBody = JSONObject()
@@ -296,6 +298,34 @@ object CovAgentManager {
                 runOnMainThread {
                     succeed.invoke(false)
                 }
+            }
+        })
+    }
+
+    fun ping(succeed: (Boolean) -> Unit) {
+        val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/ping"
+        CovLogger.d(TAG, "ping: $requestURL, agent_id: $agentId, channel_name: $channelName")
+        val postBody = JSONObject()
+        try {
+            postBody.put("app_id", ServerConfig.rtcAppId)
+            channelName?.let {postBody.put("channel_name", it)}
+            preset?.name?.let {postBody.put("preset_name", it)}
+        } catch (e: JSONException) {
+            CovLogger.e(TAG, "postBody error ${e.message}")
+        }
+        val requestBody = RequestBody.create(null, postBody.toString())
+        val request = Request.Builder()
+            .url(requestURL)
+            .addHeader("Content-Type", "application/json")
+            .post(requestBody)
+            .build()
+        OkHttpClient().newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                val json = response.body.string()
+                CovLogger.d(TAG, "agent ping response: $json")
+            }
+            override fun onFailure(call: Call, e: IOException) {
+                CovLogger.e(TAG, "agent ping failed: $e")
             }
         })
     }

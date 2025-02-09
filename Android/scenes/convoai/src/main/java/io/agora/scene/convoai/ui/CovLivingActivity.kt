@@ -24,6 +24,8 @@ import io.agora.scene.convoai.manager.AgentConnectionState
 import io.agora.scene.convoai.manager.AgentRequestParams
 import io.agora.scene.convoai.manager.CovAgentManager
 import kotlinx.coroutines.*
+import java.util.Timer
+import java.util.TimerTask
 import kotlin.coroutines.*
 import kotlin.random.Random
 
@@ -37,6 +39,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var networkValue: Int = 0
 
     private var parser = MessageParser()
+
+    private var pingTimer: Timer? = null
 
     private var isLocalAudioMuted = false
         set(value) {
@@ -65,6 +69,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         it.cancel()
                         waitingAgentJob = null
                     }
+                    // start ping
+                    pingTimer = Timer().apply {
+                        schedule(object : TimerTask() {
+                            override fun run() {
+                                CovAgentManager.ping {}
+                            }
+                        }, 0, 10000)
+                    }
+                }
+                if (connectionState == AgentConnectionState.IDLE) {
+                    // stop ping
+                    pingTimer?.cancel()
+                    pingTimer = null
                 }
             }
         }
@@ -141,6 +158,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         connectionState = AgentConnectionState.CONNECTING
         CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
         coroutineScope.launch {
+            CovRtcManager.joinChannel()
             CovLogger.d(TAG, "onClickStartAgent call startAgent")
             val agentDeferred = async(start = CoroutineStart.DEFAULT) { startAgentAsync() }
             val tokenDeferred = async(start = CoroutineStart.DEFAULT) { CovRtcManager.rtcToken?.let { true } ?: updateTokenAsync() }
@@ -151,12 +169,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             CovLogger.d(TAG, "onClickStartAgent await token 22")
             if (!isTokenOK) {
                 connectionState = AgentConnectionState.IDLE
+                CovRtcManager.leaveChannel()
                 CovLogger.e(TAG, "Token error")
                 ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
                 return@launch
             }
             CovLogger.d(TAG, "onClickStartAgent call join")
-            CovRtcManager.joinChannel()
 
             CovLogger.d(TAG, "onClickStartAgent await agent 11")
             val isAgentOK = agentDeferred.await()
@@ -173,6 +191,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             } else {
                 connectionState = AgentConnectionState.IDLE
+                CovRtcManager.leaveChannel()
                 CovLogger.e(TAG, "Agent error")
                 ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
             }
@@ -268,7 +287,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 when (state) {
                     Constants.CONNECTION_STATE_CONNECTED -> {
                         if (reason == Constants.CONNECTION_CHANGED_REJOIN_SUCCESS) {
-                            // reconnect state succeed
+                            connectionState = AgentConnectionState.CONNECTED
                         }
                     }
                     Constants.CONNECTION_STATE_CONNECTING -> {
@@ -279,13 +298,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                     Constants.CONNECTION_STATE_RECONNECTING -> {
                         if (reason == Constants.CONNECTION_CHANGED_INTERRUPTED) {
-                            ToastUtil.show(R.string.cov_detail_net_state_error)
+                            connectionState = AgentConnectionState.CONNECTED_INTERRUPT
+                            ToastUtil.show(R.string.cov_detail_net_state_error, Toast.LENGTH_LONG)
                         }
                     }
                     Constants.CONNECTION_STATE_FAILED -> {
                         if (reason == Constants.CONNECTION_CHANGED_JOIN_FAILED) {
                             CovLogger.d(TAG, "onConnectionStateChanged: login")
-                            ToastUtil.show(R.string.cov_detail_net_state_error)
+                            connectionState = AgentConnectionState.CONNECTED_INTERRUPT
+                            ToastUtil.show(R.string.cov_detail_net_state_error, Toast.LENGTH_LONG)
                         }
                     }
                 }
