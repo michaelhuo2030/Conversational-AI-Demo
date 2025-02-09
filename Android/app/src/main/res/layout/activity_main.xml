@@ -97,7 +97,7 @@
         android:textSize="18sp"
         android:layout_marginHorizontal="4dp"
         android:layout_marginBottom="32dp"
-        android:background="@drawable/btn_blue_radio_enable"
+        android:background="@drawable/btn_bg_blue_radio_enable_selector"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

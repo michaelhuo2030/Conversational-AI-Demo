@@ -127,7 +127,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Connecting..."
+                android:text="@string/cov_agent_connecting"
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />
         </io.agora.scene.common.ui.widget.GradientBorderView>
@@ -137,7 +137,7 @@
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="30dp"
         android:paddingHorizontal="40dp">
 
         <LinearLayout
@@ -162,7 +162,7 @@
                     android:id="@+id/btn_cc"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
-                    android:background="@color/ai_block1"
+                    android:background="@drawable/btn_bg_block1_selector"
                     android:src="@drawable/scene_detail_captions"
                     app:tint="@color/ai_icontext1" />
             </androidx.cardview.widget.CardView>
@@ -185,7 +185,7 @@
                     android:id="@+id/btn_mic"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/ai_block1"
+                    android:background="@drawable/btn_bg_block1_selector"
                     android:src="@drawable/agent_user_speaker" />
             </androidx.cardview.widget.CardView>
 
@@ -206,7 +206,7 @@
                     android:id="@+id/btn_end_call"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
-                    android:background="@color/ai_block1"
+                    android:background="@drawable/btn_bg_block1_selector"
                     android:src="@drawable/scene_detail_close"
                     app:tint="@color/ai_icontext1" />
             </androidx.cardview.widget.CardView>
@@ -219,7 +219,7 @@
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:layout_gravity="center"
-            android:background="@drawable/btn_join_call_gradient"
+            android:background="@drawable/btn_join_call_selector"
             android:gravity="center_horizontal|center_vertical"
             android:orientation="horizontal"
             tools:visibility="gone">

@@ -3,6 +3,7 @@ package io.agora.scene.convoai.ui
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.view.View
+import android.widget.Toast
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.convoai.manager.CovRtcManager
@@ -140,7 +141,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             if (!isTokenOK) {
                 connectionState = AgentConnectionState.IDLE
                 CovLogger.e(TAG, "Token error")
-                ToastUtil.show(R.string.cov_detail_join_call_failed)
+                ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
                 return@launch
             }
             CovLogger.d(TAG, "onClickStartAgent call join")
@@ -156,13 +157,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     if (connectionState == AgentConnectionState.CONNECTING) {
                         stopAgentAndLeaveChannel()
                         CovLogger.e(TAG, "Agent connection timeout")
-                        ToastUtil.show(R.string.cov_detail_join_call_failed)
+                        ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
                     }
                 }
             } else {
                 connectionState = AgentConnectionState.IDLE
                 CovLogger.e(TAG, "Agent error")
-                ToastUtil.show(R.string.cov_detail_join_call_failed)
+                ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
             }
         }
     }
@@ -279,7 +280,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (state == Constants.CONNECTION_STATE_FAILED) {
                     runOnUiThread {
                         stopAgentAndLeaveChannel()
-                        ToastUtil.show(R.string.cov_detail_join_call_failed)
+                        ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
                     }
                 }
             }
@@ -403,10 +404,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             if (isLocalAudioMuted) {
                 btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.color.ai_brand_white10)
+                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_brand_white_selector)
             } else {
                 btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.color.ai_block1)
+                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
             }
         }
     }
