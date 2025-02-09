@@ -57,13 +57,15 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 dismiss()
             }
         }
-        updateBaseSettings()
         updatePageEnable()
+        CovAgentManager.fetchPresets {
+            updateBaseSettings()
+        }
     }
 
     private fun updateBaseSettings() {
         binding?.apply {
-            tvPresetDetail.text = CovAgentManager.getPreset()?.name
+            tvPresetDetail.text = CovAgentManager.getPreset()?.display_name
             tvLanguageDetail.text = CovAgentManager.language?.language_name
         }
     }
@@ -111,7 +113,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             cvOptions.layoutParams = params
             // update options and select action
             optionsAdapter.updateOptions(
-                presets.map { it.name }.toTypedArray(),
+                presets.map { it.display_name }.toTypedArray(),
                 presets.indexOf(CovAgentManager.getPreset())
             ) { index ->
                 CovAgentManager.setPreset(presets[index])

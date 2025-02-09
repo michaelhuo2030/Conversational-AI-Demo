@@ -13,6 +13,7 @@ import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
+import io.agora.scene.common.ui.LoadingDialog
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
@@ -28,6 +29,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val TAG = "LivingActivity"
 
+    private var loadingDialog: LoadingDialog? = null
     private var infoDialog: CovAgentInfoDialog? = null
 
     private var networkValue: Int = 0
@@ -74,15 +76,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     override fun initView() {
         setupView()
         updateStateView()
+        loadingDialog = LoadingDialog(this)
         // data
         updateToken {  }
         CovAgentManager.resetData()
-        CovAgentManager.fetchPresets()
         createRtcEngine()
         setupBallAnimView()
         PermissionHelp(this).checkMicPerm({}, {
             finish()
         }, true)
+        loadingDialog?.show()
+        CovAgentManager.fetchPresets {
+            loadingDialog?.dismiss()
+        }
     }
 
     override fun onDestroy() {

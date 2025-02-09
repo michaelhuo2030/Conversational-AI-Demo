@@ -259,7 +259,11 @@ object CovAgentManager {
         })
     }
 
-    fun fetchPresets() {
+    fun fetchPresets(succeed: (Boolean) -> Unit) {
+        if (presetList != null) {
+            succeed(true)
+            return
+        }
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/presetAgents"
         CovLogger.d(TAG, "fetchPresets start: $requestURL")
         val request = Request.Builder()
@@ -277,12 +281,21 @@ object CovAgentManager {
                 if (code == 0) {
                     val data = gson.fromJson(jsonObject.getAsJsonArray("data"), Array<CovAgentPreset>::class.java).toList()
                     setPresetList(data)
+                    runOnMainThread {
+                        succeed.invoke(true)
+                    }
                 } else {
                     CovLogger.d(TAG, "fetch presets failed: $code")
+                    runOnMainThread {
+                        succeed.invoke(false)
+                    }
                 }
             }
             override fun onFailure(call: Call, e: IOException) {
                 CovLogger.e(TAG, "fetch presets failed: $e")
+                runOnMainThread {
+                    succeed.invoke(false)
+                }
             }
         })
     }
