@@ -3,24 +3,17 @@ package io.agora.scene.convoai.ui
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.SurfaceTexture
-import android.media.AudioManager
-import android.media.MediaPlayer
 import android.util.Log
-import android.view.Surface
 import android.view.TextureView
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import io.agora.mediaplayer.Constants.MediaPlayerReason
+import io.agora.mediaplayer.Constants.MediaPlayerState
+import io.agora.mediaplayer.IMediaPlayer
+import io.agora.mediaplayer.data.MediaPlayerSource
+import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.BuildConfig
-
-sealed class MediaPlayerError {
-    data class PrepareError(val exception: Exception) : MediaPlayerError()
-    data class PlaybackError(val what: Int, val extra: Int) : MediaPlayerError()
-}
-
-interface MediaPlayerCallback {
-    fun onError(error: MediaPlayerError)
-}
+import io.agora.scene.convoai.manager.CovMediaPlayerObserver
 
 enum class AgentState {
     /** Idle state, no video or animation is playing */
@@ -66,9 +59,7 @@ class CovBallAnim constructor(
 
     private var scaleAnimator: Animator? = null
 
-    private var mediaPlayer: MediaPlayer? = null
-
-    private var mediaPlayerCallback: MediaPlayerCallback? = null
+    private var rtcMediaPlayer: IMediaPlayer? = null
 
     private var currentState = AgentState.STATIC
         private set(value) {
@@ -76,11 +67,16 @@ class CovBallAnim constructor(
                 field = value
                 when (value) {
                     AgentState.STATIC -> {
-                        setVideoSpeed(0.5f)
+                        rtcMediaPlayer?.setPlaybackSpeed(50)
                     }
 
-                    AgentState.LISTENING -> setVideoSpeed(1.0f)
-                    AgentState.SPEAKING -> setVideoSpeed(2.0f)
+                    AgentState.LISTENING -> {
+                        rtcMediaPlayer?.setPlaybackSpeed(100)
+                    }
+
+                    AgentState.SPEAKING -> {
+                        rtcMediaPlayer?.setPlaybackSpeed(200)
+                    }
                 }
             }
         }
@@ -155,73 +151,29 @@ class CovBallAnim constructor(
         }
     }
 
-    fun setupMediaPlayer(callback: MediaPlayerCallback) {
-        this.mediaPlayerCallback = callback
-        createMediaPlayer(videoView)
+    fun setupMediaPlayer(rtcEngine: RtcEngine) {
+        createMediaPlayer(rtcEngine, videoView)
     }
 
-    private fun createMediaPlayer(surfaceView: TextureView) {
-        mediaPlayer = MediaPlayer()
-
-        surfaceView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-            override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-                try {
-                    val path = context.filesDir.absolutePath + "/$VIDEO_FILE_NAME"
-                    mediaPlayer?.apply {
-                        reset()
-                        setDataSource(path)
-                        setSurface(Surface(surface))
-                        setOnErrorListener { _, what, extra ->
-                            mediaPlayerCallback?.onError(MediaPlayerError.PlaybackError(what, extra))
-                            true
-                        }
-                        setOnBufferingUpdateListener { mp, percent ->
-                            if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "Buffer: $percent%")
-                            }
-                        }
-
-                        setOnInfoListener { mp, what, extra ->
-                            false
-                        }
-                        setOnPreparedListener { mp ->
-                            mp.setVolume(0f, 0f)
-                            mp.isLooping = true
-                            setVideoSpeed(0.5f)
-                            mp.start()
-                        }
-                        prepareAsync()
-                    }
-                } catch (e: Exception) {
-                    mediaPlayerCallback?.onError(MediaPlayerError.PrepareError(e))
-                }
+    private val mediaPlayerObserver = object : CovMediaPlayerObserver() {
+        override fun onPlayerStateChanged(state: MediaPlayerState?, reason: MediaPlayerReason?) {
+            if (state == MediaPlayerState.PLAYER_STATE_OPEN_COMPLETED) {
+                rtcMediaPlayer?.mute(true)
+                rtcMediaPlayer?.setPlaybackSpeed(50)
+                rtcMediaPlayer?.play()
             }
-
-            override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {}
-
-            override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-                return false
-            }
-
-            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
         }
     }
 
-//    private fun getFirstVideoFrame(path:String):Bitmap?{
-//        val retriever = MediaMetadataRetriever()
-//        retriever.setDataSource(path)
-//        val firstFrame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-//        retriever.release()
-//        return firstFrame
-//    }
-
-    private fun setVideoSpeed(speed: Float) {
-        try {
-            val params = mediaPlayer?.playbackParams ?: return
-            params.setSpeed(speed)
-            mediaPlayer?.playbackParams = params
-        } catch (e: Exception) {
-            mediaPlayerCallback?.onError(MediaPlayerError.PlaybackError(0, 0))
+    private fun createMediaPlayer(rtcEngine: RtcEngine, videoView: TextureView) {
+        rtcMediaPlayer = rtcEngine.createMediaPlayer()?.apply {
+            setView(videoView)
+            registerPlayerObserver(mediaPlayerObserver)
+            val source = MediaPlayerSource().apply {
+                url = context.filesDir.absolutePath + "/$VIDEO_FILE_NAME"
+            }
+            setLoopCount(-1)
+            openWithMediaSource(source)
         }
     }
 
@@ -239,9 +191,9 @@ class CovBallAnim constructor(
 
             AgentState.LISTENING, AgentState.SPEAKING -> {
                 // TODO: oldState == AgentState.STATIC
-                if (oldState == AgentState.STATIC && mediaPlayer?.isPlaying == false) {
-                    mediaPlayer?.start()
-                }
+//                if (oldState == AgentState.STATIC) {
+//                    rtcMediaPlayer?.play()
+//                }
                 if (newState == AgentState.SPEAKING) {
                     startAgentAnimation(volume)
                 }
@@ -306,24 +258,17 @@ class CovBallAnim constructor(
     }
 
     fun release() {
-        try {
-            mediaPlayer?.let {
-                if (it.isPlaying) {
-                    it.stop()
-                }
-                it.release()
-                mediaPlayer = null
-            }
-
-            scaleAnimator?.let {
-                it.removeListener(animatorListener)  // Remove the listener
-                it.cancel()
-                scaleAnimator = null
-            }
-            mediaPlayerCallback = null
-            currentState = AgentState.STATIC
-        } catch (e: Exception) {
-            mediaPlayerCallback?.onError(MediaPlayerError.PrepareError(e))
+        rtcMediaPlayer?.let {
+            it.stop()
+            it.destroy()
+            rtcMediaPlayer = null
         }
+
+        scaleAnimator?.let {
+            it.removeListener(animatorListener)  // Remove the listener
+            it.cancel()
+            scaleAnimator = null
+        }
+        currentState = AgentState.STATIC
     }
 }
