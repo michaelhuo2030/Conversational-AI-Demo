@@ -154,6 +154,7 @@
                 android:id="@+id/cv_cc"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
+                android:backgroundTint="@android:color/transparent"
                 app:cardCornerRadius="36dp"
                 app:cardElevation="0dp">
 
@@ -176,6 +177,7 @@
                 android:id="@+id/cv_mic"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
+                android:backgroundTint="@android:color/transparent"
                 app:cardCornerRadius="36dp"
                 app:cardElevation="0dp">
 
@@ -196,6 +198,7 @@
                 android:id="@+id/cv_end_call"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
+                android:backgroundTint="@android:color/transparent"
                 app:cardCornerRadius="36dp"
                 app:cardElevation="0dp">
 

@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:paddingHorizontal="20dp"
     android:paddingBottom="20dp"
-    android:background="#D9121212">
+    android:background="@color/ai_mask1">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_messages"

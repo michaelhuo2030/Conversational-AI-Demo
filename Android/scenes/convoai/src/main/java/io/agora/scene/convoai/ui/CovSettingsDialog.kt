@@ -1,5 +1,6 @@
 package io.agora.scene.convoai.ui
 
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,7 +21,8 @@ import io.agora.scene.convoai.rtc.AgentLLMType
 import io.agora.scene.convoai.rtc.AgentLanguageType
 import io.agora.scene.convoai.rtc.AgentPresetType
 import io.agora.scene.convoai.rtc.AgentVoiceType
-import io.agora.scene.convoai.rtc.CovAgoraManager
+import io.agora.scene.convoai.rtc.CovAgentManager
+import io.agora.scene.convoai.rtc.CovRtcManager
 
 class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
@@ -59,19 +61,19 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             vOptionsMask.setOnClickListener {
                 onClickMaskView()
             }
-            cbNoiseCancellation.isChecked = CovAgoraManager.getDenoiseStatus()
+            cbNoiseCancellation.isChecked = CovAgentManager.enableBHVS
             cbNoiseCancellation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-                CovAgoraManager.updateDenoise(isChecked)
+
             }
-            cbAiVad.isChecked = CovAgoraManager.isAiVad
+            cbAiVad.isChecked = CovAgentManager.isAiVad
             cbAiVad.setOnClickListener {
-                CovAgoraManager.isAiVad = cbAiVad.isChecked
-                CovAgoraManager.isForceThreshold = cbAiVad.isChecked
+                CovAgentManager.isAiVad = cbAiVad.isChecked
+                CovAgentManager.isForceThreshold = cbAiVad.isChecked
                 updateAiVadSettings()
             }
-            cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
+            cbForceResponse.isChecked = CovAgentManager.isForceThreshold
             cbForceResponse.setOnClickListener {
-                CovAgoraManager.isForceThreshold = cbForceResponse.isChecked
+                CovAgentManager.isForceThreshold = cbForceResponse.isChecked
                 updateAiVadSettings()
             }
             btnClose.setOnClickListener {
@@ -85,16 +87,16 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun uploadNewSetting(voice: AgentVoiceType? = null, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
         val context = context?:return
-        if (CovAgoraManager.connectionState == AgentConnectionState.CONNECTED) {
+        if (CovAgentManager.connectionState == AgentConnectionState.CONNECTED) {
             val loadingDialog = LoadingDialog(context).apply {
                 show()
             }
             ConvAIManager.updateAgent(voice?.value) { success ->
                 loadingDialog.dismiss()
                 if (success) {
-                    voice?.let {CovAgoraManager.voiceType = it}
-                    llm?.let { CovAgoraManager.llmType = llm }
-                    language?.let { CovAgoraManager.languageType = language }
+                    voice?.let {CovAgentManager.voiceType = it}
+                    llm?.let { CovAgentManager.llmType = llm }
+                    language?.let { CovAgentManager.languageType = language }
                     updateAiVadSettings()
                 } else {
                     updateAiVadSettings()
@@ -102,9 +104,9 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 }
             }
         } else {
-            voice?.let {CovAgoraManager.voiceType = it}
-            llm?.let { CovAgoraManager.llmType = llm }
-            language?.let { CovAgoraManager.languageType = language }
+            voice?.let {CovAgentManager.voiceType = it}
+            llm?.let { CovAgentManager.llmType = llm }
+            language?.let { CovAgentManager.languageType = language }
             updateAiVadSettings()
         }
     }
@@ -112,31 +114,26 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     private fun updateAiVadSettings() {
         binding?.apply {
             // ai vad
-            if (CovAgoraManager.connectionState == AgentConnectionState.CONNECTED) {
-                clAiVad.visibility = View.GONE
-                clForceResponse.visibility = View.GONE
+            clAiVad.visibility = View.VISIBLE
+            cbAiVad.isChecked = CovAgentManager.isAiVad
+            cbForceResponse.isChecked = CovAgentManager.isForceThreshold
+            if (CovAgentManager.isAiVad) {
+                clForceResponse.visibility = View.VISIBLE
             } else {
-                clAiVad.visibility = View.VISIBLE
-                cbAiVad.isChecked = CovAgoraManager.isAiVad
-                cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
-                if (CovAgoraManager.isAiVad) {
-                    clForceResponse.visibility = View.VISIBLE
-                } else {
-                    clForceResponse.visibility = View.GONE
-                }
+                clForceResponse.visibility = View.GONE
             }
         }
     }
 
     private fun updateBaseSettings() {
         binding?.apply {
-            tvPresetDetail.text = CovAgoraManager.currentPresetType().value
-            tvLanguageDetail.text = CovAgoraManager.languageType.value
+            tvPresetDetail.text = CovAgentManager.getPresetType().value
+            tvLanguageDetail.text = CovAgentManager.languageType.value
         }
     }
 
     private fun updateOptionsByPresets() {
-        when (CovAgoraManager.currentPresetType()) {
+        when (CovAgentManager.getPresetType()) {
             AgentPresetType.VERSION1 -> {
                 voices = arrayOf(AgentVoiceType.AVA_MULTILINGUAL)
                 LLMs = arrayOf(AgentLLMType.OPEN_AI)
@@ -167,12 +164,12 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun updatePageEnable() {
         val context = context ?: return
-        if (CovAgoraManager.connectionState == AgentConnectionState.CONNECTED) {
+        if (CovAgentManager.connectionState == AgentConnectionState.CONNECTED) {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
-                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
-                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
+                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
                 clPreset.isEnabled = false
                 clLanguage.isEnabled = false
                 cbNoiseCancellation.isEnabled = false
@@ -183,8 +180,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
-                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
-                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
+                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
                 clPreset.isEnabled = true
                 clLanguage.isEnabled = true
                 cbNoiseCancellation.isEnabled = true
@@ -209,7 +206,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             cvOptions.layoutParams = params
             // update options and select action
             optionsAdapter.updateOptions(presets.map { it.value }.toTypedArray()) { index ->
-                CovAgoraManager.updatePreset(presets[index])
+                CovAgentManager.updatePreset(presets[index])
             }
         }
     }

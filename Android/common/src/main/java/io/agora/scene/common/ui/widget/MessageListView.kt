@@ -37,6 +37,10 @@ class MessageListView @JvmOverloads constructor(
         messageAdapter.clearMessages()
     }
 
+    fun updateAgentName(str: String) {
+        messageAdapter.updateFromTitle(str)
+    }
+
     fun updateStreamContent(isMe: Boolean, text: String, isFinal: Boolean = false) {
         if (isMe) {
             if (isFinal) {
@@ -118,6 +122,7 @@ class MessageListView @JvmOverloads constructor(
 
     class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
+        private var fromTitle: String = ""
         private val messages = mutableListOf<Message>()
 
         abstract class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -130,9 +135,10 @@ class MessageListView @JvmOverloads constructor(
             }
         }
 
-        class AgentMessageViewHolder(private val binding: CovMessageAgentItemBinding) : MessageViewHolder(binding.root) {
+        inner class AgentMessageViewHolder(private val binding: CovMessageAgentItemBinding) : MessageViewHolder(binding.root) {
             override fun bind(message: Message) {
                 binding.tvMessageContent.text = message.content
+                binding.tvMessageTitle.text = fromTitle
             }
         }
 
@@ -183,6 +189,11 @@ class MessageListView @JvmOverloads constructor(
             } else {
                 addMessage(message)
             }
+        }
+
+        fun updateFromTitle(title: String) {
+            fromTitle = title
+            notifyDataSetChanged()
         }
     }
 }

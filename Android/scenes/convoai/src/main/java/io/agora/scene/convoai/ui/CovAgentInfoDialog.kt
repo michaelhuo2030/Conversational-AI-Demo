@@ -10,7 +10,8 @@ import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.rtc.AgentConnectionState
-import io.agora.scene.convoai.rtc.CovAgoraManager
+import io.agora.scene.convoai.rtc.CovAgentManager
+import io.agora.scene.convoai.rtc.CovRtcManager
 
 class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<CovInfoDialogBinding>() {
 
@@ -31,7 +32,7 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding?.apply {
-            when (CovAgoraManager.connectionState) {
+            when (CovAgentManager.connectionState) {
                 AgentConnectionState.IDLE -> {
                     context?.let {
                         mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
@@ -61,8 +62,8 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                         mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
                         mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
 
-                        mtvRoomId.text = CovAgoraManager.channelName
-                        mtvUidValue.text = CovAgoraManager.uid.toString()
+                        mtvRoomId.text = CovRtcManager.channelName
+                        mtvUidValue.text = CovRtcManager.uid.toString()
                     }
                 }
                 AgentConnectionState.CONNECTED -> {
@@ -74,8 +75,8 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                         mtvAgentStatus.text = getString(R.string.cov_info_agent_connected)
                         mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
 
-                        mtvRoomId.text = CovAgoraManager.channelName
-                        mtvUidValue.text = CovAgoraManager.uid.toString()
+                        mtvRoomId.text = CovRtcManager.channelName
+                        mtvUidValue.text = CovRtcManager.uid.toString()
                     }
                 }
             }

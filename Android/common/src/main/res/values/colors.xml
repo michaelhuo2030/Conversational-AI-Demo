@@ -11,13 +11,13 @@
     <color name="ai_brand_white10">#ffffffff</color>
     <color name="ai_fill1">#ff121212</color>
     <color name="ai_fill2">#f2171717</color>
-    <color name="ai_input">#f2272d39</color>
+    <color name="ai_input">#7f262c37</color>
     <color name="ai_line1">#ff262626</color>
     <color name="ai_mainhover">#7f535268</color>
     <color name="ai_click">#cc84878e</color>
     <color name="ai_line2">#cc535268</color>
     <color name="ai_block2">#f21d1d1d</color>
-    <color name="ai_block1">#ff1c1c20</color>
+    <color name="ai_block1">#2dacacef</color>
     <color name="ai_block4_chat">#ff2b2b2b</color>
     <color name="ai_icontext4">#4cffffff</color>
     <color name="ai_red6">#ffe6544b</color>
@@ -34,6 +34,13 @@
     <color name="ai_yellow6">#ffffc700</color>
     <color name="ai_brand_lightbrand6">#ffa0faff</color>
     <color name="ai_line3">#19ffffff</color>
+    <color name="ai_disable">#ff32353b</color>
+    <color name="ai_brand_white8">#ccffffff</color>
+    <color name="ai_brand_white6">#99ffffff</color>
+    <color name="ai_block5">#f21d1d1d</color>
+    <color name="ai_brand_lightbrand7">#ff17f1fe</color>
+    <color name="ai_mask1">#d8121212</color>
+
     <array name="gradient_border_default_colors">
         <item>#FF00C2FF</item>
         <item>#19FFFFFF</item>
