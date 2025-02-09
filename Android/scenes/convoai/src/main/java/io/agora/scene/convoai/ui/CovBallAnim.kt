@@ -4,13 +4,13 @@ import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
-import android.widget.FrameLayout
 import io.agora.scene.common.BuildConfig
 
 sealed class MediaPlayerError {
@@ -35,7 +35,7 @@ enum class AgentState {
 
 class CovBallAnim constructor(
     private val context: Context,
-    private val videoContainer: FrameLayout
+    private val videoView: TextureView
 ) {
 
     companion object {
@@ -48,17 +48,17 @@ class CovBallAnim constructor(
         }
 
         private object ScaleConstants {
-            const val SCALE_HIGH = 0.9f
-            const val SCALE_MEDIUM = 0.94f
-            const val SCALE_LOW = 0.96f
+            const val SCALE_HIGH = 1.1f
+            const val SCALE_MEDIUM = 1.06f
+            const val SCALE_LOW = 1.04f
         }
 
         private const val TAG = "CovBallAnim"
 
         // Animation duration constants
-        private const val DURATION_HIGH = 300L
-        private const val DURATION_MEDIUM = 400L
-        private const val DURATION_LOW = 500L
+        private const val DURATION_HIGH = 400L
+        private const val DURATION_MEDIUM = 500L
+        private const val DURATION_LOW = 600L
 
         private const val VIDEO_FILE_NAME = "ball_small_video.mov"
         private const val BOUNCE_SCALE = 0.02f  // Additional scale factor during bounce
@@ -76,7 +76,7 @@ class CovBallAnim constructor(
                 field = value
                 when (value) {
                     AgentState.STATIC -> {
-                        setVideoSpeed(0f)
+                        setVideoSpeed(0.5f)
                     }
 
                     AgentState.LISTENING -> setVideoSpeed(1.0f)
@@ -128,7 +128,7 @@ class CovBallAnim constructor(
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "onAnimationRepeat $scaleAnimator")
             }
-            // Check the state, stop the animation if it’s not in the SPEAKING state
+            // Check the state, stop the animation if it's not in the SPEAKING state
             if (currentState != AgentState.SPEAKING) {
                 pendingAnimParams = null
                 Log.d(TAG, "onAnimationRepeat call cancel $scaleAnimator")
@@ -157,11 +157,7 @@ class CovBallAnim constructor(
 
     fun setupMediaPlayer(callback: MediaPlayerCallback) {
         this.mediaPlayerCallback = callback
-        val surfaceView = TextureView(context).apply {
-            videoContainer.removeAllViews()
-            videoContainer.addView(this)
-        }
-        createMediaPlayer(surfaceView)
+        createMediaPlayer(videoView)
     }
 
     private fun createMediaPlayer(surfaceView: TextureView) {
@@ -179,10 +175,20 @@ class CovBallAnim constructor(
                             mediaPlayerCallback?.onError(MediaPlayerError.PlaybackError(what, extra))
                             true
                         }
+                        setOnBufferingUpdateListener { mp, percent ->
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "Buffer: $percent%")
+                            }
+                        }
+
+                        setOnInfoListener { mp, what, extra ->
+                            false
+                        }
                         setOnPreparedListener { mp ->
                             mp.setVolume(0f, 0f)
                             mp.isLooping = true
-                            mp.seekTo(0)  // Position to the first frame
+                            setVideoSpeed(0.5f)
+                            mp.start()
                         }
                         prepareAsync()
                     }
@@ -293,7 +299,7 @@ class CovBallAnim constructor(
     }
 
     private fun updateParentScale(scale: Float) {
-        (videoContainer.parent as? ViewGroup)?.apply {
+        (videoView.parent as? ViewGroup)?.apply {
             scaleX = scale
             scaleY = scale
         }
@@ -316,9 +322,6 @@ class CovBallAnim constructor(
             }
             mediaPlayerCallback = null
             currentState = AgentState.STATIC
-
-            // Release TextureView resources
-            videoContainer.removeAllViews()
         } catch (e: Exception) {
             mediaPlayerCallback?.onError(MediaPlayerError.PrepareError(e))
         }

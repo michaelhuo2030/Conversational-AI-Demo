@@ -476,7 +476,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun setupBallAnimView() {
         val binding = mBinding ?: return
-        mCovBallAnim = CovBallAnim(this, binding.videoContainer).apply {
+        mCovBallAnim = CovBallAnim(this, binding.videoView).apply {
             setupMediaPlayer(object : MediaPlayerCallback {
                 override fun onError(error: MediaPlayerError) {
                     CovLogger.e(TAG, "MediaPlayer error：$error")
