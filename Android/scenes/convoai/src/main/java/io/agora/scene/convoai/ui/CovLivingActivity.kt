@@ -119,7 +119,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
             enableAiVad = CovAgentManager.enableAiVad,
             enableBHVS = CovAgentManager.enableBHVS,
-            presetName = CovAgentManager.getPreset()?.name
+            presetName = CovAgentManager.getPreset()?.name,
+            asrLanguage = CovAgentManager.language?.language_code,
         )
     }
 
@@ -249,7 +250,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     runOnUiThread {
                         CovLogger.d(TAG, "start agent reconnect")
                         // toast error message, guide user to click to end call
-                        ToastUtil.show(R.string.cov_detail_agent_leave)
+                        ToastUtil.show(R.string.cov_detail_agent_state_error)
                     }
                 }
             }
@@ -258,7 +259,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 when (state) {
                     Constants.CONNECTION_STATE_CONNECTED -> {
                         if (reason == Constants.CONNECTION_CHANGED_REJOIN_SUCCESS) {
-                            CovLogger.d(TAG, "onConnectionStateChanged: login")
+                            // reconnect state succeed
                         }
                     }
                     Constants.CONNECTION_STATE_CONNECTING -> {
@@ -269,12 +270,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                     Constants.CONNECTION_STATE_RECONNECTING -> {
                         if (reason == Constants.CONNECTION_CHANGED_INTERRUPTED) {
-                            CovLogger.d(TAG, "onConnectionStateChanged: login")
+                            ToastUtil.show(R.string.cov_detail_net_state_error)
                         }
                     }
                     Constants.CONNECTION_STATE_FAILED -> {
                         if (reason == Constants.CONNECTION_CHANGED_JOIN_FAILED) {
                             CovLogger.d(TAG, "onConnectionStateChanged: login")
+                            ToastUtil.show(R.string.cov_detail_net_state_error)
                         }
                     }
                 }
@@ -393,7 +395,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     llJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.VISIBLE
                 }
-                AgentConnectionState.CONNECTED -> {
+                AgentConnectionState.CONNECTED,
+                AgentConnectionState.CONNECTED_INTERRUPT -> {
                     llCalling.visibility = View.VISIBLE
                     llJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.GONE

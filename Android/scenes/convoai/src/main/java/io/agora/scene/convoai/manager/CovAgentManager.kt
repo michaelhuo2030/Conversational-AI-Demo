@@ -32,7 +32,7 @@ object CovAgentManager {
     private var preset: CovAgentPreset? = null
     var language: CovAgentLanguage? = null
 
-    var enableAiVad = true
+    var enableAiVad = false
     var enableBHVS = true
     var connectionState = AgentConnectionState.IDLE
 

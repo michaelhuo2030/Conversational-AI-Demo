@@ -44,4 +44,5 @@ enum class AgentConnectionState() {
     IDLE,
     CONNECTING,
     CONNECTED,
+    CONNECTED_INTERRUPT,
 }

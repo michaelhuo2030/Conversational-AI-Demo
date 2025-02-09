@@ -10,6 +10,9 @@
     <string name="cov_detail_agent_leave">Agent Left!</string>
     <string name="cov_detail_message_list_you">You</string>
     <string name="cov_detail_connecting">Connecting…</string>
+    <string name="cov_detail_agent_join_timeout">智能体加入超时，请稍后重试。</string>
+    <string name="cov_detail_agent_state_error">智能体状态异常，请退出重试。</string>
+    <string name="cov_detail_net_state_error">网络异常，请检查网络设置。</string>
 
     <string name="cov_info_dialog_title">INFO</string>
     <string name="cov_channel_info_title">CHANNEL INFO</string>

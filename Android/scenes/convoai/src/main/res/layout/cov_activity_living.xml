@@ -90,7 +90,6 @@
                 <TextureView
                     android:id="@+id/video_view"
                     android:layout_width="match_parent"
-                    android:background="@android:color/transparent"
                     android:layout_height="match_parent"/>
             </com.google.android.material.card.MaterialCardView>
 
