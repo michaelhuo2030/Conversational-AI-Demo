@@ -1,7 +1,7 @@
 
 "join.start.title" = "Convo AI Agent";
 "join.start.state" = "Not Joined";
-"join.start.button.title" = "Join Call";
+"join.start.button.title" = "Get Start";
 "join.start.agent.name" = "Agent";
 
 "conversation.agent.name" = "Agent";
@@ -14,7 +14,7 @@
 "conversation.end.call.leave" = "Agent Left!";
 "conversation.message.you" = "You";
 "conversation.message.agent.name" = "AI Agent";
-
+"conversation.agent.connecting" = "Connecting...";
 "conversation.message.alert.title" = "Clear Messages";
 "conversation.message.alert.content" = "Are you sure you want to clear all messages?";
 

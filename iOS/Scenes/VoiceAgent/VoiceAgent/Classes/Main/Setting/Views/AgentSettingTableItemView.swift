@@ -36,9 +36,11 @@ extension AgentSettingTableItemView {
         self.backgroundColor = PrimaryColors.c_1d1d1d
 
         titleLabel.textColor = PrimaryColors.c_ffffff
+        titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         addSubview(titleLabel)
         
-        detialLabel.textColor = PrimaryColors.c_ffffff_a
+        detialLabel.textColor = PrimaryColors.c_ffffff
+        detialLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         addSubview(detialLabel)
         
         addSubview(imageView)

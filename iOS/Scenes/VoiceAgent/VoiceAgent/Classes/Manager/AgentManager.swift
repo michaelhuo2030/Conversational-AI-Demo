@@ -1,149 +1,169 @@
+//
+//  AgentService.swift
+//  Agent
+//
+//  Created by qinhui on 2024/10/15.
+//
+
 import Foundation
-import AgoraRtcKit
 import Common
 
-protocol AgentProtocol {
-    func getRtcEntine() -> AgoraRtcEngineKit
-    func startAgent(uid: Int, agentUid: Int, completion: @escaping (AgentError?, String?) -> Void)
-    func stopAgent(agentUid: String, completion: @escaping (AgentError?, [String: Any]?) -> Void)
-    func updateAgent(agentUid: String, appId: String, voiceId: String, completion: @escaping((AgentError?) -> Void))
-    func joinChannel() -> Int32
-    func openDenoise()
-    func closeDenoise()
-    func muteVoice(state: Bool)
-    func destroy()
+/// Protocol that defines the core functionality for agent operations
+/// Provides methods to start and stop AI agents in a channel
+protocol AgentAPI {
+   
+    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void))
+    
+    func stopAgent(appId:String, agentId: String, channelName: String, presetName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void))
+    
+    func ping(appId: String, channelName: String, presetName: String)
+    
+    func fetchAgentPresets(completion: @escaping ((AgentError?, [AgentPreset]?) -> Void))
 }
 
-enum RtcEnum {
-    private static let uidKey = "uidKey"
-    private static let channelKey = "channelKey"
-    private static var channelId: String?
-    private static var uid: Int?
+class AgentManager: AgentAPI {    
+    init(host: String) {
+        AgentServiceUrl.host = host
+    }
     
-    static func getUid() -> Int {
-        if let uid = uid {
-            return uid
-        } else {
-            let randomUid = Int.random(in: 1000...9999999)
-            uid = randomUid
-            return randomUid
+    func fetchAgentPresets(completion: @escaping ((AgentError?, [AgentPreset]?) -> Void)) {
+        let url = AgentServiceUrl.stopAgentPath("convoai/presetAgents").toHttpUrlSting()
+        NetworkManager.shared.getRequest(urlString: url) { result in
+            if let code = result["code"] as? Int, code != 0 {
+                let msg = result["msg"] as? String ?? "Unknown error"
+                let error = AgentError.serverError(code: code, message: msg)
+                completion(error, nil)
+                return
+            }
+            
+            guard let data = result["data"] as? [[String: Any]] else {
+                let error = AgentError.serverError(code: -1, message: "data error")
+                completion(error, nil)
+                return
+            }
+            
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: data)
+                let presets = try JSONDecoder().decode([AgentPreset].self, from: jsonData)
+                completion(nil, presets)
+            } catch {
+                let error = AgentError.serverError(code: -1, message: error.localizedDescription)
+                completion(error, nil)
+            }
+        } failure: { msg in
+            let error = AgentError.serverError(code: -1, message: msg)
+            completion(error, nil)
         }
     }
     
-    static func getChannel() -> String {
-        if let channel = channelId {
-            return channel
-        } else {
-            let characters = Array("0123456789abcdefghijklmnopqrstuvwxyz")
-            let randomString = String((0..<4).compactMap { _ in characters.randomElement() })
-            channelId = randomString
-            return randomString
-        }
-    }
-}
-
-class AgentManager: NSObject {
-    private var rtcEngine: AgoraRtcEngineKit!
-    private(set) var appId: String = ""
-    private(set) var channelName: String = ""
-    private(set) var token: String = ""
-    private(set) var uid: String = ""
-    private(set) var host: String = ""
-    private weak var delegate: AgoraRtcEngineDelegate?
-    private var agentApiService: AgentAPIService!
-        
-    init(appId: String, channelName: String, token: String, host: String, delegate: AgoraRtcEngineDelegate?) {
-        self.appId = appId
-        self.channelName = channelName
-        self.token = token
-        self.host = host
-        self.delegate = delegate
-
-        super.init()
-        initService()
-    }
-    
-    private func addLog(_ txt: String) {
-        print(txt)
-    }
-    
-    private func initService() {
-        agentApiService = AgentAPIService(host: host)
-        
-        let config = AgoraRtcEngineConfig()
-        config.appId = appId
-        config.channelProfile = .liveBroadcasting
-        config.audioScenario = .chorus
-        rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self.delegate)
-        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
-        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}");
-        rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\":1}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainlpModelPref\":11}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}");
-        rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\":12}");
-        rtcEngine.setParameters("{\"che.audio.sf.ainsModelPref\":11}");
-        rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\":11}");
-        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}");
-        rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
-    }
-}
-    
-extension AgentManager: AgentProtocol {
-    func getRtcEntine() -> AgoraRtcEngineKit {
-        return rtcEngine
-    }
-    
-    func startAgent(uid: Int, agentUid: Int, completion: @escaping (AgentError?, String?) -> Void) {
-        agentApiService.startAgent(uid: uid, agentUid: agentUid, channelName: channelName, completion: completion)
-    }
-    
-    func updateAgent(agentUid: String, appId: String, voiceId: String, completion: @escaping((AgentError?) -> Void)) {
-        agentApiService.updateAgent(agentUid: agentUid, appId: appId, voiceId: voiceId, completion: completion)
-    }
-    
-    func joinChannel() -> Int32 {
-        let uid = UInt(RtcEnum.getUid())
-        let options = AgoraRtcChannelMediaOptions()
-        options.clientRoleType = .broadcaster
-        options.publishMicrophoneTrack = true
-        options.publishCameraTrack = false
-        options.autoSubscribeAudio = true
-        options.autoSubscribeVideo = false
-        return rtcEngine.joinChannel(byToken: token, channelId: channelName, uid: uid, mediaOptions: options)
-    }
-    
-    func stopAgent(agentUid: String, completion: @escaping (AgentError?, [String: Any]?) -> Void) {
-        agentApiService.stopAgent(agentUid: agentUid, channelName: channelName, completion: completion)
-    }
-    
-    func openDenoise() {
-        AgentSettingManager.shared.isNoiseCancellationEnabled = true
-        let params = [
-            "{\"che.audio.sf.enabled\":true}",
-            "{\"che.audio.sf.ainlpToLoadFlag\":1}",
-            "{\"che.audio.sf.nlpAlgRoute\":1}",
-            "{\"che.audio.sf.ainsToLoadFlag\":1}",
-            "{\"che.audio.sf.nsngAlgRoute\":12}",
-            "{\"che.audio.sf.ainsModelPref\":11}",
-            "{\"che.audio.sf.ainlpModelPref\":11}"
+    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void)) {
+        let url = AgentServiceUrl.startAgentPath("convoai/start").toHttpUrlSting()
+        let parameters: [String: Any] = [
+            "app_id": appId,
+            "preset_name": presetName,
+            "channel_name": channelName,
+            "agent_rtc_uid": agentUid,
+            "remote_rtc_uid": uid,
+            "advanced_features": [
+                "enable_aivad": aiVad
+            ],
+            "asr": [
+                "language": language
+            ]
         ]
-        params.forEach { rtcEngine.setParameters($0) }
+                
+        AgentLogger.info("request start api parameters is: \(parameters)")
+        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+            if let code = result["code"] as? Int, code != 0 {
+                let msg = result["msg"] as? String ?? "Unknown error"
+                let error = AgentError.serverError(code: code, message: msg)
+                completion(error, nil)
+                return
+            }
+            
+            guard let data = result["data"] as? [String: Any], let agentId = data["agent_id"] as? String else {
+                let error = AgentError.serverError(code: -1, message: "data error")
+                completion(error, nil)
+                return
+            }
+            
+            completion(nil, agentId)
+            
+        } failure: { msg in
+            let error = AgentError.serverError(code: -1, message: msg)
+            completion(error, nil)
+        }
     }
     
-    func closeDenoise() {
-        rtcEngine.setParameters("{\"che.audio.sf.enabled\":false}")
-        AgentSettingManager.shared.isNoiseCancellationEnabled = false
+    func stopAgent(appId:String, agentId: String, channelName: String, presetName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
+        let url = AgentServiceUrl.stopAgentPath("convoai/stop").toHttpUrlSting()
+        let parameters: [String: Any] = [
+            "app_id": appId,
+            "agent_id": agentId,
+            "preset_name": presetName
+        ]
+        AgentLogger.info("request stop api parameters is: \(parameters)")
+        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+            if let code = result["code"] as? Int, code != 0 {
+                let msg = result["msg"] as? String ?? "Unknown error"
+                let error = AgentError.serverError(code: code, message: msg)
+                completion(error, nil)
+            } else {
+                completion(nil, result)
+            }
+        } failure: { msg in
+            let error = AgentError.serverError(code: -1, message: msg)
+            completion(error, nil)
+        }
     }
     
-    func muteVoice(state: Bool) {
-        rtcEngine.adjustRecordingSignalVolume(state ? 0 : 100)
+    func ping(appId: String, channelName: String, presetName: String) {
+        
     }
     
-    func destroy() {
-        rtcEngine.leaveChannel()
-        AgoraRtcEngineKit.destroy()
+}
+
+enum AgentServiceUrl {
+    static let retryCount = 1
+    static var host: String = ""
+    var baseUrl: String {
+        return AgentServiceUrl.host + "/"
+    }
+    
+    case startAgentPath(String)
+    case updateAgentPath(String)
+    case stopAgentPath(String)
+    
+    public func toHttpUrlSting() -> String {
+        switch self {
+        case .startAgentPath(let path):
+            return baseUrl + path
+        case .stopAgentPath(let path):
+            return baseUrl + path
+        case .updateAgentPath(let path):
+            return baseUrl + path
+        }
     }
 }
 
+enum AgentError: Error {
+    case serverError(code: Int, message: String)
+    case unknownError(message: String)
+
+    var code: Int {
+        switch self {
+        case .serverError(let code, _):
+            return code
+        case .unknownError:
+            return -100
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .serverError(_, let message), .unknownError(let message):
+            return message
+        }
+    }
+}
 

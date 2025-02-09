@@ -8,6 +8,13 @@
 import Foundation
 
 public class PrimaryColors {
+    public static let c_121212 = UIColor(hex: 0x121212)
+    public static let c_1c1c20 = UIColor(hex: 0x1c1c20)
+    public static let c_a0faff = UIColor(hex: 0xa0faff)
+
+    
+    
+    
     public static let c_0097d4 = UIColor(hex: 0x0097D4)
     public static let c_ff414d = UIColor(hex: 0xFF414D)
     public static let c_00c2ff = UIColor(hex: 0x00c2FF)

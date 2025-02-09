@@ -8,6 +8,7 @@
 import UIKit
 import Common
 import SVProgressHUD
+import VoiceAgent
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -26,6 +27,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppContext.shared.certificate = KeyCenter.Certificate ?? ""
         AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
         AppContext.shared.termsOfServiceUrl = KeyCenter.TermsOfService
+        
+        VoiceAgentContext.preLoadPreset()
         
         return true
     }

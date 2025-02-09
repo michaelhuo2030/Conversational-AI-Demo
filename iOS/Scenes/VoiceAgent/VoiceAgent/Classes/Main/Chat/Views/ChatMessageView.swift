@@ -186,7 +186,7 @@ class ChatView: UIView {
     
     // MARK: - Setup
     private func setupViews() {
-        backgroundColor = UIColor(red: 0.09, green: 0.09, blue: 0.09, alpha: 1.0)
+        backgroundColor = PrimaryColors.c_121212.withAlphaComponent(0.85)
         layer.cornerRadius = 12
         addSubview(tableView)
     }

@@ -6,15 +6,32 @@
 //
 
 import UIKit
-
+import Common
 
 @objcMembers
 public class VoiceAgentContext: NSObject {
     public static let kSceneName = "VoiceAgent"
-
+    
+    public static func preLoadPreset() {
+        let agentManager = AgentManager(host: AppContext.shared.baseServerUrl)
+        agentManager.fetchAgentPresets { error, result in
+            if error != nil {
+                return
+            }
+            
+            guard let result = result else {
+                return
+            }
+            
+            AgentPreferenceManager.shared.setPresets(presets: result)
+        }
+    }
+    
     public static func voiceAgentScene(viewController: UIViewController) {
-        let vc = PreparedToStartViewController()
-        vc.showMineContent = false
+//        let vc = PreparedToStartViewController()
+//        vc.showMineContent = false
+//        viewController.navigationController?.pushViewController(vc, animated: true)
+        let vc = ChatViewController()
         viewController.navigationController?.pushViewController(vc, animated: true)
     }
 }

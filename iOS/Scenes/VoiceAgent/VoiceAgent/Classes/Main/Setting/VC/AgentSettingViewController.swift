@@ -14,137 +14,240 @@ protocol AgentSettingViewDelegate: NSObjectProtocol {
 }
 
 class AgentSettingViewController: UIViewController {
+    private let backgroundViewHeight: CGFloat = 427
+    private var initialCenter: CGPoint = .zero
+    private var panGesture: UIPanGestureRecognizer?
     weak var delegate: AgentSettingViewDelegate? = nil
+    private var basicSettingItems: [UIView] = []
+    private var advancedSettingItems: [UIView] = []
     
     var channelName = ""
     
-    private let scrollView = UIScrollView()
-    private let contentView = UIView()
+    private lazy var topView: AgentSettingTopView = {
+        let view = AgentSettingTopView()
+        view.onCloseButtonTapped = { [weak self] in
+            self?.animateBackgroundViewOut()
+        }
+        return view
+    }()
     
-    private let contentView1 = UIView()
-    private let infoItem = AgentSettingTableItemView(frame: .zero)
+    private lazy var scrollView: UIScrollView = {
+        let view = UIScrollView()
+        return view
+    }()
     
-    private let content2Title = UILabel()
-    private let contentView2 = UIView()
-    private let voiceItem = AgentSettingTableItemView(frame: .zero)
-    private let modelItem = AgentSettingTableItemView(frame: .zero)
-    private let languageItem = AgentSettingTableItemView(frame: .zero)
-    private let aiVadItem = AgentSettingSwitchItemView(frame: .zero)
-    private let forceResponseItem = AgentSettingSwitchItemView(frame: .zero)
+    private lazy var backgroundView: UIView = {
+        let view = UIView()
+        view.backgroundColor = PrimaryColors.c_171717
+        view.alpha = 0.95
+        return view
+    }()
     
-    private let content3Title = UILabel()
-    private let contentView3 = UIView()
-//    private let microphoneItem = AgentSettingTableItemView(frame: .zero)
-//    private let speakerItem = AgentSettingTableItemView(frame: .zero)
-    private let cancellationItem = AgentSettingSwitchItemView(frame: .zero)
+    private lazy var contentView: UIView = {
+        let view = UIView()
+        return view
+    }()
+    
+    private lazy var basicSettingView: UIView = {
+        let view = UIView()
+        view.backgroundColor = PrimaryColors.c_1d1d1d
+        view.layerCornerRadius = 10
+        view.layer.borderWidth = 1.0
+        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        return view
+    }()
+    
+    private lazy var presetItem: AgentSettingTableItemView = {
+        let view = AgentSettingTableItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.Settings.preset
+        view.detialLabel.text = AgentPreferenceManager.shared.preference.preset?.displayName ?? ""
+        view.button.addTarget(self, action: #selector(onClickPreset(_:)), for: .touchUpInside)
+        return view
+    }()
+    
+    private lazy var languageItem: AgentSettingTableItemView = {
+        let view = AgentSettingTableItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.Settings.language
+        view.detialLabel.text = AgentPreferenceManager.shared.preference.language?.languageName ?? ""
+        view.button.addTarget(self, action: #selector(onClickLanguage(_:)), for: .touchUpInside)
+        return view
+    }()
+    
+    private lazy var advancedSettingTitle: UILabel = {
+        let label = UILabel()
+        label.text = ResourceManager.L10n.Settings.advanced
+        label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.textColor = PrimaryColors.c_ffffff_a
+        return label
+    }()
+    
+    private lazy var advancedSettingView: UIView = {
+        let view = UIView()
+        view.backgroundColor = PrimaryColors.c_1d1d1d
+        view.layerCornerRadius = 10
+        view.layer.borderWidth = 1.0
+        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        return view
+    }()
+    
+    private lazy var forceResponseItem: AgentSettingSwitchItemView = {
+        let view = AgentSettingSwitchItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.Settings.forceResponse
+        view.detailLabel.text = ResourceManager.L10n.Settings.forceResponse
+        view.switcher.addTarget(self, action: #selector(onClickForceResponse(_:)), for: .touchUpInside)
+        view.switcher.isOn = AgentPreferenceManager.shared.preference.forceThreshold
+        return view
+    }()
+    
+    private lazy var aiVadItem: AgentSettingSwitchItemView = {
+        let view = AgentSettingSwitchItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.Settings.aiVad
+        view.detailLabel.text = ResourceManager.L10n.Settings.aiVad
+        view.switcher.addTarget(self, action: #selector(onClickAiVad(_:)), for: .touchUpInside)
+        view.switcher.isOn = AgentPreferenceManager.shared.preference.aiVad
+        view.bottomLine.isHidden = true
+        view.updateLayout()
+        return view
+    }()
+    
+    private lazy var selectTableMask: UIButton = {
+        let button = UIButton(type: .custom)
+        button.addTarget(self, action: #selector(onClickHideTable(_:)), for: .touchUpInside)
+        button.isHidden = true
+        return button
+    }()
     
     private var selectTable: AgentSelectTableView? = nil
-    private var selectTableMask = UIButton(type: .custom)
         
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = PrimaryColors.c_171717
-        createViews()
-        createConstrains()
-        updateUIWithCurrentSettings()
+    deinit {
+        unRegisterDelegate()
     }
     
-    private func updateUIWithCurrentSettings() {
-        // Update UI with current settings
-        infoItem.detialLabel.text = AgentSettingManager.shared.currentPresetType.rawValue
-        voiceItem.detialLabel.text = AgentSettingManager.shared.currentVoiceType.displayName
-        modelItem.detialLabel.text = AgentSettingManager.shared.currentModelType.rawValue
-        languageItem.detialLabel.text = AgentSettingManager.shared.currentLanguageType.rawValue
-        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-        if (AgentSettingManager.shared.agentStatus == .connected) {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        registerDelegate()
+        createViews()
+        createConstrains()
+        updateAdvancedSettingConstraints()
+        setupPanGesture()
+        animateBackgroundViewIn()
+    }
+    
+    private func registerDelegate() {
+        AgentPreferenceManager.shared.addDelegate(self)
+    }
+    
+    private func unRegisterDelegate() {
+        AgentPreferenceManager.shared.removeDelegate(self)
+    }
+    
+    private func setupPanGesture() {
+        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+        backgroundView.addGestureRecognizer(panGesture!)
+    }
+    
+    private func animateBackgroundViewIn() {
+        backgroundView.transform = CGAffineTransform(translationX: 0, y: backgroundViewHeight)
+        UIView.animate(withDuration: 0.3) {
+            self.backgroundView.transform = .identity
+        }
+    }
+    
+    private func animateBackgroundViewOut() {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.backgroundView.transform = CGAffineTransform(translationX:0, y: self.backgroundViewHeight)
+        }) { _ in
+            self.dismiss(animated: false)
+        }
+    }
+    
+    @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: view)
+        
+        switch gesture.state {
+        case .began:
+            initialCenter = backgroundView.center
+        case .changed:
+            let newY = max(translation.y, 0)
+            backgroundView.transform = CGAffineTransform(translationX:0, y: newY)
+        case .ended:
+            let velocity = gesture.velocity(in: view)
+            let shouldDismiss = translation.y > backgroundViewHeight / 2 || velocity.y > 500
+            
+            if shouldDismiss {
+                animateBackgroundViewOut()
+            } else {
+                UIView.animate(withDuration: 0.3) {
+                    self.backgroundView.transform = .identity
+                }
+            }
+        default:
+            break
+        }
+    }
+    
+    private func updateAdvancedSettingConstraints() {
+        if (AgentPreferenceManager.shared.information.agentState == .connected) {
+            advancedSettingTitle.isHidden = true
             aiVadItem.isHidden = true
             aiVadItem.snp.removeConstraints()
             forceResponseItem.isHidden = true
             forceResponseItem.snp.removeConstraints()
         } else {
+            advancedSettingTitle.isHidden = false
             aiVadItem.isHidden = false
             aiVadItem.snp.remakeConstraints { make in
-                make.top.equalTo(voiceItem.snp.bottom)
+                make.top.equalTo(forceResponseItem.snp.bottom)
                 make.left.right.equalToSuperview()
-                make.height.equalTo(56)
-                make.bottom.equalToSuperview().priority(20)
+                make.height.equalTo(70)
+                make.bottom.equalTo(0)
             }
-            aiVadItem.switcher.isOn = AgentSettingManager.shared.isAiVad
-            forceResponseItem.switcher.isOn = AgentSettingManager.shared.isForceThreshold
-            if (AgentSettingManager.shared.isAiVad) {
+            
+            let aiVadState = AgentPreferenceManager.shared.preference.aiVad
+            
+            aiVadItem.switcher.isOn = aiVadState
+            forceResponseItem.switcher.isOn = AgentPreferenceManager.shared.preference.forceThreshold
+
+            if (aiVadState) {
                 forceResponseItem.isHidden = false
                 forceResponseItem.snp.remakeConstraints { make in
-                    make.top.equalTo(aiVadItem.snp.bottom)
+                    make.top.equalTo(0)
                     make.left.right.equalToSuperview()
-                    make.height.equalTo(56)
-                    make.bottom.equalToSuperview().priority(30)
+                    make.height.equalTo(70)
                 }
             } else {
                 forceResponseItem.isHidden = true
                 forceResponseItem.snp.removeConstraints()
+                aiVadItem.snp.remakeConstraints { make in
+                    make.top.equalTo(0)
+                    make.left.right.equalToSuperview()
+                    make.height.equalTo(70)
+                    make.bottom.equalTo(0)
+                }
             }
         }
     }
     
     @objc func onClickClose(_ sender: UIButton) {
-        self.dismiss(animated: true)
+        animateBackgroundViewOut()
     }
     
     @objc func onClickPreset(_ sender: UIButton) {
         selectTableMask.isHidden = false
-        let types = AgentPresetType.availablePresets
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentPresetType) ?? 0
-        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { [weak self] index in
-            guard let self = self else { return }
-            AgentSettingManager.shared.currentPresetType = types[index]
-            self.infoItem.detialLabel.text = types[index].rawValue
-            self.updateUIWithCurrentSettings()
-            self.delegate?.onClickVoice()
+        guard let allPresets = AgentPreferenceManager.shared.allPresets() else {
+            return
         }
-        table.setSelectedIndex(currentIndex)
-        view.addSubview(table)
-        selectTable = table
-        table.snp.makeConstraints { make in
-            make.top.equalTo(sender.snp.centerY)
-            make.width.equalTo(table.getWith())
-            make.height.equalTo(table.getHeight())
-            make.right.equalTo(sender).offset(-20)
+        
+        guard let currentPreset = AgentPreferenceManager.shared.preference.preset else {
+            return
         }
-    }
     
-    @objc func onClickVoice(_ sender: UIButton) {
-        print("onClickVoice")
-        selectTableMask.isHidden = false
-        let currentPreset = AgentSettingManager.shared.currentPresetType
-        let types = AgentVoiceType.availableVoices(for: currentPreset)
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentVoiceType) ?? 0
-        let table = AgentSelectTableView(items: types.map {$0.displayName}) { [weak self] index in
+        let currentIndex = allPresets.firstIndex { $0.displayName == currentPreset.displayName } ?? 0
+        let table = AgentSelectTableView(items: allPresets.map {$0.displayName}) { [weak self] index in
             guard let self = self else { return }
-            AgentSettingManager.shared.currentVoiceType = types[index]
-            self.voiceItem.detialLabel.text = types[index].displayName
-            self.delegate?.onClickVoice()
-        }
-        table.setSelectedIndex(currentIndex)
-        view.addSubview(table)
-        selectTable = table
-        table.snp.makeConstraints { make in
-            make.top.equalTo(sender.snp.centerY)
-            make.width.equalTo(table.getWith())
-            make.height.equalTo(table.getHeight())
-            make.right.equalTo(sender).offset(-20)
-        }
-    }
-    
-    @objc func onClickModel(_ sender: UIButton) {
-        print("onClickModel")
-        selectTableMask.isHidden = false
-        let currentPreset = AgentSettingManager.shared.currentPresetType
-        let types = AgentModelType.availableModels(for: currentPreset)
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentModelType) ?? 0
-        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { [weak self] index in
-            guard let self = self else { return }
-            AgentSettingManager.shared.currentModelType = types[index]
-            self.modelItem.detialLabel.text = types[index].rawValue
+            let selected = allPresets[index]
+            AgentPreferenceManager.shared.updatePreset(selected)
+            self.presetItem.detialLabel.text = selected.displayName
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -160,13 +263,20 @@ class AgentSettingViewController: UIViewController {
     @objc func onClickLanguage(_ sender: UIButton) {
         print("onClickLanguage")
         selectTableMask.isHidden = false
-        let currentPreset = AgentSettingManager.shared.currentPresetType
-        let types = AgentLanguageType.availableLanguages(for: currentPreset)
-        let currentIndex = types.firstIndex(of: AgentSettingManager.shared.currentLanguageType) ?? 0
-        let table = AgentSelectTableView(items: types.map {$0.rawValue}) { [weak self] index in
+        guard let allPresets = AgentPreferenceManager.shared.allPresets() else {
+            return
+        }
+        guard let currentPreset = AgentPreferenceManager.shared.preference.preset else { return }
+        let allLanguages = currentPreset.supportLanguages
+        
+        guard let currentLanguage = AgentPreferenceManager.shared.preference.language else { return }
+        
+        let currentIndex = allLanguages.firstIndex { $0.languageName == currentLanguage.languageName } ?? 0
+        let table = AgentSelectTableView(items: allLanguages.map { $0.languageName }) { [weak self] index in
             guard let self = self else { return }
-            AgentSettingManager.shared.currentLanguageType = types[index]
-            self.languageItem.detialLabel.text = types[index].rawValue
+            let selected = allLanguages[index]
+            AgentPreferenceManager.shared.updateLanguage(selected)
+            self.languageItem.detialLabel.text = selected.languageName
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -180,55 +290,18 @@ class AgentSettingViewController: UIViewController {
     }
     
     @objc func onClickAiVad(_ sender: UISwitch) {
-        AgentSettingManager.shared.isAiVad = sender.isOn
-        AgentSettingManager.shared.isForceThreshold = sender.isOn
-        updateUIWithCurrentSettings()
+        let state = sender.isOn
+        AgentPreferenceManager.shared.updateAiVadState(state)
+        AgentPreferenceManager.shared.updateForceThresholdState(state)
     }
     
     @objc func onClickForceResponse(_ sender: UISwitch) {
-        AgentSettingManager.shared.isForceThreshold = sender.isOn
-        updateUIWithCurrentSettings()
+        let state = sender.isOn
+        AgentPreferenceManager.shared.updateForceThresholdState(state)
     }
     
     @objc func onClickNoiseCancellation(_ sender: UISwitch) {
-        AgentSettingManager.shared.isNoiseCancellationEnabled = sender.isOn
         delegate?.onClickNoiseCancellationChanged(isOn: sender.isOn)
-    }
-
-    @objc func onClickMicrophone(_ sender: UIButton) {
-        print("onClickMicrophone")
-//        selectTableMask.isHidden = false
-//        let types = AgentMicrophoneType.allCases
-//        let table = AgentSelectTableView(items: types.map {$0.rawValue}, selected: { index in
-//            AgentSettingManager.shared.currentMicrophoneType = types[index]
-//            self.microphoneItem.detialLabel.text = types[index].rawValue
-//        })
-//        view.addSubview(table)
-//        selectTable = table
-//        table.snp.makeConstraints { make in
-//            make.top.equalTo(sender.snp.centerY)
-//            make.width.equalTo(table.getWith())
-//            make.height.equalTo(table.getHeight())
-//            make.right.equalTo(sender).offset(-20)
-//        }
-    }
-    
-    @objc func onClickSpeaker(_ sender: UIButton) {
-        print("onClickSpeaker")
-//        selectTableMask.isHidden = false
-//        let types = AgentSpeakerType.allCases
-//        let table = AgentSelectTableView(items: types.map {$0.rawValue}, selected: { index in
-//            AgentSettingManager.shared.currentSpeakerType = types[index]
-//            self.speakerItem.detialLabel.text = types[index].rawValue
-//        })
-//        view.addSubview(table)
-//        selectTable = table
-//        table.snp.makeConstraints { make in
-//            make.top.equalTo(sender.snp.centerY)
-//            make.width.equalTo(table.getWith())
-//            make.height.equalTo(table.getHeight())
-//            make.right.equalTo(sender).offset(-20)
-//        }
     }
     
     @objc func onClickHideTable(_ sender: UIButton) {
@@ -240,205 +313,130 @@ class AgentSettingViewController: UIViewController {
 
 extension AgentSettingViewController {
     private func createViews() {
-        let leftTitleLabel = UILabel()
-        leftTitleLabel.text = ResourceManager.L10n.Settings.title
-        leftTitleLabel.textColor = .white
-        leftTitleLabel.font = UIFont.systemFont(ofSize: 20)
+        view.backgroundColor = UIColor(white: 0, alpha: 0.5)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
+        tapGesture.delegate = self
+        view.addGestureRecognizer(tapGesture)
         
-        let leftTitleItem = UIBarButtonItem(customView: leftTitleLabel)
-        self.navigationItem.leftBarButtonItem = leftTitleItem
-        
-        let closeButton = UIButton(type: .custom)
-        closeButton.setImage(UIImage.va_named("ic_agent_setting_close"), for: .normal)
-        closeButton.addTarget(self, action: #selector(onClickClose(_ :)), for: .touchUpInside)
-        
-        let rightItem = UIBarButtonItem(customView: closeButton)
-        self.navigationItem.rightBarButtonItem = rightItem
-        
-        if let navigationController = self.navigationController {
-            let navBarApperance = UINavigationBarAppearance()
-            navBarApperance.configureWithOpaqueBackground()
-            navBarApperance.backgroundColor = PrimaryColors.c_171717
-            
-            navigationController.navigationBar.standardAppearance = navBarApperance
-            navigationController.navigationBar.scrollEdgeAppearance = navBarApperance
-        }
-        
-        let customView = UIView()
-        customView.backgroundColor = .clear
-        let centerImageView = UIImageView(image: UIImage.va_named("ic_setting_bar_icon"))
-        customView.addSubview(centerImageView)
-        centerImageView.contentMode = .scaleAspectFit
-        self.navigationItem.titleView = customView
-
-        customView.frame = CGRect(x: 0, y: 0, width: 40, height: 44)
-        centerImageView.frame = CGRect(x: 0, y: 8, width: 40, height: 4)
-        
-        view.addSubview(scrollView)
+        view.addSubview(backgroundView)
+        backgroundView.addSubview(topView)
+        backgroundView.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        contentView1.backgroundColor = PrimaryColors.c_1d1d1d
-        contentView1.layerCornerRadius = 10
-        contentView1.layer.borderWidth = 1.0
-        contentView1.layer.borderColor = PrimaryColors.c_262626.cgColor
-        contentView.addSubview(contentView1)
+        basicSettingItems = [presetItem, languageItem]
+        advancedSettingItems = [forceResponseItem, aiVadItem]
         
-        infoItem.titleLabel.text = ResourceManager.L10n.Settings.preset
-        infoItem.bottomLine.isHidden = true
-        infoItem.button.addTarget(self, action: #selector(onClickPreset(_ :)), for: .touchUpInside)
-        contentView1.addSubview(infoItem)
+        contentView.addSubview(basicSettingView)
+        contentView.addSubview(advancedSettingTitle)
+        contentView.addSubview(advancedSettingView)
         
-        content2Title.text = ResourceManager.L10n.Settings.advanced
-        content2Title.font = UIFont.boldSystemFont(ofSize: 16)
-        content2Title.textColor = PrimaryColors.c_ffffff_a
-        contentView.addSubview(content2Title)
+        basicSettingItems.forEach { basicSettingView.addSubview($0) }
+        advancedSettingItems.forEach { advancedSettingView.addSubview($0) }
         
-        contentView2.backgroundColor = PrimaryColors.c_1d1d1d
-        contentView2.layerCornerRadius = 10
-        contentView2.layer.borderWidth = 1.0
-        contentView2.layer.borderColor = PrimaryColors.c_262626.cgColor
-        contentView.addSubview(contentView2)
-        
-        let currentPreset = AgentSettingManager.shared.currentPresetType
-
-        languageItem.titleLabel.text = ResourceManager.L10n.Settings.language
-        languageItem.detialLabel.text = AgentLanguageType.availableLanguages(for: currentPreset).first?.rawValue
-        languageItem.button.addTarget(self, action: #selector(onClickLanguage(_ :)), for: .touchUpInside)
-        contentView2.addSubview(languageItem)
-        
-        voiceItem.titleLabel.text = ResourceManager.L10n.Settings.voice
-        voiceItem.detialLabel.text = AgentVoiceType.availableVoices(for: currentPreset).first?.rawValue
-        voiceItem.button.addTarget(self, action: #selector(onClickVoice(_ :)), for: .touchUpInside)
-        contentView2.addSubview(voiceItem)
-        
-//        modelItem.titleLabel.text = ResourceManager.L10n.Settings.model
-//        modelItem.detialLabel.text = AgentModelType.allCases.first?.rawValue
-//        modelItem.button.addTarget(self, action: #selector(onClickModel(_ :)), for: .touchUpInside)
-//        contentView2.addSubview(modelItem)
-        
-        aiVadItem.titleLabel.text = ResourceManager.L10n.Settings.aiVad
-        aiVadItem.switcher.addTarget(self, action: #selector(onClickAiVad(_ :)), for: .touchUpInside)
-        aiVadItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-        contentView2.addSubview(aiVadItem)
-        
-        forceResponseItem.titleLabel.text = ResourceManager.L10n.Settings.forceResponse
-        forceResponseItem.bottomLine.isHidden = true
-        forceResponseItem.switcher.addTarget(self, action: #selector(onClickForceResponse(_ :)), for: .touchUpInside)
-        forceResponseItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-        contentView2.addSubview(forceResponseItem)
-        
-//        content3Title.text = ResourceManager.L10n.Settings.device
-//        content3Title.font = UIFont.boldSystemFont(ofSize: 16)
-//        content3Title.textColor = PrimaryColors.c_ffffff_a
-//        contentView.addSubview(content3Title)
-//
-//        contentView3.backgroundColor = PrimaryColors.c_1d1d1d
-//        contentView3.layerCornerRadius = 10
-//        contentView3.layer.borderWidth = 1.0
-//        contentView3.layer.borderColor = PrimaryColors.c_262626.cgColor
-//        contentView.addSubview(contentView3)
-//        microphoneItem.titleLabel.text = ResourceManager.L10n.Settings.microphone
-//        microphoneItem.detialLabel.text = AgentSettingManager.shared.currentMicrophoneType.rawValue
-//        microphoneItem.button.addTarget(self, action: #selector(onClickMicrophone(_ :)), for: .touchUpInside)
-//        contentView3.addSubview(microphoneItem)
-//
-//        speakerItem.titleLabel.text = ResourceManager.L10n.Settings.speaker
-//        speakerItem.detialLabel.text = AgentSettingManager.shared.currentSpeakerType.rawValue
-//        speakerItem.button.addTarget(self, action: #selector(onClickSpeaker(_ :)), for: .touchUpInside)
-//        contentView3.addSubview(speakerItem)
-        
-//        cancellationItem.titleLabel.text = ResourceManager.L10n.Settings.noiseCancellation
-//        cancellationItem.bottomLine.isHidden = true
-//        cancellationItem.switcher.addTarget(self, action: #selector(onClickNoiseCancellation(_ :)), for: .touchUpInside)
-//        cancellationItem.switcher.isOn = AgentSettingManager.shared.isNoiseCancellationEnabled
-//        contentView3.addSubview(cancellationItem)
-        
-        selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)
-        selectTableMask.isHidden = true
         view.addSubview(selectTableMask)
     }
     
     private func createConstrains() {
+        backgroundView.snp.makeConstraints { make in
+            make.left.right.bottom.equalToSuperview()
+            make.height.equalTo(backgroundViewHeight)
+        }
+        
+        topView.snp.makeConstraints { make in
+            make.top.left.right.equalToSuperview()
+            make.height.equalTo(56)
+        }
+        
         scrollView.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(20)
+            make.top.equalTo(topView.snp.bottom)
             make.left.right.bottom.equalToSuperview()
         }
+        
         contentView.snp.makeConstraints { make in
             make.width.equalTo(self.view)
             make.left.right.top.bottom.equalToSuperview()
         }
-        contentView1.snp.makeConstraints { make in
-            make.top.equalTo(10)
+        
+        basicSettingView.snp.makeConstraints { make in
+            make.top.equalTo(16)
             make.left.equalTo(20)
             make.right.equalTo(-20)
         }
-        infoItem.snp.makeConstraints { make in
-            make.top.left.right.bottom.equalToSuperview()
-            make.height.equalTo(56)
+
+        for (index, item) in basicSettingItems.enumerated() {
+            item.snp.makeConstraints { make in
+                make.left.right.equalToSuperview()
+                make.height.equalTo(50)
+                
+                if index == 0 {
+                    make.top.equalToSuperview()
+                } else {
+                    make.top.equalTo(basicSettingItems[index - 1].snp.bottom)
+                }
+                
+                if index == basicSettingItems.count - 1 {
+                    make.bottom.equalToSuperview()
+                }
+            }
         }
-        content2Title.snp.makeConstraints { make in
-            make.top.equalTo(contentView1.snp.bottom).offset(32)
+        
+        advancedSettingTitle.snp.makeConstraints { make in
+            make.top.equalTo(basicSettingView.snp.bottom).offset(32)
             make.left.equalTo(20)
         }
-        contentView2.snp.makeConstraints { make in
-            make.top.equalTo(content2Title.snp.bottom).offset(8)
+        
+        advancedSettingView.snp.makeConstraints { make in
+            make.top.equalTo(advancedSettingTitle.snp.bottom).offset(8)
             make.left.equalTo(20)
             make.right.equalTo(-20)
             make.bottom.equalToSuperview()
         }
-        languageItem.snp.makeConstraints { make in
-            make.top.left.right.equalToSuperview()
-            make.height.equalTo(56)
+
+        for (index, item) in advancedSettingItems.enumerated() {
+            item.snp.makeConstraints { make in
+                make.left.right.equalToSuperview()
+                make.height.equalTo(70)
+                
+                if index == 0 {
+                    make.top.equalTo(0)
+                } else {
+                    make.top.equalTo(advancedSettingItems[index - 1].snp.bottom)
+                }
+                
+                if index == advancedSettingItems.count - 1 {
+                    make.bottom.equalToSuperview().priority(30)
+                } else {
+                    make.bottom.equalToSuperview().priority(20)
+                }
+            }
         }
-        voiceItem.snp.makeConstraints { make in
-            make.top.equalTo(languageItem.snp.bottom)
-            make.left.right.equalToSuperview()
-            make.height.equalTo(56)
-            make.bottom.equalToSuperview().priority(10)
-        }
-//        modelItem.snp.makeConstraints { make in
-//            make.top.equalTo(voiceItem.snp.bottom)
-//            make.left.right.bottom.equalToSuperview()
-//            make.height.equalTo(56)
-//        }
-        aiVadItem.snp.makeConstraints { make in
-            make.top.equalTo(voiceItem.snp.bottom)
-            make.left.right.equalToSuperview()
-            make.height.equalTo(56)
-            make.bottom.equalToSuperview().priority(20)
-        }
-        forceResponseItem.snp.makeConstraints { make in
-            make.top.equalTo(aiVadItem.snp.bottom)
-            make.left.right.equalToSuperview()
-            make.height.equalTo(56)
-            make.bottom.equalToSuperview().priority(30)
-        }
-//        content3Title.snp.makeConstraints { make in
-//            make.top.equalTo(contentView2.snp.bottom).offset(32)
-//            make.left.equalTo(20)
-//        }
-//        contentView3.snp.makeConstraints { make in
-//            make.top.equalTo(content3Title.snp.bottom).offset(8)
-//            make.left.equalTo(20)
-//            make.right.equalTo(-20)
-//            make.bottom.equalToSuperview()
-//        }
-//        microphoneItem.snp.makeConstraints { make in
-//            make.top.left.right.equalToSuperview()
-//            make.height.equalTo(56)
-//        }
-//        speakerItem.snp.makeConstraints { make in
-//            make.top.equalTo(microphoneItem.snp.bottom)
-//            make.left.right.equalToSuperview()
-//            make.height.equalTo(56)
-//        }
-//        cancellationItem.snp.makeConstraints { make in
-//            make.top.equalTo(speakerItem.snp.bottom)
-//            make.top.left.right.bottom.equalToSuperview()
-//            make.height.equalTo(56)
-//        }
+        
         selectTableMask.snp.makeConstraints { make in
             make.top.left.right.bottom.equalToSuperview()
         }
+    }
+    
+    @objc func handleTapGesture(_: UIGestureRecognizer) {
+        animateBackgroundViewOut()
+    }
+}
+
+extension AgentSettingViewController: AgentPreferenceManagerDelegate {
+    func preferenceManager(_ manager: AgentPreferenceManager, aiVadStateDidUpdated state: Bool) {
+        updateAdvancedSettingConstraints()
+    }
+    
+    func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: String) {
+        presetItem.detialLabel.text =  preset
+    }
+    
+    func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: String) {
+        languageItem.detialLabel.text = language
+    }
+}
+
+extension AgentSettingViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        return touch.view == view
     }
 }

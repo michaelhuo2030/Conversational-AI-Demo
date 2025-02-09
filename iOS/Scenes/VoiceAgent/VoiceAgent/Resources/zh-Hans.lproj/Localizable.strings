@@ -16,6 +16,8 @@
 "conversation.message.agent.name" = "AI 智能体";
 "conversation.message.alert.title" = "清除消息";
 "conversation.message.alert.content" = "您确定要清除所有消息吗？";
+"conversation.agent.connecting" = "连接中...";
+
 
 "conversation.alert.cancel" = "取消";
 "conversation.alert.clear" = "清除";

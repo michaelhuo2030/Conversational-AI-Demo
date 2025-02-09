@@ -18,7 +18,7 @@ class AgentSettingSubOptionCell: UITableViewCell {
     lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = PrimaryColors.c_ffffff_a
-        label.font = .systemFont(ofSize: 16)
+        label.font = .systemFont(ofSize: 15)
         return label
     }()
 

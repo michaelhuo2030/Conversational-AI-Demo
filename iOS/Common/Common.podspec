@@ -38,7 +38,8 @@ TODO: Add long description of the pod here.
   s.source_files = ['Common/Context/*',
                     'Common/Utils/*',
                     'Common/Extension/*',
-                    'Common/Colors/*'
+                    'Common/Colors/*',
+                    'Common/Views/*'
                     ]
                     
  s.resources = ['Common/*.bundle']
