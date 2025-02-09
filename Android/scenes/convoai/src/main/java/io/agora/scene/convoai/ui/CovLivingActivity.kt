@@ -2,7 +2,6 @@ package io.agora.scene.convoai.ui
 
 import android.content.Intent
 import android.graphics.PorterDuff
-import android.view.TextureView
 import android.view.View
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.PermissionHelp
@@ -20,7 +19,6 @@ import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.http.ConvAIManager
 import io.agora.scene.convoai.rtc.AgentConnectionState
 import io.agora.scene.convoai.rtc.CovAgentManager
-import io.agora.scene.convoai.ui.CovBallPlayer.SpeedCallback
 import kotlin.random.Random
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
@@ -60,7 +58,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         }
 
-    private var mCovBallPlayer: CovBallPlayer? = null
     private var mCovBallAnim: CovBallAnim? = null
 
     override fun getViewBinding(): CovActivityLivingBinding {
@@ -75,7 +72,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         CovRtcManager.updateToken {  }
         CovRtcManager.resetData()
         createRtcEngine()
-        setupBallPlayer()
+        setupBallAnimView()
         PermissionHelp(this).checkMicPerm({}, {
             finish()
         }, true)
@@ -88,11 +85,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             stopAgentAndLeaveChannel()
         }
         RtcEngine.destroy()
-        CovRtcManager.resetData()
-        mCovBallPlayer?.let {
-            it.release()
-            mCovBallPlayer = null
-        }
         mCovBallAnim?.let {
             it.release()
             mCovBallAnim = null
@@ -175,6 +167,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         connectionState = AgentConnectionState.IDLE
         engine.leaveChannel()
+        mCovBallAnim?.updateAgentState(AgentState.STATIC)
         ConvAIManager.stopAgent {}
         resetSceneState()
     }
@@ -261,10 +254,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         CovRtcManager.agentUID -> {
                             runOnUiThread {
                                 // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
-                                if (it.volume > 30) {
-                                    mCovBallAnim?.startAgentSpeaker(it.volume)
+                                if (it.volume > 0) {
+                                    mCovBallAnim?.updateAgentState(AgentState.SPEAKING,it.volume)
                                 } else {
-                                    mCovBallAnim?.stopAgentSpeaker()
+                                    mCovBallAnim?.updateAgentState(AgentState.LISTENING,it.volume)
                                 }
                             }
                         }
@@ -273,9 +266,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                                 if (it.volume > 50) {
                                     // todo  0～10000
                                     mBinding?.btnMic?.setImageLevel(it.volume*50)
-                                    mCovBallAnim?.startUserSpeaker()
                                 } else {
-                                    mCovBallAnim?.stopAgentSpeaker()
                                     mBinding?.btnMic?.setImageLevel(0)
                                 }
                             }
@@ -434,30 +425,17 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             llJoinCall.setOnClickListener {
                 onClickStartAgent()
             }
-            mCovBallAnim = CovBallAnim(videoCardView).apply {
-                animCallback = object : BallAnimCallback {
-                    override fun onAnimationStart() {
-                        mCovBallPlayer?.setSpeed(2.0f)
-                    }
-
-                    override fun onAnimationEnd() {
-                        mCovBallPlayer?.setSpeed(0.7f)
-                    }
-                }
-            }
         }
     }
 
-    private fun setupBallPlayer() {
-        val surfaceView = TextureView(this)
-        mBinding?.videoContainer?.addView(surfaceView)
-        mCovBallPlayer = CovBallPlayer(this).apply {
-            create(surfaceView)
-            speedCallback = object : SpeedCallback{
-                override fun onSpeedChanged(speed: Float) {
-//                   CovLogger.d(TAG,"mediaPlayer onSpeedChanged:$speed")
+    private fun setupBallAnimView() {
+        val binding = mBinding ?: return
+        mCovBallAnim = CovBallAnim(this, binding.videoContainer).apply {
+            setupMediaPlayer(object : MediaPlayerCallback {
+                override fun onError(error: Exception) {
+                    CovLogger.e(TAG, "MediaPlayer error：$error")
                 }
-            }
+            })
         }
     }
 }
