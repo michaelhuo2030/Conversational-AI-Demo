@@ -15,14 +15,12 @@ import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
-import io.agora.scene.convoai.http.ConvAIManager
-import io.agora.scene.convoai.rtc.AgentConnectionState
-import io.agora.scene.convoai.rtc.AgentLLMType
-import io.agora.scene.convoai.rtc.AgentLanguageType
-import io.agora.scene.convoai.rtc.AgentPresetType
-import io.agora.scene.convoai.rtc.AgentVoiceType
-import io.agora.scene.convoai.rtc.CovAgentManager
-import io.agora.scene.convoai.rtc.CovRtcManager
+import io.agora.scene.convoai.manager.AgentConnectionState
+import io.agora.scene.convoai.manager.AgentLLMType
+import io.agora.scene.convoai.manager.AgentLanguageType
+import io.agora.scene.convoai.manager.AgentPresetType
+import io.agora.scene.convoai.manager.AgentVoiceType
+import io.agora.scene.convoai.manager.CovAgentManager
 
 class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
@@ -63,7 +61,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             }
             cbNoiseCancellation.isChecked = CovAgentManager.enableBHVS
             cbNoiseCancellation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-
+                CovAgentManager.isAiVad = cbAiVad.isChecked
+                updateAiVadSettings()
             }
             cbAiVad.isChecked = CovAgentManager.isAiVad
             cbAiVad.setOnClickListener {
@@ -85,7 +84,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             val loadingDialog = LoadingDialog(context).apply {
                 show()
             }
-            ConvAIManager.updateAgent(voice?.value) { success ->
+            CovAgentManager.updateAgent(voice?.value) { success ->
                 loadingDialog.dismiss()
                 if (success) {
                     voice?.let {CovAgentManager.voiceType = it}

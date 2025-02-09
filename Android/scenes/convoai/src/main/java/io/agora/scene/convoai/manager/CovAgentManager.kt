@@ -1,8 +1,9 @@
-package io.agora.scene.convoai.http
+package io.agora.scene.convoai.manager
 
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.convoai.CovLogger
 import okhttp3.Call
 import okhttp3.Callback
@@ -13,36 +14,70 @@ import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import io.agora.scene.common.constant.ServerConfig
 
-data class AgentRequestParams(
-    val channelName: String,
-    val agentRtcUid: Int = 999,
-    val remoteRtcUid: Int = 998,
-    val rtcCodec: Int? = null,
-    val audioScenario: Int? = null,
-    val greeting: String? = null,
-    val prompt: String? = null,
-    val maxHistory: Int? = null,
-    val asrLanguage: String? = null,
-    val vadInterruptThreshold: Float? = null,
-    val vadPrefixPaddingMs: Int? = null,
-    val vadSilenceDurationMs: Int? = null,
-    val vadThreshold: Int? = null,
-    val bsVoiceThreshold: Int? = null,
-    val idleTimeout: Int? = null,
-    val ttsVoiceId: String? = null,
-    val enableAiVad: Boolean? = null,
-    val forceThreshold: Boolean? = null
-)
+object CovAgentManager {
 
-object ConvAIManager {
+    private val TAG = "CovAgentManager"
 
-    val TAG = "ConvAIManager"
+    val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
+
 
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     private var agentId: String? = null
+
+    // Settings
+    private var presetType = AgentPresetType.VERSION1
+    var voiceType = if (isMainlandVersion)
+        AgentVoiceType.MALE_QINGSE else AgentVoiceType.AVA_MULTILINGUAL
+    var llmType = AgentLLMType.OPEN_AI
+    var languageType = AgentLanguageType.EN
+    var isAiVad = true
+    var enableBHVS = false
+    var connectionState = AgentConnectionState.IDLE
+
+    val agentUID = 999
+
+    fun updatePreset(type: AgentPresetType) {
+        presetType = type
+        when (type) {
+            AgentPresetType.VERSION1 -> {
+                voiceType = if (isMainlandVersion)
+                    AgentVoiceType.MALE_QINGSE else AgentVoiceType.AVA_MULTILINGUAL
+                llmType = AgentLLMType.OPEN_AI
+                languageType = AgentLanguageType.EN
+            }
+            AgentPresetType.XIAO_AI -> {
+                voiceType = AgentVoiceType.FEMALE_SHAONV
+                llmType = AgentLLMType.MINIMAX
+                languageType = AgentLanguageType.CN
+            }
+            AgentPresetType.TBD -> {
+                voiceType = AgentVoiceType.TBD
+                llmType = AgentLLMType.MINIMAX
+                languageType = AgentLanguageType.CN
+            }
+            AgentPresetType.DEFAULT -> {
+                voiceType = AgentVoiceType.ANDREW
+                llmType = AgentLLMType.OPEN_AI
+                languageType = AgentLanguageType.EN
+            }
+            AgentPresetType.AMY -> {
+                voiceType = AgentVoiceType.EMMA
+                llmType = AgentLLMType.OPEN_AI
+                languageType = AgentLanguageType.EN
+            }
+        }
+    }
+
+    fun getPresetType(): AgentPresetType {
+        return presetType
+    }
+
+    fun resetData() {
+        updatePreset(if (isMainlandVersion) AgentPresetType.XIAO_AI else AgentPresetType.DEFAULT)
+        isAiVad = true
+    }
 
     fun startAgent(params: AgentRequestParams, succeed: (Boolean) -> Unit) {
         val requestURL = "${ServerConfig.toolBoxUrl}/v1/convoai/start"
@@ -55,7 +90,7 @@ object ConvAIManager {
             postBody.put("remote_rtc_uid", params.remoteRtcUid)
             params.rtcCodec?.let { postBody.put("rtc_codec", it) }
             params.audioScenario?.let { postBody.put("audio_scenario", it) }
-            
+
             val customLlm = JSONObject()
             params.greeting?.let { customLlm.put("greeting", it) }
             params.prompt?.let { customLlm.put("prompt", it) }
@@ -63,13 +98,13 @@ object ConvAIManager {
             if (customLlm.length() > 0) {
                 postBody.put("custom_llm", customLlm)
             }
-            
+
             val asr = JSONObject()
             params.asrLanguage?.let { asr.put("language", it) }
             if (asr.length() > 0) {
                 postBody.put("asr", asr)
             }
-            
+
             val vad = JSONObject()
             params.vadInterruptThreshold?.let { vad.put("interrupt_threshold", it) }
             params.vadPrefixPaddingMs?.let { vad.put("prefix_padding_ms", it) }
@@ -78,7 +113,7 @@ object ConvAIManager {
             if (vad.length() > 0) {
                 postBody.put("vad", vad)
             }
-            
+
             params.bsVoiceThreshold?.let { postBody.put("bs_voice_threshold", it) }
             params.idleTimeout?.let { postBody.put("idle_timeout", it) }
             params.enableAiVad?.let { postBody.put("enable_aivadmd", it) }

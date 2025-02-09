@@ -9,9 +9,9 @@ import io.agora.rtc2.Constants
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovInfoDialogBinding
-import io.agora.scene.convoai.rtc.AgentConnectionState
-import io.agora.scene.convoai.rtc.CovAgentManager
-import io.agora.scene.convoai.rtc.CovRtcManager
+import io.agora.scene.convoai.manager.AgentConnectionState
+import io.agora.scene.convoai.manager.CovAgentManager
+import io.agora.scene.convoai.manager.CovRtcManager
 
 class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<CovInfoDialogBinding>() {
 
