@@ -2,11 +2,11 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@android:id/background"
-        android:drawable="@drawable/mic_normal" />
+        android:drawable="@drawable/scene_detail_microphone" />
     <item android:id="@android:id/progress">
         <clip
             android:clipOrientation="vertical"
-            android:drawable="@drawable/mic_speaker"
+            android:drawable="@drawable/scene_detail_microphone_speaker"
             android:gravity="bottom" />
     </item>
 </layer-list>

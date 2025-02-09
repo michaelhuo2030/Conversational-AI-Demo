@@ -1,31 +1,35 @@
 package io.agora.scene.convoai.ui
 
 import android.animation.Animator
-import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.media.MediaPlayer
+import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.view.ViewGroup
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
+import io.agora.scene.common.BuildConfig
 
+sealed class MediaPlayerError {
+    data class PrepareError(val exception: Exception) : MediaPlayerError()
+    data class PlaybackError(val what: Int, val extra: Int) : MediaPlayerError()
+}
 
 interface MediaPlayerCallback {
-    fun onError(error: Exception)
+    fun onError(error: MediaPlayerError)
 }
 
 enum class AgentState {
-    /** 静止状态，不播放视频和动画 */
+    /** Idle state, no video or animation is playing */
     STATIC,
 
-    /** 正在监听状态，播放慢速动画 */
+    /** Listening state, playing slow animation */
     LISTENING,
 
-    /** AI 说话动画进行中 */
+    /** AI speaking animation in progress */
     SPEAKING
 }
 
@@ -35,24 +39,29 @@ class CovBallAnim constructor(
 ) {
 
     companion object {
-        private const val MIN_VOLUME = 0
-        private const val MAX_VOLUME = 255
-        private const val HIGH_VOLUME = 200
-        private const val MEDIUM_VOLUME = 150
-        private const val LOW_VOLUME = 100
+        private object VolumeConstants {
+            const val MIN_VOLUME = 0
+            const val MAX_VOLUME = 255
+            const val HIGH_VOLUME = 200
+            const val MEDIUM_VOLUME = 120
+            const val LOW_VOLUME = 80
+        }
 
-        // Scale range constants
-        private const val SCALE_HIGH = 0.9f
-        private const val SCALE_MEDIUM = 0.94f
-        private const val SCALE_LOW = 0.96f
+        private object ScaleConstants {
+            const val SCALE_HIGH = 0.9f
+            const val SCALE_MEDIUM = 0.94f
+            const val SCALE_LOW = 0.96f
+        }
+
+        private const val TAG = "CovBallAnim"
 
         // Animation duration constants
-        private const val DURATION_HIGH = 200L
-        private const val DURATION_MEDIUM = 300L
-        private const val DURATION_LOW = 400L
+        private const val DURATION_HIGH = 300L
+        private const val DURATION_MEDIUM = 400L
+        private const val DURATION_LOW = 500L
 
         private const val VIDEO_FILE_NAME = "ball_small_video.mov"
-        private const val BOUNCE_SCALE = 0.03f  // 弹跳时额外的缩放量
+        private const val BOUNCE_SCALE = 0.02f  // Additional scale factor during bounce
     }
 
     private var scaleAnimator: Animator? = null
@@ -70,7 +79,7 @@ class CovBallAnim constructor(
                         setVideoSpeed(0f)
                     }
 
-                    AgentState.LISTENING -> setVideoSpeed(0.7f)
+                    AgentState.LISTENING -> setVideoSpeed(1.0f)
                     AgentState.SPEAKING -> setVideoSpeed(2.0f)
                 }
             }
@@ -83,21 +92,65 @@ class CovBallAnim constructor(
     )
 
     private var currentAnimParams: AnimParams = AnimParams()
+    private var pendingAnimParams: AnimParams? = null
+
+    private val animatorListener = object : Animator.AnimatorListener {
+        override fun onAnimationEnd(animation: Animator) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "onAnimationEnd $scaleAnimator")
+            }
+            // Use the latest pending execution parameters
+            pendingAnimParams?.let { params ->
+                if (currentState == AgentState.SPEAKING) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "onAnimationRepeat call new Animation $scaleAnimator")
+                    }
+                    startNewAnimation(params)
+                }
+                pendingAnimParams = null
+            }
+        }
+
+        override fun onAnimationStart(animation: Animator) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "onAnimationStart $scaleAnimator")
+            }
+        }
+
+        override fun onAnimationCancel(animation: Animator) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "onAnimationCancel $scaleAnimator")
+            }
+            updateParentScale(1.0f)
+        }
+
+        override fun onAnimationRepeat(animation: Animator) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "onAnimationRepeat $scaleAnimator")
+            }
+            // Check the state, stop the animation if it’s not in the SPEAKING state
+            if (currentState != AgentState.SPEAKING) {
+                pendingAnimParams = null
+                Log.d(TAG, "onAnimationRepeat call cancel $scaleAnimator")
+                animation.cancel()
+            }
+        }
+    }
 
     private fun calculateMinScale(volume: Int): Float {
         return when {
-            volume > HIGH_VOLUME -> SCALE_HIGH
-            volume > MEDIUM_VOLUME -> SCALE_MEDIUM
-            volume > LOW_VOLUME -> SCALE_LOW
-            else -> SCALE_LOW
+            volume > VolumeConstants.HIGH_VOLUME -> ScaleConstants.SCALE_HIGH
+            volume > VolumeConstants.MEDIUM_VOLUME -> ScaleConstants.SCALE_MEDIUM
+            volume > VolumeConstants.LOW_VOLUME -> ScaleConstants.SCALE_LOW
+            else -> ScaleConstants.SCALE_LOW
         }
     }
 
     private fun calculateDuration(volume: Int): Long {
         return when {
-            volume > HIGH_VOLUME -> DURATION_HIGH
-            volume > MEDIUM_VOLUME -> DURATION_MEDIUM
-            volume > LOW_VOLUME -> DURATION_LOW
+            volume > VolumeConstants.HIGH_VOLUME -> DURATION_HIGH
+            volume > VolumeConstants.MEDIUM_VOLUME -> DURATION_MEDIUM
+            volume > VolumeConstants.LOW_VOLUME -> DURATION_LOW
             else -> DURATION_LOW
         }
     }
@@ -123,20 +176,18 @@ class CovBallAnim constructor(
                         setDataSource(path)
                         setSurface(Surface(surface))
                         setOnErrorListener { _, what, extra ->
-                            val errorMessage = "MediaPlayer error: what=$what, extra=$extra"
-                            mediaPlayerCallback?.onError(Exception(errorMessage))
+                            mediaPlayerCallback?.onError(MediaPlayerError.PlaybackError(what, extra))
                             true
                         }
                         setOnPreparedListener { mp ->
                             mp.setVolume(0f, 0f)
                             mp.isLooping = true
-                            mp.seekTo(0);  // 定位到第一帧
-                            mp.setOnSeekCompleteListener { mp.pause() } // 确保第一帧停住
+                            mp.seekTo(0)  // Position to the first frame
                         }
                         prepareAsync()
                     }
                 } catch (e: Exception) {
-                    mediaPlayerCallback?.onError(e)
+                    mediaPlayerCallback?.onError(MediaPlayerError.PrepareError(e))
                 }
             }
 
@@ -164,100 +215,81 @@ class CovBallAnim constructor(
             params.setSpeed(speed)
             mediaPlayer?.playbackParams = params
         } catch (e: Exception) {
-            mediaPlayerCallback?.onError(e)
+            mediaPlayerCallback?.onError(MediaPlayerError.PlaybackError(0, 0))
         }
     }
 
     fun updateAgentState(newState: AgentState, volume: Int = 0) {
         val oldState = currentState
         currentState = newState
+        handleStateTransition(oldState, newState, volume)
+    }
 
+    private fun handleStateTransition(oldState: AgentState, newState: AgentState, volume: Int = 0) {
         when (newState) {
             AgentState.STATIC -> {
-
+                // Handle the static state
             }
 
-            AgentState.LISTENING -> {
-                if (oldState == AgentState.STATIC) {
-                    if (mediaPlayer?.isPlaying == false) {
-                        mediaPlayer?.start()
-                    }
+            AgentState.LISTENING, AgentState.SPEAKING -> {
+                // TODO: oldState == AgentState.STATIC
+                if (oldState == AgentState.STATIC && mediaPlayer?.isPlaying == false) {
+                    mediaPlayer?.start()
                 }
-            }
-
-            AgentState.SPEAKING -> {
-                if (oldState == AgentState.STATIC) {
-                    if (mediaPlayer?.isPlaying == false) {
-                        mediaPlayer?.start()
-                    }
+                if (newState == AgentState.SPEAKING) {
+                    startAgentAnimation(volume)
                 }
-                startAgentAnimation(volume)
             }
         }
     }
 
     private fun startAgentAnimation(currentVolume: Int) {
-        if (scaleAnimator?.isStarted == true) {
-            return
-        }
-
-        val safeVolume = currentVolume.coerceIn(MIN_VOLUME, MAX_VOLUME)
-        val params = AnimParams(
+        val safeVolume = currentVolume.coerceIn(VolumeConstants.MIN_VOLUME, VolumeConstants.MAX_VOLUME)
+        val newParams = AnimParams(
             minScale = calculateMinScale(safeVolume),
             duration = calculateDuration(safeVolume)
         )
+
+        // If the animation parameters are the same and the animation is already running, do nothing.
+        if (newParams.minScale == currentAnimParams.minScale && scaleAnimator?.isRunning == true) {
+            return
+        }
+
+        // Save the latest animation parameters
+        pendingAnimParams = newParams
+
+        // If an animation is currently running, wait for it to finish
+        if (scaleAnimator?.isRunning == true) {
+            // The animation already has a listener, just wait for it to complete
+            return
+        }
+
+        // If no animation is running, start a new one immediately
+        startNewAnimation(newParams)
+        pendingAnimParams = null
+    }
+
+    private fun startNewAnimation(params: AnimParams) {
+        currentAnimParams = params
 
         val updateListener = ValueAnimator.AnimatorUpdateListener { animator ->
             val scale = animator.animatedValue as Float
             updateParentScale(scale)
         }
 
-        val animations = listOf(
-            ValueAnimator.ofFloat(1f, params.minScale).apply {
-                duration = params.duration
-                interpolator = DecelerateInterpolator()
-                addUpdateListener(updateListener)
-            },
-            ValueAnimator.ofFloat(params.minScale, params.minScale + BOUNCE_SCALE).apply {
-                duration = params.duration / 3
-                interpolator = AccelerateInterpolator()
-                addUpdateListener(updateListener)
-            },
-            ValueAnimator.ofFloat(params.minScale + BOUNCE_SCALE, params.minScale).apply {
-                duration = params.duration / 3
-                interpolator = DecelerateInterpolator()
-                addUpdateListener(updateListener)
-            },
-            ValueAnimator.ofFloat(params.minScale, 1f).apply {
-                duration = params.duration
-                interpolator = AccelerateInterpolator()
-                addUpdateListener(updateListener)
-            }
-        )
-
-        val animatorSet = AnimatorSet().apply {
-            playSequentially(animations)
-            addListener(object : Animator.AnimatorListener {
-                override fun onAnimationStart(animation: Animator) {
-                }
-
-                override fun onAnimationEnd(animation: Animator) {
-                    // 动画结束后更新状态
-                    if (currentState != AgentState.SPEAKING) {
-                        animation.cancel()
-                    }
-                }
-
-                override fun onAnimationCancel(animation: Animator) {
-                    updateParentScale(1.0f)
-                }
-
-                override fun onAnimationRepeat(animation: Animator) {}
-            })
+        val mainAnim = ValueAnimator.ofFloat(
+            1f, params.minScale, params.minScale + BOUNCE_SCALE,
+            params.minScale, 1f
+        ).apply {
+            duration = params.duration
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = DecelerateInterpolator()
+            addUpdateListener(updateListener)
+            addListener(animatorListener)
         }
 
-        scaleAnimator = animatorSet
-        animatorSet.start()
+        scaleAnimator = mainAnim
+        mainAnim.start()
     }
 
     private fun updateParentScale(scale: Float) {
@@ -268,20 +300,27 @@ class CovBallAnim constructor(
     }
 
     fun release() {
-        mediaPlayer?.let {
-            it.stop()
-            it.release()
-            mediaPlayer = null
-        }
+        try {
+            mediaPlayer?.let {
+                if (it.isPlaying) {
+                    it.stop()
+                }
+                it.release()
+                mediaPlayer = null
+            }
 
-        scaleAnimator?.let {
-            it.cancel()
-            scaleAnimator = null
-        }
-        mediaPlayerCallback = null
-        currentState = AgentState.STATIC
+            scaleAnimator?.let {
+                it.removeListener(animatorListener)  // Remove the listener
+                it.cancel()
+                scaleAnimator = null
+            }
+            mediaPlayerCallback = null
+            currentState = AgentState.STATIC
 
-        // 释放 TextureView 资源
-        videoContainer.removeAllViews()
+            // Release TextureView resources
+            videoContainer.removeAllViews()
+        } catch (e: Exception) {
+            mediaPlayerCallback?.onError(MediaPlayerError.PrepareError(e))
+        }
     }
 }
