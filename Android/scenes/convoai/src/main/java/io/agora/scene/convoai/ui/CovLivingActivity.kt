@@ -55,6 +55,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 field = value
                 CovAgentManager.connectionState = value
                 updateStateView()
+                if (connectionState == AgentConnectionState.CONNECTED) {
+                    waitingAgentJob?.let {
+                        it.cancel()
+                        waitingAgentJob = null
+                    }
+                }
             }
         }
 
@@ -116,39 +122,48 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
+    private var waitingAgentJob:Job?=null
+
     private fun onClickStartAgent() {
         mBinding?.messageListView?.updateAgentName(CovAgentManager.getPresetType().value)
         connectionState = AgentConnectionState.CONNECTING
         CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
         coroutineScope.launch {
-            val agentDeferred = async { startAgentAsync() }
-            val tokenDeferred = if (CovRtcManager.rtcToken == null) async { updateTokenAsync() } else null
+            CovLogger.d(TAG, "onClickStartAgent call startAgent")
+            val agentDeferred = async(start = CoroutineStart.DEFAULT) { startAgentAsync() }
+            val tokenDeferred = async(start = CoroutineStart.DEFAULT) { CovRtcManager.rtcToken?.let { true } ?: updateTokenAsync() }
 
-            val isAgentOK = agentDeferred.await()
-            if (!isAgentOK) {
-                connectionState = AgentConnectionState.IDLE
-                CovLogger.e(TAG, "Agent error")
-                ToastUtil.show(R.string.cov_detail_join_call_failed)
-                return@launch
-            } else {
-                // check agent connection after 10s
-                mBinding?.root?.postDelayed({
-                    if (connectionState == AgentConnectionState.CONNECTING) {
-                        stopAgentAndLeaveChannel()
-                        CovLogger.e(TAG, "Agent connection timeout")
-                        ToastUtil.show(R.string.cov_detail_join_call_failed)
-                    }
-                }, 10000)
-            }
-
-            val isTokenOK = tokenDeferred?.await() ?: true
+            //先等待token完成，立即调用 joinChannel
+            CovLogger.d(TAG, "onClickStartAgent await token 11")
+            val isTokenOK = tokenDeferred.await()
+            CovLogger.d(TAG, "onClickStartAgent await token 22")
             if (!isTokenOK) {
                 connectionState = AgentConnectionState.IDLE
                 CovLogger.e(TAG, "Token error")
                 ToastUtil.show(R.string.cov_detail_join_call_failed)
                 return@launch
             }
+            CovLogger.d(TAG, "onClickStartAgent call join")
             CovRtcManager.joinChannel()
+
+            CovLogger.d(TAG, "onClickStartAgent await agent 11")
+            val isAgentOK = agentDeferred.await()
+            CovLogger.d(TAG, "onClickStartAgent await agent 22")
+            if (isAgentOK) {
+                // check agent connection after 10s
+                waitingAgentJob = launch(Dispatchers.Main) {
+                    delay(10000)
+                    if (connectionState == AgentConnectionState.CONNECTING) {
+                        stopAgentAndLeaveChannel()
+                        CovLogger.e(TAG, "Agent connection timeout")
+                        ToastUtil.show(R.string.cov_detail_join_call_failed)
+                    }
+                }
+            } else {
+                connectionState = AgentConnectionState.IDLE
+                CovLogger.e(TAG, "Agent error")
+                ToastUtil.show(R.string.cov_detail_join_call_failed)
+            }
         }
     }
 
