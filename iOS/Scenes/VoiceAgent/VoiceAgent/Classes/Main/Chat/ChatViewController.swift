@@ -523,6 +523,8 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                     }
                 }
                 animateView.updateAgentState(.speaking, volume: Int(currentVolume))
+            } else if (info.uid == 0) {
+                bottomBar.setVolumeProgress(value: Float(info.volume))
             }
         }
     }

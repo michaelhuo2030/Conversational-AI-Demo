@@ -103,6 +103,18 @@ class AgentControlToolbar: UIView {
         return button
     }()
     
+    lazy var micProgressView: UIProgressView = {
+        let progressView = UIProgressView(progressViewStyle: .default)
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.progressTintColor = UIColor(hexString: "#17F1FE")
+        progressView.trackTintColor = UIColor(hexString: "#FFFFFF")
+        progressView.layer.cornerRadius = 14.74 * 0.5
+        progressView.clipsToBounds = true
+        progressView.isUserInteractionEnabled = false
+        progressView.transform = CGAffineTransform(rotationAngle: -CGFloat.pi / 2)
+        return progressView
+    }()
+    
     lazy var captionsButton: UIButton = {
         let button = UIButton(type: .custom)
         button.addTarget(self, action: #selector(switchCaptionsAction(_ :)), for: .touchUpInside)
@@ -160,12 +172,16 @@ class AgentControlToolbar: UIView {
         }
     }
     
+    func setVolumeProgress(value: Float) {
+        micProgressView.progress = value/255
+    }
+    
     private func setupViews() {
         addSubview(buttonControlContentView)
-        [captionsButton, muteButton, closeButton].forEach { button in
+        [captionsButton, muteButton, micProgressView, closeButton].forEach { button in
             buttonControlContentView.addSubview(button)
         }
-        
+
         addSubview(startButtonContentView)
         startButtonContentView.addSubview(startButton)
     }
@@ -191,7 +207,12 @@ class AgentControlToolbar: UIView {
             make.width.equalTo(buttonWidth)
             make.height.equalTo(buttonHeight)
         }
-        
+        micProgressView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(26)
+            make.width.equalTo(21)
+            make.height.equalTo(15)
+        }
         captionsButton.snp.makeConstraints { make in
             make.right.equalTo(muteButton.snp.left).offset(-34)
             make.centerY.equalTo(muteButton)
@@ -220,6 +241,7 @@ class AgentControlToolbar: UIView {
     
     @objc private func muteAction(_ sender: UIButton) {
         sender.isSelected = !sender.isSelected
+        micProgressView.isHidden = sender.isSelected
         delegate?.mute(selectedState: sender.isSelected)
     }
 
