@@ -25,6 +25,7 @@ import io.agora.scene.convoai.manager.AgentConnectionState
 import io.agora.scene.convoai.manager.AgentRequestParams
 import io.agora.scene.convoai.manager.CovAgentManager
 import kotlinx.coroutines.*
+import java.util.UUID
 import kotlin.coroutines.*
 import kotlin.random.Random
 
@@ -170,7 +171,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun onClickStartAgent() {
         // Immediately show the connecting status
         connectionState = AgentConnectionState.CONNECTING
-        CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
+        CovRtcManager.channelName = "agora_" + UUID.randomUUID().toString()
 
         coroutineScope.launch(Dispatchers.IO) {
             val needToken = CovRtcManager.rtcToken == null
