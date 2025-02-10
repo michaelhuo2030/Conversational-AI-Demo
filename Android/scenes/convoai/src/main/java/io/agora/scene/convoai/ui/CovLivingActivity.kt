@@ -16,6 +16,7 @@ import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
+import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
@@ -532,44 +533,57 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun setupView() {
         mBinding?.apply {
             setOnApplyWindowInsetsListener(root)
-            btnBack.setOnClickListener {
-                finish()
-            }
-            btnEndCall.setOnClickListener {
-                onClickEndCall()
-            }
-            btnMic.setOnClickListener {
-                isLocalAudioMuted = !isLocalAudioMuted
-                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
-            }
-            btnSettings.setOnClickListener {
-                // TODO: fast click
-                if (CovAgentManager.getPresetList().isNullOrEmpty()) {
-                    coroutineScope.launch {
-                        val success = fetchPresetsAsync()
-                        if (success) {
-                            CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
-                        } else {
-                            ToastUtil.show(R.string.cov_detail_net_state_error)
+            btnBack.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    finish()
+                }
+            })
+            btnEndCall.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickEndCall()
+                }
+            })
+            btnMic.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    isLocalAudioMuted = !isLocalAudioMuted
+                    CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+                }
+            })
+            btnSettings.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    if (CovAgentManager.getPresetList().isNullOrEmpty()) {
+                        coroutineScope.launch {
+                            val success = fetchPresetsAsync()
+                            if (success) {
+                                CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
+                            } else {
+                                ToastUtil.show(R.string.cov_detail_net_state_error)
+                            }
                         }
+                    } else {
+                        CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
                     }
-                } else {
-                    CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
                 }
-            }
-            btnCc.setOnClickListener {
-                isShowMessageList = !isShowMessageList
-            }
-            btnInfo.setOnClickListener {
-                infoDialog = CovAgentInfoDialog {
-                    infoDialog = null
+            })
+            btnCc.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    isShowMessageList = !isShowMessageList
                 }
-                infoDialog?.updateNetworkStatus(networkValue)
-                infoDialog?.show(supportFragmentManager, "InfoDialog")
-            }
-            llJoinCall.setOnClickListener {
-                onClickStartAgent()
-            }
+            })
+            btnInfo.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    infoDialog = CovAgentInfoDialog {
+                        infoDialog = null
+                    }
+                    infoDialog?.updateNetworkStatus(networkValue)
+                    infoDialog?.show(supportFragmentManager, "InfoDialog")
+                }
+            })
+            llJoinCall.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickStartAgent()
+                }
+            })
         }
     }
 

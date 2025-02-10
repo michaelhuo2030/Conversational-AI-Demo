@@ -13,8 +13,10 @@ import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseActivity
 import java.util.Locale
 import android.annotation.SuppressLint
+import android.view.View
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
+import io.agora.scene.common.ui.OnFastClickListener
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -61,12 +63,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             cbTerms.setOnCheckedChangeListener { _, _ ->
                 updateStartButtonState()
             }
-            tvTermsSelection.setOnClickListener {
-                onClickTermsDetail()
-            }
-            tvGetStarted.setOnClickListener {
-                onClickGetStarted()
-            }
+            tvTermsSelection.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickTermsDetail()
+                }
+            })
+            tvGetStarted.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickGetStarted()
+                }
+            })
             updateStartButtonState()
         }
     }

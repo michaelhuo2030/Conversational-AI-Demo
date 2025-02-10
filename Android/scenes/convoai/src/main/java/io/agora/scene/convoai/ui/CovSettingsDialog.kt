@@ -9,6 +9,7 @@ import android.widget.CompoundButton
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.common.ui.BaseSheetDialog
+import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.dp
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
@@ -36,15 +37,21 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             setOnApplyWindowInsets(root)
             rcOptions.adapter = optionsAdapter
             rcOptions.layoutManager = LinearLayoutManager(context)
-            clPreset.setOnClickListener {
-                onClickPreset()
-            }
-            clLanguage.setOnClickListener {
-                onClickLanguage()
-            }
-            vOptionsMask.setOnClickListener {
-                onClickMaskView()
-            }
+            clPreset.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickPreset()
+                }
+            })
+            clLanguage.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickLanguage()
+                }
+            })
+            vOptionsMask.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickMaskView()
+                }
+            })
             cbBhvs.isChecked = CovAgentManager.enableBHVS
             cbBhvs.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
                 CovAgentManager.enableBHVS = cbBhvs.isChecked

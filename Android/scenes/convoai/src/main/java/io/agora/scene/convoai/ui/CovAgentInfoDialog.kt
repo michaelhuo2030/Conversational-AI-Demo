@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import io.agora.rtc2.Constants
 import io.agora.scene.common.ui.BaseSheetDialog
+import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.manager.AgentConnectionState
@@ -94,9 +95,11 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                     }
                 }
             }
-            btnClose.setOnClickListener {
-                dismiss()
-            }
+            btnClose.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    dismiss()
+                }
+            })
         }
     }
 
