@@ -25,11 +25,26 @@ class MessageListView @JvmOverloads constructor(
     private val binding: MessageListViewBinding = MessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
     private val messageAdapter: MessageAdapter = MessageAdapter()
     private var currentAgentMessage: Message? = null
+    private var userDragged = false
 
     init {
         binding.rvMessages.layoutManager = LinearLayoutManager(context)
         binding.rvMessages.adapter = messageAdapter
         binding.rvMessages.itemAnimator = null
+        binding.rvMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                when (newState) {
+                    RecyclerView.SCROLL_STATE_DRAGGING -> {
+                        setUserDragged(true)
+                    }
+                }
+            }
+        })
+        binding.btnToBottom.setOnClickListener {
+            setUserDragged(false)
+            scrollToBottom()
+        }
     }
 
     fun clearMessages() {
@@ -69,7 +84,9 @@ class MessageListView @JvmOverloads constructor(
         val message = Message(false, content, false)
         messageAdapter.addMessage(message)
         currentAgentMessage = message
-        checkAndScrollToBottom()
+        if (!userDragged) {
+            checkAndScrollToBottom()
+        }
     }
 
     private fun completeCurrentMessage() {
@@ -79,21 +96,32 @@ class MessageListView @JvmOverloads constructor(
             }
             currentAgentMessage = null
         }
-        checkAndScrollToBottom()
+        if (!userDragged) {
+            checkAndScrollToBottom()
+        }
     }
 
     private fun addMineMessage(text: String) {
         Log.d(TAG, "addUserMessage: $text")
         messageAdapter.addMessage(Message(true, text, true))
-        checkAndScrollToBottom()
+        if (!userDragged) {
+            checkAndScrollToBottom()
+        }
     }
 
     private fun updateCurrentMessage(content: String) {
         currentAgentMessage?.let {
             it.content = content
             messageAdapter.updateMessage(it)
-            checkAndScrollToBottom()
+            if (!userDragged) {
+                checkAndScrollToBottom()
+            }
         }
+    }
+
+    private fun setUserDragged(b: Boolean) {
+        userDragged = b
+        binding.cvToBottom.visibility = if (b) View.VISIBLE else View.INVISIBLE
     }
 
     private var scrollRunnable: Runnable? = null
@@ -103,15 +131,19 @@ class MessageListView @JvmOverloads constructor(
         if (isScrollScheduled) return
         scrollRunnable = Runnable {
             binding.rvMessages.post {
-                val lastPosition = messageAdapter.itemCount - 1
-                if (lastPosition >= 0) {
-                    (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(lastPosition, -9999.dp.toInt())
-                }
+                scrollToBottom()
             }
             isScrollScheduled = false
         }
         binding.rvMessages.postDelayed(scrollRunnable!!, scrollDelay)
         isScrollScheduled = true
+    }
+
+    private fun scrollToBottom() {
+        val lastPosition = messageAdapter.itemCount - 1
+        if (lastPosition >= 0) {
+            (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(lastPosition, -9999.dp.toInt())
+        }
     }
 
     data class Message(

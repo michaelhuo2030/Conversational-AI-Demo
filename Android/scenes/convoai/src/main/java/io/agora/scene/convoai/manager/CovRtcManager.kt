@@ -40,6 +40,7 @@ object CovRtcManager {
         } catch (e: Exception) {
             CovLogger.e(TAG, "createRtcEngine error: $e")
         }
+        CovLogger.d(TAG, "current sdk version: ${RtcEngine.getSdkVersion()}")
         return rtcEngine!!
     }
 

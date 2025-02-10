@@ -36,7 +36,7 @@ object CovAgentManager {
     var enableBHVS = true
     var connectionState = AgentConnectionState.IDLE
 
-    val agentUID = 999
+    var agentUID = 999
     private const val SERVICE_VERSION = "v2"
     private var channelName: String? = null
 
@@ -52,6 +52,9 @@ object CovAgentManager {
     fun setPreset(p: CovAgentPreset?) {
         preset = p
         language = p?.support_languages?.firstOrNull { it.language_code == p.default_language_code }
+        if (p?.preset_type == "") {
+            agentUID = 1
+        }
     }
 
     fun getLanguages(): List<CovAgentLanguage>? {
