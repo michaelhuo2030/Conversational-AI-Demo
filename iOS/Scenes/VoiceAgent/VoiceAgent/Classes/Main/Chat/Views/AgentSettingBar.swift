@@ -49,6 +49,7 @@ class AgentSettingBar: UIView {
     // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
+        registerDelegate()
         setupViews()
         setupConstraints()
         tipsButton.addTarget(self, action: #selector(tipsButtonClicked), for: .touchUpInside)
@@ -58,7 +59,20 @@ class AgentSettingBar: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        unregisterDelegate()
+    }
+    
     // MARK: - Private Methods
+    
+    func registerDelegate() {
+        AgentPreferenceManager.shared.addDelegate(self)
+    }
+    
+    func unregisterDelegate() {
+        AgentPreferenceManager.shared.removeDelegate(self)
+    }
+    
     private func setupViews() {
         [backButton, titleLabel, tipsButton, settingButton].forEach { addSubview($0) }
     }
@@ -100,5 +114,11 @@ class AgentSettingBar: UIView {
     
     @objc private func settingButtonClicked() {
         onSettingButtonTapped?()
+    }
+}
+
+extension AgentSettingBar: AgentPreferenceManagerDelegate {
+    func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {
+        
     }
 }

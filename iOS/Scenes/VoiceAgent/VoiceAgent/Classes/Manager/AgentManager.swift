@@ -8,16 +8,39 @@
 import Foundation
 import Common
 
-/// Protocol that defines the core functionality for agent operations
-/// Provides methods to start and stop AI agents in a channel
+/// Protocol defining the API interface for managing AI agents
 protocol AgentAPI {
-   
+    /// Starts an AI agent with the specified configuration
+    /// - Parameters:
+    ///   - appId: The unique identifier for the application
+    ///   - uid: The user identifier
+    ///   - agentUid: The AI agent's unique identifier
+    ///   - channelName: The name of the channel for communication
+    ///   - aiVad: Boolean flag for AI voice activity detection
+    ///   - presetName: The name of the preset configuration
+    ///   - language: The language setting for the agent
+    ///   - completion: Callback with optional error and agent ID string
     func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void))
     
+    /// Stops a running AI agent
+    /// - Parameters:
+    ///   - appId: The unique identifier for the application
+    ///   - agentId: The ID of the agent to stop
+    ///   - channelName: The name of the channel
+    ///   - presetName: The name of the preset configuration
+    ///   - completion: Callback with optional error and response data
     func stopAgent(appId:String, agentId: String, channelName: String, presetName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void))
     
-    func ping(appId: String, channelName: String, presetName: String)
+    /// Checks the connection status with the agent service
+    /// - Parameters:
+    ///   - appId: The unique identifier for the application
+    ///   - channelName: The name of the channel
+    ///   - presetName: The name of the preset configuration
+    ///   - completion: Callback with optional error and response data
+    func ping(appId: String, channelName: String, presetName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void))
     
+    /// Retrieves the list of available agent presets
+    /// - Parameter completion: Callback with optional error and array of agent presets
     func fetchAgentPresets(completion: @escaping ((AgentError?, [AgentPreset]?) -> Void))
 }
 
@@ -117,8 +140,26 @@ class AgentManager: AgentAPI {
         }
     }
     
-    func ping(appId: String, channelName: String, presetName: String) {
-        
+    func ping(appId: String, channelName: String, presetName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
+        let url = AgentServiceUrl.stopAgentPath("convoai/ping").toHttpUrlSting()
+        let parameters: [String: Any] = [
+            "app_id": appId,
+            "channel_name": channelName,
+            "preset_name": presetName
+        ]
+        AgentLogger.info("request ping api parameters is: \(parameters)")
+        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+            if let code = result["code"] as? Int, code != 0 {
+                let msg = result["msg"] as? String ?? "Unknown error"
+                let error = AgentError.serverError(code: code, message: msg)
+                completion(error, nil)
+            } else {
+                completion(nil, result)
+            }
+        } failure: { msg in
+            let error = AgentError.serverError(code: -1, message: msg)
+            completion(error, nil)
+        }
     }
     
 }

@@ -45,12 +45,14 @@ protocol AgentPreferenceManagerProtocol {
     
     func allPresets() -> [AgentPreset]?
     func setPresets(presets: [AgentPreset])
+    
+    func resetData()
 }
 
 class AgentPreferenceManager: AgentPreferenceManagerProtocol {
     static let shared = AgentPreferenceManager()
-    let preference = AgentPreference()
-    let information = AgentInfomation()
+    var preference = AgentPreference()
+    var information = AgentInfomation()
     private var presets: [AgentPreset]?
     
     private var delegates = NSHashTable<AnyObject>.weakObjects()
@@ -132,6 +134,12 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
         }
         
         self.updateLanguage(language)
+    }
+    
+    func resetData() {
+        presets = nil
+        preference = AgentPreference()
+        information = AgentInfomation()
     }
     
     // MARK: - Private Methods

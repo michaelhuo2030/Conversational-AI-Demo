@@ -50,6 +50,7 @@ class RTCManager: NSObject {
         config.channelProfile = .liveBroadcasting
         config.audioScenario = .chorus
         rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self.delegate)
+        AgentLogger.info("rtc version: \(AgoraRtcEngineKit.getSdkVersion())")
     }
     
     private func setAudioParameter() {

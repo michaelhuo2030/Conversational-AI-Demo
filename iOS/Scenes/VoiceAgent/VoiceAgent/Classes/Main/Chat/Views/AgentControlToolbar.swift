@@ -15,7 +15,7 @@ enum AgentControlStyle {
 
 protocol AgentControlToolbarDelegate: AnyObject {
     func hangUp()
-    func getStart()
+    func getStart() async
     func mute(selectedState: Bool)
     func switchCaptions(selectedState: Bool)
 }
@@ -25,7 +25,6 @@ class AgentControlToolbar: UIView {
     private let buttonWidth = 76.0
     private let buttonHeight = 76.0
     private let startButtonHeight = 68.0
-    
     private var _style: AgentControlStyle = .startButton
     
     var style: AgentControlStyle {
@@ -141,6 +140,16 @@ class AgentControlToolbar: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    private func resetState() {
+        startButton.isEnabled = true
+        captionsButton.isEnabled = true
+        muteButton.isEnabled = true
+        closeButton.isEnabled = true
+
+        captionsButton.isSelected = false
+        muteButton.isSelected = false
+    }
+    
     func setEnable(enable: Bool) {
         if style == .startButton {
             startButton.isEnabled = enable
@@ -199,10 +208,13 @@ class AgentControlToolbar: UIView {
     }
     
     @objc private func startAction() {
-        delegate?.getStart()
+        Task {
+            await delegate?.getStart()
+        }
     }
     
     @objc private func hangUpAction() {
+        resetState()
         delegate?.hangUp()
     }
     

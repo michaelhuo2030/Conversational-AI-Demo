@@ -11,9 +11,7 @@ public class PrimaryColors {
     public static let c_121212 = UIColor(hex: 0x121212)
     public static let c_1c1c20 = UIColor(hex: 0x1c1c20)
     public static let c_a0faff = UIColor(hex: 0xa0faff)
-
-    
-    
+    public static let c_e6544b = UIColor(hex: 0xe6544b)
     
     public static let c_0097d4 = UIColor(hex: 0x0097D4)
     public static let c_ff414d = UIColor(hex: 0xFF414D)

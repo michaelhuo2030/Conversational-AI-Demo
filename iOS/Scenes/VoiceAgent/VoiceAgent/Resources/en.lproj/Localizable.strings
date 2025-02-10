@@ -15,6 +15,7 @@
 "conversation.message.you" = "You";
 "conversation.message.agent.name" = "AI Agent";
 "conversation.agent.connecting" = "Connecting...";
+
 "conversation.message.alert.title" = "Clear Messages";
 "conversation.message.alert.content" = "Are you sure you want to clear all messages?";
 
@@ -47,3 +48,4 @@
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";
 "error.join.error" = "Failed to join. Please try again.";
+"error.network.disconnect" = "Network is unstable, please exit and try again.";

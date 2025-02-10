@@ -15,8 +15,9 @@ import Common
 class ChatViewController: UIViewController {
     private var isDenoise = true
     private let messageParser = MessageParser()
-    private let host = AppContext.shared.baseServerUrl
     private let uid = "\(RtcEnum.getUid())"
+    private let pingTimeInterval = 10.0
+    private var pingTimer: Timer?
     private var channelName = ""
     private var token = ""
     private var agentUid = 0
@@ -24,24 +25,25 @@ class ChatViewController: UIViewController {
 
     private lazy var rtcManager: RTCManager = {
         let manager = RTCManager(appId: AppContext.shared.appId, delegate: self)
+        addLog("rtc sdk version: \(AgoraRtcEngineKit.getSdkVersion())")
         return manager
     }()
     
     private lazy var agentManager: AgentManager = {
-        let manager = AgentManager(host: host)
+        let manager = AgentManager(host: AppContext.shared.baseServerUrl)
         return manager
     }()
     
     private lazy var topBar: AgentSettingBar = {
         let view = AgentSettingBar()
         view.onTipsButtonTapped = { [weak self] in
-            self?.handleTipsAction()
+            self?.clickTheInformationButton()
         }
         view.onSettingButtonTapped = { [weak self] in
-            self?.handleSettingAction()
+            self?.clickTheSettingButton()
         }
         view.onBackButtonTapped = { [weak self] in
-            self?.stopPageAction()
+            self?.clickTheBackButton()
         }
         return view
     }()
@@ -54,7 +56,6 @@ class ChatViewController: UIViewController {
     
     private lazy var animateContentView: UIView = {
         let view = UIView()
-        view.backgroundColor = .purple
         return view
     }()
     
@@ -63,22 +64,13 @@ class ChatViewController: UIViewController {
         return view
     }()
     
-    private lazy var loadingView: GradientBorderView = {
-        let gradientBoundView = GradientBorderView()
-        gradientBoundView.layer.cornerRadius = 20
-        gradientBoundView.layer.masksToBounds = true
-        let label = UILabel()
-        label.text = ResourceManager.L10n.Join.agentConnecting
-        label.font = UIFont.systemFont(ofSize: 12)
-        label.textColor = .white
-        gradientBoundView.addSubview(label)
-        
-        label.snp.makeConstraints { make in
-            make.center.equalTo(gradientBoundView)
-        }
-        
-        gradientBoundView.isHidden = true
-        return gradientBoundView
+    private lazy var toastView: ToastView = {
+        let view = ToastView()
+        view.layer.cornerRadius = 20
+        view.layer.masksToBounds = true
+        view.layer.borderWidth = 1.0
+        view.layer.isHidden = true
+        return view
     }()
     
     private lazy var contentView: UIView = {
@@ -109,22 +101,34 @@ class ChatViewController: UIViewController {
     }()
         
     deinit {
+        AgentPreferenceManager.shared.resetData()
         print("liveing view controller deinit")
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        generateToken()
+        preloadData()
         setupViews()
         setupConstraints()
-        setupAgentPreference()
+    }
+    
+    private func preloadData() {
+        AgentPreferenceManager.shared.updateUserId(uid)
+        Task {
+            do {
+                try await fetchPresetsIfNeeded()
+                try await fetchTokenIfNeeded()
+            } catch {
+                addLog("preloadData error: \(error)")
+            }
+        }
     }
     
     private func setupViews() {
-        view.backgroundColor = PrimaryColors.c_121212
+        view.backgroundColor = .black
         
-        [topBar, contentView, bottomBar, loadingView].forEach { view.addSubview($0) }
+        [topBar, contentView, bottomBar, toastView].forEach { view.addSubview($0) }
         
         contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
@@ -158,10 +162,9 @@ class ChatViewController: UIViewController {
             make.edges.equalTo(UIEdgeInsets.zero)
         }
         
-        loadingView.snp.makeConstraints { make in
+        toastView.snp.makeConstraints { make in
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
             make.centerX.equalTo(view)
-            make.width.equalTo(108)
             make.height.equalTo(40)
         }
         
@@ -172,67 +175,144 @@ class ChatViewController: UIViewController {
         }
     }
     
-    private func setupAgentPreference() {
-        AgentPreferenceManager.shared.updateUserId(uid)
+    @MainActor
+    private func prepareToStartAgent() async {
+        startLoading()
+        
+        do {
+            try await fetchPresetsIfNeeded()
+            try await fetchTokenIfNeeded()
+            startAgentRequest()
+            joinChannel()
+        } catch {
+            handleStartError(error: error)
+        }
     }
     
-    private func start() {
+    private func showNetworkErrorToast() {
+        toastView.showToast(text: ResourceManager.L10n.Error.networkDisconnected)
+    }
+    
+    private func dismissNetworkErrorToast() {
+        toastView.dismiss()
+    }
+    
+    private func startLoading() {
         bottomBar.style = .controlButtons
-        loadingView.isHidden = false
-        if token.isEmpty {
+        
+        toastView.showLoading()
+    }
+    
+    private func stopLoading() {
+        bottomBar.style = .startButton
+        toastView.dismiss()
+    }
+    
+    private func joinChannel() {
+        let ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
+        if (ret == 0) {
+            self.addLog("join rtc room success")
+            self.setupMuteState(state: false)
+            AgentPreferenceManager.shared.updateRoomState(.connected)
+            AgentPreferenceManager.shared.updateRoomId(channelName)
+        }else{
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.joinFailed + "\(ret)")
+            stopLoading()
+            stopAgent()
+            AgentPreferenceManager.shared.updateRoomState(.disconnected)
+            self.addLog("join rtc room failed ret: \(ret)")
+        }
+    }
+    
+    private func leaveChannel() {
+        AgentPreferenceManager.shared.updateRoomState(.unload)
+        AgentPreferenceManager.shared.updateAgentState(.unload)
+        AgentPreferenceManager.shared.updateRoomId("")
+        rtcManager.leaveChannel()
+    }
+    
+    private func destoryRtc() {
+        leaveChannel()
+        rtcManager.destroy()
+    }
+    
+    private func stopAgent() {
+        addLog("begin stop agent")
+        pingTimer?.invalidate()
+        pingTimer = nil
+        leaveChannel()
+        stopAgentRequest()
+    }
+    
+    private func setupMuteState(state: Bool) {
+        rtcManager.muteVoice(state: state)
+    }
+    
+    private func addLog(_ txt: String) {
+        AgentLogger.info(txt)
+    }
+    
+    private func extractJsonData(from rawString: String) -> Data? {
+        let components = rawString.components(separatedBy: "|")
+        guard components.count >= 4 else { return nil }
+        let base64String = components[3]
+        return Data(base64Encoded: base64String)
+    }
+}
+
+// MARK: - Agent Request
+extension ChatViewController {
+    private func fetchPresetsIfNeeded() async throws {
+        guard AgentPreferenceManager.shared.allPresets() == nil else { return }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            agentManager.fetchAgentPresets { error, result in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "", code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "result is empty"]))
+                    return
+                }
+                
+                AgentPreferenceManager.shared.setPresets(presets: result)
+                continuation.resume()
+            }
+        }
+    }
+    
+    private func fetchTokenIfNeeded() async throws {
+        guard token.isEmpty else { return }
+        
+        return try await withCheckedThrowingContinuation { continuation in
             NetworkManager.shared.generateToken(
                 channelName: "",
                 uid: uid,
                 types: [.rtc]
             ) { [weak self] token in
                 guard let self = self else { return }
-                DispatchQueue.main.async {
-                    if let token = token {
-                        print("rtc token is : \(token)")
-                        self.token = token
-                        self.startAgent()
-                    } else {
-                        self.loadingView.isHidden = true
-                        self.bottomBar.style = .startButton
-                        SVProgressHUD.showInfo(withStatus: "generate token error")
-                    }
-                }
-            }
-        } else {
-            startAgent()
-        }
-        
-        joinChannel()
-    }
-    
-    private func startRequestPing() {
-        
-    }
-    
-    private func generateToken() {
-        PermissionManager.checkMicrophonePermission { granted in
-            if !granted {
-                DispatchQueue.main.async {
-                    SVProgressHUD.showInfo(withStatus: "Microphone usage refused")
-                }
-            }
-        }
-        NetworkManager.shared.generateToken(
-            channelName: "",
-            uid: uid,
-            types: [.rtc]
-        ) { [weak self] token in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
+                
                 if let token = token {
                     print("rtc token is : \(token)")
                     self.token = token
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: NSError(domain: "", code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "generate token error"]))
                 }
             }
         }
     }
     
-    private func startAgent() {
+    private func handleStartError(error: Error) {
+        stopLoading()
+        SVProgressHUD.showError(withStatus: error.localizedDescription)
+    }
+    
+    private func startAgentRequest() {
         addLog("begin start agent")
         channelName = "agora_\(RtcEnum.getChannel())"
         agentUid = AppContext.agentUid
@@ -253,46 +333,45 @@ class ChatViewController: UIViewController {
                     self.remoteAgentId = remoteAgentId
                 }
                 addLog("start agent success")
+                prepareToPing()
                 return
             }
 
-            bottomBar.style = .startButton
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
-            self.loadingView.isHidden = true
+            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+            self.stopLoading()
             addLog("start agent failed : \(error.message)")
         }
     }
     
-    private func joinChannel() {
-        let ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
-        if (ret == 0) {
-            self.addLog("join rtc room success")
-            self.setupMuteState(state: false)
-            AgentPreferenceManager.shared.updateRoomState(.connected)
-            AgentPreferenceManager.shared.updateRoomId(channelName)
-        }else{
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.joinFailed + "\(ret)")
-            loadingView.isHidden = true
-            AgentPreferenceManager.shared.updateRoomState(.disconnected)
-            self.addLog("join rtc room failed ret: \(ret)")
+    private func startPingRequest() {
+        let presetName = AgentPreferenceManager.shared.preference.preset?.name ?? ""
+        agentManager.ping(appId: AppContext.shared.appId, channelName: channelName, presetName: presetName) { [weak self] err, res in
+            guard let self = self else { return }
+            guard let error = err else {
+                self.addLog("ping request")
+                return
+            }
+            
+            self.addLog("ping error : \(error.message)")
         }
     }
     
-    private func leaveChannel() {
-        AgentPreferenceManager.shared.updateRoomState(.unload)
-        AgentPreferenceManager.shared.updateAgentState(.unload)
-        AgentPreferenceManager.shared.updateRoomId("")
-        rtcManager.leaveChannel()
-        
+    private func prepareToPing() {
+        addLog("prepare to ping")
+        self.pingTimer?.invalidate()
+        self.pingTimer = Timer.scheduledTimer(withTimeInterval: pingTimeInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            if AgentPreferenceManager.shared.information.agentState != .connected && AgentPreferenceManager.shared.information.rtcRoomState != .disconnected {
+                self.stopLoading()
+                self.stopAgent()
+            } else {
+                self.startPingRequest()
+            }
+        }
     }
     
-    private func destoryRtc() {
-        leaveChannel()
-        rtcManager.destroy()
-    }
-    
-    private func stopAgent() {
-        leaveChannel()
+    private func stopAgentRequest() {
         guard let preset = AgentPreferenceManager.shared.preference.preset else {
             return
         }
@@ -300,36 +379,7 @@ class ChatViewController: UIViewController {
         if remoteAgentId.isEmpty {
             return
         }
-        
         agentManager.stopAgent(appId: AppContext.shared.appId, agentId: remoteAgentId, channelName: channelName, presetName: preset.name) { _, _ in }
-    }
-    
-    private func setupMuteState(state: Bool) {
-        rtcManager.muteVoice(state: state)
-    }
-    
-    private func addLog(_ txt: String) {
-        AgentLogger.info(txt)
-    }
-    
-    private func handleTipsAction() {
-        let settingVC = AgentInformationViewController()
-        settingVC.modalPresentationStyle = .overFullScreen
-        present(settingVC, animated: false)
-    }
-    
-    func handleSettingAction() {
-        let settingVC = AgentSettingViewController()
-        settingVC.delegate = self
-        settingVC.modalPresentationStyle = .overFullScreen
-        present(settingVC, animated: false)
-    }
-    
-    private func extractJsonData(from rawString: String) -> Data? {
-        let components = rawString.components(separatedBy: "|")
-        guard components.count >= 4 else { return nil }
-        let base64String = components[3]
-        return Data(base64Encoded: base64String)
     }
 }
 
@@ -350,17 +400,17 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         if reason == .reasonInterrupted {
             AgentPreferenceManager.shared.updateAgentState(.disconnected)
             AgentPreferenceManager.shared.updateRoomState(.disconnected)
+            showNetworkErrorToast()
+            //
         } else if reason == .reasonRejoinSuccess {
             AgentPreferenceManager.shared.updateAgentState(.connected)
             AgentPreferenceManager.shared.updateRoomState(.connected)
+            dismissNetworkErrorToast()
         }
         
         if state == .failed {
             SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.roomError)
-            self.leaveChannel()
-            self.dismiss(animated: false)
-        } else if state == .disconnected {
-//            SVProgressHUD.showError(withStatus: <#T##String?#>)
+            stopAgent()
         }
     }
     
@@ -369,10 +419,10 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
+        toastView.dismiss()
         addLog("remote user didJoinedOfUid uid: \(uid)")
         AgentPreferenceManager.shared.updateAgentState(.connected)
-        loadingView.isHidden = true
-        SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Conversation.agentJoined)
+        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.agentJoined)
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
@@ -469,67 +519,72 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                     if (volumeInfo.uid == 0) {
                     } else {
                         currentVolume = CGFloat(volumeInfo.volume)
-//                        print("current volume is \(currentVolume)")
                         break
                     }
                 }
                 animateView.updateAgentState(.speaking, volume: Int(currentVolume))
-//                videoView.updateWithVolume(Float(currentVolume))
             }
         }
-    }
-}
-// MARK: - AgentSettingViewDelegate
-extension ChatViewController: AgentSettingViewDelegate {
-    func onClickNoiseCancellationChanged(isOn: Bool) {
-        isDenoise = isOn
-    }
-    
-    func onClickVoice() {
-        SVProgressHUD.show()
     }
 }
 
 // MARK: - Actions
 private extension ChatViewController {
-    func stopPageAction() {
+    private func clickTheBackButton() {
+        addLog("clickTheBackButton")
         stopAgent()
         self.navigationController?.popViewController(animated: true)
     }
     
-    func handleEndCallAction() {
-        addLog("begin stop agent")
-        self.bottomBar.style = .startButton
-        self.loadingView.isHidden = true
+    private func clickTheInformationButton() {
+        let settingVC = AgentInformationViewController()
+        settingVC.modalPresentationStyle = .overFullScreen
+        present(settingVC, animated: false)
+    }
+    
+    private func clickTheSettingButton() {
+        let settingVC = AgentSettingViewController()
+        settingVC.modalPresentationStyle = .overFullScreen
+        settingVC.agentManager = agentManager
+        present(settingVC, animated: false)
+    }
+    
+    private func clickTheCloseButton() {
+        addLog("clickTheCloseButton")
+        stopLoading()
         stopAgent()
-        updateAgentState(state: .disconnected)
     }
     
-    private func updateAgentState(state: ConnectionStatus) {
-        //TODO
-//        self.agentManager.agentState = state
+    private func clickTheStartButton() async {
+        addLog("clickTheStartButton")
+        await prepareToStartAgent()
     }
     
-    func handleCaptionsAction(state: Bool) {
+    private func clickCaptionsButton(state: Bool) {
         messageView.isHidden = !state
+    }
+    
+    private func clickMuteButton(state: Bool) {
+        setupMuteState(state: state)
     }
 }
 
+// MARK: - AgentControlToolbarDelegate
 extension ChatViewController: AgentControlToolbarDelegate {
     func hangUp() {
-        handleEndCallAction()
+        clickTheCloseButton()
     }
     
-    func getStart() {
-        start()
+    func getStart() async {
+        await clickTheStartButton()
     }
     
     func mute(selectedState: Bool) {
-        setupMuteState(state: selectedState)
+        clickMuteButton(state: selectedState)
     }
     
     func switchCaptions(selectedState: Bool) {
-        handleCaptionsAction(state: selectedState)
+        clickCaptionsButton(state: selectedState)
     }
 }
 

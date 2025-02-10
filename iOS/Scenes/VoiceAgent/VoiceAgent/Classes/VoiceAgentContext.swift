@@ -7,6 +7,7 @@
 
 import UIKit
 import Common
+import SVProgressHUD
 
 @objcMembers
 public class VoiceAgentContext: NSObject {
@@ -31,6 +32,7 @@ public class VoiceAgentContext: NSObject {
 //        let vc = PreparedToStartViewController()
 //        vc.showMineContent = false
 //        viewController.navigationController?.pushViewController(vc, animated: true)
+        SVProgressHUD.setMaximumDismissTimeInterval(1)
         let vc = ChatViewController()
         viewController.navigationController?.pushViewController(vc, animated: true)
     }

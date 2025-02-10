@@ -18,7 +18,6 @@
 "conversation.message.alert.content" = "您确定要清除所有消息吗？";
 "conversation.agent.connecting" = "连接中...";
 
-
 "conversation.alert.cancel" = "取消";
 "conversation.alert.clear" = "清除";
 
@@ -46,4 +45,5 @@
 "error.network" = "请求失败：";
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";
 "error.join.error" = "加入失败。请重试。";
+"error.network.disconnect" = "网络不畅，请退出重试";
 

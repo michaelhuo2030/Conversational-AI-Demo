@@ -7,20 +7,15 @@
 
 import UIKit
 import Common
-
-protocol AgentSettingViewDelegate: NSObjectProtocol {
-    func onClickNoiseCancellationChanged(isOn: Bool)
-    func onClickVoice()
-}
+import SVProgressHUD
 
 class AgentSettingViewController: UIViewController {
     private let backgroundViewHeight: CGFloat = 427
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
-    weak var delegate: AgentSettingViewDelegate? = nil
     private var basicSettingItems: [UIView] = []
     private var advancedSettingItems: [UIView] = []
-    
+    weak var agentManager: AgentManager!
     var channelName = ""
     
     private lazy var topView: AgentSettingTopView = {
@@ -125,6 +120,8 @@ class AgentSettingViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        requestPresetsIfNeed()
         registerDelegate()
         createViews()
         createConstrains()
@@ -139,6 +136,32 @@ class AgentSettingViewController: UIViewController {
     
     private func unRegisterDelegate() {
         AgentPreferenceManager.shared.removeDelegate(self)
+    }
+    
+    private func requestPresetsIfNeed() {
+        guard AgentPreferenceManager.shared.allPresets() == nil else {
+            return
+        }
+        
+        SVProgressHUD.show()
+        AgentLogger.info("request presets in setting page")
+        agentManager.fetchAgentPresets { error, result in
+            if let error = error {
+                SVProgressHUD.dismiss()
+                SVProgressHUD.showError(withStatus: error.message)
+                AgentLogger.info(error.message)
+                return
+            }
+            
+            guard let result = result else {
+                SVProgressHUD.dismiss()
+                AgentLogger.info("preset is empty")
+                SVProgressHUD.showError(withStatus: "preset is empty")
+                return
+            }
+            
+            AgentPreferenceManager.shared.setPresets(presets: result)
+        }
     }
     
     private func setupPanGesture() {
@@ -263,9 +286,6 @@ class AgentSettingViewController: UIViewController {
     @objc func onClickLanguage(_ sender: UIButton) {
         print("onClickLanguage")
         selectTableMask.isHidden = false
-        guard let allPresets = AgentPreferenceManager.shared.allPresets() else {
-            return
-        }
         guard let currentPreset = AgentPreferenceManager.shared.preference.preset else { return }
         let allLanguages = currentPreset.supportLanguages
         
@@ -298,10 +318,6 @@ class AgentSettingViewController: UIViewController {
     @objc func onClickForceResponse(_ sender: UISwitch) {
         let state = sender.isOn
         AgentPreferenceManager.shared.updateForceThresholdState(state)
-    }
-    
-    @objc func onClickNoiseCancellation(_ sender: UISwitch) {
-        delegate?.onClickNoiseCancellationChanged(isOn: sender.isOn)
     }
     
     @objc func onClickHideTable(_ sender: UIButton) {
@@ -426,12 +442,12 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         updateAdvancedSettingConstraints()
     }
     
-    func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: String) {
-        presetItem.detialLabel.text =  preset
+    func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
+        presetItem.detialLabel.text =  preset.displayName
     }
     
-    func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: String) {
-        languageItem.detialLabel.text = language
+    func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {
+        languageItem.detialLabel.text = language.languageName
     }
 }
 

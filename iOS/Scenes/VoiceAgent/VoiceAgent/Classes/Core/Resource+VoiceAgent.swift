@@ -64,6 +64,7 @@ extension ResourceManager {
             public static let networkError = ResourceManager.localizedString("error.network")
             public static let roomError = ResourceManager.localizedString("error.room.error")
             public static let joinError = ResourceManager.localizedString("error.join.error")
+            public static let networkDisconnected = ResourceManager.localizedString("error.network.disconnect")
         }
 
         public enum Settings {

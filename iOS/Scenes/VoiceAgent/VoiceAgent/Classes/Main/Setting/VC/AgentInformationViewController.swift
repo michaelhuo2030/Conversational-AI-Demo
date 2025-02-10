@@ -12,7 +12,6 @@ class AgentInformationViewController: UIViewController {
     private let backgroundViewHeight: CGFloat = 492
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
-    weak var delegate: AgentSettingViewDelegate? = nil
     private var networkItems: [UIView] = []
     private var channelInfoItems: [UIView] = []
     

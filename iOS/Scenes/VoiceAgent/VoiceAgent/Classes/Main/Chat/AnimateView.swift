@@ -32,7 +32,7 @@ class AnimateView: NSObject {
     }
     
     private let videoView: UIView
-    private var rtcMediaPlayer: AgoraRtcMediaPlayerProtocol?
+    private weak var rtcMediaPlayer: AgoraRtcMediaPlayerProtocol?
     private var scaleAnimator: CAAnimationGroup?
     private var currentAnimParams = AnimParams()
     private var pendingAnimParams: AnimParams?
