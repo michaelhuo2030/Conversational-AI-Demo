@@ -19,10 +19,6 @@ object CovRtcManager {
     private val TAG = "CovAgoraManager"
 
     private var rtcEngine: RtcEngineEx? = null
-    // values
-    val uid = Random.nextInt(1000, 10000000)
-    var channelName = ""
-    var rtcToken: String? = null
 
     fun createRtcEngine(rtcCallback: IRtcEngineEventHandler): RtcEngineEx {
         val config = RtcEngineConfig()
@@ -85,10 +81,9 @@ object CovRtcManager {
         rtcEngine?.leaveChannel()
     }
 
-    fun renewRtcToken() {
-        val rtcToken = rtcToken ?: return
+    fun renewRtcToken(value: String) {
         val engine = rtcEngine ?: return
-        engine.renewToken(rtcToken)
+        engine.renewToken(value)
     }
 
     fun muteLocalAudio(mute: Boolean) {

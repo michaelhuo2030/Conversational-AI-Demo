@@ -1,6 +1,7 @@
 package io.agora.scene.convoai.manager
 
 import io.agora.scene.common.constant.ServerConfig
+import kotlin.random.Random
 
 object CovAgentManager {
 
@@ -19,6 +20,9 @@ object CovAgentManager {
     var enableBHVS = true
     var connectionState = AgentConnectionState.IDLE
 
+    // values
+    val uid = Random.nextInt(1000, 10000000)
+    var rtcToken: String? = null
     var agentUID = 999
     var channelName: String? = null
 

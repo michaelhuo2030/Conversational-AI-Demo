@@ -49,6 +49,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private var parser = MessageParser()
 
+    private var rtcToken: String? = null
+
     private var isLocalAudioMuted = false
         set(value) {
             if (field != value) {
@@ -158,8 +160,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun getAgentParams(): AgentRequestParams {
         return AgentRequestParams(
-            channelName = CovRtcManager.channelName,
-            remoteRtcUid = CovRtcManager.uid.toString(),
+            channelName = CovAgentManager.channelName,
+            remoteRtcUid = CovAgentManager.uid.toString(),
             agentRtcUid = CovAgentManager.agentUID.toString(),
             audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
             enableAiVad = CovAgentManager.enableAiVad,
@@ -197,7 +199,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
             }
 
-            CovRtcManager.joinChannel()
+            CovRtcManager.joinChannel(CovAgentManager., CovAgentManager.)
             val isAgentOK = startAgentAsync()
 
             withContext(Dispatchers.Main) {
@@ -252,13 +254,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         connectionState = AgentConnectionState.IDLE
         mCovBallAnim?.updateAgentState(AgentState.STATIC)
-        CovAgentManager.stopAgent {}
+        CovServerManager.stopAgent {}
         resetSceneState()
     }
 
     private fun updateToken(complete: (Boolean) -> Unit) {
         TokenGenerator.generateToken("",
-            CovRtcManager.uid.toString(),
+            CovAgentManager.uid.toString(),
             TokenGeneratorType.Token007,
             AgoraTokenType.Rtc,
             success = { token ->
