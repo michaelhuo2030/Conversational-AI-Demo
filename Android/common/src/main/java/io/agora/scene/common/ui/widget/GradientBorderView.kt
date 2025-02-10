@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
+import android.view.View
 import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
@@ -26,6 +27,7 @@ class GradientBorderView @JvmOverloads constructor(
     private val rect = RectF()
     private var rotationAngle = 0f
     private var animator: ValueAnimator? = null
+    private var isAnimating = false
     
     // Configuration parameters
     var borderWidth = 2.dp  // Border width
@@ -77,11 +79,13 @@ class GradientBorderView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        animator?.start()
+        if (visibility == View.VISIBLE) {
+            startAnimation()
+        }
     }
 
     override fun onDetachedFromWindow() {
-        animator?.cancel()
+        stopAnimation()
         super.onDetachedFromWindow()
     }
 
@@ -128,11 +132,33 @@ class GradientBorderView @JvmOverloads constructor(
     }
 
     fun startAnimation() {
-        animator?.start()
+        if (!isAnimating) {
+            animator?.start()
+            isAnimating = true
+        }
     }
 
     fun stopAnimation() {
         animator?.cancel()
+        isAnimating = false
+    }
+
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (changedView === this) {
+            when (visibility) {
+                View.VISIBLE -> startAnimation()
+                else -> stopAnimation()
+            }
+        }
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        when (visibility) {
+            View.VISIBLE -> startAnimation()
+            else -> stopAnimation()
+        }
     }
 
     companion object {

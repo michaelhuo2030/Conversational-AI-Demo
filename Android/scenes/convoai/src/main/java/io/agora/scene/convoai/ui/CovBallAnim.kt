@@ -14,6 +14,7 @@ import io.agora.mediaplayer.data.MediaPlayerSource
 import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.convoai.manager.CovMediaPlayerObserver
+import android.view.View
 
 enum class AgentState {
     /** Idle state, no video or animation is playing */
@@ -71,11 +72,11 @@ class CovBallAnim constructor(
                     }
 
                     AgentState.LISTENING -> {
-                        rtcMediaPlayer?.setPlaybackSpeed(100)
+                        rtcMediaPlayer?.setPlaybackSpeed(150)
                     }
 
                     AgentState.SPEAKING -> {
-                        rtcMediaPlayer?.setPlaybackSpeed(200)
+                        rtcMediaPlayer?.setPlaybackSpeed(250)
                     }
                 }
             }
