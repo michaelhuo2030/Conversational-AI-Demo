@@ -163,7 +163,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
-        // 立即显示 connecting 状态
+        // Immediately show the connecting status
         connectionState = AgentConnectionState.CONNECTING
         CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
 
@@ -176,7 +176,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     if (needToken) add(async { updateTokenAsync() })
                     if (needPresets) add(async { fetchPresetsAsync() })
                 }
-                // 检查是否所有任务都成功
+                // Check whether all tasks are successful
                 val results = deferreds.awaitAll()
                 if (results.any { !it }) {
                     withContext(Dispatchers.Main) {
@@ -195,7 +195,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
             withContext(Dispatchers.Main) {
                 if (isAgentOK) {
-                    // 启动超时检查
+                    // Startup timeout check
                     waitingAgentJob = launch {
                         delay(10000)
                         if (connectionState == AgentConnectionState.CONNECTING) {
