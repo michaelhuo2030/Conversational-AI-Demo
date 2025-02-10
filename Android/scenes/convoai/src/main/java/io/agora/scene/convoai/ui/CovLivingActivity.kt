@@ -11,11 +11,11 @@ import io.agora.scene.convoai.manager.CovRtcManager
 import io.agora.scene.convoai.utils.MessageParser
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
+import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
-import io.agora.scene.common.ui.LoadingDialog
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
@@ -24,8 +24,6 @@ import io.agora.scene.convoai.manager.AgentConnectionState
 import io.agora.scene.convoai.manager.AgentRequestParams
 import io.agora.scene.convoai.manager.CovAgentManager
 import kotlinx.coroutines.*
-import java.util.Timer
-import java.util.TimerTask
 import kotlin.coroutines.*
 import kotlin.random.Random
 
@@ -33,14 +31,17 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val TAG = "LivingActivity"
 
-    private var loadingDialog: LoadingDialog? = null
     private var infoDialog: CovAgentInfoDialog? = null
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
+    private var waitingAgentJob: Job? = null
+
+    private var pingTimer: Job? = null
 
     private var networkValue: Int = 0
 
     private var parser = MessageParser()
-
-    private var pingTimer: Timer? = null
 
     private var isLocalAudioMuted = false
         set(value) {
@@ -65,23 +66,23 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 CovAgentManager.connectionState = value
                 updateStateView()
                 if (connectionState == AgentConnectionState.CONNECTED) {
-                    waitingAgentJob?.let {
-                        it.cancel()
-                        waitingAgentJob = null
-                    }
-                    // start ping
-                    pingTimer = Timer().apply {
-                        schedule(object : TimerTask() {
-                            override fun run() {
-                                CovAgentManager.ping {}
-                            }
-                        }, 0, 10000)
+                    waitingAgentJob?.cancel()
+                    waitingAgentJob = null
+                    
+                    // 使用协程替代 Timer 进行 ping
+                    pingTimer = coroutineScope.launch {
+                        while (isActive) {
+                            CovAgentManager.ping {}
+                            delay(10000) // 10秒间隔
+                        }
                     }
                 }
                 if (connectionState == AgentConnectionState.IDLE) {
-                    // stop ping
+                    // 取消 ping
                     pingTimer?.cancel()
                     pingTimer = null
+                    waitingAgentJob?.cancel()
+                    waitingAgentJob = null
                 }
             }
         }
@@ -95,23 +96,28 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     override fun initView() {
         setupView()
         updateStateView()
-        loadingDialog = LoadingDialog(this)
-        // data
-        updateToken {  }
         CovAgentManager.resetData()
-        createRtcEngine()
-        setupBallAnimView()
+        val rtcEngine = createRtcEngine()
+        setupBallAnimView(rtcEngine)
         PermissionHelp(this).checkMicPerm({}, {
             finish()
         }, true)
-        loadingDialog?.show()
-        CovAgentManager.fetchPresets {
-            loadingDialog?.dismiss()
+
+        // Fetch token and presets when entering the scene
+        coroutineScope.launch {
+            val deferreds = listOf(
+                async { updateTokenAsync() },
+                async { fetchPresetsAsync() }
+            )
+            deferreds.awaitAll()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        // 取消所有协程
+        coroutineScope.cancel()
+        
         // if agent is connected, leave channel
         if (connectionState == AgentConnectionState.CONNECTED) {
             stopAgentAndLeaveChannel()
@@ -149,36 +155,41 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         )
     }
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
-
-    private var waitingAgentJob:Job?=null
-
     private fun onClickStartAgent() {
-        mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
+        // 立即显示 connecting 状态
         connectionState = AgentConnectionState.CONNECTING
-        CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
+        
         coroutineScope.launch {
-            CovRtcManager.joinChannel()
-            CovLogger.d(TAG, "onClickStartAgent call startAgent")
-            val agentDeferred = async(start = CoroutineStart.DEFAULT) { startAgentAsync() }
-            val tokenDeferred = async(start = CoroutineStart.DEFAULT) { CovRtcManager.rtcToken?.let { true } ?: updateTokenAsync() }
-
-            //先等待token完成，立即调用 joinChannel
-            CovLogger.d(TAG, "onClickStartAgent await token 11")
-            val isTokenOK = tokenDeferred.await()
-            CovLogger.d(TAG, "onClickStartAgent await token 22")
-            if (!isTokenOK) {
-                connectionState = AgentConnectionState.IDLE
-                CovRtcManager.leaveChannel()
-                CovLogger.e(TAG, "Token error")
-                ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
-                return@launch
+            // 检查并准备所需数据
+            val needToken = CovRtcManager.rtcToken == null
+            val needPresets = CovAgentManager.getPresetList().isNullOrEmpty()
+            
+            if (needToken || needPresets) {
+                val deferreds = buildList {
+                    if (needToken) add(async { updateTokenAsync() })
+                    if (needPresets) add(async { fetchPresetsAsync() })
+                }
+                // 检查是否所有任务都成功
+                val results = deferreds.awaitAll()
+                if (results.any { !it }) {
+                    connectionState = AgentConnectionState.IDLE
+                    ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
+                    return@launch
+                }
             }
-            CovLogger.d(TAG, "onClickStartAgent call join")
+            
+            startAgentProcess()
+        }
+    }
 
-            CovLogger.d(TAG, "onClickStartAgent await agent 11")
-            val isAgentOK = agentDeferred.await()
-            CovLogger.d(TAG, "onClickStartAgent await agent 22")
+    private fun startAgentProcess() {
+        mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
+        CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
+
+        coroutineScope.launch {
+            // 并行执行 joinChannel 和 startAgent
+            CovRtcManager.joinChannel()
+            val isAgentOK = async { startAgentAsync() }.await()
             if (isAgentOK) {
                 // check agent connection after 10s
                 waitingAgentJob = launch(Dispatchers.Main) {
@@ -207,6 +218,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private suspend fun updateTokenAsync(): Boolean = suspendCoroutine { cont ->
         updateToken { isTokenOK ->
             cont.resume(isTokenOK)
+        }
+    }
+
+    private suspend fun fetchPresetsAsync(): Boolean = suspendCoroutine { cont ->
+        CovAgentManager.fetchPresets { success ->
+            cont.resume(success)
         }
     }
 
@@ -242,8 +259,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             })
     }
 
-    private fun createRtcEngine() {
-        CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
+    private fun createRtcEngine(): RtcEngineEx {
+        return CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
             override fun onError(err: Int) {
                 super.onError(err)
                 CovLogger.e(TAG, "Rtc Error code:$err")
@@ -506,7 +523,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
             btnSettings.setOnClickListener {
-                CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
+                // TODO: fast click
+                if (CovAgentManager.getPresetList().isNullOrEmpty()) {
+                    coroutineScope.launch {
+                        val success = fetchPresetsAsync()
+                        if (success) {
+                            CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
+                        } else {
+                            ToastUtil.show(R.string.cov_detail_net_state_error)
+                        }
+                    }
+                } else {
+                    CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
+                }
             }
             btnCc.setOnClickListener {
                 isShowMessageList = !isShowMessageList
@@ -524,12 +553,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private fun setupBallAnimView() {
+    private fun setupBallAnimView(rtcEngine: RtcEngineEx) {
         val binding = mBinding ?: return
         mCovBallAnim = CovBallAnim(this, binding.videoView).apply {
-            CovRtcManager.rtcEngine?.let {
-                setupMediaPlayer(it)
-            }
+            setupMediaPlayer(rtcEngine)
         }
     }
 }

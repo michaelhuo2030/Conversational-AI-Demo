@@ -1,15 +1,18 @@
 package io.agora.scene.convoai.manager
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.net.HttpLogger
+import io.agora.scene.common.net.SecureOkHttpClient
 import io.agora.scene.convoai.CovLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
@@ -23,7 +26,13 @@ object CovAgentManager {
 
     val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
 
-    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
+    private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private val okHttpClient by lazy {
+        SecureOkHttpClient.create()
+            .addInterceptor(HttpLogger())
+            .build()
+    }
 
     private var agentId: String? = null
 
@@ -132,7 +141,7 @@ object CovAgentManager {
             .addHeader("Content-Type", "application/json")
             .post(requestBody)
             .build()
-        OkHttpClient().newCall(request).enqueue(object : Callback {
+        okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
                 CovLogger.d(TAG, "Start agent response: $json")
@@ -196,7 +205,7 @@ object CovAgentManager {
             .addHeader("Content-Type", "application/json")
             .post(requestBody)
             .build()
-        OkHttpClient().newCall(request).enqueue(object : Callback {
+        okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
                 CovLogger.d(TAG, "Stop agent response: $json")
@@ -238,7 +247,7 @@ object CovAgentManager {
             .addHeader("Content-Type", "application/json")
             .post(requestBody)
             .build()
-        OkHttpClient().newCall(request).enqueue(object : Callback {
+        okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
                 CovLogger.d(TAG, "Update agent response: $json")
@@ -273,7 +282,7 @@ object CovAgentManager {
             .addHeader("Content-Type", "application/json")
             .get()
             .build()
-        OkHttpClient().newCall(request).enqueue(object : Callback {
+        okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
                 CovLogger.d(TAG, "fetchPresets result: $json")
@@ -319,7 +328,7 @@ object CovAgentManager {
             .addHeader("Content-Type", "application/json")
             .post(requestBody)
             .build()
-        OkHttpClient().newCall(request).enqueue(object : Callback {
+        okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
                 CovLogger.d(TAG, "agent ping response: $json")
@@ -331,10 +340,8 @@ object CovAgentManager {
     }
 
     private fun runOnMainThread(r: Runnable) {
-        if (Thread.currentThread() == mainHandler.looper.thread) {
+        mainScope.launch {
             r.run()
-        } else {
-            mainHandler.post(r)
         }
     }
 }

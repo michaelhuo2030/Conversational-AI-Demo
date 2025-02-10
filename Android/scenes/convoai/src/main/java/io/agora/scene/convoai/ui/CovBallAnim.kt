@@ -152,7 +152,15 @@ class CovBallAnim constructor(
     }
 
     fun setupMediaPlayer(rtcEngine: RtcEngine) {
-        createMediaPlayer(rtcEngine, videoView)
+        rtcMediaPlayer = rtcEngine.createMediaPlayer()?.apply {
+            setView(videoView)
+            registerPlayerObserver(mediaPlayerObserver)
+            val source = MediaPlayerSource().apply {
+                url = context.filesDir.absolutePath + "/$VIDEO_FILE_NAME"
+            }
+            setLoopCount(-1)
+            openWithMediaSource(source)
+        }
     }
 
     private val mediaPlayerObserver = object : CovMediaPlayerObserver() {
@@ -162,18 +170,6 @@ class CovBallAnim constructor(
                 rtcMediaPlayer?.setPlaybackSpeed(50)
                 rtcMediaPlayer?.play()
             }
-        }
-    }
-
-    private fun createMediaPlayer(rtcEngine: RtcEngine, videoView: TextureView) {
-        rtcMediaPlayer = rtcEngine.createMediaPlayer()?.apply {
-            setView(videoView)
-            registerPlayerObserver(mediaPlayerObserver)
-            val source = MediaPlayerSource().apply {
-                url = context.filesDir.absolutePath + "/$VIDEO_FILE_NAME"
-            }
-            setLoopCount(-1)
-            openWithMediaSource(source)
         }
     }
 

@@ -1,5 +1,6 @@
 package io.agora.scene.convoai.manager
 
+import android.util.Log
 import io.agora.rtc2.ChannelMediaOptions
 import io.agora.rtc2.Constants
 import io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
@@ -17,7 +18,7 @@ object CovRtcManager {
 
     private val TAG = "CovAgoraManager"
 
-    var rtcEngine: RtcEngineEx? = null
+    private var rtcEngine: RtcEngineEx? = null
     // values
     val uid = Random.nextInt(1000, 10000000)
     var channelName = ""
@@ -30,6 +31,7 @@ object CovRtcManager {
         config.mChannelProfile = Constants.CHANNEL_PROFILE_LIVE_BROADCASTING
         config.mAudioScenario = Constants.AUDIO_SCENARIO_AI_SERVER
         config.mEventHandler = rtcCallback
+        CovLogger.d(TAG,"rtcVersion:${RtcEngine.getSdkVersion()}")
         try {
             rtcEngine = (RtcEngine.create(config) as RtcEngineEx).apply {
                 loadExtensionProvider("ai_echo_cancellation_extension")
