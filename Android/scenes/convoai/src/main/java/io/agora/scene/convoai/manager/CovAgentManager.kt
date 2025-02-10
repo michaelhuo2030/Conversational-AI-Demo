@@ -60,9 +60,15 @@ object CovAgentManager {
 
     fun setPreset(p: CovAgentPreset?) {
         preset = p
-        language = p?.support_languages?.firstOrNull { it.language_code == p.default_language_code }
-        if (p?.preset_type == "") {
-            agentUID = 1
+        if (p?.default_language_code?.isNotEmpty() == true) {
+            language = p.support_languages.firstOrNull { it.language_code == p.default_language_code }
+        } else {
+            language = p?.support_languages?.firstOrNull()
+        }
+        if (p?.name == "spoken_english_practice") {
+            agentUID = 1234
+        } else {
+            agentUID = 999
         }
     }
 
@@ -117,17 +123,12 @@ object CovAgentManager {
 
             params.bsVoiceThreshold?.let { postBody.put("bs_voice_threshold", it) }
             params.idleTimeout?.let { postBody.put("idle_timeout", it) }
-            params.enableBHVS?.let { postBody.put("enable_bhvs", it) }
-            params.enableAiVad?.let { postBody.put("enable_aivadmd", it) }
             params.presetName?.let { postBody.put("preset_name", it) }
 
-            val aivadmd = JSONObject()
-            if (params.forceThreshold == false) {
-                aivadmd.put("force_threshold", -1)
-            }
-            if (aivadmd.length() > 0) {
-                postBody.put("aivadmd", aivadmd)
-            }
+            val advancedFeatures = JSONObject()
+            params.enableAiVad?.let { advancedFeatures.put("enable_aivad", it) }
+            params.enableBHVS?.let { advancedFeatures.put("enable_bhvs", it) }
+            postBody.put("advanced_features", advancedFeatures)
 
             val tts = JSONObject()
             params.ttsVoiceId?.let { tts.put("voice_id", it) }

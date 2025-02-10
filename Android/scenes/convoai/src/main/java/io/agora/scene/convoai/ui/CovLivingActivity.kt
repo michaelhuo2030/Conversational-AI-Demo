@@ -183,7 +183,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun startAgentProcess() {
-        mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
+        mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
         CovRtcManager.channelName = "agora_" + Random.nextInt(1, 10000000).toString()
 
         coroutineScope.launch {

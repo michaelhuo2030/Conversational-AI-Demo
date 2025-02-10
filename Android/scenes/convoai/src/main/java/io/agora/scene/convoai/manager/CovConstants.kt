@@ -21,7 +21,6 @@ data class AgentRequestParams(
     val ttsVoiceId: String? = null,
     val enableAiVad: Boolean? = null,
     val enableBHVS: Boolean? = null,
-    val forceThreshold: Boolean? = null,
     val presetName: String? = null,
 )
 
