@@ -17,8 +17,14 @@ class AgentSettingSwitchItemView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
+        registerDelegate()
         createViews()
         createConstrains()
+        updateEnableState()
+    }
+    
+    deinit {
+        unregisterDelegate()
     }
     
     required init?(coder: NSCoder) {
@@ -27,6 +33,14 @@ class AgentSettingSwitchItemView: UIView {
 }
 
 extension AgentSettingSwitchItemView {
+    private func registerDelegate() {
+        AppContext.preferenceManager()?.addDelegate(self)
+    }
+    
+    private func unregisterDelegate() {
+        AppContext.preferenceManager()?.removeDelegate(self)
+    }
+    
     private func createViews() {
         self.backgroundColor = PrimaryColors.c_1d1d1d
 
@@ -44,6 +58,9 @@ extension AgentSettingSwitchItemView {
         addSubview(switcher)
         
         switcher.onTintColor = PrimaryColors.c_a0faff
+        switcher.backgroundColor = PrimaryColors.c_535268
+        switcher.layer.cornerRadius = switcher.frame.height / 2
+        switcher.clipsToBounds = true
     }
     
     private func createConstrains() {
@@ -82,4 +99,22 @@ extension AgentSettingSwitchItemView {
             }
         }
     }
+    
+    func updateEnableState() {
+        guard let manager = AppContext.preferenceManager() else {
+            return
+        }
+        
+        let state = manager.information.agentState == .unload
+        switcher.isEnabled = state
+        switcher.onTintColor = state ? PrimaryColors.c_a0faff : PrimaryColors.c_222222
+        switcher.backgroundColor = state ? PrimaryColors.c_535268 : PrimaryColors.c_222222
+    }
 }
+
+extension AgentSettingSwitchItemView: AgentPreferenceManagerDelegate {
+    func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
+        updateEnableState()
+    }
+}
+

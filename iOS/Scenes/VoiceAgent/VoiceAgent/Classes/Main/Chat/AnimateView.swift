@@ -68,6 +68,7 @@ class AnimateView: NSObject {
     private func createMediaPlayer(_ rtcEngine: AgoraRtcEngineKit) {
         rtcMediaPlayer = rtcEngine.createMediaPlayer(with: self)
         if let player = rtcMediaPlayer {
+            player.mute(true)
             player.setView(videoView)
             
             if let filePath = Bundle.main.path(forResource: AnimationConstants.videoFileName, ofType: nil) {
@@ -209,6 +210,10 @@ extension AnimateView: CAAnimationDelegate {
 
 extension AnimateView: AgoraRtcMediaPlayerDelegate {
     func AgoraRtcMediaPlayer(_ playerKit: any AgoraRtcMediaPlayerProtocol, didChangedTo state: AgoraMediaPlayerState, reason: AgoraMediaPlayerReason) {
-//        if stat
+        if state == .openCompleted {
+            rtcMediaPlayer?.mute(true)
+            rtcMediaPlayer?.setPlaybackSpeed(50)
+            rtcMediaPlayer?.play()
+        }
     }
 }

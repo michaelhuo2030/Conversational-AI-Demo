@@ -18,8 +18,14 @@ class AgentSettingTableItemView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
+        registerDelegate()
         createViews()
         createConstrains()
+        updateEnableState()
+    }
+    
+    deinit {
+        unregisterDelegate()
     }
     
     required init?(coder: NSCoder) {
@@ -32,6 +38,14 @@ class AgentSettingTableItemView: UIView {
 }
 
 extension AgentSettingTableItemView {
+    private func registerDelegate() {
+        AppContext.preferenceManager()?.addDelegate(self)
+    }
+    
+    private func unregisterDelegate() {
+        AppContext.preferenceManager()?.removeDelegate(self)
+    }
+
     private func createViews() {
         self.backgroundColor = PrimaryColors.c_1d1d1d
 
@@ -84,4 +98,19 @@ extension AgentSettingTableItemView {
         }
     }
     
+    func updateEnableState() {
+        guard let manager = AppContext.preferenceManager() else {
+            return
+        }
+        
+        let state = manager.information.agentState == .unload
+        button.isEnabled = state
+        detialLabel.textColor = state ? PrimaryColors.c_ffffff : PrimaryColors.c_ffffff.withAlphaComponent(0.3)
+    }
+}
+
+extension AgentSettingTableItemView: AgentPreferenceManagerDelegate {
+    func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
+        updateEnableState()
+    }
 }

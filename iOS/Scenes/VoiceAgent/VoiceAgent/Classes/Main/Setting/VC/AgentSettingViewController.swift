@@ -43,14 +43,6 @@ class AgentSettingViewController: UIViewController {
         return view
     }()
     
-    private lazy var maskView: UIView = {
-        let view = UIView()
-        view.isHidden = true
-        view.backgroundColor = .black.withAlphaComponent(0.4)
-        
-        return view
-    }()
-    
     private lazy var basicSettingView: UIView = {
         let view = UIView()
         view.backgroundColor = PrimaryColors.c_1d1d1d
@@ -74,7 +66,7 @@ class AgentSettingViewController: UIViewController {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.language
         if let manager = AppContext.preferenceManager() {
-            view.detialLabel.text = manager.preference.language?.languageName ?? ""
+            view.detialLabel.text = manager.preference.preset?.defaultLanguageName
         }
         view.button.addTarget(self, action: #selector(onClickLanguage(_:)), for: .touchUpInside)
         return view
@@ -312,7 +304,6 @@ extension AgentSettingViewController {
         backgroundView.addSubview(topView)
         backgroundView.addSubview(scrollView)
         scrollView.addSubview(contentView)
-        scrollView.addSubview(maskView)
         
         basicSettingItems = [presetItem, languageItem]
         advancedSettingItems = [bhvsResponseItem, aiVadItem]
@@ -326,8 +317,8 @@ extension AgentSettingViewController {
         
         view.addSubview(selectTableMask)
         
-        let agentState = AppContext.preferenceManager()?.information.agentState
-        maskView.isHidden = agentState == .unload
+//        let agentState = AppContext.preferenceManager()?.information.agentState
+//        maskView.isHidden = agentState == .unload
     }
     
     private func createConstrains() {
@@ -344,10 +335,6 @@ extension AgentSettingViewController {
         scrollView.snp.makeConstraints { make in
             make.top.equalTo(topView.snp.bottom)
             make.left.right.bottom.equalToSuperview()
-        }
-        
-        maskView.snp.makeConstraints { make in
-            make.edges.equalTo(scrollView)
         }
         
         contentView.snp.makeConstraints { make in
@@ -422,6 +409,7 @@ extension AgentSettingViewController {
 extension AgentSettingViewController: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
         presetItem.detialLabel.text =  preset.displayName
+        languageItem.detialLabel.text = preset.defaultLanguageName
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {

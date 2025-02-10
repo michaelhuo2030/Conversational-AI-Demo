@@ -324,6 +324,7 @@ extension ChatViewController {
         guard let manager = AppContext.preferenceManager() else {
             return
         }
+        manager.updateAgentState(.disconnected)
         let aiVad = manager.preference.aiVad
         let bhvs = manager.preference.bhvs
         let presetName = manager.preference.preset?.name ?? ""
