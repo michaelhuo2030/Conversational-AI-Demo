@@ -24,7 +24,7 @@ object ServerConfig {
         }
 
     @JvmStatic
-    val isMainlandVersion: Boolean = (!toolBoxUrl.contains("overseas"))
+    val isMainlandVersion: Boolean = (!toolBoxUrl.contains("global"))
 
     @JvmStatic
     val siteUrl:String

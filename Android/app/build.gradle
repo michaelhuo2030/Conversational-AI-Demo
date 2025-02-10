@@ -18,7 +18,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         def host = project.getProperty("TOOLBOX_SERVER_HOST")
-        resValue "string", "app_name", host.contains("oversea") ? "Convo AI" : "对话式智能体"
+        resValue "string", "app_name", host.contains("global") ? "Convo AI" : "对话式智能体"
     }
 
     signingConfigs {
