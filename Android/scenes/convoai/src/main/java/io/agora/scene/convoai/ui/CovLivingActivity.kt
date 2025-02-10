@@ -24,6 +24,7 @@ import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.manager.AgentConnectionState
 import io.agora.scene.convoai.manager.AgentRequestParams
 import io.agora.scene.convoai.manager.CovAgentManager
+import io.agora.scene.convoai.manager.CovServerManager
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.random.Random
@@ -76,7 +77,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     // 使用协程替代 Timer 进行 ping
                     pingJob = coroutineScope.launch {
                         while (isActive) {
-                            CovAgentManager.ping {}
+                            CovServerManager.ping(CovAgentManager.channelName)
                             delay(10000) // 10秒间隔
                         }
                     }

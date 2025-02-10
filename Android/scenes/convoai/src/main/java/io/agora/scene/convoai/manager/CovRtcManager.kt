@@ -46,7 +46,7 @@ object CovRtcManager {
         return rtcEngine!!
     }
 
-    fun joinChannel() {
+    fun joinChannel(rtcToken: String, channelName: String, uid: Int) {
         CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $uid")
         setAudioConfig()
         val options = ChannelMediaOptions()
