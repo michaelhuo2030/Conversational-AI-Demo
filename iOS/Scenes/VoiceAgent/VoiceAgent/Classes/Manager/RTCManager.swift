@@ -113,9 +113,6 @@ enum RtcEnum {
     }
     
     static func getChannel() -> String {
-        let characters = Array("0123456789abcdefghijklmnopqrstuvwxyz")
-        let randomString = String((0..<4).compactMap { _ in characters.randomElement() })
-        channelId = randomString
-        return randomString
+        return UUID().uuidString
     }
 }

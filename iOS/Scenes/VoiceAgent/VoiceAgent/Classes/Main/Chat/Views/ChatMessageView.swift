@@ -152,6 +152,17 @@ class ChatView: UIView {
     // MARK: - Properties
     private var messages: [Message] = []
     private var currentStreamMessage: String = ""
+    private var shouldAutoScroll = true
+    private lazy var arrowButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage.va_named("ic_captions_arrow_icon"), for: .normal)
+        button.addTarget(self, action: #selector(clickArrowButton), for: .touchUpInside)
+        button.setBackgroundColor(color: PrimaryColors.c_262626, forState: .normal)
+        button.layer.cornerRadius = 22
+        button.layer.masksToBounds = true
+        button.isHidden = true
+        return button
+    }()
     
     var isEmpty: Bool {
         return messages.isEmpty
@@ -187,14 +198,20 @@ class ChatView: UIView {
     // MARK: - Setup
     private func setupViews() {
         backgroundColor = UIColor.black.withAlphaComponent(0.85)
-//        layer.cornerRadius = 12
         addSubview(tableView)
+        addSubview(arrowButton)
     }
     
     private func setupConstraints() {
         tableView.snp.makeConstraints { make in
             make.top.left.right.equalTo(0)
-            make.bottom.equalTo(-40)
+            make.bottom.equalTo(0)
+        }
+        
+        arrowButton.snp.makeConstraints { make in
+            make.bottom.equalTo(-10)
+            make.width.height.equalTo(44)
+            make.centerX.equalTo(self)
         }
     }
     
@@ -224,7 +241,9 @@ class ChatView: UIView {
             lastMessage.content = currentStreamMessage
             messages[messages.count - 1] = lastMessage
             tableView.reloadData()
-            scrollToBottom(animated: true)
+            if shouldAutoScroll {
+                scrollToBottom(animated: true)
+            }
         }
     }
     
@@ -247,10 +266,17 @@ class ChatView: UIView {
     
     private func scrollToBottom(animated: Bool = true) {
         guard messages.count > 0 else { return }
+        guard shouldAutoScroll else { return }
         let indexPath = IndexPath(row: messages.count - 1, section: 0)
         DispatchQueue.main.async { [weak self] in
             self?.tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
         }
+    }
+    
+    @objc func clickArrowButton() {
+        shouldAutoScroll = true
+        arrowButton.isHidden = true
+        scrollToBottom()
     }
 }
 
@@ -265,5 +291,19 @@ extension ChatView: UITableViewDelegate, UITableViewDataSource {
         cell.configure(with: messages[indexPath.row])
         return cell
     }
-} 
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        shouldAutoScroll = false
+        arrowButton.isHidden = false
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let isAtBottom = (scrollView.contentOffset.y >= (scrollView.contentSize.height - scrollView.frame.size.height))
+        if isAtBottom {
+            shouldAutoScroll = true
+            arrowButton.isHidden = true
+        }
+    }
+    
+}
 

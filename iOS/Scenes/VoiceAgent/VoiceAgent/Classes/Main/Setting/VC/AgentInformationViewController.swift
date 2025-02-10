@@ -62,7 +62,7 @@ class AgentInformationViewController: UIViewController {
     private lazy var networkItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourNetwork
-        view.detialLabel.textColor = PrimaryColors.c_36b37e
+        view.detailLabel.textColor = PrimaryColors.c_36b37e
         view.imageView.isHidden = true
         return view
     }()
@@ -87,7 +87,7 @@ class AgentInformationViewController: UIViewController {
     private lazy var agentItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentStatus
-        view.detialLabel.textColor = PrimaryColors.c_36b37e
+        view.detailLabel.textColor = PrimaryColors.c_36b37e
         view.imageView.isHidden = true
         return view
     }()
@@ -95,7 +95,7 @@ class AgentInformationViewController: UIViewController {
     private lazy var roomItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomStatus
-        view.detialLabel.textColor = PrimaryColors.c_36b37e
+        view.detailLabel.textColor = PrimaryColors.c_36b37e
         view.imageView.isHidden = true
         return view
     }()
@@ -293,23 +293,23 @@ extension AgentInformationViewController {
         }
         
         // Update Network Status
-        networkItem.detialLabel.text = manager.information.networkState == .unknown ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
-        networkItem.detialLabel.textColor = manager.information.networkState.color
+        networkItem.detailLabel.text = manager.information.networkState == .unknown ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
+        networkItem.detailLabel.textColor = manager.information.networkState.color
         
-        agentItem.detialLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.agentState.rawValue
-        agentItem.detialLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.agentState.color
+        agentItem.detailLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.agentState.rawValue
+        agentItem.detailLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.agentState.color
         
         // Update Room Status
-        roomItem.detialLabel.text = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.rawValue :  manager.information.rtcRoomState.rawValue
-        roomItem.detialLabel.textColor = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.color : manager.information.rtcRoomState.color
+        roomItem.detailLabel.text = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.rawValue :  manager.information.rtcRoomState.rawValue
+        roomItem.detailLabel.textColor = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.color : manager.information.rtcRoomState.color
         
         // Update Room ID
-        roomIDItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : manager.information.roomId
-        roomIDItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
+        roomIDItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : manager.information.roomId
+        roomIDItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
         
         // Update Participant ID
-        idItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : manager.information.userId
-        idItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
+        idItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : manager.information.userId
+        idItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
     }
     
     @objc func handleTapGesture(_: UIGestureRecognizer) {
@@ -319,25 +319,25 @@ extension AgentInformationViewController {
 
 extension AgentInformationViewController: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {
-        networkItem.detialLabel.text = networkState == .unknown ? ConnectionStatus.disconnected.rawValue : networkState.rawValue
-        networkItem.detialLabel.textColor = networkState.color
+        networkItem.detailLabel.text = networkState == .unknown ? ConnectionStatus.disconnected.rawValue : networkState.rawValue
+        networkItem.detailLabel.textColor = networkState.color
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
-        agentItem.detialLabel.text = agentState == .unload ? ConnectionStatus.disconnected.rawValue : agentState.rawValue
-        agentItem.detialLabel.textColor = agentState == .unload ? ConnectionStatus.disconnected.color : agentState.color
+        agentItem.detailLabel.text = agentState == .unload ? ConnectionStatus.disconnected.rawValue : agentState.rawValue
+        agentItem.detailLabel.textColor = agentState == .unload ? ConnectionStatus.disconnected.color : agentState.color
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {
-        roomItem.detialLabel.text = roomState == .unload ? ConnectionStatus.disconnected.rawValue :  roomState.rawValue
-        roomItem.detialLabel.textColor = roomState == .unload ? ConnectionStatus.disconnected.color : roomState.color
+        roomItem.detailLabel.text = roomState == .unload ? ConnectionStatus.disconnected.rawValue :  roomState.rawValue
+        roomItem.detailLabel.textColor = roomState == .unload ? ConnectionStatus.disconnected.color : roomState.color
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomIdDidUpdated roomId: String) {
-        roomIDItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : roomId
+        roomIDItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "-" : roomId
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, userIdDidUpdated userId: String) {
-        idItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : userId
+        idItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "-" : userId
     }
 }

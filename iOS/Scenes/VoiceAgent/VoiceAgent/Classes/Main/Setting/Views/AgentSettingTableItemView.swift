@@ -10,7 +10,7 @@ import Common
 
 class AgentSettingTableItemView: UIView {
     let titleLabel = UILabel()
-    let detialLabel = UILabel()
+    let detailLabel = UILabel()
     let imageView = UIImageView(image: UIImage.va_named("ic_agent_setting_tab"))
     let bottomLine = UIView()
     let button = UIButton(type: .custom)
@@ -53,9 +53,12 @@ extension AgentSettingTableItemView {
         titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         addSubview(titleLabel)
         
-        detialLabel.textColor = PrimaryColors.c_ffffff
-        detialLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        addSubview(detialLabel)
+        detailLabel.textColor = PrimaryColors.c_ffffff
+        detailLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        detailLabel.numberOfLines = 0
+        detailLabel.textAlignment = .right
+        
+        addSubview(detailLabel)
         
         addSubview(imageView)
         
@@ -74,8 +77,9 @@ extension AgentSettingTableItemView {
             make.right.equalTo(-16)
             make.centerY.equalToSuperview()
         }
-        detialLabel.snp.makeConstraints { make in
+        detailLabel.snp.makeConstraints { make in
             make.right.equalTo(imageView.snp.left).offset(-8)
+            make.left.equalTo(titleLabel.snp.right).offset(10)
             make.centerY.equalToSuperview()
         }
         bottomLine.snp.makeConstraints { make in
@@ -105,7 +109,7 @@ extension AgentSettingTableItemView {
         
         let state = manager.information.agentState == .unload
         button.isEnabled = state
-        detialLabel.textColor = state ? PrimaryColors.c_ffffff : PrimaryColors.c_ffffff.withAlphaComponent(0.3)
+        detailLabel.textColor = state ? PrimaryColors.c_ffffff : PrimaryColors.c_ffffff.withAlphaComponent(0.3)
     }
 }
 

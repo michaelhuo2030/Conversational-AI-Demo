@@ -198,7 +198,7 @@ enum NetworkStatus: String {
         case .poor:
             return UIColor(hex: 0xFFAB00)
         case .veryBad, .unknown:
-            return UIColor(hex: 0xFF414D)
+            return UIColor(hex: 0xFF5630)
         }
     }
 }
@@ -206,7 +206,7 @@ enum NetworkStatus: String {
 class AgentPreference {
     var preset: AgentPreset?
     var language: SupportLanguage?
-    var aiVad = true
+    var aiVad = false
     var bhvs = true
 }
 

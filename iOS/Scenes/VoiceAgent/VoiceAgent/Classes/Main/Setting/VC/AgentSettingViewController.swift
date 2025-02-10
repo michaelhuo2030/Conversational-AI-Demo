@@ -56,7 +56,7 @@ class AgentSettingViewController: UIViewController {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.preset
         if let manager = AppContext.preferenceManager() {
-            view.detialLabel.text = manager.preference.preset?.displayName ?? ""
+            view.detailLabel.text = manager.preference.preset?.displayName ?? ""
         }
         view.button.addTarget(self, action: #selector(onClickPreset(_:)), for: .touchUpInside)
         return view
@@ -66,7 +66,7 @@ class AgentSettingViewController: UIViewController {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.language
         if let manager = AppContext.preferenceManager() {
-            view.detialLabel.text = manager.preference.preset?.defaultLanguageName
+            view.detailLabel.text = manager.preference.preset?.defaultLanguageName
         }
         view.button.addTarget(self, action: #selector(onClickLanguage(_:)), for: .touchUpInside)
         return view
@@ -236,7 +236,7 @@ class AgentSettingViewController: UIViewController {
             guard let self = self else { return }
             let selected = allPresets[index]
             AppContext.preferenceManager()?.updatePreset(selected)
-            self.presetItem.detialLabel.text = selected.displayName
+            self.presetItem.detailLabel.text = selected.displayName
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -262,7 +262,7 @@ class AgentSettingViewController: UIViewController {
             guard let self = self else { return }
             let selected = allLanguages[index]
             AppContext.preferenceManager()?.updateLanguage(selected)
-            self.languageItem.detialLabel.text = selected.languageName
+            self.languageItem.detailLabel.text = selected.languageName
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -408,12 +408,12 @@ extension AgentSettingViewController {
 
 extension AgentSettingViewController: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
-        presetItem.detialLabel.text =  preset.displayName
-        languageItem.detialLabel.text = preset.defaultLanguageName
+        presetItem.detailLabel.text =  preset.displayName
+        languageItem.detailLabel.text = preset.defaultLanguageName
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {
-        languageItem.detialLabel.text = language.languageName
+        languageItem.detailLabel.text = language.languageName
     }
 }
 
