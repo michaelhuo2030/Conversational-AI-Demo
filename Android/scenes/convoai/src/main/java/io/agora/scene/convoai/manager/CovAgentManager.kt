@@ -88,7 +88,6 @@ object CovAgentManager {
     fun startAgent(params: AgentRequestParams, succeed: (Boolean) -> Unit) {
         channelName = params.channelName
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/start"
-        CovLogger.d(TAG, "Start agent request: $requestURL, channelName: ${params.channelName}")
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
@@ -148,7 +147,6 @@ object CovAgentManager {
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
-                CovLogger.d(TAG, "Start agent response: $json")
                 if (response.code != 200) {
                     runOnMainThread {
                         succeed.invoke(false)
@@ -160,12 +158,10 @@ object CovAgentManager {
                         val aid = jsonObj.optJSONObject("data")?.optString("agent_id")
                         if (code == 0 && !aid.isNullOrEmpty()) {
                             agentId = aid
-                            CovLogger.d(TAG, "Start agent request: $requestURL, agent_id: $agentId")
                             runOnMainThread {
                                 succeed.invoke(true)
                             }
                         } else {
-                            CovLogger.e(TAG, "Request failed with code: $code, aid: $aid")
                             runOnMainThread {
                                 succeed.invoke(false)
                             }
@@ -195,7 +191,6 @@ object CovAgentManager {
             return
         }
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/stop"
-        CovLogger.d(TAG, "Stop agent request: $requestURL, agent_id: $agentId")
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
@@ -212,7 +207,6 @@ object CovAgentManager {
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
-                CovLogger.d(TAG, "Stop agent response: $json")
                 runOnMainThread {
                     agentId = null
                     succeed.invoke(true)
@@ -236,7 +230,6 @@ object CovAgentManager {
             return
         }
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/update"
-        CovLogger.d(TAG, "Update agent request: $requestURL, agent_id: $agentId")
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
@@ -254,7 +247,6 @@ object CovAgentManager {
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
-                CovLogger.d(TAG, "Update agent response: $json")
                 if (response.code != 200) {
                     runOnMainThread {
                         succeed.invoke(false)
@@ -280,7 +272,6 @@ object CovAgentManager {
             return
         }
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/presetAgents"
-        CovLogger.d(TAG, "fetchPresets start: $requestURL")
         val request = Request.Builder()
             .url(requestURL)
             .addHeader("Content-Type", "application/json")
@@ -289,7 +280,6 @@ object CovAgentManager {
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
-                CovLogger.d(TAG, "fetchPresets result: $json")
                 val gson = Gson()
                 val jsonObject = gson.fromJson(json, JsonObject::class.java)
                 val code = jsonObject.get("code").asInt
@@ -300,7 +290,6 @@ object CovAgentManager {
                         succeed.invoke(true)
                     }
                 } else {
-                    CovLogger.d(TAG, "fetch presets failed: $code")
                     runOnMainThread {
                         succeed.invoke(false)
                     }
@@ -317,7 +306,6 @@ object CovAgentManager {
 
     fun ping(succeed: (Boolean) -> Unit) {
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/ping"
-        CovLogger.d(TAG, "ping: $requestURL, agent_id: $agentId, channel_name: $channelName")
         val postBody = JSONObject()
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
@@ -335,7 +323,6 @@ object CovAgentManager {
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
-                CovLogger.d(TAG, "agent ping response: $json")
             }
             override fun onFailure(call: Call, e: IOException) {
                 CovLogger.e(TAG, "agent ping failed: $e")
