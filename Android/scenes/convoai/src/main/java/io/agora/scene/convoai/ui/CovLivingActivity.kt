@@ -40,9 +40,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private var pingJob: Job? = null
 
-    // Add a coroutine scope for message processing
-    private val messageScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
     // Add a coroutine scope for log processing
     private val logScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -126,7 +123,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         logScope.cancel()
-        messageScope.cancel()
         coroutineScope.cancel()
 
         // if agent is connected, leave channel
@@ -386,23 +382,25 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
             override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
                 data?.let { bytes ->
-                    messageScope.launch {
-                        try {
-                            val rawString = String(bytes, Charsets.UTF_8)
-                            val message = parser.parseStreamMessage(rawString)
-                            message?.let { msg ->
-                                val isFinal = msg["is_final"] as? Boolean ?: false
-                                val streamId = msg["stream_id"] as? Double ?: 0.0
-                                val text = msg["text"] as? String ?: ""
-                                if (text.isNotEmpty()) {
-                                    withContext(Dispatchers.Main) {
-                                        mBinding?.messageListView?.updateStreamContent((streamId != 0.0), text, isFinal)
-                                    }
+                    try {
+                        val rawString = String(bytes, Charsets.UTF_8)
+                        val message = parser.parseStreamMessage(rawString)
+                        message?.let { msg ->
+                            Log.e(TAG, "onStreamMessage: $msg $this")
+                            val isFinal = msg["is_final"] as? Boolean ?: false
+                            val streamId = msg["stream_id"] as? Double ?: 0.0
+                            val turnId = msg["turn_id"] as? Double ?: 0.0
+                            val text = msg["text"] as? String ?: ""
+                            if (text.isNotEmpty()) {
+                                runOnUiThread {
+                                    mBinding?.messageListView?.updateStreamContent(
+                                        (streamId != 0.0), turnId, text, isFinal
+                                    )
                                 }
                             }
-                        } catch (e: Exception) {
-                            CovLogger.e(TAG, "Process stream message error: ${e.message}")
                         }
+                    } catch (e: Exception) {
+                        CovLogger.e(TAG, "Process stream message error: ${e.message}")
                     }
                 }
             }

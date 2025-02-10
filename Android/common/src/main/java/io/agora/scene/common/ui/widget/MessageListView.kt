@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.databinding.CovMessageAgentItemBinding
 import io.agora.scene.common.databinding.CovMessageMineItemBinding
@@ -22,7 +23,8 @@ class MessageListView @JvmOverloads constructor(
 
     val TAG = "MessageListView"
 
-    private val binding: MessageListViewBinding = MessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
+    private val binding: MessageListViewBinding =
+        MessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
     private val messageAdapter: MessageAdapter = MessageAdapter()
     private var currentAgentMessage: Message? = null
     private var userDragged = false
@@ -56,37 +58,54 @@ class MessageListView @JvmOverloads constructor(
         messageAdapter.updateFromTitle(str)
     }
 
-    fun updateStreamContent(isMe: Boolean, text: String, isFinal: Boolean = false) {
+    fun updateStreamContent(isMe: Boolean, turnId: Double, text: String, isFinal: Boolean = false) {
         if (isMe) {
-            if (isFinal) {
-                addMineMessage(text)
-                completeCurrentMessage()
-            }
+            handleUserMessage(turnId, text, isFinal)
         } else {
-            if (isFinal) {
-                if (currentAgentMessage == null) {
-                    startNewAgentMessage(text)
-                } else {
-                    updateCurrentMessage(text)
-                }
-                completeCurrentMessage()
-            } else {
-                if (currentAgentMessage == null) {
-                    startNewAgentMessage(text)
-                } else {
-                    updateCurrentMessage(text)
-                }
-            }
+            handleAgentMessage(turnId, text, isFinal)
         }
     }
 
-    private fun startNewAgentMessage(content: String) {
-        val message = Message(false, content, false)
-        messageAdapter.addMessage(message)
-        currentAgentMessage = message
+    private fun handleUserMessage(turnId: Double, text: String, isFinal: Boolean) {
+        if (isFinal) {
+            addMineMessage(turnId, text)
+            scrollIfNeeded()
+        }else{
+
+        }
+    }
+
+    private fun handleAgentMessage(turnId: Double, text: String, isFinal: Boolean) {
+        val isNewMessage = currentAgentMessage?.turnId != turnId
+        
+        if (isNewMessage) {
+            startNewAgentMessage(turnId, text)
+        } else {
+            updateCurrentMessage(text)
+        }
+        
+        if (isFinal) {
+            completeCurrentMessage()
+        } else {
+            scrollIfNeeded()
+        }
+    }
+
+    private fun scrollIfNeeded() {
         if (!userDragged) {
             checkAndScrollToBottom()
         }
+    }
+
+    private fun startNewAgentMessage(turnId: Double, content: String) {
+        currentAgentMessage?.let {
+            // 如果存在未完成的消息，先完成它
+            completeCurrentMessage()
+        }
+        
+        val message = Message(false, turnId, content, false)
+        messageAdapter.addMessage(message)
+        currentAgentMessage = message
     }
 
     private fun completeCurrentMessage() {
@@ -96,14 +115,14 @@ class MessageListView @JvmOverloads constructor(
             }
             currentAgentMessage = null
         }
-        if (!userDragged) {
-            checkAndScrollToBottom()
-        }
+        scrollIfNeeded()
     }
 
-    private fun addMineMessage(text: String) {
-        Log.d(TAG, "addUserMessage: $text")
-        messageAdapter.addMessage(Message(true, text, true))
+    private fun addMineMessage(turnId: Double, text: String) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "addUserMessage: $text")
+        }
+        messageAdapter.addMessage(Message(true, turnId, text, true))
         if (!userDragged) {
             checkAndScrollToBottom()
         }
@@ -113,9 +132,6 @@ class MessageListView @JvmOverloads constructor(
         currentAgentMessage?.let {
             it.content = content
             messageAdapter.updateMessage(it)
-            if (!userDragged) {
-                checkAndScrollToBottom()
-            }
         }
     }
 
@@ -142,12 +158,16 @@ class MessageListView @JvmOverloads constructor(
     private fun scrollToBottom() {
         val lastPosition = messageAdapter.itemCount - 1
         if (lastPosition >= 0) {
-            (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(lastPosition, -9999.dp.toInt())
+            (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                lastPosition,
+                -9999.dp.toInt()
+            )
         }
     }
 
     data class Message(
         val isMe: Boolean,
+        val turnId: Double,
         var content: String,
         var isFinal: Boolean = false
     )
@@ -167,7 +187,8 @@ class MessageListView @JvmOverloads constructor(
             }
         }
 
-        inner class AgentMessageViewHolder(private val binding: CovMessageAgentItemBinding) : MessageViewHolder(binding.root) {
+        inner class AgentMessageViewHolder(private val binding: CovMessageAgentItemBinding) :
+            MessageViewHolder(binding.root) {
             override fun bind(message: Message) {
                 binding.tvMessageContent.text = message.content
                 binding.tvMessageTitle.text = fromTitle
@@ -176,9 +197,21 @@ class MessageListView @JvmOverloads constructor(
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
             return if (viewType == 0) {
-                MineMessageViewHolder(CovMessageMineItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+                MineMessageViewHolder(
+                    CovMessageMineItemBinding.inflate(
+                        LayoutInflater.from(parent.context),
+                        parent,
+                        false
+                    )
+                )
             } else {
-                AgentMessageViewHolder(CovMessageAgentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+                AgentMessageViewHolder(
+                    CovMessageAgentItemBinding.inflate(
+                        LayoutInflater.from(parent.context),
+                        parent,
+                        false
+                    )
+                )
             }
         }
 
@@ -192,14 +225,15 @@ class MessageListView @JvmOverloads constructor(
             return if (messages[position].isMe) 0 else 1
         }
 
-        fun clearMessages() {
-            messages.clear()
-            notifyDataSetChanged()
-        }
-
         fun addMessage(message: Message) {
             messages.add(message)
-            notifyDataSetChanged()
+            notifyItemInserted(messages.size - 1)
+        }
+
+        fun clearMessages() {
+            val size = messages.size
+            messages.clear()
+            notifyItemRangeRemoved(0, size)
         }
 
         fun getLastMessage(): Message? {
@@ -215,8 +249,9 @@ class MessageListView @JvmOverloads constructor(
         }
 
         fun updateMessage(message: Message) {
-            val index = messages.indexOf(message)
+            val index = messages.indexOfLast { it.turnId == message.turnId }
             if (index != -1) {
+                messages[index] = message
                 notifyItemChanged(index)
             } else {
                 addMessage(message)
