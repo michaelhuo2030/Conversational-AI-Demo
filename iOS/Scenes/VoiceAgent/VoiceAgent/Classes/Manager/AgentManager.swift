@@ -17,10 +17,11 @@ protocol AgentAPI {
     ///   - agentUid: The AI agent's unique identifier
     ///   - channelName: The name of the channel for communication
     ///   - aiVad: Boolean flag for AI voice activity detection
+    ///   - bhvs: Boolean flag for Background vocal suppression
     ///   - presetName: The name of the preset configuration
     ///   - language: The language setting for the agent
     ///   - completion: Callback with optional error and agent ID string
-    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void))
+    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void))
     
     /// Stops a running AI agent
     /// - Parameters:
@@ -79,7 +80,7 @@ class AgentManager: AgentAPI {
         }
     }
     
-    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void)) {
+    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("convoai/start").toHttpUrlSting()
         let parameters: [String: Any] = [
             "app_id": appId,
@@ -88,7 +89,8 @@ class AgentManager: AgentAPI {
             "agent_rtc_uid": agentUid,
             "remote_rtc_uid": uid,
             "advanced_features": [
-                "enable_aivad": aiVad
+                "enable_aivad": aiVad,
+                "enable_bhvs": bhvs
             ],
             "asr": [
                 "language": language

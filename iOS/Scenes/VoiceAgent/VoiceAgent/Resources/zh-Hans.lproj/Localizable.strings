@@ -9,9 +9,9 @@
 "conversation.agent.loading" = "智能体正在加入";
 "conversation.agent.joined" = "智能体已加入！";
 "conversation.join.failed" = "加入频道失败：";
-"conversation.agent.leave" = "智能体已离开频道";
+"conversation.agent.leave" = "智能体状态异常，请退出重试";
 "conversation.end.call.loading" = "正在关闭";
-"conversation.end.call.leave" = "智能体离开";
+"conversation.end.call.leave" = "智能体已离开!";
 "conversation.message.you" = "你";
 "conversation.message.agent.name" = "AI 智能体";
 "conversation.message.alert.title" = "清除消息";
@@ -31,8 +31,9 @@
 "settings.microphone" = "麦克风";
 "settings.speaker" = "扬声器";
 "settings.noise.cancellation" = "噪声取消";
-"settings.noise.aiVad" = "AI VAD";
+"settings.noise.aiVad" = "启用 优雅打断";
 "settings.noise.forceResponse" = "Force Response";
+"settings.noise.bhvs" = "启用 对话人声锁定";
 
 "channel.info.title" = "频道信息";
 "channel.network.info.title" = "网络信息";
@@ -41,9 +42,11 @@
 "channel.info.room.id" = "房间ID";
 "channel.info.your.id" = "您的ID";
 "channel.info.your.network" = "您的网络";
+"channel.disconnected.state" = "未连接";
+"channel.connected.state" = "已连接";
 
 "error.network" = "请求失败：";
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";
 "error.join.error" = "加入失败。请重试。";
-"error.network.disconnect" = "网络不畅，请退出重试";
+"error.network.disconnect" = "网络异常，请检查网络设置";
 

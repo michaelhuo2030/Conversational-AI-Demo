@@ -7,12 +7,13 @@
 
 import Foundation
 import AgoraRtcKit
+import Common
 
 protocol AgentPreferenceManagerDelegate: AnyObject {
     func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset)
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage)
     func preferenceManager(_ manager: AgentPreferenceManager, aiVadStateDidUpdated state: Bool)
-    func preferenceManager(_ manager: AgentPreferenceManager, forceThresholdStateDidUpdated state: Bool)
+    func preferenceManager(_ manager: AgentPreferenceManager, bhvsStateDidUpdated state: Bool)
     
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus)
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus)
@@ -45,12 +46,9 @@ protocol AgentPreferenceManagerProtocol {
     
     func allPresets() -> [AgentPreset]?
     func setPresets(presets: [AgentPreset])
-    
-    func resetData()
 }
 
 class AgentPreferenceManager: AgentPreferenceManagerProtocol {
-    static let shared = AgentPreferenceManager()
     var preference = AgentPreference()
     var information = AgentInfomation()
     private var presets: [AgentPreset]?
@@ -83,8 +81,8 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
     }
     
     func updateForceThresholdState(_ state: Bool) {
-        preference.forceThreshold = state
-        notifyDelegates { $0.preferenceManager(self, forceThresholdStateDidUpdated: state) }
+        preference.bhvs = state
+        notifyDelegates { $0.preferenceManager(self, bhvsStateDidUpdated: state) }
     }
     
     // MARK: - Information Updates
@@ -136,12 +134,6 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
         self.updateLanguage(language)
     }
     
-    func resetData() {
-        presets = nil
-        preference = AgentPreference()
-        information = AgentInfomation()
-    }
-    
     // MARK: - Private Methods
     private func notifyDelegates(_ notification: (AgentPreferenceManagerDelegate) -> Void) {
         for delegate in delegates.allObjects {
@@ -153,9 +145,20 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
 }
 
 enum ConnectionStatus: String {
-    case connected = "Connected"
-    case disconnected = "Disconnected"
-    case unload = "Unload"
+    case connected
+    case disconnected 
+    case unload
+    
+    var rawValue: String {
+        switch self {
+        case .connected:
+            return ResourceManager.L10n.ChannelInfo.connectedState
+        case .disconnected:
+            return ResourceManager.L10n.ChannelInfo.disconnectedState
+        case .unload:
+            return "Unload"
+        }
+    }
     
     var color: UIColor {
         switch self {
@@ -171,17 +174,17 @@ enum ConnectionStatus: String {
 
 enum NetworkStatus: String {
     case good = "Good"
-    case poor = "Okay"
-    case veryBad = "Poor"
+    case poor = "Poor"
+    case veryBad = "VeryBad"
     case unknown = ""
     
     init(agoraQuality: AgoraNetworkQuality) {
         switch agoraQuality {
         case .excellent, .good:
             self = .good
-        case .poor:
+        case .poor, .bad:
             self = .poor
-        case .bad, .vBad, .down:
+        case .vBad, .down:
             self = .veryBad
         default:
             self = .unknown
@@ -204,7 +207,7 @@ class AgentPreference {
     var preset: AgentPreset?
     var language: SupportLanguage?
     var aiVad = true
-    var forceThreshold = true
+    var bhvs = true
 }
 
 class AgentInfomation {
@@ -219,7 +222,7 @@ extension AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {}
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {}
     func preferenceManager(_ manager: AgentPreferenceManager, aiVadStateDidUpdated state: Bool) {}
-    func preferenceManager(_ manager: AgentPreferenceManager, forceThresholdStateDidUpdated state: Bool) {}
+    func preferenceManager(_ manager: AgentPreferenceManager, bhvsStateDidUpdated state: Bool) {}
     
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {}
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {}

@@ -39,6 +39,8 @@
 		BA8B0440A6A992B993BE0A0B /* Pods_Agent_cn.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9195CC5D65D195315A29E3B0 /* Pods_Agent_cn.framework */; };
 		F70907E52D43CE03000811D7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F70907E42D43CE03000811D7 /* LaunchScreen.storyboard */; };
 		F71F5FEB2D59A46C008B3A4B /* ball_small_video.mov in Resources */ = {isa = PBXBuildFile; fileRef = F71F5FEA2D59A46C008B3A4B /* ball_small_video.mov */; };
+		F727F8202D5A343B003AF48D /* ball_small_video.mov in Resources */ = {isa = PBXBuildFile; fileRef = F71F5FEA2D59A46C008B3A4B /* ball_small_video.mov */; };
+		F727F8222D5A3464003AF48D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F70907E42D43CE03000811D7 /* LaunchScreen.storyboard */; };
 		F75CC8A72D3941B800F9D4B7 /* Info_oversea.plist in Resources */ = {isa = PBXBuildFile; fileRef = F75CC8A62D3941B800F9D4B7 /* Info_oversea.plist */; };
 /* End PBXBuildFile section */
 
@@ -290,6 +292,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F727F8222D5A3464003AF48D /* LaunchScreen.storyboard in Resources */,
+				F727F8202D5A343B003AF48D /* ball_small_video.mov in Resources */,
 				AB7A7DAB2D43B204000B3034 /* Assets.xcassets in Resources */,
 				AB7A7DAC2D43B211000B3034 /* Localizable.strings in Resources */,
 			);

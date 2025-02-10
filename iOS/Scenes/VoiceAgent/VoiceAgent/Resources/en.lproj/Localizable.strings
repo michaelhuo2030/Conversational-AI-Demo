@@ -9,9 +9,9 @@
 "conversation.agent.loading" = "Joining";
 "conversation.agent.joined" = "Agent Joined!";
 "conversation.join.failed" = "join channel failed:";
-"conversation.agent.leave" = "Agent did leave channel";
+"conversation.agent.leave" = "Agent left abnormally. Please try again.";
 "conversation.end.call.loading" = "Ending";
-"conversation.end.call.leave" = "Agent Left!";
+"conversation.end.call.leave" = "Agent left!";
 "conversation.message.you" = "You";
 "conversation.message.agent.name" = "AI Agent";
 "conversation.agent.connecting" = "Connecting...";
@@ -33,8 +33,9 @@
 "settings.microphone" = "Microphone";
 "settings.speaker" = "Speaker";
 "settings.noise.cancellation" = "Noise Cancellation";
-"settings.noise.aiVad" = "AI VAD";
+"settings.noise.aiVad" = "AI-VAD";
 "settings.noise.forceResponse" = "Force Response";
+"settings.noise.bhvs" = "Background Human Voice Suppression";
 
 // Channel Info View
 "channel.info.title" = "CHANNEL INFO";
@@ -44,6 +45,8 @@
 "channel.info.room.id" = "Room-ID";
 "channel.info.your.id" = "Your-ID";
 "channel.info.your.network" = "Your Network";
+"channel.disconnected.state" = "Disconnected";
+"channel.connected.state" = "Connected";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";

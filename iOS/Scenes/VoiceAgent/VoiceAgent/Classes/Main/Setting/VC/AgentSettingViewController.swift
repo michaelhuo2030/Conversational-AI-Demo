@@ -43,6 +43,14 @@ class AgentSettingViewController: UIViewController {
         return view
     }()
     
+    private lazy var maskView: UIView = {
+        let view = UIView()
+        view.isHidden = true
+        view.backgroundColor = .black.withAlphaComponent(0.4)
+        
+        return view
+    }()
+    
     private lazy var basicSettingView: UIView = {
         let view = UIView()
         view.backgroundColor = PrimaryColors.c_1d1d1d
@@ -55,7 +63,9 @@ class AgentSettingViewController: UIViewController {
     private lazy var presetItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.preset
-        view.detialLabel.text = AgentPreferenceManager.shared.preference.preset?.displayName ?? ""
+        if let manager = AppContext.preferenceManager() {
+            view.detialLabel.text = manager.preference.preset?.displayName ?? ""
+        }
         view.button.addTarget(self, action: #selector(onClickPreset(_:)), for: .touchUpInside)
         return view
     }()
@@ -63,7 +73,9 @@ class AgentSettingViewController: UIViewController {
     private lazy var languageItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.language
-        view.detialLabel.text = AgentPreferenceManager.shared.preference.language?.languageName ?? ""
+        if let manager = AppContext.preferenceManager() {
+            view.detialLabel.text = manager.preference.language?.languageName ?? ""
+        }
         view.button.addTarget(self, action: #selector(onClickLanguage(_:)), for: .touchUpInside)
         return view
     }()
@@ -85,21 +97,23 @@ class AgentSettingViewController: UIViewController {
         return view
     }()
     
-    private lazy var forceResponseItem: AgentSettingSwitchItemView = {
+    private lazy var bhvsResponseItem: AgentSettingSwitchItemView = {
         let view = AgentSettingSwitchItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.Settings.forceResponse
-        view.detailLabel.text = ResourceManager.L10n.Settings.forceResponse
+        view.titleLabel.text = ResourceManager.L10n.Settings.bhvs
         view.switcher.addTarget(self, action: #selector(onClickForceResponse(_:)), for: .touchUpInside)
-        view.switcher.isOn = AgentPreferenceManager.shared.preference.forceThreshold
+        if let manager = AppContext.preferenceManager() {
+            view.switcher.isOn = manager.preference.bhvs
+        }
         return view
     }()
     
     private lazy var aiVadItem: AgentSettingSwitchItemView = {
         let view = AgentSettingSwitchItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.aiVad
-        view.detailLabel.text = ResourceManager.L10n.Settings.aiVad
         view.switcher.addTarget(self, action: #selector(onClickAiVad(_:)), for: .touchUpInside)
-        view.switcher.isOn = AgentPreferenceManager.shared.preference.aiVad
+        if let manager = AppContext.preferenceManager() {
+            view.switcher.isOn = manager.preference.aiVad
+        }
         view.bottomLine.isHidden = true
         view.updateLayout()
         return view
@@ -121,46 +135,48 @@ class AgentSettingViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        requestPresetsIfNeed()
         registerDelegate()
         createViews()
         createConstrains()
-        updateAdvancedSettingConstraints()
         setupPanGesture()
         animateBackgroundViewIn()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        requestPresetsIfNeed()
+    }
+    
     private func registerDelegate() {
-        AgentPreferenceManager.shared.addDelegate(self)
+        AppContext.preferenceManager()?.addDelegate(self)
     }
     
     private func unRegisterDelegate() {
-        AgentPreferenceManager.shared.removeDelegate(self)
+        AppContext.preferenceManager()?.removeDelegate(self)
     }
     
     private func requestPresetsIfNeed() {
-        guard AgentPreferenceManager.shared.allPresets() == nil else {
+        guard AppContext.preferenceManager()?.allPresets() == nil else {
             return
         }
         
         SVProgressHUD.show()
         AgentLogger.info("request presets in setting page")
         agentManager.fetchAgentPresets { error, result in
+            SVProgressHUD.dismiss()
             if let error = error {
-                SVProgressHUD.dismiss()
                 SVProgressHUD.showError(withStatus: error.message)
                 AgentLogger.info(error.message)
                 return
             }
             
             guard let result = result else {
-                SVProgressHUD.dismiss()
                 AgentLogger.info("preset is empty")
                 SVProgressHUD.showError(withStatus: "preset is empty")
                 return
             }
             
-            AgentPreferenceManager.shared.setPresets(presets: result)
+            AppContext.preferenceManager()?.setPresets(presets: result)
         }
     }
     
@@ -209,59 +225,17 @@ class AgentSettingViewController: UIViewController {
         }
     }
     
-    private func updateAdvancedSettingConstraints() {
-        if (AgentPreferenceManager.shared.information.agentState == .connected) {
-            advancedSettingTitle.isHidden = true
-            aiVadItem.isHidden = true
-            aiVadItem.snp.removeConstraints()
-            forceResponseItem.isHidden = true
-            forceResponseItem.snp.removeConstraints()
-        } else {
-            advancedSettingTitle.isHidden = false
-            aiVadItem.isHidden = false
-            aiVadItem.snp.remakeConstraints { make in
-                make.top.equalTo(forceResponseItem.snp.bottom)
-                make.left.right.equalToSuperview()
-                make.height.equalTo(70)
-                make.bottom.equalTo(0)
-            }
-            
-            let aiVadState = AgentPreferenceManager.shared.preference.aiVad
-            
-            aiVadItem.switcher.isOn = aiVadState
-            forceResponseItem.switcher.isOn = AgentPreferenceManager.shared.preference.forceThreshold
-
-            if (aiVadState) {
-                forceResponseItem.isHidden = false
-                forceResponseItem.snp.remakeConstraints { make in
-                    make.top.equalTo(0)
-                    make.left.right.equalToSuperview()
-                    make.height.equalTo(70)
-                }
-            } else {
-                forceResponseItem.isHidden = true
-                forceResponseItem.snp.removeConstraints()
-                aiVadItem.snp.remakeConstraints { make in
-                    make.top.equalTo(0)
-                    make.left.right.equalToSuperview()
-                    make.height.equalTo(70)
-                    make.bottom.equalTo(0)
-                }
-            }
-        }
-    }
-    
     @objc func onClickClose(_ sender: UIButton) {
         animateBackgroundViewOut()
     }
     
     @objc func onClickPreset(_ sender: UIButton) {
         selectTableMask.isHidden = false
-        guard let allPresets = AgentPreferenceManager.shared.allPresets() else {
+        guard let allPresets = AppContext.preferenceManager()?.allPresets() else {
             return
         }
         
-        guard let currentPreset = AgentPreferenceManager.shared.preference.preset else {
+        guard let currentPreset = AppContext.preferenceManager()?.preference.preset else {
             return
         }
     
@@ -269,7 +243,7 @@ class AgentSettingViewController: UIViewController {
         let table = AgentSelectTableView(items: allPresets.map {$0.displayName}) { [weak self] index in
             guard let self = self else { return }
             let selected = allPresets[index]
-            AgentPreferenceManager.shared.updatePreset(selected)
+            AppContext.preferenceManager()?.updatePreset(selected)
             self.presetItem.detialLabel.text = selected.displayName
         }
         table.setSelectedIndex(currentIndex)
@@ -286,16 +260,16 @@ class AgentSettingViewController: UIViewController {
     @objc func onClickLanguage(_ sender: UIButton) {
         print("onClickLanguage")
         selectTableMask.isHidden = false
-        guard let currentPreset = AgentPreferenceManager.shared.preference.preset else { return }
+        guard let currentPreset = AppContext.preferenceManager()?.preference.preset else { return }
         let allLanguages = currentPreset.supportLanguages
         
-        guard let currentLanguage = AgentPreferenceManager.shared.preference.language else { return }
+        guard let currentLanguage = AppContext.preferenceManager()?.preference.language else { return }
         
         let currentIndex = allLanguages.firstIndex { $0.languageName == currentLanguage.languageName } ?? 0
         let table = AgentSelectTableView(items: allLanguages.map { $0.languageName }) { [weak self] index in
             guard let self = self else { return }
             let selected = allLanguages[index]
-            AgentPreferenceManager.shared.updateLanguage(selected)
+            AppContext.preferenceManager()?.updateLanguage(selected)
             self.languageItem.detialLabel.text = selected.languageName
         }
         table.setSelectedIndex(currentIndex)
@@ -311,13 +285,13 @@ class AgentSettingViewController: UIViewController {
     
     @objc func onClickAiVad(_ sender: UISwitch) {
         let state = sender.isOn
-        AgentPreferenceManager.shared.updateAiVadState(state)
-        AgentPreferenceManager.shared.updateForceThresholdState(state)
+        AppContext.preferenceManager()?.updateAiVadState(state)
+        AppContext.preferenceManager()?.updateForceThresholdState(state)
     }
     
     @objc func onClickForceResponse(_ sender: UISwitch) {
         let state = sender.isOn
-        AgentPreferenceManager.shared.updateForceThresholdState(state)
+        AppContext.preferenceManager()?.updateForceThresholdState(state)
     }
     
     @objc func onClickHideTable(_ sender: UIButton) {
@@ -338,9 +312,10 @@ extension AgentSettingViewController {
         backgroundView.addSubview(topView)
         backgroundView.addSubview(scrollView)
         scrollView.addSubview(contentView)
+        scrollView.addSubview(maskView)
         
         basicSettingItems = [presetItem, languageItem]
-        advancedSettingItems = [forceResponseItem, aiVadItem]
+        advancedSettingItems = [bhvsResponseItem, aiVadItem]
         
         contentView.addSubview(basicSettingView)
         contentView.addSubview(advancedSettingTitle)
@@ -350,6 +325,9 @@ extension AgentSettingViewController {
         advancedSettingItems.forEach { advancedSettingView.addSubview($0) }
         
         view.addSubview(selectTableMask)
+        
+        let agentState = AppContext.preferenceManager()?.information.agentState
+        maskView.isHidden = agentState == .unload
     }
     
     private func createConstrains() {
@@ -366,6 +344,10 @@ extension AgentSettingViewController {
         scrollView.snp.makeConstraints { make in
             make.top.equalTo(topView.snp.bottom)
             make.left.right.bottom.equalToSuperview()
+        }
+        
+        maskView.snp.makeConstraints { make in
+            make.edges.equalTo(scrollView)
         }
         
         contentView.snp.makeConstraints { make in
@@ -438,10 +420,6 @@ extension AgentSettingViewController {
 }
 
 extension AgentSettingViewController: AgentPreferenceManagerDelegate {
-    func preferenceManager(_ manager: AgentPreferenceManager, aiVadStateDidUpdated state: Bool) {
-        updateAdvancedSettingConstraints()
-    }
-    
     func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
         presetItem.detialLabel.text =  preset.displayName
     }

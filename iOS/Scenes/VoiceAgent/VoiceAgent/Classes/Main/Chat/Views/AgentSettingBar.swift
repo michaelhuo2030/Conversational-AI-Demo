@@ -66,11 +66,15 @@ class AgentSettingBar: UIView {
     // MARK: - Private Methods
     
     func registerDelegate() {
-        AgentPreferenceManager.shared.addDelegate(self)
+        if let manager = AppContext.preferenceManager() {
+            manager.addDelegate(self)
+        }
     }
     
     func unregisterDelegate() {
-        AgentPreferenceManager.shared.removeDelegate(self)
+        if let manager = AppContext.preferenceManager() {
+            manager.removeDelegate(self)
+        }
     }
     
     private func setupViews() {
@@ -119,6 +123,30 @@ class AgentSettingBar: UIView {
 
 extension AgentSettingBar: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {
+        let roomState = manager.information.rtcRoomState
+        if roomState == .unload {
+            return
+        }
         
+        var imageName = "ic_agent_tips_icon"
+        switch networkState {
+        case .good, .unknown:
+            imageName = "ic_agent_tips_icon"
+            break
+        case .poor:
+            imageName = "ic_agent_tips_icon_yellow"
+            break
+        case .veryBad:
+            imageName = "ic_agent_tips_icon_red"
+            break
+        }
+        
+        tipsButton.setImage(UIImage.va_named(imageName), for: .normal)
+    }
+    
+    func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {
+        if roomState == .unload {
+            tipsButton.setImage(UIImage.va_named("ic_agent_tips_icon"), for: .normal)
+        }
     }
 }

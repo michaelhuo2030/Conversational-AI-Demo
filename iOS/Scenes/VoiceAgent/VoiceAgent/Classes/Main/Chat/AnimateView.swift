@@ -44,9 +44,9 @@ class AnimateView: NSObject {
                 case .idel:
                     rtcMediaPlayer?.setPlaybackSpeed(50)
                 case .listening:
-                    rtcMediaPlayer?.setPlaybackSpeed(100)
+                    rtcMediaPlayer?.setPlaybackSpeed(150)
                 case .speaking:
-                    rtcMediaPlayer?.setPlaybackSpeed(200)
+                    rtcMediaPlayer?.setPlaybackSpeed(250)
                 }
             }
         }
@@ -66,11 +66,9 @@ class AnimateView: NSObject {
     }
     
     private func createMediaPlayer(_ rtcEngine: AgoraRtcEngineKit) {
-        rtcMediaPlayer = rtcEngine.createMediaPlayer(with: nil)
+        rtcMediaPlayer = rtcEngine.createMediaPlayer(with: self)
         if let player = rtcMediaPlayer {
             player.setView(videoView)
-            player.mute(true)
-            player.setPlaybackSpeed(50)
             
             if let filePath = Bundle.main.path(forResource: AnimationConstants.videoFileName, ofType: nil) {
                 let source = AgoraMediaSource()
@@ -206,5 +204,11 @@ extension AnimateView: CAAnimationDelegate {
             scaleAnimator = nil
             updateParentScale(1.0)
         }
+    }
+}
+
+extension AnimateView: AgoraRtcMediaPlayerDelegate {
+    func AgoraRtcMediaPlayer(_ playerKit: any AgoraRtcMediaPlayerProtocol, didChangedTo state: AgoraMediaPlayerState, reason: AgoraMediaPlayerReason) {
+//        if stat
     }
 }

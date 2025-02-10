@@ -130,11 +130,11 @@ class AgentInformationViewController: UIViewController {
     }
     
     private func registerDelegate() {
-        AgentPreferenceManager.shared.addDelegate(self)
+        AppContext.preferenceManager()?.addDelegate(self)
     }
     
     private func unregisterDelegate() {
-        AgentPreferenceManager.shared.removeDelegate(self)
+        AppContext.preferenceManager()?.removeDelegate(self)
     }
     
     private func setupPanGesture() {
@@ -288,25 +288,27 @@ extension AgentInformationViewController {
     }
     
     private func initStatus() {
-        let manager = AgentPreferenceManager.shared
+        guard let manager = AppContext.preferenceManager() else {
+            return
+        }
         
         // Update Network Status
-        networkItem.detialLabel.text = manager.information.networkState == .unknown ? "" : manager.information.networkState.rawValue
+        networkItem.detialLabel.text = manager.information.networkState == .unknown ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
         networkItem.detialLabel.textColor = manager.information.networkState.color
         
-        agentItem.detialLabel.text = manager.information.agentState == .unload ? "" : manager.information.agentState.rawValue
-        agentItem.detialLabel.textColor = manager.information.agentState.color
+        agentItem.detialLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.agentState.rawValue
+        agentItem.detialLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.agentState.color
         
         // Update Room Status
-        roomItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "" :  manager.information.rtcRoomState.rawValue
-        roomItem.detialLabel.textColor = manager.information.rtcRoomState.color
+        roomItem.detialLabel.text = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.rawValue :  manager.information.rtcRoomState.rawValue
+        roomItem.detialLabel.textColor = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.color : manager.information.rtcRoomState.color
         
         // Update Room ID
-        roomIDItem.detialLabel.text = manager.information.roomId
+        roomIDItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : manager.information.roomId
         roomIDItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
         
         // Update Participant ID
-        idItem.detialLabel.text = manager.information.userId
+        idItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : manager.information.userId
         idItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
     }
     
@@ -317,25 +319,25 @@ extension AgentInformationViewController {
 
 extension AgentInformationViewController: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {
-        networkItem.detialLabel.text = networkState.rawValue
+        networkItem.detialLabel.text = networkState == .unknown ? ConnectionStatus.disconnected.rawValue : networkState.rawValue
         networkItem.detialLabel.textColor = networkState.color
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
-        agentItem.detialLabel.text = agentState.rawValue
-        agentItem.detialLabel.textColor = agentState.color
+        agentItem.detialLabel.text = agentState == .unload ? ConnectionStatus.disconnected.rawValue : agentState.rawValue
+        agentItem.detialLabel.textColor = agentState == .unload ? ConnectionStatus.disconnected.color : agentState.color
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {
-        roomItem.detialLabel.text = roomState.rawValue
-        roomItem.detialLabel.textColor = roomState.color
+        roomItem.detialLabel.text = roomState == .unload ? ConnectionStatus.disconnected.rawValue :  roomState.rawValue
+        roomItem.detialLabel.textColor = roomState == .unload ? ConnectionStatus.disconnected.color : roomState.color
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomIdDidUpdated roomId: String) {
-        roomIDItem.detialLabel.text = roomId
+        roomIDItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : roomId
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, userIdDidUpdated userId: String) {
-        idItem.detialLabel.text = userId
+        idItem.detialLabel.text = manager.information.rtcRoomState == .unload ? "-" : userId
     }
 }

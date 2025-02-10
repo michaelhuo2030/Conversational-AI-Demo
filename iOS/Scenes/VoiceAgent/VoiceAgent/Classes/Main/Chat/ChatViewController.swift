@@ -101,7 +101,6 @@ class ChatViewController: UIViewController {
     }()
         
     deinit {
-        AgentPreferenceManager.shared.resetData()
         print("liveing view controller deinit")
     }
     
@@ -114,7 +113,7 @@ class ChatViewController: UIViewController {
     }
     
     private func preloadData() {
-        AgentPreferenceManager.shared.updateUserId(uid)
+        AppContext.preferenceManager()?.updateUserId(uid)
         Task {
             do {
                 try await fetchPresetsIfNeeded()
@@ -135,6 +134,7 @@ class ChatViewController: UIViewController {
         contentView.addSubview(messageView)
         
         animateView.setupMediaPlayer(rtcManager.getRtcEntine())
+        animateView.updateAgentState(.idel)
     }
     
     private func setupConstraints() {
@@ -189,11 +189,11 @@ class ChatViewController: UIViewController {
         }
     }
     
-    private func showNetworkErrorToast() {
+    private func showErrorToast(text: String) {
         toastView.showToast(text: ResourceManager.L10n.Error.networkDisconnected)
     }
     
-    private func dismissNetworkErrorToast() {
+    private func dismissErrorToast() {
         toastView.dismiss()
     }
     
@@ -213,21 +213,23 @@ class ChatViewController: UIViewController {
         if (ret == 0) {
             self.addLog("join rtc room success")
             self.setupMuteState(state: false)
-            AgentPreferenceManager.shared.updateRoomState(.connected)
-            AgentPreferenceManager.shared.updateRoomId(channelName)
+            AppContext.preferenceManager()?.updateRoomState(.connected)
+            AppContext.preferenceManager()?.updateRoomId(channelName)
         }else{
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.joinFailed + "\(ret)")
             stopLoading()
             stopAgent()
-            AgentPreferenceManager.shared.updateRoomState(.disconnected)
+            AppContext.preferenceManager()?.updateRoomState(.disconnected)
             self.addLog("join rtc room failed ret: \(ret)")
         }
     }
     
     private func leaveChannel() {
-        AgentPreferenceManager.shared.updateRoomState(.unload)
-        AgentPreferenceManager.shared.updateAgentState(.unload)
-        AgentPreferenceManager.shared.updateRoomId("")
+        AppContext.preferenceManager()?.updateNetworkState(.unknown)
+        AppContext.preferenceManager()?.updateRoomState(.unload)
+        AppContext.preferenceManager()?.updateAgentState(.unload)
+        AppContext.preferenceManager()?.updateRoomId("")
+        AppContext.preferenceManager()?.updateUserId("")
         rtcManager.leaveChannel()
     }
     
@@ -240,6 +242,8 @@ class ChatViewController: UIViewController {
         addLog("begin stop agent")
         pingTimer?.invalidate()
         pingTimer = nil
+        self.animateView.updateAgentState(.idel)
+        self.messageView.isHidden = true
         leaveChannel()
         stopAgentRequest()
     }
@@ -263,7 +267,7 @@ class ChatViewController: UIViewController {
 // MARK: - Agent Request
 extension ChatViewController {
     private func fetchPresetsIfNeeded() async throws {
-        guard AgentPreferenceManager.shared.allPresets() == nil else { return }
+        guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
         return try await withCheckedThrowingContinuation { continuation in
             agentManager.fetchAgentPresets { error, result in
@@ -278,7 +282,7 @@ extension ChatViewController {
                     return
                 }
                 
-                AgentPreferenceManager.shared.setPresets(presets: result)
+                AppContext.preferenceManager()?.setPresets(presets: result)
                 continuation.resume()
             }
         }
@@ -309,6 +313,7 @@ extension ChatViewController {
     
     private func handleStartError(error: Error) {
         stopLoading()
+        stopAgent()
         SVProgressHUD.showError(withStatus: error.localizedDescription)
     }
     
@@ -316,14 +321,19 @@ extension ChatViewController {
         addLog("begin start agent")
         channelName = "agora_\(RtcEnum.getChannel())"
         agentUid = AppContext.agentUid
-        let aiVad = AgentPreferenceManager.shared.preference.aiVad
-        let presetName = AgentPreferenceManager.shared.preference.preset?.name ?? ""
-        let language = AgentPreferenceManager.shared.preference.language?.languageCode ?? ""
+        guard let manager = AppContext.preferenceManager() else {
+            return
+        }
+        let aiVad = manager.preference.aiVad
+        let bhvs = manager.preference.bhvs
+        let presetName = manager.preference.preset?.name ?? ""
+        let language = manager.preference.language?.languageCode ?? ""
         agentManager.startAgent(appId: AppContext.shared.appId,
                                 uid: uid,
                                 agentUid: "\(agentUid)",
                                 channelName: channelName,
                                 aiVad: aiVad,
+                                bhvs: bhvs,
                                 presetName: presetName,
                                 language: language) { [weak self] error, remoteAgentId in
             guard let self = self else { return }
@@ -339,12 +349,13 @@ extension ChatViewController {
 
             SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
             self.stopLoading()
+            self.stopAgent()
             addLog("start agent failed : \(error.message)")
         }
     }
     
     private func startPingRequest() {
-        let presetName = AgentPreferenceManager.shared.preference.preset?.name ?? ""
+        let presetName = AppContext.preferenceManager()?.preference.preset?.name ?? ""
         agentManager.ping(appId: AppContext.shared.appId, channelName: channelName, presetName: presetName) { [weak self] err, res in
             guard let self = self else { return }
             guard let error = err else {
@@ -360,9 +371,9 @@ extension ChatViewController {
         addLog("prepare to ping")
         self.pingTimer?.invalidate()
         self.pingTimer = Timer.scheduledTimer(withTimeInterval: pingTimeInterval, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
+            guard let self = self, let manager = AppContext.preferenceManager() else { return }
             
-            if AgentPreferenceManager.shared.information.agentState != .connected && AgentPreferenceManager.shared.information.rtcRoomState != .disconnected {
+            if manager.information.agentState != .connected && manager.information.rtcRoomState != .disconnected {
                 self.stopLoading()
                 self.stopAgent()
             } else {
@@ -372,7 +383,7 @@ extension ChatViewController {
     }
     
     private func stopAgentRequest() {
-        guard let preset = AgentPreferenceManager.shared.preference.preset else {
+        guard let preset = AppContext.preferenceManager()?.preference.preset else {
             return
         }
         
@@ -398,19 +409,18 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
         addLog("connectionChangedTo: \(state), reason: \(reason)")
         if reason == .reasonInterrupted {
-            AgentPreferenceManager.shared.updateAgentState(.disconnected)
-            AgentPreferenceManager.shared.updateRoomState(.disconnected)
-            showNetworkErrorToast()
-            //
+            animateView.updateAgentState(.idel)
+            AppContext.preferenceManager()?.updateAgentState(.disconnected)
+            AppContext.preferenceManager()?.updateRoomState(.disconnected)
+            showErrorToast(text: ResourceManager.L10n.Error.networkDisconnected)
         } else if reason == .reasonRejoinSuccess {
-            AgentPreferenceManager.shared.updateAgentState(.connected)
-            AgentPreferenceManager.shared.updateRoomState(.connected)
-            dismissNetworkErrorToast()
+            AppContext.preferenceManager()?.updateAgentState(.connected)
+            AppContext.preferenceManager()?.updateRoomState(.connected)
+            dismissErrorToast()
         }
         
         if state == .failed {
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.roomError)
-            stopAgent()
+            showErrorToast(text: ResourceManager.L10n.Error.roomError)
         }
     }
     
@@ -421,17 +431,15 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         toastView.dismiss()
         addLog("remote user didJoinedOfUid uid: \(uid)")
-        AgentPreferenceManager.shared.updateAgentState(.connected)
+        AppContext.preferenceManager()?.updateAgentState(.connected)
         SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.agentJoined)
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
         addLog("user didOfflineOfUid uid: \(uid)")
-        if (uid == agentUid) {
-            AgentPreferenceManager.shared.updateAgentState(.disconnected)
-            stopAgent()
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Conversation.agentLeave)
-        }
+        animateView.updateAgentState(.idel)
+        AppContext.preferenceManager()?.updateAgentState(.disconnected)
+        showErrorToast(text: ResourceManager.L10n.Conversation.agentLeave)
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
@@ -454,7 +462,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
-        AgentPreferenceManager.shared.updateNetworkState(NetworkStatus(agoraQuality: txQuality))
+        AppContext.preferenceManager()?.updateNetworkState(NetworkStatus(agoraQuality: rxQuality))
     }
         
     func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
@@ -522,7 +530,13 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                         break
                     }
                 }
-                animateView.updateAgentState(.speaking, volume: Int(currentVolume))
+                
+                if currentVolume > 0 {
+                    animateView.updateAgentState(.speaking, volume: Int(currentVolume))
+                } else {
+                    animateView.updateAgentState(.listening, volume: Int(currentVolume))
+                }
+//                animateView.updateAgentState(.speaking, volume: Int(currentVolume))
             }
         }
     }
@@ -533,6 +547,8 @@ private extension ChatViewController {
     private func clickTheBackButton() {
         addLog("clickTheBackButton")
         stopAgent()
+        animateView.release()
+        AppContext.destory()
         self.navigationController?.popViewController(animated: true)
     }
     
@@ -551,6 +567,7 @@ private extension ChatViewController {
     
     private func clickTheCloseButton() {
         addLog("clickTheCloseButton")
+        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
         stopLoading()
         stopAgent()
     }
@@ -587,4 +604,5 @@ extension ChatViewController: AgentControlToolbarDelegate {
         clickCaptionsButton(state: selectedState)
     }
 }
+
 

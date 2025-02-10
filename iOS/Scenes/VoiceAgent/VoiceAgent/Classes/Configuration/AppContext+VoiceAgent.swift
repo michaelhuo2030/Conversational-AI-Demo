@@ -31,6 +31,22 @@ public class AgentLogger: NSObject {
 }
 
 extension AppContext {
+    static private var _preferenceManager: AgentPreferenceManager?
+    
+    static func preferenceManager() -> AgentPreferenceManager? {
+        if let manager = _preferenceManager {
+            return manager
+        }
+        
+        _preferenceManager = AgentPreferenceManager()
+        
+        return _preferenceManager
+    }
+    
+    static func destory() {
+        _preferenceManager = nil
+    }
+    
     static var agentUid: Int {
         return Int(arc4random_uniform(10000000))
     }

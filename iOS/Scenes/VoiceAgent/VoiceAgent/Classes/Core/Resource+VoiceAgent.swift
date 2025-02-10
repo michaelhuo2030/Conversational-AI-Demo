@@ -79,6 +79,7 @@ extension ResourceManager {
             public static let speaker = ResourceManager.localizedString("settings.speaker")
             public static let noiseCancellation = ResourceManager.localizedString("settings.noise.cancellation")
             public static let aiVad = ResourceManager.localizedString("settings.noise.aiVad")
+            public static let bhvs = ResourceManager.localizedString("settings.noise.bhvs")
             public static let forceResponse = ResourceManager.localizedString("settings.noise.forceResponse")
             public static let agentConnected = ResourceManager.localizedString("settings.agent.connected")
             public static let agentDisconnected = ResourceManager.localizedString("settings.agent.disconnected")
@@ -92,6 +93,8 @@ extension ResourceManager {
             public static let roomId = ResourceManager.localizedString("channel.info.room.id")
             public static let yourId = ResourceManager.localizedString("channel.info.your.id")
             public static let yourNetwork = ResourceManager.localizedString("channel.info.your.network")
+            public static let connectedState = ResourceManager.localizedString("channel.connected.state")
+            public static let disconnectedState = ResourceManager.localizedString("channel.disconnected.state")
         }
     }
 }
