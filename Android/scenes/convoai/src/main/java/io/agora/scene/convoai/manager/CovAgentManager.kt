@@ -54,7 +54,7 @@ object CovAgentManager {
     }
 
     fun resetData() {
-        enableAiVad = true
+        enableAiVad = false
         enableBHVS = true
     }
 }
