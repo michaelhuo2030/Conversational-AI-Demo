@@ -44,13 +44,13 @@ struct KeyCenter {
      用于启动和停止Agent，请填写您的主机地址。demo演示地址：http://104.42.227.71:8083
      */
 #if MainLand
-    static var DebugHostUrl: String = "https://service-staging.agora.io/toolbox"
-    static var ReleaseHostUrl: String = "https://service.agora.io/toolbox"
+    static var DebugHostUrl: String = "https://toolbox-staging.sh3t.agoralab.co/v2"
+    static var ReleaseHostUrl: String = "https://toolbox.sh3t.agoralab.co/v2"
     static var BaseHostUrl: String = DebugHostUrl
     static var TermsOfService: String = "https://www.agora.io/en/terms-of-service/"
 #else
-    static var DebugHostUrl: String = "https://service-staging.agora.io/toolbox-overseas"
-    static var ReleaseHostUrl: String = "https://service.agora.io/toolbox-overseas"
+    static var DebugHostUrl: String = "https://toolbox-global-staging.la3d.agoralab.co/v2"
+    static var ReleaseHostUrl: String = "https://toolbox-global.la3d.agoralab.co/v2"
     static var BaseHostUrl: String = DebugHostUrl
     static var TermsOfService: String = "https://www.agora.io/en/terms-of-service/"
 #endif
