@@ -80,7 +80,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     // 使用协程替代 Timer 进行 ping
                     pingJob = coroutineScope.launch {
                         while (isActive) {
-                            CovServerManager.ping(CovAgentManager.channelName)
+                            val presetName = CovAgentManager.getPreset()?.name ?: return@launch
+                            CovServerManager.ping(CovAgentManager.channelName, presetName) {}
                             delay(10000) // 10秒间隔
                         }
                     }
@@ -174,10 +175,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun onClickStartAgent() {
         // Immediately show the connecting status
         connectionState = AgentConnectionState.CONNECTING
-        CovRtcManager.channelName = "agora_" + UUID.randomUUID().toString()
+        CovAgentManager.channelName = "agora_" + UUID.randomUUID().toString()
 
         coroutineScope.launch(Dispatchers.IO) {
-            val needToken = CovRtcManager.rtcToken == null
+            val needToken = rtcToken == null
             val needPresets = CovAgentManager.getPresetList().isNullOrEmpty()
 
             if (needToken || needPresets) {
@@ -199,7 +200,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
             }
 
-            CovRtcManager.joinChannel(CovAgentManager., CovAgentManager.)
+            CovRtcManager.joinChannel(rtcToken ?: "", CovAgentManager.channelName, CovAgentManager.uid)
             val isAgentOK = startAgentAsync()
 
             withContext(Dispatchers.Main) {
@@ -224,7 +225,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private suspend fun startAgentAsync(): Boolean = suspendCoroutine { cont ->
-        CovAgentManager.startAgent(getAgentParams()) { isAgentOK ->
+        CovServerManager.startAgent(getAgentParams()) { isAgentOK ->
             cont.resume(isAgentOK)
         }
     }
@@ -236,8 +237,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private suspend fun fetchPresetsAsync(): Boolean = suspendCoroutine { cont ->
-        CovAgentManager.fetchPresets { success ->
-            cont.resume(success)
+        CovServerManager.fetchPresets { presets ->
+            if (presets.isNullOrEmpty()) {
+                cont.resume(false)
+            } else {
+                CovAgentManager.setPresetList(presets)
+                cont.resume(true)
+            }
         }
     }
 
@@ -265,7 +271,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             AgoraTokenType.Rtc,
             success = { token ->
                 CovLogger.d(TAG, "getToken success")
-                CovRtcManager.rtcToken = token
+                rtcToken = token
                 complete.invoke(true)
             },
             failure = { e ->
@@ -426,7 +432,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 CovLogger.d(TAG, "onTokenPrivilegeWillExpire")
                 updateToken { isOK ->
                     if (isOK) {
-                        CovRtcManager.renewRtcToken()
+                        CovRtcManager.renewRtcToken(rtcToken ?: "")
                     } else {
                         stopAgentAndLeaveChannel()
                         ToastUtil.show("renew token error")

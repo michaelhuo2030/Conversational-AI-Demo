@@ -64,8 +64,8 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                         mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
                         mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
 
-                        mtvRoomId.text = CovRtcManager.channelName
-                        mtvUidValue.text = CovRtcManager.uid.toString()
+                        mtvRoomId.text = CovAgentManager.channelName
+                        mtvUidValue.text = CovAgentManager.uid.toString()
                     }
                 }
                 AgentConnectionState.CONNECTED -> {
@@ -77,8 +77,8 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                         mtvAgentStatus.text = getString(R.string.cov_info_agent_connected)
                         mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_green6))
 
-                        mtvRoomId.text = CovRtcManager.channelName
-                        mtvUidValue.text = CovRtcManager.uid.toString()
+                        mtvRoomId.text = CovAgentManager.channelName
+                        mtvUidValue.text = CovAgentManager.uid.toString()
                     }
                 }
                 AgentConnectionState.CONNECTED_INTERRUPT -> {
@@ -90,8 +90,8 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                         mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
                         mtvAgentStatus.setTextColor(it.getColor(io.agora.scene.common.R.color.ai_red6))
 
-                        mtvRoomId.text = CovRtcManager.channelName
-                        mtvUidValue.text = CovRtcManager.uid.toString()
+                        mtvRoomId.text = CovAgentManager.channelName
+                        mtvUidValue.text = CovAgentManager.uid.toString()
                     }
                 }
             }

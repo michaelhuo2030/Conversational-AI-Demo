@@ -8,9 +8,7 @@ object CovAgentManager {
     private val TAG = "CovAgentManager"
 
     val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
-
-    private var agentId: String? = null
-
+    
     // Settings
     private var presetList: List<CovAgentPreset>? = null
     private var preset: CovAgentPreset? = null
@@ -22,9 +20,8 @@ object CovAgentManager {
 
     // values
     val uid = Random.nextInt(1000, 10000000)
-    var rtcToken: String? = null
     var agentUID = 999
-    var channelName: String? = null
+    var channelName: String = ""
 
     fun setPresetList(l: List<CovAgentPreset>) {
         presetList = l

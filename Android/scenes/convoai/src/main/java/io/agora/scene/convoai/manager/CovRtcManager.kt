@@ -1,6 +1,5 @@
 package io.agora.scene.convoai.manager
 
-import android.util.Log
 import io.agora.rtc2.ChannelMediaOptions
 import io.agora.rtc2.Constants
 import io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
@@ -12,7 +11,6 @@ import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.convoai.CovLogger
-import kotlin.random.Random
 
 object CovRtcManager {
 
