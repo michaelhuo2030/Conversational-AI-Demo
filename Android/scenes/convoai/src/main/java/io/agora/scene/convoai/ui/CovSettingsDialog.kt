@@ -58,9 +58,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             }
         }
         updatePageEnable()
-        CovAgentManager.fetchPresets {
-            updateBaseSettings()
-        }
+        updateBaseSettings()
     }
 
     private fun updateBaseSettings() {
