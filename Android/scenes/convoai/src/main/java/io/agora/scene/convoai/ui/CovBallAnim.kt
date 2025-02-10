@@ -3,6 +3,8 @@ package io.agora.scene.convoai.ui
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.TextureView
 import android.view.ViewGroup
@@ -134,6 +136,8 @@ class CovBallAnim constructor(
         }
     }
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     private fun calculateMinScale(volume: Int): Float {
         return when {
             volume > VolumeConstants.HIGH_VOLUME -> ScaleConstants.SCALE_HIGH
@@ -175,6 +179,17 @@ class CovBallAnim constructor(
     }
 
     fun updateAgentState(newState: AgentState, volume: Int = 0) {
+        Log.d(TAG,"updateAgentState newState:$newState currentState:$currentState ${Thread.currentThread()}")
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            updateAgentStateInternal(newState, volume)
+        } else {
+            mainHandler.post {
+                updateAgentStateInternal(newState, volume)
+            }
+        }
+    }
+
+    private fun updateAgentStateInternal(newState: AgentState, volume: Int) {
         val oldState = currentState
         currentState = newState
         handleStateTransition(oldState, newState, volume)

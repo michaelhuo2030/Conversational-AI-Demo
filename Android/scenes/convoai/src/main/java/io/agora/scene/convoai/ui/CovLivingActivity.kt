@@ -80,13 +80,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             delay(10000) // 10秒间隔
                         }
                     }
-                }
-                if (connectionState == AgentConnectionState.IDLE) {
+                } else if (connectionState == AgentConnectionState.IDLE) {
                     // 取消 ping
                     pingJob?.cancel()
                     pingJob = null
                     waitingAgentJob?.cancel()
                     waitingAgentJob = null
+                } else if (connectionState == AgentConnectionState.CONNECTED_INTERRUPT) {
+                    mCovBallAnim?.updateAgentState(AgentState.STATIC)
                 }
             }
         }
@@ -118,6 +119,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             )
             deferreds.awaitAll()
         }
+    }
+
+    override fun onHandleOnBackPressed() {
+        super.onHandleOnBackPressed()
     }
 
     override fun onDestroy() {
@@ -310,7 +315,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
                 runOnUiThread {
                     if (uid == CovAgentManager.agentUID) {
-                        mCovBallAnim?.updateAgentState(AgentState.STATIC, 0)
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
                         if (!isUserEndCall) {
                             ToastUtil.show(R.string.cov_detail_agent_state_error, Toast.LENGTH_LONG)
                         }
@@ -377,7 +382,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         }
                     }
                 }
-
             }
 
             override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
@@ -533,7 +537,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             setOnApplyWindowInsetsListener(root)
             btnBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    finish()
+                    onHandleOnBackPressed()
                 }
             })
             btnEndCall.setOnClickListener(object : OnFastClickListener() {
