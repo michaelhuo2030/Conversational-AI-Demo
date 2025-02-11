@@ -243,7 +243,7 @@ extension DigitalHumanSettingViewController {
         contentView1.backgroundColor = PrimaryColors.c_1d1d1d
         contentView1.layerCornerRadius = 10
         contentView1.layer.borderWidth = 1.0
-        contentView1.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView1.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView1)
         
         infoItem.titleLabel.text = ResourceManager.L10n.Settings.preset
@@ -259,7 +259,7 @@ extension DigitalHumanSettingViewController {
         contentView2.backgroundColor = PrimaryColors.c_1d1d1d
         contentView2.layerCornerRadius = 10
         contentView2.layer.borderWidth = 1.0
-        contentView2.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView2.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView2)
         
         let currentPreset = DHSceneManager.shared.currentPresetType
@@ -287,7 +287,7 @@ extension DigitalHumanSettingViewController {
         contentView3.backgroundColor = PrimaryColors.c_1d1d1d
         contentView3.layerCornerRadius = 10
         contentView3.layer.borderWidth = 1.0
-        contentView3.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView3.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView3)
         
 //        microphoneItem.titleLabel.text = ResourceManager.L10n.Settings.microphone

@@ -48,7 +48,7 @@ class AgentSettingViewController: UIViewController {
         view.backgroundColor = PrimaryColors.c_1d1d1d
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         return view
     }()
     
@@ -85,7 +85,7 @@ class AgentSettingViewController: UIViewController {
         view.backgroundColor = PrimaryColors.c_1d1d1d
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         return view
     }()
     

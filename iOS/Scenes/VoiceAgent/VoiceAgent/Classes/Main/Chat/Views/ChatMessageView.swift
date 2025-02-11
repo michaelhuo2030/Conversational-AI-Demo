@@ -157,7 +157,7 @@ class ChatView: UIView {
         let button = UIButton()
         button.setImage(UIImage.va_named("ic_captions_arrow_icon"), for: .normal)
         button.addTarget(self, action: #selector(clickArrowButton), for: .touchUpInside)
-        button.setBackgroundColor(color: PrimaryColors.c_262626, forState: .normal)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_line1"), forState: .normal)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
         button.isHidden = true

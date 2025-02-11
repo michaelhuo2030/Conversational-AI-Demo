@@ -7,9 +7,9 @@ import UIKit
 extension UIColor {
     
     @available(iOS 13.0, *)
-    public static func themColor(with name: String) -> UIColor {
+    public static func themColor(named: String) -> UIColor {
         return UIColor { traitCollection in
-            return traitCollection.userInterfaceStyle == .dark ? UIColor(hex: darkColors[name] ?? "") : UIColor(hex: lightColors[name] ?? "")
+            return traitCollection.userInterfaceStyle == .dark ? UIColor(hex: darkColors[named] ?? "") : UIColor(hex: lightColors[named] ?? "")
         }
     }
     

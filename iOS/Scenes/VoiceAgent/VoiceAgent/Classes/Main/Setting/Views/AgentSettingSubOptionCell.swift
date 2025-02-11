@@ -28,7 +28,7 @@ class AgentSettingSubOptionCell: UITableViewCell {
     }
 
     private func setupViews() {
-        backgroundColor = PrimaryColors.c_262626
+        backgroundColor = UIColor.themColor(named: "ai_line1")
         selectionStyle = .none
         
         contentView.addSubview(titleLabel)

@@ -23,7 +23,7 @@
 //        contentView1.backgroundColor = PrimaryColors.c_141414
 //        contentView1.layerCornerRadius = 10
 //        contentView1.layer.borderWidth = 1
-//        contentView1.layer.borderColor = PrimaryColors.c_262626.cgColor
+//        contentView1.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
 //        contentView.addSubview(contentView1)
 //        
 //        networkItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourNetwork
@@ -88,7 +88,7 @@
 //        view.backgroundColor = PrimaryColors.c_141414
 //        view.layerCornerRadius = 10
 //        view.layer.borderWidth = 1
-//        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+//        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
 //        return view
 //    }()
 //    

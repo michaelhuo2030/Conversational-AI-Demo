@@ -46,7 +46,7 @@ class AgentInformationViewController: UIViewController {
         let label = UILabel()
         label.text = ResourceManager.L10n.ChannelInfo.networkInfoTitle
         label.font = UIFont.boldSystemFont(ofSize: 16)
-        label.textColor = PrimaryColors.c_ffffff_a
+        label.textColor = UIColor.themColor(named: "ai_icontext4")
         return label
     }()
     
@@ -55,7 +55,7 @@ class AgentInformationViewController: UIViewController {
         view.backgroundColor = PrimaryColors.c_1d1d1d
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         return view
     }()
     
@@ -80,7 +80,7 @@ class AgentInformationViewController: UIViewController {
         view.backgroundColor = PrimaryColors.c_1d1d1d
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         return view
     }()
     

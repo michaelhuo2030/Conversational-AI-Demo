@@ -44,7 +44,7 @@ class AgentSettingTopView: UIView {
         centerImageView.contentMode = .scaleAspectFit
         addSubview(centerImageView)
         
-        line.backgroundColor = PrimaryColors.c_262626
+        line.backgroundColor = UIColor.themColor(named: "ai_line1")
         addSubview(line)
     }
     

@@ -72,7 +72,7 @@ class AgentCardCell: UITableViewCell {
     private lazy var cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = Constants.cornerRadius
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         view.layer.borderWidth = 1.0
         view.layer.masksToBounds = true
         view.backgroundColor = .clear
