@@ -142,7 +142,9 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
             val params = cvOptions.layoutParams
-            params.height = (48.dp * languages.size).toInt()
+            var height = (44.dp * languages.size).toInt()
+            if (height > 200.dp) height = 200.dp.toInt()
+            params.height = height
             cvOptions.layoutParams = params
             // update options and select action
             optionsAdapter.updateOptions(
