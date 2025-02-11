@@ -16,11 +16,17 @@ import android.annotation.SuppressLint
 import android.view.View
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.isVisible
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.toast.ToastUtil
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val REQUEST_CODE = 100
+
+    private var counts = 0
+    private val debugModeOpenTime: Long = 2000
+    private var beginTime: Long = 0
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -73,6 +79,28 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     onClickGetStarted()
                 }
             })
+            ivIcon.setOnClickListener {
+                if (ServerConfig.isDebug) return@setOnClickListener
+                if (counts == 0 || System.currentTimeMillis() - beginTime > debugModeOpenTime) {
+                    beginTime = System.currentTimeMillis()
+                    counts = 0
+                }
+                counts++
+                if (counts > 7) {
+                    counts = 0
+                    btnDebug.isVisible = true
+                    ServerConfig.isDebug = true
+                    ToastUtil.show(io.agora.scene.common.R.string.common_debug_mode_enable)
+                }
+            }
+            btnDebug.isVisible = ServerConfig.isDebug
+            btnDebug.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    btnDebug.isVisible = false
+                    ServerConfig.isDebug = false
+                    ToastUtil.show(io.agora.scene.common.R.string.common_debug_mode_disable)
+                }
+            })
             updateStartButtonState()
         }
     }
@@ -108,19 +136,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun setupLocale() {
         val lang = if (ServerConfig.isMainlandVersion) "zh" else "en"
         val locale = Locale(lang)
-        
+
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.create(locale))
-        
+
         updateActivityLocale(locale)
     }
 
     @SuppressLint("ObsoleteSdkInt")
     private fun updateActivityLocale(locale: Locale) {
         Locale.setDefault(locale)
-        
+
         val config = resources.configuration
         config.setLocale(locale)
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             createConfigurationContext(config)
         } else {

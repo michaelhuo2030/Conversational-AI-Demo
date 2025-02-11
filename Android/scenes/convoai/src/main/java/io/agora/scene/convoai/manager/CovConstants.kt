@@ -1,7 +1,5 @@
 package io.agora.scene.convoai.manager
 
-import io.agora.scene.common.constant.ServerConfig
-
 data class AgentRequestParams(
     val channelName: String,
     val agentRtcUid: String,

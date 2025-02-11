@@ -130,6 +130,16 @@
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />
         </io.agora.scene.common.ui.widget.GradientBorderView>
+
+        <ImageButton
+            android:id="@+id/btn_debug"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="40dp"
+            android:layout_gravity="bottom|end"
+            android:background="@android:color/transparent"
+            android:src="@drawable/btn_debug_selector" />
     </FrameLayout>
 
     <FrameLayout

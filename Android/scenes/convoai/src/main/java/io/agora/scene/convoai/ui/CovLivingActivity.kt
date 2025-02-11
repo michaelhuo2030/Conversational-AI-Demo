@@ -4,7 +4,9 @@ import android.content.Intent
 import android.graphics.PorterDuff
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
+import androidx.core.view.isVisible
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.convoai.manager.CovRtcManager
@@ -13,6 +15,7 @@ import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
@@ -101,6 +104,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private var mCovBallAnim: CovBallAnim? = null
 
+    private var mDebugSettingBean: CovDebugDialog.DebugSettingBean? = null
+
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
     }
@@ -174,7 +179,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun onClickStartAgent() {
         // Immediately show the connecting status
         connectionState = AgentConnectionState.CONNECTING
-        CovAgentManager.channelName = "agora_" + UUID.randomUUID().toString()
+        CovAgentManager.channelName = "agent_" + UUID.randomUUID().toString().replace("-", "")
 
         coroutineScope.launch(Dispatchers.IO) {
             val needToken = rtcToken == null
@@ -542,7 +547,26 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun setupView() {
         mBinding?.apply {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setOnApplyWindowInsetsListener(root)
+            mDebugSettingBean = CovDebugDialog.DebugSettingBean(object : CovDebugDialog.Callback {
+                override fun onAudioDumpEnable(enable: Boolean) {
+                    CovRtcManager.onAudioDump(enable)
+                }
+
+                override fun onDebugEnable(enable: Boolean) {
+                    btnDebug.isVisible = ServerConfig.isDebug
+                }
+            })
+            btnDebug.isVisible = ServerConfig.isDebug
+            btnDebug.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    CovLogger.d(TAG,"showCovDebugDialog called")
+                    val debug = mDebugSettingBean?:return
+                    val dialog = CovDebugDialog(debug)
+                    dialog.show(supportFragmentManager, "debugSettings")
+                }
+            })
             btnBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onHandleOnBackPressed()

@@ -1,4 +1,10 @@
 <resources>
     <string name="common_detail_message_list_you">你</string>
+    <string name="common_debug_mode_enable">开发者模式已开</string>
+    <string name="common_debug_mode_disable">开发者模式已关闭</string>
+    <string name="common_debug_setting">开发者模式</string>
+    <string name="common_debug_rtc_version">Rtc 版本</string>
+    <string name="common_debug_audio_dump">音频 Dump</string>
+    <string name="common_debug_close">关闭开发者模式</string>
 
 </resources>

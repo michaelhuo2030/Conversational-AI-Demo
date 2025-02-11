@@ -1,14 +1,11 @@
 package io.agora.scene.convoai.manager
 
-import io.agora.scene.common.constant.ServerConfig
 import kotlin.random.Random
 
 object CovAgentManager {
 
     private val TAG = "CovAgentManager"
 
-    val isMainlandVersion: Boolean get() = ServerConfig.isMainlandVersion
-    
     // Settings
     private var presetList: List<CovAgentPreset>? = null
     private var preset: CovAgentPreset? = null
@@ -20,7 +17,7 @@ object CovAgentManager {
 
     // values
     val uid = Random.nextInt(1000, 10000000)
-    var agentUID = 999
+    const val agentUID = 999
     var channelName: String = ""
 
     fun setPresetList(l: List<CovAgentPreset>) {
@@ -38,11 +35,6 @@ object CovAgentManager {
             language = p.support_languages.firstOrNull { it.language_code == p.default_language_code }
         } else {
             language = p?.support_languages?.firstOrNull()
-        }
-        if (p?.name == "spoken_english_practice") {
-            agentUID = 1234
-        } else {
-            agentUID = 999
         }
     }
 

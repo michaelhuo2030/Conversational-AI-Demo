@@ -17,13 +17,13 @@
     <string name="cov_info_dialog_title">信息</string>
     <string name="cov_channel_info_title">频道信息</string>
     <string name="cov_info_agent_status">智能体状态</string>
-    <string name="cov_info_agent_id">智能体ID</string>
+    <string name="cov_info_agent_id">智能体 ID</string>
     <string name="cov_info_agent_connected">已连接</string>
     <string name="cov_info_room_status">房间状态</string>
-    <string name="cov_info_room_id">房间ID</string>
+    <string name="cov_info_room_id">房间 ID</string>
     <string name="cov_info_empty">--</string>
-    <string name="cov_info_participant_id">参与者ID</string>
-    <string name="cov_info_your_id">您的ID</string>
+    <string name="cov_info_participant_id">参与者 ID</string>
+    <string name="cov_info_your_id">您的 ID</string>
     <string name="cov_info_your_network">您的网络</string>
     <string name="cov_info_your_network_disconnected">未连接</string>
     <string name="cov_info_your_network_good">良好</string>

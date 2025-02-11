@@ -33,11 +33,13 @@ android {
     applicationVariants.all {
         variant ->
             variant.outputs.all { output ->
+                def appName = variant.applicationId
                 outputFileName = new File(
                         rootProject.name + "_" +
-                        "v" + defaultConfig.versionName + "_" +
-                        new Date().format("yyyyMMddHHmm") + "_" +
-                        buildType.name + ".apk")
+                                "v" + defaultConfig.versionName + "_" +
+                                new Date().format("yyyyMMddHHmm") + "_" +
+                                buildType.name + "_" +
+                                appName + ".apk")
             }
     }
 

@@ -25,7 +25,6 @@ object CovRtcManager {
         config.mChannelProfile = Constants.CHANNEL_PROFILE_LIVE_BROADCASTING
         config.mAudioScenario = Constants.AUDIO_SCENARIO_AI_SERVER
         config.mEventHandler = rtcCallback
-        CovLogger.d(TAG,"rtcVersion:${RtcEngine.getSdkVersion()}")
         try {
             rtcEngine = (RtcEngine.create(config) as RtcEngineEx).apply {
                 loadExtensionProvider("ai_echo_cancellation_extension")
@@ -86,6 +85,20 @@ object CovRtcManager {
 
     fun muteLocalAudio(mute: Boolean) {
         rtcEngine?.adjustRecordingSignalVolume(if (mute) 0 else 100)
+    }
+
+    fun onAudioDump(enable:Boolean){
+        if (enable) {
+            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
+//            rtcEngine?.setParameters("{\"rtc.debug.enable\": true}")
+//            rtcEngine?.setParameters(
+//                "{\"che.audio.frame_dump\":{\"location\":\"all\",\"action\":\"start\"," +
+//                        "\"max_size_bytes\":\"120000000\",\"uuid\":\"123456789\",\"duration\":\"1200000\"}}"
+//            )
+        } else {
+//            rtcEngine?.setParameters("{\"rtc.debug.enable\": false}")
+            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
+        }
     }
 
     fun resetData() {

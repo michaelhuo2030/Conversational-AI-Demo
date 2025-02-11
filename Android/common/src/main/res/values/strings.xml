@@ -1,3 +1,9 @@
 <resources>
     <string name="common_detail_message_list_you">You</string>
+    <string name="common_debug_mode_enable">Debug Mode is On</string>
+    <string name="common_debug_mode_disable">Debug Mode is Off</string>
+    <string name="common_debug_setting">Debugging Settings</string>
+    <string name="common_debug_rtc_version">Rtc Version</string>
+    <string name="common_debug_audio_dump">Audio Dump</string>
+    <string name="common_debug_close">Close Debug Mode</string>
 </resources>

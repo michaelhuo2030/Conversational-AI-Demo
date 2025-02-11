@@ -6,11 +6,18 @@ import io.agora.scene.common.util.LocalStorageUtil
 object ServerConfig {
 
     const val Env_Mode = "env_mode"
+    const val IS_DEBUG = "is_debug"
 
     var envRelease: Boolean = LocalStorageUtil.getBoolean(Env_Mode, true)
         set(newValue) {
             field = newValue
             LocalStorageUtil.putBoolean(Env_Mode, newValue)
+        }
+
+    var isDebug: Boolean = LocalStorageUtil.getBoolean(IS_DEBUG, false)
+        set(newValue) {
+            field = newValue
+            LocalStorageUtil.putBoolean(IS_DEBUG, newValue)
         }
 
     @JvmStatic
@@ -27,7 +34,7 @@ object ServerConfig {
     val isMainlandVersion: Boolean = (!toolBoxUrl.contains("global"))
 
     @JvmStatic
-    val siteUrl:String
+    val siteUrl: String
         get() {
             return if (isMainlandVersion) {
                 "https://www.agora.io/en/terms-of-service/"
@@ -37,10 +44,10 @@ object ServerConfig {
         }
 
     @JvmStatic
-    val rtcAppId:String
+    val rtcAppId: String
         get() = BuildConfig.AG_APP_ID
 
     @JvmStatic
-    val rtcAppCert:String
+    val rtcAppCert: String
         get() = BuildConfig.AG_APP_CERTIFICATE
 }
