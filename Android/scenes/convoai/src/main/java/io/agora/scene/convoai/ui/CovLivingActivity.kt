@@ -28,7 +28,6 @@ import io.agora.scene.convoai.manager.CovServerManager
 import kotlinx.coroutines.*
 import java.util.UUID
 import kotlin.coroutines.*
-import kotlin.random.Random
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
@@ -400,7 +399,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         val rawString = String(bytes, Charsets.UTF_8)
                         val message = parser.parseStreamMessage(rawString)
                         message?.let { msg ->
-                            Log.e(TAG, "onStreamMessage: $msg $this")
+                            CovLogger.d(TAG, "onStreamMessage: $msg $this")
                             val isFinal = msg["is_final"] as? Boolean ?: false
                             val streamId = msg["stream_id"] as? Double ?: 0.0
                             val turnId = msg["turn_id"] as? Double ?: 0.0
@@ -422,7 +421,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
                 if (uid == 0) {
                     runOnUiThread {
-                        CovLogger.d(TAG, "onNetworkQuality $rxQuality")
                         updateNetworkStatus(rxQuality)
                     }
                 }
