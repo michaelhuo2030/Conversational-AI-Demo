@@ -27,7 +27,7 @@ class MessageListView @JvmOverloads constructor(
         MessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
     private val messageAdapter: MessageAdapter = MessageAdapter()
     private var currentAgentMessage: Message? = null
-    private var userDragged = false
+    private var autoScrollToBottom = true
 
     init {
         binding.rvMessages.layoutManager = LinearLayoutManager(context)
@@ -38,21 +38,21 @@ class MessageListView @JvmOverloads constructor(
                 super.onScrollStateChanged(recyclerView, newState)
                 Log.d(TAG, "onScrollStateChanged: $newState")
                 when (newState) {
+                    RecyclerView.SCROLL_STATE_IDLE -> {
+                        checkShowToBottomButton()
+                    }
                     RecyclerView.SCROLL_STATE_DRAGGING -> {
-                        setUserDragged(true)
+                        autoScrollToBottom = false
                     }
                 }
             }
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                Log.d(TAG, "onScrolled: $dy")
-                if (userDragged && isScrolledToBottom()) {
-                    setUserDragged(false)
-                }
             }
         })
         binding.btnToBottom.setOnClickListener {
-            setUserDragged(false)
+            autoScrollToBottom = true
+            binding.cvToBottom.visibility = View.INVISIBLE
             scrollToBottom()
         }
     }
@@ -81,7 +81,7 @@ class MessageListView @JvmOverloads constructor(
     private fun handleUserMessage(turnId: Double, text: String, isFinal: Boolean) {
         if (isFinal) {
             addMineMessage(turnId, text)
-            scrollIfNeeded()
+            autoScrollIfNeeded()
         }else{
 
         }
@@ -99,12 +99,12 @@ class MessageListView @JvmOverloads constructor(
         if (isFinal) {
             completeCurrentMessage()
         } else {
-            scrollIfNeeded()
+            autoScrollIfNeeded()
         }
     }
 
-    private fun scrollIfNeeded() {
-        if (!userDragged) {
+    private fun autoScrollIfNeeded() {
+        if (autoScrollToBottom) {
             checkAndScrollToBottom()
         }
     }
@@ -127,7 +127,7 @@ class MessageListView @JvmOverloads constructor(
             }
             currentAgentMessage = null
         }
-        scrollIfNeeded()
+        autoScrollIfNeeded()
     }
 
     private fun addMineMessage(turnId: Double, text: String) {
@@ -135,9 +135,7 @@ class MessageListView @JvmOverloads constructor(
             Log.d(TAG, "addUserMessage: $text")
         }
         messageAdapter.addMessage(Message(true, turnId, text, true))
-        if (!userDragged) {
-            checkAndScrollToBottom()
-        }
+        autoScrollIfNeeded()
     }
 
     private fun updateCurrentMessage(content: String) {
@@ -145,11 +143,6 @@ class MessageListView @JvmOverloads constructor(
             it.content = content
             messageAdapter.updateMessage(it)
         }
-    }
-
-    private fun setUserDragged(b: Boolean) {
-        userDragged = b
-        binding.cvToBottom.visibility = if (b) View.VISIBLE else View.INVISIBLE
     }
 
     private var scrollRunnable: Runnable? = null
@@ -177,11 +170,19 @@ class MessageListView @JvmOverloads constructor(
         }
     }
 
-    private fun isScrolledToBottom(): Boolean {
-        val scrollY = binding.rvMessages.scrollY
-        val contentHeight = binding.rvMessages.getChildAt(0).height
-        val scrollViewHeight = binding.rvMessages.height
-        return scrollY >= (contentHeight - scrollViewHeight)
+    private fun checkShowToBottomButton() {
+        val layoutManager = binding.rvMessages.layoutManager as LinearLayoutManager
+        val lastItemPosition = layoutManager.findLastVisibleItemPosition()
+        val lastIndex = messageAdapter.itemCount - 1
+        val lastVisible = (lastIndex == lastItemPosition)
+        Log.d(TAG, "lastItemPosition: $lastItemPosition, lastIndex: $lastIndex, lastVisible: $lastVisible")
+        if (lastVisible) {
+            binding.cvToBottom.visibility = View.INVISIBLE
+            autoScrollToBottom = true
+        } else {
+            binding.cvToBottom.visibility = View.VISIBLE
+            autoScrollToBottom = false
+        }
     }
 
     data class Message(
