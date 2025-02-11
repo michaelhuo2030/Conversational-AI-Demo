@@ -166,6 +166,7 @@ class ChatViewController: UIViewController {
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
             make.centerX.equalTo(view)
             make.height.equalTo(40)
+            make.width.equalTo(111)
         }
         
         bottomBar.snp.makeConstraints { make in
