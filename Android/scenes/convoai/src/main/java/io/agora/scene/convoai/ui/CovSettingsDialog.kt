@@ -77,18 +77,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun updatePageEnable() {
         val context = context ?: return
-        if (CovAgentManager.connectionState == AgentConnectionState.CONNECTED) {
-            binding?.apply {
-                tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
-                tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
-                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
-                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
-                clPreset.isEnabled = false
-                clLanguage.isEnabled = false
-                cbBhvs.isEnabled = false
-                cbAiVad.isEnabled = false
-            }
-        } else {
+        if (CovAgentManager.connectionState == AgentConnectionState.IDLE) {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
@@ -98,6 +87,17 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clLanguage.isEnabled = true
                 cbBhvs.isEnabled = true
                 cbAiVad.isEnabled = true
+            }
+        } else {
+            binding?.apply {
+                tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
+                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
+                clPreset.isEnabled = false
+                clLanguage.isEnabled = false
+                cbBhvs.isEnabled = false
+                cbAiVad.isEnabled = false
             }
         }
     }
@@ -142,7 +142,9 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
             val params = cvOptions.layoutParams
-            params.height = (48.dp * languages.size).toInt()
+            var height = (44.dp * languages.size).toInt()
+            if (height > 200.dp) height = 200.dp.toInt()
+            params.height = height
             cvOptions.layoutParams = params
             // update options and select action
             optionsAdapter.updateOptions(

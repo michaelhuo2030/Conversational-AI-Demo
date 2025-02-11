@@ -79,14 +79,14 @@
                 app:cardCornerRadius="999dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@android:color/transparent"
-                app:layout_constraintDimensionRatio="550:480"
+                app:layout_constraintDimensionRatio="1236:1080"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintWidth_percent="0.9"
                 app:strokeColor="@android:color/transparent">
-                
+
                 <TextureView
                     android:id="@+id/video_view"
                     android:layout_width="match_parent"
