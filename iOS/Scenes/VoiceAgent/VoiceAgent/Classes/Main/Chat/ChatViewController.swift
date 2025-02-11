@@ -113,7 +113,6 @@ class ChatViewController: UIViewController {
     }
     
     private func preloadData() {
-        AppContext.preferenceManager()?.updateUserId(uid)
         Task {
             do {
                 try await fetchPresetsIfNeeded()
@@ -225,12 +224,9 @@ class ChatViewController: UIViewController {
     }
     
     private func leaveChannel() {
-        AppContext.preferenceManager()?.updateNetworkState(.unknown)
-        AppContext.preferenceManager()?.updateRoomState(.unload)
-        AppContext.preferenceManager()?.updateAgentState(.unload)
-        AppContext.preferenceManager()?.updateRoomId("")
-        AppContext.preferenceManager()?.updateUserId("")
+        addLog("will leave channel")
         rtcManager.leaveChannel()
+        AppContext.preferenceManager()?.resetAgentInformation()
     }
     
     private func destoryRtc() {
@@ -242,8 +238,9 @@ class ChatViewController: UIViewController {
         addLog("begin stop agent")
         pingTimer?.invalidate()
         pingTimer = nil
-        self.animateView.updateAgentState(.idel)
-        self.messageView.isHidden = true
+        animateView.updateAgentState(.idel)
+        messageView.clearMessages()
+        messageView.isHidden = true
         leaveChannel()
         stopAgentRequest()
     }
@@ -319,7 +316,7 @@ extension ChatViewController {
     
     private func startAgentRequest() {
         addLog("begin start agent")
-        channelName = "agora_\(RtcEnum.getChannel())"
+        channelName = RtcEnum.getChannel()
         agentUid = AppContext.agentUid
         guard let manager = AppContext.preferenceManager() else {
             return
@@ -342,6 +339,8 @@ extension ChatViewController {
             guard let error = error else {
                 if let remoteAgentId = remoteAgentId {
                     self.remoteAgentId = remoteAgentId
+                    AppContext.preferenceManager()?.updateAgentId(remoteAgentId)
+                    AppContext.preferenceManager()?.updateUserId(self.uid)
                 }
                 addLog("start agent success")
                 prepareToPing()
@@ -463,17 +462,21 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
+        if AppContext.preferenceManager()?.information.agentState == .unload { return }
+        addLog("networkQuality: \(rxQuality)")
         AppContext.preferenceManager()?.updateNetworkState(NetworkStatus(agoraQuality: rxQuality))
     }
         
     func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
         guard let rawString = String(data: data, encoding: .utf8) else {
+            addLog("Failed to convert data to string")
             print("Failed to convert data to string")
             return
         }
         
-//        print("raw string: \(rawString)")
+        print("raw string: \(rawString)")
         // Use message parser to process the message
+        addLog("receive raw string \(rawString)")
         if let message = messageParser.parseMessage(rawString) {
             print("receive msg: \(message)")
             addLog("receive msg: \(message)")
@@ -489,6 +492,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             let streamId = message["stream_id"] as? Int ?? 0
             let text = message["text"] as? String ?? ""
             let dataType = message["data_type"] as? String ?? ""
+            let turnId = message["turn_id"] as? Int ?? 0
             
             // Ignore empty messages
             guard !text.isEmpty else { return }
@@ -498,14 +502,19 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                     // AI response message
                     if !isFinal {
                         // Non-final message, update streaming content
-                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            self.messageView.startNewStreamMessage()
+                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty || 
+                           self.messageView.currentTurnId != turnId {
+                            // Start new message if:
+                            // 1. Last message was from user
+                            // 2. No messages yet
+                            // 3. Different turn_id (new message stream)
+                            self.messageView.startNewStreamMessage(turnId: turnId)
                         }
                         self.messageView.updateStreamContent(text)
                     } else {
-                        // Final message, update and complete
+                        // Final message, complete current message
                         if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            self.messageView.startNewStreamMessage()
+                            self.messageView.startNewStreamMessage(turnId: turnId)
                         }
                         self.messageView.updateStreamContent(text)
                         self.messageView.completeStreamMessage()
@@ -524,14 +533,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         speakers.forEach { info in
             if (info.uid == agentUid) {
                 var currentVolume: CGFloat = 0
-                for volumeInfo in speakers {
-                    if (volumeInfo.uid == 0) {
-                    } else {
-                        currentVolume = CGFloat(volumeInfo.volume)
-                        break
-                    }
-                }
-
+                currentVolume = CGFloat(info.volume)
                 if currentVolume > 0 {
                     animateView.updateAgentState(.speaking, volume: Int(currentVolume))
                 } else {
@@ -570,7 +572,9 @@ private extension ChatViewController {
     
     private func clickTheCloseButton() {
         addLog("clickTheCloseButton")
-        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
+        if AppContext.preferenceManager()?.information.agentState == .connected {
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
+        }
         stopLoading()
         stopAgent()
     }

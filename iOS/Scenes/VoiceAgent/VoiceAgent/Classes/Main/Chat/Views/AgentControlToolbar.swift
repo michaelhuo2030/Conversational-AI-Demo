@@ -52,11 +52,11 @@ class AgentControlToolbar: UIView {
         
         let gradientLayer = CAGradientLayer()
         gradientLayer.colors = [
-            UIColor(hex: 0x96E5FF)?.cgColor as Any,
-            UIColor(hex: 0x6AE5FF)?.cgColor as Any,
+            UIColor(hex: 0x17F1FE)?.cgColor as Any,
+            UIColor(hex: 0x17C5FF)?.cgColor as Any,
             UIColor(hex: 0x283DFF)?.cgColor as Any
         ]
-        gradientLayer.locations = [0.0, 0.2, 1.0]
+        gradientLayer.locations = [0, 0.1, 1.0]
         gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
         gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
         gradientLayer.cornerRadius = startButtonHeight / 2.0
@@ -86,7 +86,6 @@ class AgentControlToolbar: UIView {
         button.clipsToBounds = true
         button.setImage(UIImage.va_named("ic_agent_close"), for: .normal)
         button.setBackgroundColor(color: PrimaryColors.c_1c1c20, forState: .normal)
-        
         return button
     }()
     
@@ -121,12 +120,13 @@ class AgentControlToolbar: UIView {
         button.titleLabel?.textAlignment = .center
         button.layerCornerRadius = buttonWidth / 2.0
         button.clipsToBounds = true
-        button.setImage(UIImage.va_named("ic_captions_icon"), for: .normal)
-        button.setImage(UIImage.va_named("ic_captions_icon_s"), for: .selected)
-        button.setBackgroundColor(color: PrimaryColors.c_00c2ff, forState: .normal)
-        if let color = UIColor(hex: 0x333333) {
-            button.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
+        if AppContext.shared.appArea == .mainland {
+            button.setImage(UIImage.va_named("ic_captions_icon_cn")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        } else {
+            button.setImage(UIImage.va_named("ic_captions_icon")?.withRenderingMode(.alwaysTemplate), for: .normal)
         }
+        button.tintColor = PrimaryColors.c_ffffff
+        button.setBackgroundColor(color: PrimaryColors.c_1c1c20, forState: .normal)
         return button
     }()
     
@@ -160,6 +160,8 @@ class AgentControlToolbar: UIView {
 
         captionsButton.isSelected = false
         muteButton.isSelected = false
+        captionsButton.isSelected = false
+        setTintColor(state: captionsButton.isSelected)
     }
     
     func setEnable(enable: Bool) {
@@ -247,7 +249,12 @@ class AgentControlToolbar: UIView {
 
     @objc private func switchCaptionsAction(_ sender: UIButton) {
         sender.isSelected = !sender.isSelected
+        setTintColor(state: sender.isSelected)
         delegate?.switchCaptions(selectedState: sender.isSelected)
+    }
+    
+    private func setTintColor(state: Bool) {
+        captionsButton.tintColor = state ? PrimaryColors.c_00c2ff : PrimaryColors.c_ffffff
     }
     
 }

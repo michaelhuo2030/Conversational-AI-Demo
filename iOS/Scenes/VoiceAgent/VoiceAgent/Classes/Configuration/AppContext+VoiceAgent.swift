@@ -9,8 +9,8 @@ import Foundation
 import Common
 
 public class AgentLogger: NSObject {
-    public static let kLogKey = "agent"
-    
+    static let kLogKey = VoiceAgentContext.kSceneName
+
     public static func info(_ text: String, context: String? = nil) {
         agoraDoMainThreadTask {
             AgoraEntLog.getSceneLogger(with: kLogKey).info(text, context: context)

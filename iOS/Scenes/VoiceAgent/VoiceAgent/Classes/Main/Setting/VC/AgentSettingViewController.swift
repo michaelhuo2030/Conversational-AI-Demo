@@ -66,7 +66,11 @@ class AgentSettingViewController: UIViewController {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.language
         if let manager = AppContext.preferenceManager() {
-            view.detailLabel.text = manager.preference.preset?.defaultLanguageName
+            if let currentLanguage = manager.preference.language {
+                view.detailLabel.text = currentLanguage.languageName
+            } else {
+                view.detailLabel.text = manager.preference.preset?.defaultLanguageName
+            }
         }
         view.button.addTarget(self, action: #selector(onClickLanguage(_:)), for: .touchUpInside)
         return view
@@ -232,11 +236,11 @@ class AgentSettingViewController: UIViewController {
         }
     
         let currentIndex = allPresets.firstIndex { $0.displayName == currentPreset.displayName } ?? 0
-        let table = AgentSelectTableView(items: allPresets.map {$0.displayName}) { [weak self] index in
-            guard let self = self else { return }
+        let table = AgentSelectTableView(items: allPresets.map {$0.displayName}) { index in
             let selected = allPresets[index]
+            if selected.displayName == currentPreset.displayName { return }
+            
             AppContext.preferenceManager()?.updatePreset(selected)
-            self.presetItem.detailLabel.text = selected.displayName
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -258,11 +262,11 @@ class AgentSettingViewController: UIViewController {
         guard let currentLanguage = AppContext.preferenceManager()?.preference.language else { return }
         
         let currentIndex = allLanguages.firstIndex { $0.languageName == currentLanguage.languageName } ?? 0
-        let table = AgentSelectTableView(items: allLanguages.map { $0.languageName }) { [weak self] index in
-            guard let self = self else { return }
+        let table = AgentSelectTableView(items: allLanguages.map { $0.languageName }) { index in
             let selected = allLanguages[index]
+            if currentLanguage.languageCode == selected.languageCode { return }
+            
             AppContext.preferenceManager()?.updateLanguage(selected)
-            self.languageItem.detailLabel.text = selected.languageName
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -409,7 +413,18 @@ extension AgentSettingViewController {
 extension AgentSettingViewController: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
         presetItem.detailLabel.text =  preset.displayName
-        languageItem.detailLabel.text = preset.defaultLanguageName
+        
+        let defaultLanguageCode = preset.defaultLanguageCode
+        let supportLanguages = preset.supportLanguages
+        
+        var resetLanguageCode = defaultLanguageCode
+        if defaultLanguageCode.isEmpty, let languageCode = supportLanguages.first?.languageCode {
+            resetLanguageCode = languageCode
+        }
+        
+        if let language = supportLanguages.first(where: { $0.languageCode == resetLanguageCode }) {
+            manager.updateLanguage(language)
+        }
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {

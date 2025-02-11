@@ -113,6 +113,6 @@ enum RtcEnum {
     }
     
     static func getChannel() -> String {
-        return UUID().uuidString
+        return "Agent_\(UUID().uuidString)"
     }
 }

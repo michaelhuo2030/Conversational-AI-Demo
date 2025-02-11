@@ -92,6 +92,14 @@ class AgentInformationViewController: UIViewController {
         return view
     }()
     
+    private lazy var agentIDItem: AgentSettingTableItemView = {
+        let view = AgentSettingTableItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentId
+        view.imageView.isHidden = true
+        view.enableLongPressCopy = true
+        return view
+    }()
+    
     private lazy var roomItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomStatus
@@ -195,7 +203,7 @@ extension AgentInformationViewController {
         scrollView.addSubview(contentView)
         
         networkItems = [networkItem]
-        channelInfoItems = [agentItem, roomItem, roomIDItem, idItem]
+        channelInfoItems = [agentItem, agentIDItem, roomItem, roomIDItem, idItem]
         
         contentView.addSubview(networkInfoTitle)
         contentView.addSubview(networkInfoView)
@@ -303,6 +311,10 @@ extension AgentInformationViewController {
         roomItem.detailLabel.text = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.rawValue :  manager.information.rtcRoomState.rawValue
         roomItem.detailLabel.textColor = manager.information.rtcRoomState == .unload ? ConnectionStatus.disconnected.color : manager.information.rtcRoomState.color
         
+        // Update Agent ID
+        agentIDItem.detailLabel.text = manager.information.agentState == .unload ? "--" : manager.information.agentId
+        agentIDItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
+        
         // Update Room ID
         roomIDItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : manager.information.roomId
         roomIDItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
@@ -310,6 +322,7 @@ extension AgentInformationViewController {
         // Update Participant ID
         idItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : manager.information.userId
         idItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
+        
     }
     
     @objc func handleTapGesture(_: UIGestureRecognizer) {
@@ -333,11 +346,15 @@ extension AgentInformationViewController: AgentPreferenceManagerDelegate {
         roomItem.detailLabel.textColor = roomState == .unload ? ConnectionStatus.disconnected.color : roomState.color
     }
     
+    func preferenceManager(_ manager: AgentPreferenceManager, agentIdDidUpdated agentId: String) {
+        agentIDItem.detailLabel.text = manager.information.agentState == .unload ? "--" : agentId
+    }
+    
     func preferenceManager(_ manager: AgentPreferenceManager, roomIdDidUpdated roomId: String) {
-        roomIDItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "-" : roomId
+        roomIDItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : roomId
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, userIdDidUpdated userId: String) {
-        idItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "-" : userId
+        idItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : userId
     }
 }

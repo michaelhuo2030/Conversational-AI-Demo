@@ -79,7 +79,7 @@ class ChatMessageCell: UITableViewCell {
             setupAgentLayout()
             avatarView.backgroundColor = .clear
             avatarImageView.image = UIImage.va_named("ic_agent_avatar")
-            nameLabel.text = ResourceManager.L10n.Conversation.messageAgentName
+            nameLabel.text = AppContext.preferenceManager()?.preference.preset?.displayName ?? ""
             nameLabel.textColor = PrimaryColors.c_ffffff
             messageLabel.textColor = PrimaryColors.c_b3b3b3
             messageBubble.backgroundColor = .clear
@@ -153,6 +153,7 @@ class ChatView: UIView {
     private var messages: [Message] = []
     private var currentStreamMessage: String = ""
     private var shouldAutoScroll = true
+    var currentTurnId: Int = 0
     private lazy var arrowButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage.va_named("ic_captions_arrow_icon"), for: .normal)
@@ -228,8 +229,9 @@ class ChatView: UIView {
         scrollToBottom()
     }
     
-    func startNewStreamMessage() {
+    func startNewStreamMessage(turnId: Int) {
         currentStreamMessage = ""
+        currentTurnId = turnId
         messages.append(Message(content: "", isUser: false, isCompleted: false))
         tableView.reloadData()
         scrollToBottom()

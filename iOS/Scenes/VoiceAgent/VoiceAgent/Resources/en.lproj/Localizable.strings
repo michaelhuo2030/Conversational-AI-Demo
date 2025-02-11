@@ -41,12 +41,17 @@
 "channel.info.title" = "CHANNEL INFO";
 "channel.network.info.title" = "NETWORK INFO";
 "channel.info.agent.status" = "Agent Status";
+"channel.info.agent.id" = "Agent-ID";
 "channel.info.room.status" = "Room Status";
 "channel.info.room.id" = "Room-ID";
 "channel.info.your.id" = "Your-ID";
 "channel.info.your.network" = "Your Network";
 "channel.disconnected.state" = "Disconnected";
 "channel.connected.state" = "Connected";
+"channel.info.copied" = "copied";
+"channel.network.good" = "Good";
+"channel.network.poor" = "Poor";
+"channel.network.bad" = "VeryBad";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";

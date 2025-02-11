@@ -18,6 +18,7 @@ protocol AgentPreferenceManagerDelegate: AnyObject {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus)
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus)
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus)
+    func preferenceManager(_ manager: AgentPreferenceManager, agentIdDidUpdated agentId: String)
     func preferenceManager(_ manager: AgentPreferenceManager, roomIdDidUpdated roomId: String)
     func preferenceManager(_ manager: AgentPreferenceManager, userIdDidUpdated userId: String)
 }
@@ -32,8 +33,6 @@ protocol AgentPreferenceManagerProtocol {
     func updatePreset(_ preset: AgentPreset)
     func updateLanguage(_ language: SupportLanguage)
 
-//    func updatePreset(_ preset: String)
-//    func updateLanguage(_ language: String)
     func updateAiVadState(_ state: Bool)
     func updateForceThresholdState(_ state: Bool)
     
@@ -41,9 +40,11 @@ protocol AgentPreferenceManagerProtocol {
     func updateNetworkState(_ state: NetworkStatus)
     func updateAgentState(_ state: ConnectionStatus)
     func updateRoomState(_ state: ConnectionStatus)
+    func updateAgentId(_ agentId: String)
     func updateRoomId(_ roomId: String)
     func updateUserId(_ userId: String)
     
+    func resetAgentInformation()
     func allPresets() -> [AgentPreset]?
     func setPresets(presets: [AgentPreset])
 }
@@ -101,6 +102,11 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
         notifyDelegates { $0.preferenceManager(self, roomStateDidUpdated: state) }
     }
     
+    func updateAgentId(_ agentId: String) {
+        information.agentId = agentId
+        notifyDelegates { $0.preferenceManager(self, agentIdDidUpdated: agentId) }
+    }
+    
     func updateRoomId(_ roomId: String) {
         information.roomId = roomId
         notifyDelegates { $0.preferenceManager(self, roomIdDidUpdated: roomId) }
@@ -109,6 +115,15 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
     func updateUserId(_ userId: String) {
         information.userId = userId
         notifyDelegates { $0.preferenceManager(self, userIdDidUpdated: userId) }
+    }
+    
+    func resetAgentInformation() {
+        updateNetworkState(.unknown)
+        updateRoomState(.unload)
+        updateAgentState(.unload)
+        updateAgentId("")
+        updateRoomId("")
+        updateUserId("")
     }
     
     func allPresets() -> [AgentPreset]? {
@@ -191,6 +206,17 @@ enum NetworkStatus: String {
         }
     }
     
+    var rawValue: String {
+        switch self {
+        case .good:
+            return ResourceManager.L10n.ChannelInfo.networkGood
+        case .poor:
+            return ResourceManager.L10n.ChannelInfo.networkPoor
+        case .veryBad, .unknown:
+            return ResourceManager.L10n.ChannelInfo.networkBad
+        }
+    }
+    
     var color: UIColor {
         switch self {
         case .good:
@@ -214,6 +240,7 @@ class AgentInfomation {
     var networkState: NetworkStatus = .unknown
     var agentState: ConnectionStatus = .unload
     var rtcRoomState: ConnectionStatus = .unload
+    var agentId: String = ""
     var roomId: String = ""
     var userId: String = ""
 }
@@ -227,6 +254,7 @@ extension AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {}
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {}
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {}
+    func preferenceManager(_ manager: AgentPreferenceManager, agentIdDidUpdated agentId: String) {}
     func preferenceManager(_ manager: AgentPreferenceManager, roomIdDidUpdated roomId: String) {}
     func preferenceManager(_ manager: AgentPreferenceManager, userIdDidUpdated userId: String) {}
 }

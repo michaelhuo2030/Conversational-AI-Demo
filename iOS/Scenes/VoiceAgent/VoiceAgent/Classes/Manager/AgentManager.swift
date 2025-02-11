@@ -68,7 +68,9 @@ class AgentManager: AgentAPI {
             
             do {
                 let jsonData = try JSONSerialization.data(withJSONObject: data)
-                let presets = try JSONDecoder().decode([AgentPreset].self, from: jsonData)
+                var presets = try JSONDecoder().decode([AgentPreset].self, from: jsonData)
+                //Temporary requirement: Remove custom settings.
+                presets.removeAll(where: { $0.presetType == "custom" })
                 completion(nil, presets)
             } catch {
                 let error = AgentError.serverError(code: -1, message: error.localizedDescription)
@@ -125,7 +127,8 @@ class AgentManager: AgentAPI {
         let parameters: [String: Any] = [
             "app_id": appId,
             "agent_id": agentId,
-            "preset_name": presetName
+            "preset_name": presetName,
+            "channel_name": channelName
         ]
         AgentLogger.info("request stop api parameters is: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in

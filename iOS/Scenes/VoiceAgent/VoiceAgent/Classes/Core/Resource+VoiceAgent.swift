@@ -89,12 +89,17 @@ extension ResourceManager {
             public static let title = ResourceManager.localizedString("channel.info.title")
             public static let networkInfoTitle = ResourceManager.localizedString("channel.network.info.title")
             public static let agentStatus = ResourceManager.localizedString("channel.info.agent.status")
+            public static let agentId = ResourceManager.localizedString("channel.info.agent.id")
             public static let roomStatus = ResourceManager.localizedString("channel.info.room.status")
             public static let roomId = ResourceManager.localizedString("channel.info.room.id")
             public static let yourId = ResourceManager.localizedString("channel.info.your.id")
             public static let yourNetwork = ResourceManager.localizedString("channel.info.your.network")
             public static let connectedState = ResourceManager.localizedString("channel.connected.state")
             public static let disconnectedState = ResourceManager.localizedString("channel.disconnected.state")
+            public static let copyToast = ResourceManager.localizedString("channel.info.copied")
+            public static let networkGood = ResourceManager.localizedString("channel.network.good")
+            public static let networkPoor = ResourceManager.localizedString("channel.network.poor")
+            public static let networkBad = ResourceManager.localizedString("channel.network.bad")
         }
     }
 }
