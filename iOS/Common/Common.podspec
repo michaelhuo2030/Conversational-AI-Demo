@@ -34,17 +34,15 @@ TODO: Add long description of the pod here.
   
   s.static_framework = true
   s.swift_version = '5.0'
-
-  s.source_files = ['Common/Context/*',
-                    'Common/Utils/*',
-                    'Common/Extension/*',
-                    'Common/Colors/*',
-                    'Common/Views/*'
-                    ]
-                    
- s.resources = ['Common/*.bundle']
- 
- s.dependency 'SwiftyBeaver'
- s.dependency 'SSZipArchive'
-  # s.public_header_files = 'Pod/Classes/**/*.h' 
+  
+  s.source_files = 'Common/Classes/**/*'
+  s.resource_bundles = {
+    'Common' => [
+      'Common/Assets/**/*'
+    ]
+  }
+    
+  s.dependency 'SwiftyBeaver'
+  s.dependency 'SSZipArchive'
+  # s.public_header_files = 'Pod/Classes/**/*.h'
 end
