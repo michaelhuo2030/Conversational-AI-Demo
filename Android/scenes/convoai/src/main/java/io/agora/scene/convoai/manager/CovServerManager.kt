@@ -135,7 +135,7 @@ object CovServerManager {
         })
     }
 
-    fun stopAgent(succeed: (Boolean) -> Unit) {
+    fun stopAgent(preset: String?, succeed: (Boolean) -> Unit) {
         if (agentId.isNullOrEmpty()) {
             runOnMainThread {
                 succeed.invoke(false)
@@ -147,9 +147,11 @@ object CovServerManager {
         try {
             postBody.put("app_id", ServerConfig.rtcAppId)
             postBody.put("agent_id", agentId)
+            preset?.let {postBody.put("preset_name", it)}
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }
+        CovLogger.e(TAG, "stopAgent $postBody")
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = Request.Builder()
             .url(requestURL)

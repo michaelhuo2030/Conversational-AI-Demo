@@ -259,7 +259,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         connectionState = AgentConnectionState.IDLE
         mCovBallAnim?.updateAgentState(AgentState.STATIC)
-        CovServerManager.stopAgent {}
+        CovServerManager.stopAgent(CovAgentManager.getPreset()?.name) {}
         resetSceneState()
     }
 
