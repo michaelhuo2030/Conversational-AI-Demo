@@ -6,4 +6,5 @@
     <string name="common_debug_rtc_version">Rtc Version</string>
     <string name="common_debug_audio_dump">Audio Dump</string>
     <string name="common_debug_close">Close Debug Mode</string>
+    <string name="common_debug_copy_user_question">Copy user’s current call question</string>
 </resources>

@@ -46,10 +46,6 @@
     <string name="cov_setting_network_error">Network Error!</string>
     <string name="cov_agent_connecting">Connecting…</string>
     <string name="cov_copy_succeed">Copied</string>
-    <string name="cov_debug_mode_enable">Debug Mode is On</string>
-    <string name="cov_debug_setting">Debugging Settings</string>
-    <string name="cov_debug_rtc_version">Rtc Version</string>
-    <string name="cov_debug_audio_dump">Audio Dump</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>Inbuilt Mic</item>

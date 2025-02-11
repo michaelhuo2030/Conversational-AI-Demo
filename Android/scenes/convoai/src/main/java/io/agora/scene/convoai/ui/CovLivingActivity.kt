@@ -20,6 +20,7 @@ import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
@@ -404,7 +405,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         val rawString = String(bytes, Charsets.UTF_8)
                         val message = parser.parseStreamMessage(rawString)
                         message?.let { msg ->
-                            CovLogger.d(TAG, "onStreamMessage: $msg $this")
+                            CovLogger.d(TAG, "onStreamMessage: $msg")
                             val isFinal = msg["is_final"] as? Boolean ?: false
                             val streamId = msg["stream_id"] as? Double ?: 0.0
                             val turnId = msg["turn_id"] as? Double ?: 0.0
@@ -556,6 +557,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
                 override fun onDebugEnable(enable: Boolean) {
                     btnDebug.isVisible = ServerConfig.isDebug
+                }
+
+                override fun onClickCopy() {
+                    val messageContents = messageListView.getAllMessages()
+                        .filter { it.isMe }
+                        .map { it.content }
+                        .joinToString("\n")
+                    this@CovLivingActivity.copyToClipboard(messageContents)
+                    ToastUtil.show(R.string.cov_copy_succeed)
                 }
             })
             btnDebug.isVisible = ServerConfig.isDebug
