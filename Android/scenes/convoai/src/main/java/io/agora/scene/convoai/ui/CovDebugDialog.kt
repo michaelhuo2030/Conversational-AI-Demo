@@ -50,6 +50,10 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
             ServerConfig.isDebug = enable
             mCallback.onDebugEnable(enable)
         }
+
+        fun onClickCopy() {
+            mCallback.onClickCopy()
+        }
     }
 
     interface Callback {
@@ -61,6 +65,8 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
         fun onAudioDumpEnable(enable: Boolean)
 
         fun onDebugEnable(enable: Boolean)
+
+        fun onClickCopy()
     }
 
     private var value: Int = 0
@@ -98,14 +104,11 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
                     dismiss()
                 }
             })
+            btnCopy.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    settingBean.onClickCopy()
+                }
+            })
         }
     }
-
-
-    private fun copyToClipboard(text: String) {
-        val cm: ClipboardManager = context?.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
-        cm.setPrimaryClip(ClipData.newPlainText(null, text))
-        ToastUtil.show(R.string.cov_copy_succeed)
-    }
-
 }

@@ -54,6 +54,10 @@ class MessageListView @JvmOverloads constructor(
         messageAdapter.clearMessages()
     }
 
+    fun getAllMessages(): List<Message> {
+        return messageAdapter.getAllMessage()
+    }
+
     fun updateAgentName(str: String) {
         messageAdapter.updateFromTitle(str)
     }
@@ -238,6 +242,10 @@ class MessageListView @JvmOverloads constructor(
 
         fun getLastMessage(): Message? {
             return messages.lastOrNull()
+        }
+
+        fun getAllMessage(): List<Message> {
+            return messages
         }
 
         fun containsMessage(message: Message): Boolean {

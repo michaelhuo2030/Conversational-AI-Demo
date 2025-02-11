@@ -1,8 +1,5 @@
 package io.agora.scene.convoai.ui
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,12 +8,12 @@ import android.view.ViewGroup
 import io.agora.rtc2.Constants
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.manager.AgentConnectionState
 import io.agora.scene.convoai.manager.CovAgentManager
-import io.agora.scene.convoai.manager.CovRtcManager
 import io.agora.scene.convoai.manager.CovServerManager
 
 class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<CovInfoDialogBinding>() {
@@ -146,9 +143,10 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
     }
 
     private fun copyToClipboard(text: String) {
-        val cm: ClipboardManager = context?.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager?:return
-        cm.setPrimaryClip(ClipData.newPlainText(null, text))
-        ToastUtil.show(R.string.cov_copy_succeed)
+        context?.apply {
+            copyToClipboard(text)
+            ToastUtil.show(R.string.cov_copy_succeed)
+        }
     }
 
 }
