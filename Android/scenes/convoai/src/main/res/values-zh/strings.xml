@@ -17,6 +17,7 @@
     <string name="cov_info_dialog_title">信息</string>
     <string name="cov_channel_info_title">频道信息</string>
     <string name="cov_info_agent_status">智能体状态</string>
+    <string name="cov_info_agent_id">智能体ID</string>
     <string name="cov_info_agent_connected">已连接</string>
     <string name="cov_info_room_status">房间状态</string>
     <string name="cov_info_room_id">房间ID</string>
@@ -44,6 +45,7 @@
     <string name="cov_setting_ai_vad">启用 优雅打断</string>
     <string name="cov_setting_network_error">请求失败：</string>
     <string name="cov_agent_connecting">连接中...</string>
+    <string name="cov_copy_succeed">已复制</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>内置麦克风</item>

@@ -32,7 +32,9 @@ object CovServerManager {
             .build()
     }
 
-    private var agentId: String? = null
+    var agentId: String? = null
+        private set
+
 
     private const val SERVICE_VERSION = "v2"
 

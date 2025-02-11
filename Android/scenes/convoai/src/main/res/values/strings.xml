@@ -17,6 +17,7 @@
     <string name="cov_info_dialog_title">INFO</string>
     <string name="cov_channel_info_title">CHANNEL INFO</string>
     <string name="cov_info_agent_status">Agent Status</string>
+    <string name="cov_info_agent_id">Agent ID</string>
     <string name="cov_info_agent_connected">Connected</string>
     <string name="cov_info_room_status">Room Status</string>
     <string name="cov_info_room_id">Room-ID</string>
@@ -44,6 +45,7 @@
     <string name="cov_setting_ai_vad">Enable AI-VAD</string>
     <string name="cov_setting_network_error">Network Error!</string>
     <string name="cov_agent_connecting">Connecting…</string>
+    <string name="cov_copy_succeed">Copied</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>Inbuilt Mic</item>
