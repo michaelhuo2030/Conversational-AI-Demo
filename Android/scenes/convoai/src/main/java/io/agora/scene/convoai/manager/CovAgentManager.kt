@@ -21,7 +21,7 @@ object CovAgentManager {
     var channelName: String = ""
 
     fun setPresetList(l: List<CovAgentPreset>) {
-        presetList = l
+        presetList = l.filter { it.preset_type != "custom" }
         setPreset(presetList?.firstOrNull())
     }
 

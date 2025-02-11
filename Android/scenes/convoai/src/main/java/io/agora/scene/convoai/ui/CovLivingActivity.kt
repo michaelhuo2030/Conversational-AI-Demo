@@ -201,7 +201,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
             withContext(Dispatchers.Main) {
-                mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.name ?: "")
+                mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
             }
 
             CovRtcManager.joinChannel(rtcToken ?: "", CovAgentManager.channelName, CovAgentManager.uid)
@@ -264,7 +264,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         connectionState = AgentConnectionState.IDLE
         mCovBallAnim?.updateAgentState(AgentState.STATIC)
-        CovServerManager.stopAgent(CovAgentManager.getPreset()?.name) {}
+        CovServerManager.stopAgent(CovAgentManager.channelName ,CovAgentManager.getPreset()?.name) {}
         resetSceneState()
     }
 

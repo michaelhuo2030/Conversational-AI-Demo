@@ -36,10 +36,18 @@ class MessageListView @JvmOverloads constructor(
         binding.rvMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
+                Log.d(TAG, "onScrollStateChanged: $newState")
                 when (newState) {
                     RecyclerView.SCROLL_STATE_DRAGGING -> {
                         setUserDragged(true)
                     }
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                Log.d(TAG, "onScrolled: $dy")
+                if (userDragged && isScrolledToBottom()) {
+                    setUserDragged(false)
                 }
             }
         })
@@ -163,6 +171,13 @@ class MessageListView @JvmOverloads constructor(
                 -9999.dp.toInt()
             )
         }
+    }
+
+    private fun isScrolledToBottom(): Boolean {
+        val scrollY = binding.rvMessages.scrollY
+        val contentHeight = binding.rvMessages.getChildAt(0).height
+        val scrollViewHeight = binding.rvMessages.height
+        return scrollY >= (contentHeight - scrollViewHeight)
     }
 
     data class Message(
