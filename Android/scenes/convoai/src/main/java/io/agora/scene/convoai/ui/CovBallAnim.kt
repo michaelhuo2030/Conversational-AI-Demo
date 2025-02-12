@@ -187,16 +187,38 @@ class CovBallAnim constructor(
                 }
             } else if (state == MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED) {
                 rtcMediaPlayer?.apply {
-                    playPreloadedSrc(getVideoSrc(VIDEO_ROTATING_NAME))
-                    mute(true)
-                    setLoopCount(-1)
+                    if (isRotatingVideoPreload){
+                        playPreloadedSrc(getVideoSrc(VIDEO_ROTATING_NAME))
+                        mute(true)
+                        setLoopCount(-1)
+                    }
                 }
             }
         }
 
+        private var isRotatingVideoPreload = false
+        private var isRotatingVideoPlaying = false
+
         override fun onPreloadEvent(src: String?, event: Constants.MediaPlayerPreloadEvent?) {
             super.onPreloadEvent(src, event)
             Log.d(TAG, "onPreloadEvent: $src $event")
+            src?:return
+            when(event){
+                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_BEGIN->{
+
+                }
+                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_COMPLETE->{
+                    if (src.contains(VIDEO_ROTATING_NAME)){
+                        isRotatingVideoPreload = true
+                    }
+                }
+                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_ERROR->{
+
+                }
+
+                else -> {}
+            }
+
         }
     }
 
