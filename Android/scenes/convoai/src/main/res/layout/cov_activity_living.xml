@@ -79,12 +79,12 @@
                 app:cardCornerRadius="999dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@android:color/transparent"
-                app:layout_constraintDimensionRatio="1236:1080"
+                app:layout_constraintDimensionRatio="1142:1080"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.9"
+                app:layout_constraintWidth_percent="1.0"
                 app:strokeColor="@android:color/transparent">
 
                 <TextureView
@@ -142,12 +142,11 @@
             android:src="@drawable/btn_debug_selector" />
     </FrameLayout>
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="72dp"
         android:layout_marginTop="20dp"
-        android:layout_marginBottom="30dp"
-        android:paddingHorizontal="40dp">
+        android:layout_marginBottom="30dp">
 
         <LinearLayout
             android:id="@+id/ll_calling"
@@ -156,6 +155,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:orientation="horizontal"
+            android:layout_marginHorizontal="40dp"
             android:visibility="gone"
             tools:visibility="visible">
 
@@ -219,19 +219,21 @@
                     android:src="@drawable/scene_detail_close"
                     app:tint="@color/ai_icontext1" />
             </androidx.cardview.widget.CardView>
-
-
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/ll_join_call"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_gravity="center"
             android:background="@drawable/btn_join_call_selector"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="gone"
             android:gravity="center_horizontal|center_vertical"
-            android:orientation="horizontal"
-            tools:visibility="gone">
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.618"
+            android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -247,5 +249,5 @@
                 android:textColor="@color/ai_icontext1"
                 android:textSize="18sp" />
         </LinearLayout>
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

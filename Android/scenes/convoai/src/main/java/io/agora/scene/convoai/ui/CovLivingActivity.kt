@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.PermissionHelp
@@ -28,6 +29,7 @@ import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.manager.AgentConnectionState
 import io.agora.scene.convoai.manager.AgentRequestParams
 import io.agora.scene.convoai.manager.CovAgentManager
+import io.agora.scene.convoai.manager.CovAgentPreset
 import io.agora.scene.convoai.manager.CovServerManager
 import kotlinx.coroutines.*
 import java.util.UUID
@@ -546,6 +548,23 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
+    private val onPresetCallback = object :CovSettingsDialog.Callback{
+        override fun onPreset(preset: CovAgentPreset) {
+            mBinding?.apply {
+                if (preset.isIndependent()){
+                    btnCc.isEnabled = false
+                    btnCc.setBackgroundColor(ResourcesCompat.getColor(resources,
+                        io.agora.scene.common.R.color.ai_disable,null))
+                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_disable1), PorterDuff.Mode.SRC_IN)
+                }else{
+                    btnCc.isEnabled = true
+                    btnCc.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
+                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                }
+            }
+        }
+    }
+
     private fun setupView() {
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -587,33 +606,35 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     onClickEndCall()
                 }
             })
-            btnMic.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    isLocalAudioMuted = !isLocalAudioMuted
-                    CovRtcManager.muteLocalAudio(isLocalAudioMuted)
-                }
-            })
+            btnMic.setOnClickListener {
+                isLocalAudioMuted = !isLocalAudioMuted
+                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+            }
             btnSettings.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     if (CovAgentManager.getPresetList().isNullOrEmpty()) {
                         coroutineScope.launch {
                             val success = fetchPresetsAsync()
                             if (success) {
-                                CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
+                                val dialog = CovSettingsDialog().apply {
+                                    onCallBack = onPresetCallback
+                                }
+                                dialog.show(supportFragmentManager, "AgentSettingsSheetDialog")
                             } else {
                                 ToastUtil.show(R.string.cov_detail_net_state_error)
                             }
                         }
                     } else {
-                        CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
+                        val dialog = CovSettingsDialog().apply {
+                            onCallBack = onPresetCallback
+                        }
+                        dialog.show(supportFragmentManager, "AgentSettingsSheetDialog")
                     }
                 }
             })
-            btnCc.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    isShowMessageList = !isShowMessageList
-                }
-            })
+            btnCc.setOnClickListener {
+                isShowMessageList = !isShowMessageList
+            }
             btnInfo.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     infoDialog = CovAgentInfoDialog {

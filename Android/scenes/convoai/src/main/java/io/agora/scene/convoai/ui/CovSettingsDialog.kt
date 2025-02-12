@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.common.ui.BaseSheetDialog
@@ -15,8 +14,15 @@ import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.manager.AgentConnectionState
 import io.agora.scene.convoai.manager.CovAgentManager
+import io.agora.scene.convoai.manager.CovAgentPreset
 
 class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
+
+    interface Callback {
+        fun onPreset(preset: CovAgentPreset)
+    }
+
+    var onCallBack:Callback?=null
 
     companion object {
         private const val TAG = "AgentSettingsSheetDialog"
@@ -115,7 +121,9 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 presets.map { it.display_name }.toTypedArray(),
                 presets.indexOf(CovAgentManager.getPreset())
             ) { index ->
-                CovAgentManager.setPreset(presets[index])
+                val preset= presets[index]
+                CovAgentManager.setPreset(preset)
+                onCallBack?.onPreset(preset)
                 updateBaseSettings()
                 binding?.apply {
                     vOptionsMask.visibility = View.INVISIBLE

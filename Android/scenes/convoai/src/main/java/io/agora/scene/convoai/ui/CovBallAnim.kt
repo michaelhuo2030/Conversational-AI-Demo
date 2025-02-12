@@ -16,7 +16,8 @@ import io.agora.mediaplayer.data.MediaPlayerSource
 import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.convoai.manager.CovMediaPlayerObserver
-import android.view.View
+import io.agora.mediaplayer.Constants
+import java.io.File
 
 enum class AgentState {
     /** Idle state, no video or animation is playing */
@@ -56,7 +57,8 @@ class CovBallAnim constructor(
         private const val DURATION_MEDIUM = 500L
         private const val DURATION_LOW = 600L
 
-        private const val VIDEO_FILE_NAME = "ball_small_video.mov"
+        private const val VIDEO_START_NAME = "ball_video_start1.mov"
+        private const val VIDEO_ROTATING_NAME = "ball_video_rotating1.mov"
         private const val BOUNCE_SCALE = 0.02f  // Additional scale factor during bounce
     }
 
@@ -70,7 +72,7 @@ class CovBallAnim constructor(
                 field = value
                 when (value) {
                     AgentState.STATIC -> {
-                        rtcMediaPlayer?.setPlaybackSpeed(50)
+                        rtcMediaPlayer?.setPlaybackSpeed(100)
                     }
 
                     AgentState.LISTENING -> {
@@ -156,30 +158,47 @@ class CovBallAnim constructor(
         }
     }
 
+    private fun getVideoSrc(fileName: String): String {
+        return context.filesDir.absolutePath + File.separator + fileName
+    }
+
     fun setupMediaPlayer(rtcEngine: RtcEngine) {
         rtcMediaPlayer = rtcEngine.createMediaPlayer()?.apply {
             setView(videoView)
             registerPlayerObserver(mediaPlayerObserver)
             val source = MediaPlayerSource().apply {
-                url = context.filesDir.absolutePath + "/$VIDEO_FILE_NAME"
+                url = getVideoSrc(VIDEO_START_NAME)
             }
-            setLoopCount(-1)
             openWithMediaSource(source)
         }
     }
 
     private val mediaPlayerObserver = object : CovMediaPlayerObserver() {
         override fun onPlayerStateChanged(state: MediaPlayerState?, reason: MediaPlayerReason?) {
+            Log.d(TAG, "$state $reason")
             if (state == MediaPlayerState.PLAYER_STATE_OPEN_COMPLETED) {
-                rtcMediaPlayer?.mute(true)
-                rtcMediaPlayer?.setPlaybackSpeed(50)
-                rtcMediaPlayer?.play()
+                rtcMediaPlayer?.apply {
+                    mute(true)
+                    play()
+                    preloadSrc(getVideoSrc(VIDEO_ROTATING_NAME), 0)
+                }
+            } else if (state == MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED) {
+                rtcMediaPlayer?.apply {
+                    playPreloadedSrc(getVideoSrc(VIDEO_ROTATING_NAME))
+                    mute(true)
+                    setLoopCount(-1)
+                }
             }
+        }
+
+        override fun onPreloadEvent(src: String?, event: Constants.MediaPlayerPreloadEvent?) {
+            super.onPreloadEvent(src, event)
+            Log.d(TAG, "onPreloadEvent: $src $event")
         }
     }
 
     fun updateAgentState(newState: AgentState, volume: Int = 0) {
-        Log.d(TAG,"updateAgentState newState:$newState currentState:$currentState ${Thread.currentThread()}")
+        Log.d(TAG, "updateAgentState newState:$newState currentState:$currentState ${Thread.currentThread()}")
         if (Looper.myLooper() == Looper.getMainLooper()) {
             updateAgentStateInternal(newState, volume)
         } else {

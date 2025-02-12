@@ -35,12 +35,14 @@
     <color name="ai_yellow6">#ffffc700</color>
     <color name="ai_brand_lightbrand6">#ffa0faff</color>
     <color name="ai_line3">#19ffffff</color>
-    <color name="ai_disable">#ff32353b</color>
+    <color name="ai_disable">#222222</color>
+    <color name="ai_disable1">#595959</color>
     <color name="ai_brand_white8">#ccffffff</color>
     <color name="ai_brand_white6">#99ffffff</color>
     <color name="ai_block5">#f21d1d1d</color>
     <color name="ai_brand_lightbrand7">#ff17f1fe</color>
     <color name="ai_mask1">#d8121212</color>
+
 
     <array name="gradient_border_default_colors">
         <item>#FF00C2FF</item>
