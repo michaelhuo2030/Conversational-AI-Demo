@@ -27,6 +27,7 @@ class MessageListView @JvmOverloads constructor(
         MessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
     private val messageAdapter: MessageAdapter = MessageAdapter()
     private var currentAgentMessage: Message? = null
+    private var currentUserMessage: Message? = null
     private var autoScrollToBottom = true
 
     init {
@@ -59,6 +60,7 @@ class MessageListView @JvmOverloads constructor(
 
     fun clearMessages() {
         currentAgentMessage = null
+        currentUserMessage = null
         messageAdapter.clearMessages()
     }
 
@@ -79,25 +81,58 @@ class MessageListView @JvmOverloads constructor(
     }
 
     private fun handleUserMessage(turnId: Double, text: String, isFinal: Boolean) {
-        if (isFinal) {
-            addMineMessage(turnId, text)
-            autoScrollIfNeeded()
-        }else{
+        val isNewMessage = currentUserMessage == null
+        if (isNewMessage) {
+            startNewUserMessage(turnId, text)
+        } else {
+            updateCurrentUserMessage(text)
+        }
 
+        if (isFinal) {
+            completeCurrentUserMessage()
+        } else {
+            autoScrollIfNeeded()
         }
     }
 
+    private fun startNewUserMessage(turnId: Double, content: String) {
+        currentUserMessage?.let {
+            completeCurrentUserMessage()
+        }
+
+        val message = Message(true, turnId, content, false)
+        messageAdapter.addMessage(message)
+        currentUserMessage = message
+    }
+
+    private fun updateCurrentUserMessage(content: String) {
+        currentUserMessage?.let {
+            it.content = content
+            messageAdapter.updateMessage(it)
+        }
+    }
+
+    private fun completeCurrentUserMessage() {
+        currentUserMessage?.let {
+            if (!messageAdapter.containsMessage(it)) {
+                messageAdapter.addMessage(it)
+            }
+            currentUserMessage = null
+        }
+        autoScrollIfNeeded()
+    }
+
+
     private fun handleAgentMessage(turnId: Double, text: String, isFinal: Boolean) {
         val isNewMessage = currentAgentMessage?.turnId != turnId
-        
         if (isNewMessage) {
             startNewAgentMessage(turnId, text)
         } else {
-            updateCurrentMessage(text)
+            updateCurrentAgentMessage(text)
         }
         
         if (isFinal) {
-            completeCurrentMessage()
+            completeCurrentAgentMessage()
         } else {
             autoScrollIfNeeded()
         }
@@ -111,8 +146,7 @@ class MessageListView @JvmOverloads constructor(
 
     private fun startNewAgentMessage(turnId: Double, content: String) {
         currentAgentMessage?.let {
-            // 如果存在未完成的消息，先完成它
-            completeCurrentMessage()
+            completeCurrentAgentMessage()
         }
         
         val message = Message(false, turnId, content, false)
@@ -120,7 +154,7 @@ class MessageListView @JvmOverloads constructor(
         currentAgentMessage = message
     }
 
-    private fun completeCurrentMessage() {
+    private fun completeCurrentAgentMessage() {
         currentAgentMessage?.let {
             if (!messageAdapter.containsMessage(it)) {
                 messageAdapter.addMessage(it)
@@ -130,15 +164,7 @@ class MessageListView @JvmOverloads constructor(
         autoScrollIfNeeded()
     }
 
-    private fun addMineMessage(turnId: Double, text: String) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "addUserMessage: $text")
-        }
-        messageAdapter.addMessage(Message(true, turnId, text, true))
-        autoScrollIfNeeded()
-    }
-
-    private fun updateCurrentMessage(content: String) {
+    private fun updateCurrentAgentMessage(content: String) {
         currentAgentMessage?.let {
             it.content = content
             messageAdapter.updateMessage(it)
@@ -185,7 +211,7 @@ class MessageListView @JvmOverloads constructor(
         }
     }
 
-    data class Message(
+    data class Message constructor(
         val isMe: Boolean,
         val turnId: Double,
         var content: String,

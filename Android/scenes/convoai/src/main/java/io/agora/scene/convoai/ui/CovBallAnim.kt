@@ -17,6 +17,7 @@ import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.convoai.manager.CovMediaPlayerObserver
 import io.agora.mediaplayer.Constants
+import io.agora.scene.convoai.CovLogger
 import java.io.File
 
 enum class AgentState {
@@ -57,8 +58,8 @@ class CovBallAnim constructor(
         private const val DURATION_MEDIUM = 500L
         private const val DURATION_LOW = 600L
 
-        private const val VIDEO_START_NAME = "ball_video_start1.mov"
-        private const val VIDEO_ROTATING_NAME = "ball_video_rotating1.mov"
+        private const val VIDEO_START_NAME = "ball_video_start.mov"
+        private const val VIDEO_ROTATING_NAME = "ball_video_rotating.mov"
         private const val BOUNCE_SCALE = 0.02f  // Additional scale factor during bounce
     }
 
@@ -163,6 +164,7 @@ class CovBallAnim constructor(
     }
 
     fun setupMediaPlayer(rtcEngine: RtcEngine) {
+        CovLogger.d(TAG,"called setupMediaPlayer")
         rtcMediaPlayer = rtcEngine.createMediaPlayer()?.apply {
             setView(videoView)
             registerPlayerObserver(mediaPlayerObserver)
@@ -171,6 +173,7 @@ class CovBallAnim constructor(
             }
             openWithMediaSource(source)
         }
+        CovLogger.d(TAG,"called setupMediaPlayer rtcMediaPlayer:$rtcMediaPlayer")
     }
 
     private val mediaPlayerObserver = object : CovMediaPlayerObserver() {
@@ -198,7 +201,6 @@ class CovBallAnim constructor(
     }
 
     fun updateAgentState(newState: AgentState, volume: Int = 0) {
-        Log.d(TAG, "updateAgentState newState:$newState currentState:$currentState ${Thread.currentThread()}")
         if (Looper.myLooper() == Looper.getMainLooper()) {
             updateAgentStateInternal(newState, volume)
         } else {
@@ -289,7 +291,9 @@ class CovBallAnim constructor(
     }
 
     fun release() {
+        CovLogger.d(TAG,"called release")
         rtcMediaPlayer?.let {
+            CovLogger.d(TAG,"called release rtcMediaPlayer: $rtcMediaPlayer")
             it.stop()
             it.destroy()
             rtcMediaPlayer = null

@@ -35,6 +35,9 @@ object CovServerManager {
     var agentId: String? = null
         private set
 
+    var currentHost: String? = null
+        private set
+
 
     private const val SERVICE_VERSION = "v2"
 
@@ -108,6 +111,7 @@ object CovServerManager {
                         val jsonObj = JSONObject(json)
                         val code = jsonObj.optInt("code")
                         val aid = jsonObj.optJSONObject("data")?.optString("agent_id")
+                        currentHost = jsonObj.optJSONObject("data")?.optString("agent_url")
                         if (code == 0 && !aid.isNullOrEmpty()) {
                             agentId = aid
                             runOnMainThread {

@@ -137,8 +137,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         super.onHandleOnBackPressed()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun finish() {
         logScope.cancel()
         coroutineScope.cancel()
 
@@ -152,6 +151,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             it.release()
             mCovBallAnim = null
         }
+        super.finish()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        CovLogger.d(TAG,"activity onDestroy")
     }
 
     override fun onPause() {

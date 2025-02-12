@@ -28,7 +28,8 @@ class AgentApp : Application() {
         initMMKV()
         AgoraLogger.initXLog(this)
         try {
-            initFile("ball_small_video.mov")
+            initFile("ball_video_start.mov")
+            initFile("ball_video_rotating.mov")
         }catch (e: Exception){
             e.printStackTrace()
         }

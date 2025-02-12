@@ -15,6 +15,7 @@ import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovDebugDialogBinding
+import io.agora.scene.convoai.manager.CovServerManager
 
 class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
     BaseSheetDialog<CovDebugDialogBinding>() {
@@ -87,6 +88,7 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
         binding?.apply {
             setOnApplyWindowInsets(root)
             mtvRtcVersion.text = RtcEngine.getSdkVersion()
+            mtvServerHost.text = CovServerManager.currentHost ?: ""
             cbAudioDump.setChecked(settingBean.isAudioDumpEnabled)
             cbAudioDump.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (buttonView.isPressed) {
