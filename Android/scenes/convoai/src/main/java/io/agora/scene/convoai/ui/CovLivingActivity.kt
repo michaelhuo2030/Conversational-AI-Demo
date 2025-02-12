@@ -380,6 +380,20 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
 
+            override fun onRemoteAudioStateChanged(uid: Int, state: Int, reason: Int, elapsed: Int) {
+                super.onRemoteAudioStateChanged(uid, state, reason, elapsed)
+                runOnUiThread{
+                    if (uid == CovAgentManager.agentUID) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "onRemoteAudioStateChanged $uid $state $reason")
+                        }
+                        if (state == Constants.REMOTE_AUDIO_STATE_STOPPED) {
+                            mCovBallAnim?.updateAgentState(AgentState.LISTENING)
+                        }
+                    }
+                }
+            }
+
             override fun onAudioVolumeIndication(
                 speakers: Array<out AudioVolumeInfo>?, totalVolume: Int
             ) {
