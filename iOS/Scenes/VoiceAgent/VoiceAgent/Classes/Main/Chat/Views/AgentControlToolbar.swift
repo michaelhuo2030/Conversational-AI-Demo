@@ -126,8 +126,6 @@ class AgentControlToolbar: UIView {
         } else {
             button.setImage(UIImage.va_named("ic_captions_icon")?.withRenderingMode(.alwaysTemplate), for: .normal)
         }
-        button.setImage(UIImage.va_named("ic_captions_icon"), for: .normal)
-        button.setImage(UIImage.va_named("ic_captions_icon_s"), for: .selected)
         if let color = UIColor(hex: 0x333333) {
             button.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
         }
@@ -274,7 +272,7 @@ class AgentControlToolbar: UIView {
     }
     
     private func setTintColor(state: Bool) {
-        captionsButton.tintColor = state ? UIColor.themColor(named: "ai_brand_main6") : UIColor.themColor(named: "ai_block1")
+        captionsButton.tintColor = state ? UIColor.themColor(named: "ai_brand_main6") : UIColor.themColor(named: "ai_icontext1")
     }
 }
 
