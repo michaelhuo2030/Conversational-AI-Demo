@@ -29,11 +29,11 @@ class AgentSettingArrowItemView: UIView {
 
 extension AgentSettingArrowItemView {
     private func createViews() {
-        self.backgroundColor = PrimaryColors.c_1d1d1d
+        self.backgroundColor = UIColor.themColor(named: "ai_block2")
         titleLabel.textColor = UIColor(hex:0xFFFFFF)
         addSubview(titleLabel)
         
-        detialLabel.textColor = PrimaryColors.c_ffffff_a
+        detialLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         addSubview(detialLabel)
         
         addSubview(imageView)

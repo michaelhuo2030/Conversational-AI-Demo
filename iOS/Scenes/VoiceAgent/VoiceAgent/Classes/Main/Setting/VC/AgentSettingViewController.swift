@@ -33,7 +33,7 @@ class AgentSettingViewController: UIViewController {
     
     private lazy var backgroundView: UIView = {
         let view = UIView()
-        view.backgroundColor = PrimaryColors.c_171717
+        view.backgroundColor = UIColor.themColor(named: "ai_fill2")
         view.alpha = 0.95
         return view
     }()
@@ -45,7 +45,7 @@ class AgentSettingViewController: UIViewController {
     
     private lazy var basicSettingView: UIView = {
         let view = UIView()
-        view.backgroundColor = PrimaryColors.c_1d1d1d
+        view.backgroundColor = UIColor.themColor(named: "ai_block2")
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
         view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
@@ -76,13 +76,13 @@ class AgentSettingViewController: UIViewController {
         let label = UILabel()
         label.text = ResourceManager.L10n.Settings.advanced
         label.font = UIFont.boldSystemFont(ofSize: 16)
-        label.textColor = PrimaryColors.c_ffffff_a
+        label.textColor = UIColor.themColor(named: "ai_icontext3")
         return label
     }()
     
     private lazy var advancedSettingView: UIView = {
         let view = UIView()
-        view.backgroundColor = PrimaryColors.c_1d1d1d
+        view.backgroundColor = UIColor.themColor(named: "ai_block2")
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
         view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor

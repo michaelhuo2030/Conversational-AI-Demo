@@ -29,7 +29,7 @@ class AgentSettingTopView: UIView {
     }
     
     private func createViews() {
-        backgroundColor = PrimaryColors.c_171717
+        backgroundColor = UIColor.themColor(named: "ai_fill2")
         
         leftTitleLabel.text = ResourceManager.L10n.Settings.title
         leftTitleLabel.textColor = .white

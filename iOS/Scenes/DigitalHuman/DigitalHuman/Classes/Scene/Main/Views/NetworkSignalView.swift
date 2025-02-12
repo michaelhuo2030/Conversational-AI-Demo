@@ -132,7 +132,7 @@ class DigitalHumanSettingBar: UIView {
         }
         titleLabel.text = ResourceManager.L10n.Join.title
         titleLabel.font = .systemFont(ofSize: 16)
-        titleLabel.textColor = PrimaryColors.c_b3b3b3
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext4")
         addSubview(titleLabel)
         titleLabel.snp.makeConstraints { make in
             make.left.equalTo(backButton.snp.right).offset(4)

@@ -31,7 +31,7 @@ class ToastView: UIView {
     
     func showToast(text: String) {
         content.text = text
-        content.textColor = PrimaryColors.c_e6544b
+        content.textColor = UIColor.themColor(named: "ai_icontext1")
         self.isHidden = false
         self.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
     }

@@ -548,7 +548,7 @@ private extension DigitalHumanViewController {
             let label = UILabel()
             label.text = ResourceManager.L10n.Join.state
             label.font = .monospacedSystemFont(ofSize: 20, weight: .regular)
-            label.textColor = PrimaryColors.c_b3b3b3
+            label.textColor = UIColor.themColor(named: "ai_icontext4")
             notJoinedView.addSubview(label)
             label.snp.makeConstraints { make in
                 make.top.equalTo(notJoinedImageView.snp.bottom).offset(20)
@@ -683,7 +683,7 @@ private extension DigitalHumanViewController {
         micButton.titleLabel?.textAlignment = .center
         micButton.layerCornerRadius = 36
         micButton.clipsToBounds = true
-        micButton.setBackgroundImage(UIImage(color: PrimaryColors.c_00c2ff, size: CGSize(width: 1, height: 1)), for: .normal)
+        micButton.setBackgroundImage(UIImage(color: UIColor(named: "#00c2ff")!, size: CGSize(width: 1, height: 1)), for: .normal)
         callingBottomView.addSubview(micButton)
         micButton.snp.makeConstraints { make in
             make.left.equalTo(20)
@@ -728,8 +728,8 @@ private extension DigitalHumanViewController {
         joinCallButton = UIButton(type: .custom)
         joinCallButton.setTitle(ResourceManager.L10n.Join.buttonTitle, for: .normal)
         joinCallButton.titleLabel?.font = .systemFont(ofSize: 18)
-        joinCallButton.setTitleColor(PrimaryColors.c_ffffff, for: .normal)
-        joinCallButton.backgroundColor = PrimaryColors.c_0097d4
+        joinCallButton.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
+        joinCallButton.backgroundColor = UIColor(named: "#0097d4")
         joinCallButton.layer.cornerRadius = 32
         joinCallButton.addTarget(self, action: #selector(onClickStartAgent), for: .touchUpInside)
         joinCallButton.setImage(UIImage.dh_named("ic_agent_join_button_icon"), for: .normal)

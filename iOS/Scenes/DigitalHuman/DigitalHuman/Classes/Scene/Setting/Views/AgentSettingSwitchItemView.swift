@@ -28,22 +28,20 @@ class AgentSettingSwitchItemView: UIView {
 
 extension AgentSettingSwitchItemView {
     private func createViews() {
-        self.backgroundColor = PrimaryColors.c_1d1d1d
-
-        titleLabel.textColor = PrimaryColors.c_ffffff
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         titleLabel.font = UIFont.systemFont(ofSize: 14)
         addSubview(titleLabel)
         
-        detailLabel.textColor = PrimaryColors.c_ffffff_a
+        detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         detailLabel.font = UIFont.systemFont(ofSize: 12)
         addSubview(detailLabel)
         
-        bottomLine.backgroundColor = PrimaryColors.c_27272a_a
+        bottomLine.backgroundColor = UIColor.themColor(named: "ai_line1")
         addSubview(bottomLine)
         
         addSubview(switcher)
         
-        switcher.onTintColor = PrimaryColors.c_a0faff
+        switcher.onTintColor = UIColor.themColor(named: "ai_brand_lightbrand6")
     }
     
     private func createConstrains() {

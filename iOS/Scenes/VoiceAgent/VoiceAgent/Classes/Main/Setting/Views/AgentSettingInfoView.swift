@@ -12,12 +12,12 @@
 //    private let networkItem = AgentSettingTableItemView(frame: .zero)
 //
 //    override func createViews() {
-//        backgroundColor = PrimaryColors.c_1d1d1d
+//        backgroundColor = UIColor.themColor(named: "ai_block2")
 //        addSubview(scrollView)
 //        scrollView.addSubview(contentView)
 //        
 //        content1Title.text = ResourceManager.L10n.ChannelInfo.networkInfoTitle
-//        content1Title.textColor = PrimaryColors.c_ffffff_a
+//        content1Title.textColor = UIColor.themColor(named: "ai_icontext3")
 //        contentView.addSubview(content1Title)
 //        
 //        contentView1.backgroundColor = PrimaryColors.c_141414
@@ -74,7 +74,7 @@
 //    lazy var content1Title: UILabel = {
 //        let label = UILabel()
 //        label.text = ResourceManager.L10n.ChannelInfo.title
-//        label.textColor = PrimaryColors.c_ffffff_a
+//        label.textColor = UIColor.themColor(named: "ai_icontext3")
 //        return label
 //    }()
 //    
@@ -175,18 +175,18 @@
 //        // Update Room ID
 //        roomIDItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomId
 //        roomIDItem.detialLabel.text = manager.roomId
-//        roomIDItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
+//        roomIDItem.detialLabel.textColor = UIColor.themColor(named: "ai_icontext3")
 //        roomIDItem.bottomLineStyle2()
 //        
 //        // Update Participant ID
 //        idItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
 //        idItem.detialLabel.text = manager.agentStatus == .unload ? "" : manager.yourId
-//        idItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
+//        idItem.detialLabel.textColor = UIColor.themColor(named: "ai_icontext3")
 //        idItem.bottomLineStyle2()
 //    }
 //    
 //    func createViews() {
-//        backgroundColor = PrimaryColors.c_1d1d1d
+//        backgroundColor = UIColor.themColor(named: "ai_block2")
 //        
 //        addSubview(scrollView)
 //        scrollView.addSubview(contentView)
