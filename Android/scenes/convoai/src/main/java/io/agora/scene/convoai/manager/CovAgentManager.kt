@@ -12,7 +12,7 @@ object CovAgentManager {
     var language: CovAgentLanguage? = null
 
     var enableAiVad = false
-    var enableBHVS = true
+    val enableBHVS = true
     var connectionState = AgentConnectionState.IDLE
 
     // values
@@ -48,6 +48,5 @@ object CovAgentManager {
 
     fun resetData() {
         enableAiVad = false
-        enableBHVS = true
     }
 }

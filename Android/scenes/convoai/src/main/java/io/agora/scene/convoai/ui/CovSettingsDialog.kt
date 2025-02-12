@@ -52,10 +52,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                     onClickMaskView()
                 }
             })
-            cbBhvs.isChecked = CovAgentManager.enableBHVS
-            cbBhvs.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-                CovAgentManager.enableBHVS = cbBhvs.isChecked
-            }
             cbAiVad.isChecked = CovAgentManager.enableAiVad
             cbAiVad.setOnClickListener {
                 CovAgentManager.enableAiVad = cbAiVad.isChecked
@@ -85,7 +81,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
                 clPreset.isEnabled = true
                 clLanguage.isEnabled = true
-                cbBhvs.isEnabled = true
                 cbAiVad.isEnabled = true
             }
         } else {
@@ -96,7 +91,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
                 clPreset.isEnabled = false
                 clLanguage.isEnabled = false
-                cbBhvs.isEnabled = false
                 cbAiVad.isEnabled = false
             }
         }

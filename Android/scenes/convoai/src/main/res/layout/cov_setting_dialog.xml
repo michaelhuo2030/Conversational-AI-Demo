@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="380dp"
+    android:layout_height="360dp"
     android:background="@drawable/bottom_dialog_bg"
     tools:theme="@style/Theme.AppCompat">
 
@@ -191,35 +191,6 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_device">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp">
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tv_bhvs"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:text="@string/cov_setting_bhvs"
-                        android:textColor="@color/ai_icontext1"
-                        android:textSize="14sp"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"/>
-
-                    <androidx.appcompat.widget.AppCompatCheckBox
-                        android:id="@+id/cb_bhvs"
-                        android:layout_width="51dp"
-                        android:layout_height="31dp"
-                        android:layout_marginEnd="16dp"
-                        android:button="@drawable/cb_def_selector"
-                        app:buttonTint="@null"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <View
                     android:layout_width="match_parent"
