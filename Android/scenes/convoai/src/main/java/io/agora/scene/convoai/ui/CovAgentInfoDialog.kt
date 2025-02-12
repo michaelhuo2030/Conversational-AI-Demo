@@ -145,7 +145,7 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
     private fun copyToClipboard(text: String) {
         context?.apply {
             copyToClipboard(text)
-            ToastUtil.show(R.string.cov_copy_succeed)
+            ToastUtil.show(getString(R.string.cov_copy_succeed))
         }
     }
 

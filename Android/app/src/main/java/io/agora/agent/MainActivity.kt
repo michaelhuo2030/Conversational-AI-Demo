@@ -90,7 +90,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     counts = 0
                     btnDebug.isVisible = true
                     ServerConfig.isDebug = true
-                    ToastUtil.show(io.agora.scene.common.R.string.common_debug_mode_enable)
+                    ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_enable))
                 }
             }
             btnDebug.isVisible = ServerConfig.isDebug
@@ -98,7 +98,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 override fun onClickJacking(view: View) {
                     btnDebug.isVisible = false
                     ServerConfig.isDebug = false
-                    ToastUtil.show(io.agora.scene.common.R.string.common_debug_mode_disable)
+                    ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_disable))
                 }
             })
             updateStartButtonState()

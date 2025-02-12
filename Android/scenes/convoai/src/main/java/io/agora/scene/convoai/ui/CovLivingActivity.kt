@@ -203,7 +203,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (results.any { !it }) {
                     withContext(Dispatchers.Main) {
                         connectionState = AgentConnectionState.IDLE
-                        ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
+                        ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
                     }
                     return@launch
                 }
@@ -223,14 +223,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         if (connectionState == AgentConnectionState.CONNECTING) {
                             stopAgentAndLeaveChannel()
                             CovLogger.e(TAG, "Agent connection timeout")
-                            ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
+                            ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
                         }
                     }
                 } else {
                     connectionState = AgentConnectionState.IDLE
                     CovRtcManager.leaveChannel()
                     CovLogger.e(TAG, "Agent start error")
-                    ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
+                    ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
                 }
             }
         }
@@ -262,7 +262,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun onClickEndCall() {
         isUserEndCall = true
         stopAgentAndLeaveChannel()
-        ToastUtil.show(R.string.cov_detail_agent_leave)
+        ToastUtil.show(getString(R.string.cov_detail_agent_leave))
     }
 
     private fun stopAgentAndLeaveChannel() {
@@ -326,7 +326,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 runOnUiThread {
                     if (uid == CovAgentManager.agentUID) {
                         connectionState = AgentConnectionState.CONNECTED
-                        ToastUtil.show(R.string.cov_detail_join_call_succeed)
+                        ToastUtil.show(getString(R.string.cov_detail_join_call_succeed))
                     }
                 }
             }
@@ -339,7 +339,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     if (uid == CovAgentManager.agentUID) {
                         mCovBallAnim?.updateAgentState(AgentState.STATIC)
                         if (!isUserEndCall) {
-                            ToastUtil.show(R.string.cov_detail_agent_state_error, Toast.LENGTH_LONG)
+                            ToastUtil.show(getString(R.string.cov_detail_agent_state_error), Toast.LENGTH_LONG)
                         }
                     }
                 }
@@ -365,7 +365,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         Constants.CONNECTION_STATE_RECONNECTING -> {
                             if (reason == Constants.CONNECTION_CHANGED_INTERRUPTED) {
                                 connectionState = AgentConnectionState.CONNECTED_INTERRUPT
-                                ToastUtil.show(R.string.cov_detail_net_state_error, Toast.LENGTH_LONG)
+                                ToastUtil.show(getString(R.string.cov_detail_net_state_error), Toast.LENGTH_LONG)
                             }
                         }
 
@@ -373,7 +373,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             if (reason == Constants.CONNECTION_CHANGED_JOIN_FAILED) {
                                 CovLogger.d(TAG, "onConnectionStateChanged: login")
                                 connectionState = AgentConnectionState.CONNECTED_INTERRUPT
-                                ToastUtil.show(R.string.cov_detail_net_state_error, Toast.LENGTH_LONG)
+                                ToastUtil.show(getString(R.string.cov_detail_net_state_error), Toast.LENGTH_LONG)
                             }
                         }
                     }
@@ -589,7 +589,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         .map { it.content }
                         .joinToString("\n")
                     this@CovLivingActivity.copyToClipboard(messageContents)
-                    ToastUtil.show(R.string.cov_copy_succeed)
+                    ToastUtil.show(getString(R.string.cov_copy_succeed))
                 }
             })
             btnDebug.isVisible = ServerConfig.isDebug
@@ -626,7 +626,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                                 }
                                 dialog.show(supportFragmentManager, "AgentSettingsSheetDialog")
                             } else {
-                                ToastUtil.show(R.string.cov_detail_net_state_error)
+                                ToastUtil.show(getString(R.string.cov_detail_net_state_error))
                             }
                         }
                     } else {

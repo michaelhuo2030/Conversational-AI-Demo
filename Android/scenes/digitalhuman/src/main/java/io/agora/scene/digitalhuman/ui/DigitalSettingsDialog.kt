@@ -89,7 +89,7 @@ class DigitalSettingsDialog : BaseSheetDialog<DigitalSettingDialogBinding>() {
                     updateSpinners()
                 } else {
                     updateSpinners()
-                    ToastUtil.show(R.string.digital_setting_network_error)
+                    ToastUtil.show(getString(R.string.digital_setting_network_error))
                 }
             }
         } else {
@@ -311,7 +311,7 @@ class DigitalSettingsDialog : BaseSheetDialog<DigitalSettingDialogBinding>() {
                                     DigitalAgoraManager.llmType = oldLLMType
                                     DigitalAgoraManager.languageType = oldLanguageType
                                     updateSpinners()
-                                    ToastUtil.show(R.string.digital_setting_network_error)
+                                    ToastUtil.show(getString(R.string.digital_setting_network_error))
                                 }
                             }
                         } else {

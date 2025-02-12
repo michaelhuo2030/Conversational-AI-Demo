@@ -97,7 +97,7 @@ class SceneSelectionFragment : Fragment() {
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    ToastUtil.show(R.string.scenes_coming_soon)
+                    ToastUtil.show(context.getString(R.string.scenes_coming_soon))
                 }
             }
         }

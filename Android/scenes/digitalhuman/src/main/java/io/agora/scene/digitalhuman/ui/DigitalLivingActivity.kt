@@ -164,7 +164,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         } else {
                             loadingDialog?.dismiss()
                             DigitalLogger.e(TAG, "Token error")
-                            ToastUtil.show(R.string.digital_detail_join_call_failed)
+                            ToastUtil.show(getString(R.string.digital_detail_join_call_failed))
                         }
                     }
                 } else {
@@ -173,7 +173,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             } else {
                 loadingDialog?.dismiss()
                 DigitalLogger.e(TAG, "Agent error")
-                ToastUtil.show(R.string.digital_detail_join_call_failed)
+                ToastUtil.show(getString(R.string.digital_detail_join_call_failed))
             }
         }
         scope.launch {
@@ -183,7 +183,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                 engine.stopPreview()
                 engine.leaveChannel()
                 DigitalApiManager.stopAgent { ok ->
-                    ToastUtil.show(R.string.digital_timeout)
+                    ToastUtil.show(getString(R.string.digital_timeout))
                     startAgentSuccess = false
                     loadingDialog?.dismiss()
                     if (ok) {
@@ -205,7 +205,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         DigitalApiManager.stopAgent { ok ->
             loadingDialog?.dismiss()
             if (ok) {
-                ToastUtil.show(R.string.digital_detail_agent_leave)
+                ToastUtil.show(getString(R.string.digital_detail_agent_leave))
                 isAgentStarted = false
                 networkStatus = null
                 DigitalAgoraManager.agentStarted = false
@@ -242,7 +242,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
         val ret = engine.joinChannel(rtcToken, channelName, localUid, channelOption)
         if (ret != ERR_OK) {
             loadingDialog?.dismiss()
-            ToastUtil.show(R.string.digital_detail_join_call_failed)
+            ToastUtil.show(getString(R.string.digital_detail_join_call_failed))
             return
         }
         DigitalLogger.d(TAG, "Joining RTC channel: $channelName, uid: $localUid, ret: $ret")
@@ -302,7 +302,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         isAgentStarted = true
                         DigitalAgoraManager.agentStarted = true
                         loadingDialog?.dismiss()
-                        ToastUtil.show(R.string.digital_detail_join_call_succeed)
+                        ToastUtil.show(getString(R.string.digital_detail_join_call_succeed))
                     }
                 }
                 DigitalLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
@@ -329,7 +329,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                         DigitalApiManager.startAgent(params) { isAgentOK ->
                             if (!isAgentOK) {
                                 loadingDialog?.dismiss()
-                                ToastUtil.show(R.string.digital_detail_agent_leave)
+                                ToastUtil.show(getString(R.string.digital_detail_agent_leave))
                                 engine.leaveChannel()
                                 isAgentStarted = false
                                 DigitalAgoraManager.agentStarted = false

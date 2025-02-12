@@ -5,7 +5,7 @@
     <string name="cov_detail_end_call">结束通话</string>
     <string name="cov_detail_agent_joining">加入中</string>
     <string name="cov_detail_agent_ending">停止中</string>
-    <string name="cov_detail_join_call_failed">加入频道失败：</string>
+    <string name="cov_detail_join_call_failed">加入频道失败</string>
     <string name="cov_detail_join_call_succeed">智能体已加入！</string>
     <string name="cov_detail_agent_leave">智能体离开</string>
     <string name="cov_detail_message_list_you">你</string>
