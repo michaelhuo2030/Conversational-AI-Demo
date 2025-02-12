@@ -683,7 +683,7 @@ private extension DigitalHumanViewController {
         micButton.titleLabel?.textAlignment = .center
         micButton.layerCornerRadius = 36
         micButton.clipsToBounds = true
-        micButton.setBackgroundImage(UIImage(color: UIColor(named: "#00c2ff")!, size: CGSize(width: 1, height: 1)), for: .normal)
+        micButton.setBackgroundImage(UIImage(color: UIColor.themColor(named: "ai_brand_main6"), size: CGSize(width: 1, height: 1)), for: .normal)
         callingBottomView.addSubview(micButton)
         micButton.snp.makeConstraints { make in
             make.left.equalTo(20)

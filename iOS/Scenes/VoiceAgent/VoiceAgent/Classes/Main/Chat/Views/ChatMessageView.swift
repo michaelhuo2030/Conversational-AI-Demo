@@ -82,7 +82,7 @@ class ChatMessageCell: UITableViewCell {
             avatarImageView.image = UIImage.va_named("ic_agent_avatar")
             nameLabel.text = AppContext.preferenceManager()?.preference.preset?.displayName ?? ""
             nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
-            messageLabel.textColor = UIColor.themColor(named: "ai_icontext4")
+            messageLabel.textColor = UIColor.themColor(named: "ai_icontext1")
             messageBubble.backgroundColor = .clear
         }
         
