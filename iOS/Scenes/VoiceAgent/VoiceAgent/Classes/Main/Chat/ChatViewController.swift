@@ -18,6 +18,7 @@ class ChatViewController: UIViewController {
     private let uid = "\(RtcEnum.getUid())"
     private let pingTimeInterval = 10.0
     private var pingTimer: Timer?
+    private var firstStartTimer: Timer?
     private var channelName = ""
     private var token = ""
     private var agentUid = 0
@@ -242,6 +243,7 @@ class ChatViewController: UIViewController {
         animateView.updateAgentState(.idle)
         messageView.clearMessages()
         messageView.isHidden = true
+        bottomBar.resetState()
         leaveChannel()
         stopAgentRequest()
     }
@@ -345,6 +347,7 @@ extension ChatViewController {
                 }
                 addLog("start agent success")
                 prepareToPing()
+                agentCheck()
                 return
             }
 
@@ -353,6 +356,20 @@ extension ChatViewController {
             self.stopAgent()
             addLog("start agent failed : \(error.message)")
         }
+    }
+    
+    private func agentCheck() {
+        self.firstStartTimer?.invalidate()
+        self.firstStartTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] _ in
+            guard let self = self, let manager = AppContext.preferenceManager() else { return }
+            if manager.information.agentState != .connected {
+                addLog("agent is not joined in 10 seconds")
+                self.stopLoading()
+                self.stopAgent()
+            }
+            self.firstStartTimer?.invalidate()
+            self.firstStartTimer = nil
+        })
     }
     
     private func startPingRequest() {
@@ -372,14 +389,8 @@ extension ChatViewController {
         addLog("prepare to ping")
         self.pingTimer?.invalidate()
         self.pingTimer = Timer.scheduledTimer(withTimeInterval: pingTimeInterval, repeats: true) { [weak self] _ in
-            guard let self = self, let manager = AppContext.preferenceManager() else { return }
-            
-            if manager.information.agentState != .connected && manager.information.rtcRoomState != .disconnected {
-                self.stopLoading()
-                self.stopAgent()
-            } else {
-                self.startPingRequest()
-            }
+            guard let self = self else { return }
+            self.startPingRequest()
         }
     }
     
@@ -471,16 +482,14 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
         guard let rawString = String(data: data, encoding: .utf8) else {
             addLog("Failed to convert data to string")
-            print("Failed to convert data to string")
             return
         }
         
-        print("raw string: \(rawString)")
         // Use message parser to process the message
-        addLog("receive raw string \(rawString)")
+//        addLog("receive raw string \(rawString)")
         if let message = messageParser.parseMessage(rawString) {
             print("receive msg: \(message)")
-            addLog("receive msg: \(message)")
+//            addLog("receive msg: \(message)")
             handleStreamMessage(message)
         }
     }
@@ -501,32 +510,19 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             if dataType == "transcribe" {
                 if streamId == 0 {
                     // AI response message
-                    if let lastMessage = self.messageView.getLastMessage(fromUser: false) {
-                        if lastMessage.isFinal {
-                            // Check timestamp to avoid displaying old messages
-                            if textTs <= lastMessage.timestamp {
-                                print("Discarding old message")
-                                return
-                            }
-                            // Start new message
-                            self.messageView.startNewStreamMessage(timestamp: textTs)
-                        }
-                        self.messageView.updateStreamContent(text)
-                        if isFinal {
-                            self.messageView.completeStreamMessage()
-                        }
-                    } else {
-                        // No previous message, start new one
-                        self.messageView.startNewStreamMessage(timestamp: textTs)
-                        self.messageView.updateStreamContent(text)
-                        if isFinal {
-                            self.messageView.completeStreamMessage()
-                        }
+                    if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
+                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: false)
+                    }
+                    self.messageView.updateStreamContent(text)
+                    if isFinal {
+                        self.messageView.completeStreamMessage()
                     }
                 } else {
                     // User message
                     if isFinal {
-                        self.messageView.addUserMessage(text, timestamp: textTs)
+                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: true)
+                        self.messageView.updateStreamContent(text)
+                        self.messageView.completeStreamMessage()
                     }
                 }
             }

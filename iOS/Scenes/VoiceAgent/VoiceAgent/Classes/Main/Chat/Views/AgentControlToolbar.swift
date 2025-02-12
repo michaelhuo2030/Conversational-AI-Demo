@@ -165,7 +165,7 @@ class AgentControlToolbar: UIView {
         AppContext.preferenceManager()?.removeDelegate(self)
     }
     
-    private func resetState() {
+    func resetState() {
         startButton.isEnabled = true
         captionsButton.isEnabled = true
         muteButton.isEnabled = true

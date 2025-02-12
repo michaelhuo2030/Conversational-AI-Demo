@@ -223,22 +223,20 @@ class ChatView: UIView {
         scrollToBottom()
     }
     
-    func addUserMessage(_ message: String, timestamp: Int64) {
-        messages.append(Message(content: message, isUser: true, isFinal: true, timestamp: timestamp))
-        tableView.reloadData()
-        scrollToBottom()
-    }
-    
-    func startNewStreamMessage(timestamp: Int64) {
+    func startNewStreamMessage(timestamp: Int64, isUser: Bool) {
         currentStreamMessage = ""
-        messages.append(Message(content: "", isUser: false, isFinal: false, timestamp: timestamp))
+        messages.append(Message(content: "", 
+                              isUser: isUser, 
+                              isFinal: false, 
+                              timestamp: timestamp))
+        messages.sort { $0.timestamp < $1.timestamp }
         tableView.reloadData()
         scrollToBottom()
     }
     
     func updateStreamContent(_ text: String) {
         currentStreamMessage = text
-        if var lastMessage = messages.last, !lastMessage.isUser {
+        if var lastMessage = messages.last, !lastMessage.isFinal {
             lastMessage.content = currentStreamMessage
             messages[messages.count - 1] = lastMessage
             tableView.reloadData()
@@ -249,7 +247,7 @@ class ChatView: UIView {
     }
     
     func completeStreamMessage() {
-        if var lastMessage = messages.last, !lastMessage.isUser {
+        if var lastMessage = messages.last, !lastMessage.isFinal {
             lastMessage.isFinal = true
             lastMessage.content = currentStreamMessage
             messages[messages.count - 1] = lastMessage
@@ -269,9 +267,7 @@ class ChatView: UIView {
         guard messages.count > 0 else { return }
         guard shouldAutoScroll else { return }
         let indexPath = IndexPath(row: messages.count - 1, section: 0)
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
-        }
+        self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
     }
     
     @objc func clickArrowButton() {
