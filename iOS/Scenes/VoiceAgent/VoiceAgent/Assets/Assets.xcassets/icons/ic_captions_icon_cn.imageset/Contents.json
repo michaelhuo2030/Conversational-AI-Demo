@@ -5,12 +5,12 @@
       "scale" : "1x"
     },
     {
-      "filename" : "ai_captions.png",
+      "filename" : "captions_forcn.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "ai_captions-1.png",
+      "filename" : "captions_forcn-1.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

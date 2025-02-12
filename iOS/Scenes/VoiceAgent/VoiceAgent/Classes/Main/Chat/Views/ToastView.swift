@@ -10,7 +10,6 @@ import Common
 import Kingfisher
 
 class ToastView: UIView {
-    
     private let imageView = UIImageView()
     
     lazy var content: UILabel = {
@@ -26,14 +25,14 @@ class ToastView: UIView {
         content.text = ResourceManager.L10n.Join.agentConnecting
         content.textColor = .white
         self.isHidden = false
-        self.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
+//        self.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
     }
     
     func showToast(text: String) {
         content.text = text
         content.textColor = UIColor.themColor(named: "ai_icontext1")
         self.isHidden = false
-        self.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
+//        self.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
     }
     
     func dismiss() {

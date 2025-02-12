@@ -46,6 +46,7 @@ class AgentHomeViewController: UIViewController {
 
     private lazy var centerImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage.va_named("ic_agent_home_center"))
+//        imageView.backgroundColor = .red
         return imageView
     }()
 

@@ -7,6 +7,7 @@
 
 import UIKit
 import Common
+import SVProgressHUD
 
 class AgentSettingTableItemView: UIView {
     let titleLabel = UILabel()
@@ -15,17 +16,21 @@ class AgentSettingTableItemView: UIView {
     let bottomLine = UIView()
     let button = UIButton(type: .custom)
     
+    var enableLongPressCopy: Bool = false {
+        didSet {
+            updateLongPressGesture()
+        }
+    }
+    
+    private var longPressGesture: UILongPressGestureRecognizer?
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        registerDelegate()
         createViews()
         createConstrains()
         updateEnableState()
-    }
-    
-    deinit {
-        unregisterDelegate()
+        setupLongPressGesture()
     }
     
     required init?(coder: NSCoder) {
@@ -35,17 +40,39 @@ class AgentSettingTableItemView: UIView {
     @objc func onClickButton(_ sender: UIButton) {
         print("click button")
     }
+    
+    private func setupLongPressGesture() {
+        longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        updateLongPressGesture()
+    }
+    
+    private func updateLongPressGesture() {
+        if enableLongPressCopy {
+            if let gesture = longPressGesture {
+                detailLabel.isUserInteractionEnabled = true
+                detailLabel.addGestureRecognizer(gesture)
+            }
+        } else {
+            if let gesture = longPressGesture {
+                detailLabel.removeGestureRecognizer(gesture)
+                detailLabel.isUserInteractionEnabled = false
+            }
+        }
+    }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            if let text = detailLabel.text, !text.isEmpty {
+                UIPasteboard.general.string = text
+                let feedback = UINotificationFeedbackGenerator()
+                feedback.notificationOccurred(.success)
+                SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.copyToast)
+            }
+        }
+    }
 }
 
 extension AgentSettingTableItemView {
-    private func registerDelegate() {
-        AppContext.preferenceManager()?.addDelegate(self)
-    }
-    
-    private func unregisterDelegate() {
-        AppContext.preferenceManager()?.removeDelegate(self)
-    }
-
     private func createViews() {
         self.backgroundColor = UIColor.themColor(named: "ai_block2")
 
@@ -71,6 +98,7 @@ extension AgentSettingTableItemView {
     private func createConstrains() {
         titleLabel.snp.makeConstraints { make in
             make.left.equalTo(16)
+            make.right.equalTo(detailLabel.snp.left).offset(-10)
             make.centerY.equalToSuperview()
         }
         imageView.snp.makeConstraints { make in
@@ -110,11 +138,5 @@ extension AgentSettingTableItemView {
         let state = manager.information.agentState == .unload
         button.isEnabled = state
         detailLabel.textColor = state ? UIColor.themColor(named: "ai_icontext1") : UIColor.themColor(named: "ai_icontext1").withAlphaComponent(0.3)
-    }
-}
-
-extension AgentSettingTableItemView: AgentPreferenceManagerDelegate {
-    func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
-        updateEnableState()
     }
 }

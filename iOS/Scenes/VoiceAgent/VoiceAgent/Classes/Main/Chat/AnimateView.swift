@@ -3,9 +3,9 @@ import AVFoundation
 import AgoraRtcKit
 
 enum AgentState {
-    case idel
-    case listening
-    case speaking
+    case idle  // Idle state, no video or animation is playing
+    case listening // Listening state, playing slow animation
+    case speaking  // AI speaking animation in progress
 }
 
 class AnimateView: NSObject {
@@ -28,6 +28,7 @@ class AnimateView: NSObject {
         static let durationMedium: TimeInterval = 0.5
         static let durationLow: TimeInterval = 0.6
         static let bounceScale: Float = 0.02
+        static let videoFirstFileName = "ball_small_video_first.mov"
         static let videoFileName = "ball_small_video.mov"
     }
     
@@ -37,12 +38,12 @@ class AnimateView: NSObject {
     private var currentAnimParams = AnimParams()
     private var pendingAnimParams: AnimParams?
     
-    private var currentState: AgentState = .idel {
+    private var currentState: AgentState = .idle {
         didSet {
             if oldValue != currentState {
                 switch currentState {
-                case .idel:
-                    rtcMediaPlayer?.setPlaybackSpeed(50)
+                case .idle:
+                    rtcMediaPlayer?.setPlaybackSpeed(100)
                 case .listening:
                     rtcMediaPlayer?.setPlaybackSpeed(150)
                 case .speaking:
@@ -59,29 +60,32 @@ class AnimateView: NSObject {
     
     init(videoView: UIView) {
         self.videoView = videoView
+        super.init()
     }
     
     func setupMediaPlayer(_ rtcEngine: AgoraRtcEngineKit) {
-        createMediaPlayer(rtcEngine)
-    }
-    
-    private func createMediaPlayer(_ rtcEngine: AgoraRtcEngineKit) {
         rtcMediaPlayer = rtcEngine.createMediaPlayer(with: self)
         if let player = rtcMediaPlayer {
             player.mute(true)
             player.setView(videoView)
             
-            if let filePath = Bundle.main.path(forResource: AnimationConstants.videoFileName, ofType: nil) {
+            // Play first video
+            if let filePath = Bundle.main.path(forResource: AnimationConstants.videoFirstFileName, ofType: nil) {
                 let source = AgoraMediaSource()
                 source.url = filePath
                 source.autoPlay = true
-                player.setLoopCount(-1)
                 player.open(with: source)
             }
         }
     }
     
     func updateAgentState(_ newState: AgentState, volume: Int = 0) {
+        DispatchQueue.main.async { [weak self] in
+            self?.updateAgentStateInternal(newState, volume: volume)
+        }
+    }
+    
+    private func updateAgentStateInternal(_ newState: AgentState, volume: Int) {
         let oldState = currentState
         currentState = newState
         handleStateTransition(oldState: oldState, newState: newState, volume: volume)
@@ -89,7 +93,7 @@ class AnimateView: NSObject {
     
     private func handleStateTransition(oldState: AgentState, newState: AgentState, volume: Int = 0) {
         switch newState {
-        case .idel:
+        case .idle:
             break
         case .listening, .speaking:
             if newState == .speaking {
@@ -140,6 +144,17 @@ class AnimateView: NSObject {
     private func startNewAnimation(_ params: AnimParams) {
         currentAnimParams = params
         
+        let group = CAAnimationGroup()
+        group.animations = createAnimationSequence(params)
+        group.duration = params.duration * 2.5
+        group.delegate = self
+        group.repeatCount = .infinity
+        
+        scaleAnimator = group
+        videoView.layer.add(group, forKey: "sizeAnimation")
+    }
+    
+    private func createAnimationSequence(_ params: AnimParams) -> [CAAnimation] {
         let scaleDown = CABasicAnimation(keyPath: "transform.scale")
         scaleDown.fromValue = 1.0
         scaleDown.toValue = params.minScale
@@ -167,14 +182,7 @@ class AnimateView: NSObject {
         scaleUp2.beginTime = params.duration + (2 * params.duration / 3)
         scaleUp2.timingFunction = CAMediaTimingFunction(name: .easeIn)
         
-        let group = CAAnimationGroup()
-        group.animations = [scaleDown, scaleUp1, scaleDown2, scaleUp2]
-        group.duration = params.duration * 2.5
-        group.delegate = self
-        group.repeatCount = .infinity
-        
-        scaleAnimator = group
-        videoView.layer.add(group, forKey: "sizeAnimation")
+        return [scaleDown, scaleUp1, scaleDown2, scaleUp2]
     }
     
     private func updateParentScale(_ scale: Float) {
@@ -189,7 +197,7 @@ class AnimateView: NSObject {
         
         scaleAnimator = nil
         videoView.layer.removeAllAnimations()
-        currentState = .idel
+        currentState = .idle
     }
 }
 
@@ -212,8 +220,23 @@ extension AnimateView: AgoraRtcMediaPlayerDelegate {
     func AgoraRtcMediaPlayer(_ playerKit: any AgoraRtcMediaPlayerProtocol, didChangedTo state: AgoraMediaPlayerState, reason: AgoraMediaPlayerReason) {
         if state == .openCompleted {
             rtcMediaPlayer?.mute(true)
-            rtcMediaPlayer?.setPlaybackSpeed(50)
+            rtcMediaPlayer?.setPlaybackSpeed(100)
             rtcMediaPlayer?.play()
+            
+            // Preload the second video
+            if let filePath = Bundle.main.path(forResource: AnimationConstants.videoFileName, ofType: nil) {
+                let source = AgoraMediaSource()
+                source.url = filePath
+                rtcMediaPlayer?.preloadSrc(filePath, startPos: 0)
+            }
+        } else if state == .playBackAllLoopsCompleted {
+            // Switch to the second video
+            if let filePath = Bundle.main.path(forResource: AnimationConstants.videoFileName, ofType: nil) {
+                rtcMediaPlayer?.playPreloadedSrc(filePath)
+                rtcMediaPlayer?.mute(true)
+                rtcMediaPlayer?.setPlaybackSpeed(100)
+                rtcMediaPlayer?.setLoopCount(-1)
+            }
         }
     }
 }
