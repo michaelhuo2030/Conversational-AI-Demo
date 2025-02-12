@@ -213,9 +213,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
 
             CovRtcManager.joinChannel(rtcToken ?: "", CovAgentManager.channelName, CovAgentManager.uid)
-            val isAgentOK = startAgentAsync()
+            val startRet = startAgentAsync()
 
             withContext(Dispatchers.Main) {
+                val channelName = startRet.first
+                if (channelName != CovAgentManager.channelName) {
+                    return@withContext
+                }
+                val isAgentOK = startRet.second
                 if (isAgentOK) {
                     // Startup timeout check
                     waitingAgentJob = launch {
@@ -236,9 +241,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private suspend fun startAgentAsync(): Boolean = suspendCoroutine { cont ->
-        CovServerManager.startAgent(getAgentParams()) { isAgentOK ->
-            cont.resume(isAgentOK)
+    private suspend fun startAgentAsync(): Pair<String, Boolean> = suspendCoroutine { cont ->
+        CovServerManager.startAgent(getAgentParams()) { channelName, isAgentOK ->
+            cont.resume(Pair(channelName, isAgentOK))
         }
     }
 
