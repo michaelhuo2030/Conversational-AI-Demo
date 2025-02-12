@@ -41,14 +41,12 @@ class RTCManager: NSObject {
         super.init()
         
         initRtcEngine()
-        setAudioParameter()
     }
     
     private func initRtcEngine() {
         let config = AgoraRtcEngineConfig()
         config.appId = appId
         config.channelProfile = .liveBroadcasting
-        config.audioScenario = .chorus
         rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self.delegate)
         AgentLogger.info("rtc version: \(AgoraRtcEngineKit.getSdkVersion())")
     }
@@ -68,14 +66,17 @@ class RTCManager: NSObject {
 
 extension RTCManager: RTCManagerProtocol {
     func joinChannel(token: String, channelName: String, uid: String) -> Int32 {
+        setAudioParameter()
+        
+        rtcEngine.setAudioScenario(.aiClient)
+        rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
+        
         let options = AgoraRtcChannelMediaOptions()
         options.clientRoleType = .broadcaster
         options.publishMicrophoneTrack = true
         options.publishCameraTrack = false
         options.autoSubscribeAudio = true
         options.autoSubscribeVideo = false
-        
-        rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
         return rtcEngine.joinChannel(byToken: token, channelId: channelName, uid: UInt(uid) ?? 0, mediaOptions: options)
     }
     
@@ -113,6 +114,6 @@ enum RtcEnum {
     }
     
     static func getChannel() -> String {
-        return "Agent_\(UUID().uuidString)"
+        return "agent_\(UUID().uuidString)"
     }
 }
