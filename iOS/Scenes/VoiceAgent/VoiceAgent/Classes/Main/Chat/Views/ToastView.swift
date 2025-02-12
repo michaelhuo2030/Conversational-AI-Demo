@@ -7,8 +7,12 @@
 
 import UIKit
 import Common
+import Kingfisher
 
 class ToastView: UIView {
+    
+    private let imageView = UIImageView()
+    
     lazy var content: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 12)
@@ -38,6 +42,17 @@ class ToastView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        self.addSubview(imageView)
+        imageView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        if let bundlePath = Bundle.main.path(forResource: VoiceAgentContext.kSceneName, ofType: "bundle"),
+           let bundle = Bundle(path: bundlePath),
+           let gifPath = bundle.path(forResource: "agent_connecting", ofType: "gif") {
+            let gifURL = URL(fileURLWithPath: gifPath)
+            imageView.kf.setImage(with: gifURL)
+        }
+        
         self.addSubview(content)
         
         content.snp.makeConstraints { make in
