@@ -93,15 +93,15 @@ class AgentSettingViewController: UIViewController {
         return view
     }()
     
-    private lazy var bhvsResponseItem: AgentSettingSwitchItemView = {
-        let view = AgentSettingSwitchItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.Settings.bhvs
-        view.switcher.addTarget(self, action: #selector(onClickForceResponse(_:)), for: .touchUpInside)
-        if let manager = AppContext.preferenceManager() {
-            view.switcher.isOn = manager.preference.bhvs
-        }
-        return view
-    }()
+//    private lazy var bhvsResponseItem: AgentSettingSwitchItemView = {
+//        let view = AgentSettingSwitchItemView(frame: .zero)
+//        view.titleLabel.text = ResourceManager.L10n.Settings.bhvs
+//        view.switcher.addTarget(self, action: #selector(onClickForceResponse(_:)), for: .touchUpInside)
+//        if let manager = AppContext.preferenceManager() {
+//            view.switcher.isOn = manager.preference.bhvs
+//        }
+//        return view
+//    }()
     
     private lazy var aiVadItem: AgentSettingSwitchItemView = {
         let view = AgentSettingSwitchItemView(frame: .zero)
@@ -282,7 +282,6 @@ class AgentSettingViewController: UIViewController {
     @objc func onClickAiVad(_ sender: UISwitch) {
         let state = sender.isOn
         AppContext.preferenceManager()?.updateAiVadState(state)
-        AppContext.preferenceManager()?.updateForceThresholdState(state)
     }
     
     @objc func onClickForceResponse(_ sender: UISwitch) {
@@ -310,7 +309,7 @@ extension AgentSettingViewController {
         scrollView.addSubview(contentView)
         
         basicSettingItems = [presetItem, languageItem]
-        advancedSettingItems = [bhvsResponseItem, aiVadItem]
+        advancedSettingItems = [aiVadItem]
         
         contentView.addSubview(basicSettingView)
         contentView.addSubview(advancedSettingTitle)

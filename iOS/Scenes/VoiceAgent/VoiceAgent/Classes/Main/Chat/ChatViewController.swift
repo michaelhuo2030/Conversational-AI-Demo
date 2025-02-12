@@ -133,7 +133,7 @@ class ChatViewController: UIViewController {
         contentView.addSubview(messageView)
         
         animateView.setupMediaPlayer(rtcManager.getRtcEntine())
-        animateView.updateAgentState(.idel)
+        animateView.updateAgentState(.idle)
     }
     
     private func setupConstraints() {
@@ -239,7 +239,7 @@ class ChatViewController: UIViewController {
         addLog("begin stop agent")
         pingTimer?.invalidate()
         pingTimer = nil
-        animateView.updateAgentState(.idel)
+        animateView.updateAgentState(.idle)
         messageView.clearMessages()
         messageView.isHidden = true
         leaveChannel()
@@ -410,7 +410,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
         addLog("connectionChangedTo: \(state), reason: \(reason)")
         if reason == .reasonInterrupted {
-            animateView.updateAgentState(.idel)
+            animateView.updateAgentState(.idle)
             AppContext.preferenceManager()?.updateAgentState(.disconnected)
             AppContext.preferenceManager()?.updateRoomState(.disconnected)
             showErrorToast(text: ResourceManager.L10n.Error.networkDisconnected)
@@ -438,7 +438,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
         addLog("user didOfflineOfUid uid: \(uid)")
-        animateView.updateAgentState(.idel)
+        animateView.updateAgentState(.idle)
         AppContext.preferenceManager()?.updateAgentState(.disconnected)
         showErrorToast(text: ResourceManager.L10n.Conversation.agentLeave)
     }
@@ -493,7 +493,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             let streamId = message["stream_id"] as? Int ?? 0
             let text = message["text"] as? String ?? ""
             let dataType = message["data_type"] as? String ?? ""
-            let turnId = message["turn_id"] as? Int ?? 0
+            let textTs = message["text_ts"] as? Int64 ?? 0
             
             // Ignore empty messages
             guard !text.isEmpty else { return }
@@ -501,29 +501,32 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             if dataType == "transcribe" {
                 if streamId == 0 {
                     // AI response message
-                    if !isFinal {
-                        // Non-final message, update streaming content
-                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty || 
-                           self.messageView.currentTurnId != turnId {
-                            // Start new message if:
-                            // 1. Last message was from user
-                            // 2. No messages yet
-                            // 3. Different turn_id (new message stream)
-                            self.messageView.startNewStreamMessage(turnId: turnId)
+                    if let lastMessage = self.messageView.getLastMessage(fromUser: false) {
+                        if lastMessage.isFinal {
+                            // Check timestamp to avoid displaying old messages
+                            if textTs <= lastMessage.timestamp {
+                                print("Discarding old message")
+                                return
+                            }
+                            // Start new message
+                            self.messageView.startNewStreamMessage(timestamp: textTs)
                         }
                         self.messageView.updateStreamContent(text)
+                        if isFinal {
+                            self.messageView.completeStreamMessage()
+                        }
                     } else {
-                        // Final message, complete current message
-                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            self.messageView.startNewStreamMessage(turnId: turnId)
-                        }
+                        // No previous message, start new one
+                        self.messageView.startNewStreamMessage(timestamp: textTs)
                         self.messageView.updateStreamContent(text)
-                        self.messageView.completeStreamMessage()
+                        if isFinal {
+                            self.messageView.completeStreamMessage()
+                        }
                     }
                 } else {
                     // User message
                     if isFinal {
-                        self.messageView.addUserMessage(text)
+                        self.messageView.addUserMessage(text, timestamp: textTs)
                     }
                 }
             }

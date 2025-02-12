@@ -4,7 +4,8 @@ import Common
 struct Message {
     var content: String
     let isUser: Bool
-    var isCompleted: Bool
+    var isFinal: Bool
+    let timestamp: Int64
 }
 
 // MARK: - ChatMessageCell
@@ -153,7 +154,6 @@ class ChatView: UIView {
     private var messages: [Message] = []
     private var currentStreamMessage: String = ""
     private var shouldAutoScroll = true
-    var currentTurnId: Int = 0
     private lazy var arrowButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage.va_named("ic_captions_arrow_icon"), for: .normal)
@@ -218,21 +218,20 @@ class ChatView: UIView {
     
     // MARK: - Public Methods
     func addMessage(_ message: String, isUser: Bool) {
-        messages.append(Message(content: message, isUser: isUser, isCompleted: true))
+        messages.append(Message(content: message, isUser: isUser, isFinal: true, timestamp: 0))
         tableView.reloadData()
         scrollToBottom()
     }
     
-    func addUserMessage(_ message: String) {
-        messages.append(Message(content: message, isUser: true, isCompleted: true))
+    func addUserMessage(_ message: String, timestamp: Int64) {
+        messages.append(Message(content: message, isUser: true, isFinal: true, timestamp: timestamp))
         tableView.reloadData()
         scrollToBottom()
     }
     
-    func startNewStreamMessage(turnId: Int) {
+    func startNewStreamMessage(timestamp: Int64) {
         currentStreamMessage = ""
-        currentTurnId = turnId
-        messages.append(Message(content: "", isUser: false, isCompleted: false))
+        messages.append(Message(content: "", isUser: false, isFinal: false, timestamp: timestamp))
         tableView.reloadData()
         scrollToBottom()
     }
@@ -251,7 +250,7 @@ class ChatView: UIView {
     
     func completeStreamMessage() {
         if var lastMessage = messages.last, !lastMessage.isUser {
-            lastMessage.isCompleted = true
+            lastMessage.isFinal = true
             lastMessage.content = currentStreamMessage
             messages[messages.count - 1] = lastMessage
             tableView.reloadData()
@@ -279,6 +278,10 @@ class ChatView: UIView {
         shouldAutoScroll = true
         arrowButton.isHidden = true
         scrollToBottom()
+    }
+    
+    func getLastMessage(fromUser: Bool) -> Message? {
+        return messages.last { $0.isUser == fromUser }
     }
 }
 

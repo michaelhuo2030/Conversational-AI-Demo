@@ -142,14 +142,27 @@ class AgentControlToolbar: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
+        registerDelegate()
         setupViews()
         setupConstraints()
-        
         style = .startButton
+    }
+    
+    deinit {
+        unregisterDelegate()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func registerDelegate() {
+        AppContext.preferenceManager()?.addDelegate(self)
+    }
+    
+    private func unregisterDelegate() {
+        AppContext.preferenceManager()?.removeDelegate(self)
     }
     
     private func resetState() {
@@ -256,6 +269,11 @@ class AgentControlToolbar: UIView {
     private func setTintColor(state: Bool) {
         captionsButton.tintColor = state ? PrimaryColors.c_00c2ff : PrimaryColors.c_ffffff
     }
-    
+}
+
+extension AgentControlToolbar: AgentPreferenceManagerDelegate {
+    func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
+        captionsButton.isEnabled = preset.presetType != "independent"
+    }
 }
 

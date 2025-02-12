@@ -17,6 +17,7 @@ public class VoiceAgentContext: NSObject {
         SVProgressHUD.setMaximumDismissTimeInterval(1)
         SVProgressHUD.setBackgroundColor(PrimaryColors.c_121212.withAlphaComponent(0.8))
         SVProgressHUD.setForegroundColor(.white)
+        
         let vc = ChatViewController()
         viewController.navigationController?.pushViewController(vc, animated: true)
     }
