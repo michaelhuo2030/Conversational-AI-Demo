@@ -43,7 +43,7 @@ class AgentSelectTableView: UIView {
 
     private func setup() {
         self.layerCornerRadius = 12
-        backgroundColor = PrimaryColors.c_262626
+        backgroundColor = UIColor.themColor(named: "ai_line1")
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(cellWithClass: AgentSettingSubOptionCell.self)

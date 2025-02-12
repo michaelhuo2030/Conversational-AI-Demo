@@ -15,7 +15,7 @@ public class VoiceAgentContext: NSObject {
     
     public static func voiceAgentScene(viewController: UIViewController) {
         SVProgressHUD.setMaximumDismissTimeInterval(1)
-        SVProgressHUD.setBackgroundColor(PrimaryColors.c_121212.withAlphaComponent(0.8))
+        SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_mask1"))
         SVProgressHUD.setForegroundColor(.white)
         
         let vc = ChatViewController()
