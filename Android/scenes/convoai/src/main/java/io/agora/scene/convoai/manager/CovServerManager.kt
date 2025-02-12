@@ -41,7 +41,8 @@ object CovServerManager {
 
     private const val SERVICE_VERSION = "v2"
 
-    fun startAgent(params: AgentRequestParams, succeed: (Boolean) -> Unit) {
+    fun startAgent(params: AgentRequestParams, succeed: (String, Boolean) -> Unit) {
+        val channelName = params.channelName
         val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/convoai/start"
         val postBody = JSONObject()
         try {
@@ -104,7 +105,7 @@ object CovServerManager {
                 val json = response.body.string()
                 if (response.code != 200) {
                     runOnMainThread {
-                        succeed.invoke(false)
+                        succeed.invoke(channelName, false)
                     }
                 } else {
                     try {
@@ -115,17 +116,17 @@ object CovServerManager {
                         if (code == 0 && !aid.isNullOrEmpty()) {
                             agentId = aid
                             runOnMainThread {
-                                succeed.invoke(true)
+                                succeed.invoke(channelName, true)
                             }
                         } else {
                             runOnMainThread {
-                                succeed.invoke(false)
+                                succeed.invoke(channelName, false)
                             }
                         }
                     } catch (e: JSONException) {
                         CovLogger.e(TAG, "JSON parse error: ${e.message}")
                         runOnMainThread {
-                            succeed.invoke(false)
+                            succeed.invoke(channelName, false)
                         }
                     }
                 }
@@ -133,7 +134,7 @@ object CovServerManager {
             override fun onFailure(call: Call, e: IOException) {
                 CovLogger.e(TAG, "Start agent failed: $e")
                 runOnMainThread {
-                    succeed.invoke(false)
+                    succeed.invoke(channelName, false)
                 }
             }
         })
