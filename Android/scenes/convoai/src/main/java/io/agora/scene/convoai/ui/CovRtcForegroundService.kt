@@ -57,10 +57,17 @@ class CovRtcForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val notificationIntent = Intent(this, CovLivingActivity::class.java)
+        val notificationIntent = Intent(this, CovLivingActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        
+        val pendingIntentFlags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+
         val pendingIntent = PendingIntent.getActivity(
             this,
-            0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
+            0,
+            notificationIntent,
+            pendingIntentFlags
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)

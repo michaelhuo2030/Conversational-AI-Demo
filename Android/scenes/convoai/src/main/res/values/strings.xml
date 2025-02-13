@@ -42,7 +42,7 @@
     <string name="cov_setting_microphone">Microphone</string>
     <string name="cov_setting_speaker">Speaker</string>
     <string name="cov_setting_bhvs">Enable BHVS</string>
-    <string name="cov_setting_ai_vad">Enable AI-VAD</string>
+    <string name="cov_setting_ai_vad">Intelligent Interruption Handling</string>
     <string name="cov_setting_network_error">Network Error!</string>
     <string name="cov_agent_connecting">Connecting…</string>
     <string name="cov_copy_succeed">Copied</string>
