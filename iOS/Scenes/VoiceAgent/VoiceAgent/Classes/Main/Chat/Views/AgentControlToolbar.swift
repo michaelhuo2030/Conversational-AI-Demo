@@ -49,7 +49,7 @@ class AgentControlToolbar: UIView {
         let button = UIButton(type: .custom)
         button.setTitle(ResourceManager.L10n.Join.buttonTitle, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 18)
-        button.setTitleColor(PrimaryColors.c_ffffff, for: .normal)
+        button.setTitleColor(UIColor.themColor(named: "ai_brand_white10"), for: .normal)
         
         setupStartButton(button: button)
         
@@ -70,7 +70,8 @@ class AgentControlToolbar: UIView {
         button.layerCornerRadius = buttonWidth / 2.0
         button.clipsToBounds = true
         button.setImage(UIImage.va_named("ic_agent_close"), for: .normal)
-        button.setBackgroundColor(color: PrimaryColors.c_1c1c20, forState: .normal)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_block1"), forState: .normal)
+        
         return button
     }()
     
@@ -82,16 +83,16 @@ class AgentControlToolbar: UIView {
         button.clipsToBounds = true
         button.setImage(UIImage.va_named("ic_agent_unmute"), for: .normal)
         button.setImage(UIImage.va_named("ic_agent_mute"), for: .selected)
-        button.setBackgroundColor(color: PrimaryColors.c_1c1c20, forState: .normal)
-        button.setBackgroundColor(color: PrimaryColors.c_ffffff, forState: .selected)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_block1"), forState: .normal)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_brand_white10"), forState: .selected)
         return button
     }()
     
     lazy var micProgressView: UIProgressView = {
         let progressView = UIProgressView(progressViewStyle: .default)
         progressView.translatesAutoresizingMaskIntoConstraints = false
-        progressView.progressTintColor = UIColor(hexString: "#17F1FE")
-        progressView.trackTintColor = UIColor(hexString: "#FFFFFF")
+        progressView.progressTintColor = UIColor.themColor(named: "ai_brand_lightbrand7")
+        progressView.trackTintColor = UIColor.themColor(named: "ai_icontext1")
         progressView.layer.cornerRadius = 14.74 * 0.5
         progressView.clipsToBounds = true
         progressView.isUserInteractionEnabled = false
@@ -110,8 +111,12 @@ class AgentControlToolbar: UIView {
         } else {
             button.setImage(UIImage.va_named("ic_captions_icon")?.withRenderingMode(.alwaysTemplate), for: .normal)
         }
-        button.tintColor = PrimaryColors.c_ffffff
-        button.setBackgroundColor(color: PrimaryColors.c_1c1c20, forState: .normal)
+        if let color = UIColor(hex: 0x333333) {
+            button.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
+        }
+        button.tintColor = UIColor.themColor(named: "ai_icontext1")
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_block1"), forState: .normal)
+
         return button
     }()
     
@@ -279,7 +284,7 @@ class AgentControlToolbar: UIView {
     }
     
     private func setTintColor(state: Bool) {
-        captionsButton.tintColor = state ? PrimaryColors.c_00c2ff : PrimaryColors.c_ffffff
+        captionsButton.tintColor = state ? UIColor.themColor(named: "ai_brand_main6") : UIColor.themColor(named: "ai_icontext1")
     }
     
     override func layoutSubviews() {

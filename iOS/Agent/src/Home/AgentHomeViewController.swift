@@ -18,10 +18,10 @@ class AgentHomeViewController: UIViewController {
         button.setTitle(ResourceManager.L10n.Main.getStart, for: .normal)
         button.addTarget(self, action: #selector(onClickNextStep), for: .touchUpInside)
         button.titleLabel?.textAlignment = .center
-        button.setTitleColor(PrimaryColors.c_fdfcfb, for: .normal)
+        button.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
         button.layerCornerRadius = 29
         button.clipsToBounds = true
-        button.setBackgroundColor(color: PrimaryColors.c_0097d4, forState: .normal)
+        button.setBackgroundColor(color: UIColor(hex: "#0097D4")!, forState: .normal)
         button.isEnabled = false
         button.alpha = 0.5
         return button
@@ -31,7 +31,7 @@ class AgentHomeViewController: UIViewController {
         let imageView = UIImageView()
         if AppContext.shared.appArea == .mainland {
             imageView.image = UIImage.va_named("ic_shengwang_icon")?.withRenderingMode(.alwaysTemplate)
-            imageView.tintColor = PrimaryColors.c_ffffff
+            imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
         } else {
             imageView.image = UIImage.va_named("ic_agent_home_agora")
         }

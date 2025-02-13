@@ -17,7 +17,7 @@ class AgentSettingSubOptionCell: UITableViewCell {
 
     lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.textColor = PrimaryColors.c_ffffff_a
+        label.textColor = UIColor.themColor(named: "ai_icontext3")
         label.font = .systemFont(ofSize: 15)
         return label
     }()
@@ -28,7 +28,7 @@ class AgentSettingSubOptionCell: UITableViewCell {
     }
 
     private func setupViews() {
-        backgroundColor = PrimaryColors.c_262626
+        backgroundColor = UIColor.themColor(named: "ai_line1")
         selectionStyle = .none
         
         contentView.addSubview(titleLabel)

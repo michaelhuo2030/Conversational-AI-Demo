@@ -29,7 +29,7 @@ class ChatMessageCell: UITableViewCell {
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14, weight: .semibold)
-        label.textColor = PrimaryColors.c_ffffff
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
         return label
     }()
     
@@ -72,17 +72,17 @@ class ChatMessageCell: UITableViewCell {
         if message.isUser {
             setupUserLayout()
             nameLabel.text = ResourceManager.L10n.Conversation.messageYou
-            nameLabel.textColor = PrimaryColors.c_ffffff
+            nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
             avatarImageView.image = UIImage.va_named("ic_agent_mine_avatar")
-            messageLabel.textColor = PrimaryColors.c_ffffff
-            messageBubble.backgroundColor = PrimaryColors.c_2b2b2b
+            messageLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+            messageBubble.backgroundColor = UIColor.themColor(named: "ai_block4_chat")
         } else {
             setupAgentLayout()
             avatarView.backgroundColor = .clear
             avatarImageView.image = UIImage.va_named("ic_agent_avatar")
             nameLabel.text = AppContext.preferenceManager()?.preference.preset?.displayName ?? ""
-            nameLabel.textColor = PrimaryColors.c_ffffff
-            messageLabel.textColor = PrimaryColors.c_b3b3b3
+            nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+            messageLabel.textColor = UIColor.themColor(named: "ai_icontext1")
             messageBubble.backgroundColor = .clear
         }
         
@@ -158,7 +158,7 @@ class ChatView: UIView {
         let button = UIButton()
         button.setImage(UIImage.va_named("ic_captions_arrow_icon"), for: .normal)
         button.addTarget(self, action: #selector(clickArrowButton), for: .touchUpInside)
-        button.setBackgroundColor(color: PrimaryColors.c_262626, forState: .normal)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_line1"), forState: .normal)
         button.layer.cornerRadius = 22
         button.layer.masksToBounds = true
         button.isHidden = true

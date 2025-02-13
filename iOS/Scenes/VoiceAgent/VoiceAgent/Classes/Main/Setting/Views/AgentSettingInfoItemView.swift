@@ -29,13 +29,13 @@ class AgentSettingInfoItemView: UIView {
 
 extension AgentSettingInfoItemView {
     private func createViews() {
-        titleLabel.textColor = PrimaryColors.c_ffffff
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         addSubview(titleLabel)
         
-        detialLabel.textColor = PrimaryColors.c_ffffff_a
+        detialLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         addSubview(detialLabel)
-                
-        bottomLine.backgroundColor = PrimaryColors.c_545454_a
+        
+        bottomLine.backgroundColor = UIColor.themColor(named: "ai_line1")
         addSubview(bottomLine)
         
         addSubview(botton)

@@ -40,7 +40,7 @@
 //    
 //    private lazy var statusContainer: UIView = {
 //        let view = UIView()
-//        view.backgroundColor = PrimaryColors.c_27272a_a
+//        view.backgroundColor = UIColor.themColor(named: "ai_line1")
 //        view.layer.cornerRadius = 12
 //        return view
 //    }()
@@ -56,7 +56,7 @@
 //        let label = UILabel()
 //        label.text = ResourceManager.L10n.Join.state
 //        label.font = .monospacedSystemFont(ofSize: 20, weight: .regular)
-//        label.textColor = PrimaryColors.c_b3b3b3
+//        label.textColor = UIColor.themColor(named: "ai_icontext4")
 //        return label
 //    }()
 //    
@@ -71,7 +71,7 @@
 //        let label = UILabel()
 //        label.text = ResourceManager.L10n.Join.agentName
 //        label.font = .systemFont(ofSize: 14)
-//        label.textColor = PrimaryColors.c_ffffff
+//        label.textColor = UIColor.themColor(named: "ai_icontext1")
 //        return label
 //    }()
 //    
@@ -79,7 +79,7 @@
 //        let button = UIButton(type: .custom)
 //        button.setTitle(ResourceManager.L10n.Join.buttonTitle, for: .normal)
 //        button.titleLabel?.font = .systemFont(ofSize: 18)
-//        button.setTitleColor(PrimaryColors.c_ffffff, for: .normal)
+//        button.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
 //        button.backgroundColor = PrimaryColors.c_0097d4
 //        button.layer.cornerRadius = 32
 //        button.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)

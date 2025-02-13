@@ -16,7 +16,7 @@ class TextContentView: UIView {
         label.textAlignment = .center
         label.textColor = .white
         label.text = ResourceManager.L10n.Join.agentConnecting
-        label.textColor = PrimaryColors.c_e6544b
+        label.textColor = UIColor.themColor(named: "ai_red6")
         return label
     }()
     
@@ -26,7 +26,10 @@ class TextContentView: UIView {
         self.addSubview(textLabel)
         
         textLabel.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
+            make.left.equalTo(16)
+            make.right.equalTo(-16)
+            make.top.equalTo(12)
+            make.bottom.equalTo(-12)
         }
     }
     
@@ -117,7 +120,6 @@ class ToastView: UIView {
         }
         
         textToast.snp.makeConstraints { make in
-            make.width.equalTo(172)
             make.height.equalTo(40)
             make.center.equalTo(self)
         }

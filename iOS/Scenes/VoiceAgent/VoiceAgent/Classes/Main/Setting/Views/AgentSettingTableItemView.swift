@@ -74,13 +74,13 @@ class AgentSettingTableItemView: UIView {
 
 extension AgentSettingTableItemView {
     private func createViews() {
-        self.backgroundColor = PrimaryColors.c_1d1d1d
+        self.backgroundColor = UIColor.themColor(named: "ai_block2")
 
-        titleLabel.textColor = PrimaryColors.c_ffffff
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         addSubview(titleLabel)
         
-        detailLabel.textColor = PrimaryColors.c_ffffff
+        detailLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         detailLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         detailLabel.numberOfLines = 0
         detailLabel.textAlignment = .right
@@ -89,7 +89,7 @@ extension AgentSettingTableItemView {
         
         addSubview(imageView)
         
-        bottomLine.backgroundColor = PrimaryColors.c_27272a_a
+        bottomLine.backgroundColor = UIColor.themColor(named: "ai_line1")
         addSubview(bottomLine)
         
         addSubview(button)
@@ -137,6 +137,6 @@ extension AgentSettingTableItemView {
         
         let state = manager.information.agentState == .unload
         button.isEnabled = state
-        detailLabel.textColor = state ? PrimaryColors.c_ffffff : PrimaryColors.c_ffffff.withAlphaComponent(0.3)
+        detailLabel.textColor = state ? UIColor.themColor(named: "ai_icontext1") : UIColor.themColor(named: "ai_icontext1").withAlphaComponent(0.3)
     }
 }

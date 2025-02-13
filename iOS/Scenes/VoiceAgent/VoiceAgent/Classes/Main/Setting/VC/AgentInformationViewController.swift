@@ -32,7 +32,7 @@ class AgentInformationViewController: UIViewController {
     
     private lazy var backgroundView: UIView = {
         let view = UIView()
-        view.backgroundColor = PrimaryColors.c_171717
+        view.backgroundColor = UIColor.themColor(named: "ai_fill2")
         view.alpha = 0.95
         return view
     }()
@@ -46,23 +46,23 @@ class AgentInformationViewController: UIViewController {
         let label = UILabel()
         label.text = ResourceManager.L10n.ChannelInfo.networkInfoTitle
         label.font = UIFont.boldSystemFont(ofSize: 16)
-        label.textColor = PrimaryColors.c_ffffff_a
+        label.textColor = UIColor.themColor(named: "ai_icontext4")
         return label
     }()
     
     private lazy var networkInfoView: UIView = {
         let view = UIView()
-        view.backgroundColor = PrimaryColors.c_1d1d1d
+        view.backgroundColor = UIColor.themColor(named: "ai_block2")
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         return view
     }()
     
     private lazy var networkItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourNetwork
-        view.detailLabel.textColor = PrimaryColors.c_36b37e
+        view.detailLabel.textColor = UIColor.themColor(named: "ai_green6")
         view.imageView.isHidden = true
         return view
     }()
@@ -71,23 +71,23 @@ class AgentInformationViewController: UIViewController {
         let label = UILabel()
         label.text = ResourceManager.L10n.ChannelInfo.title
         label.font = UIFont.boldSystemFont(ofSize: 16)
-        label.textColor = PrimaryColors.c_ffffff_a
+        label.textColor = UIColor.themColor(named: "ai_icontext3")
         return label
     }()
     
     private lazy var channelInfoView: UIView = {
         let view = UIView()
-        view.backgroundColor = PrimaryColors.c_1d1d1d
+        view.backgroundColor = UIColor.themColor(named: "ai_block2")
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         return view
     }()
     
     private lazy var agentItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentStatus
-        view.detailLabel.textColor = PrimaryColors.c_36b37e
+        view.detailLabel.textColor = UIColor.themColor(named: "ai_block2")
         view.imageView.isHidden = true
         return view
     }()
@@ -103,7 +103,7 @@ class AgentInformationViewController: UIViewController {
     private lazy var roomItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomStatus
-        view.detailLabel.textColor = PrimaryColors.c_36b37e
+        view.detailLabel.textColor = UIColor.themColor(named: "ai_green6")
         view.imageView.isHidden = true
         return view
     }()
@@ -313,16 +313,15 @@ extension AgentInformationViewController {
         
         // Update Agent ID
         agentIDItem.detailLabel.text = manager.information.agentState == .unload ? "--" : manager.information.agentId
-        agentIDItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
+        agentIDItem.detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         
         // Update Room ID
         roomIDItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : manager.information.roomId
-        roomIDItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
+        roomIDItem.detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         
         // Update Participant ID
         idItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : manager.information.userId
-        idItem.detailLabel.textColor = PrimaryColors.c_ffffff_a
-        
+        idItem.detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
     }
     
     @objc func handleTapGesture(_: UIGestureRecognizer) {

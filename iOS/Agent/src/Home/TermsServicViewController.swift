@@ -19,7 +19,7 @@ class TermsServiceWebViewController: UIViewController {
     
     private lazy var progressView: UIProgressView = {
         let progress = UIProgressView(progressViewStyle: .default)
-        progress.progressTintColor = PrimaryColors.c_0097d4
+        progress.progressTintColor = UIColor(named: "#0097d4")
         return progress
     }()
     
