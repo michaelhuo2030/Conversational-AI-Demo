@@ -52,7 +52,9 @@ class AgentManager: AgentAPI {
     
     func fetchAgentPresets(completion: @escaping ((AgentError?, [AgentPreset]?) -> Void)) {
         let url = AgentServiceUrl.stopAgentPath("convoai/presetAgents").toHttpUrlSting()
+        AgentLogger.info("request agent preset api: \(url)")
         NetworkManager.shared.getRequest(urlString: url) { result in
+            AgentLogger.info("presets request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
@@ -99,8 +101,9 @@ class AgentManager: AgentAPI {
             ]
         ]
                 
-        AgentLogger.info("request start api parameters is: \(parameters)")
+        AgentLogger.info("request start api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+            AgentLogger.info("start request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
@@ -132,6 +135,7 @@ class AgentManager: AgentAPI {
         ]
         AgentLogger.info("request stop api parameters is: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+            AgentLogger.info("stop request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
@@ -152,8 +156,9 @@ class AgentManager: AgentAPI {
             "channel_name": channelName,
             "preset_name": presetName
         ]
-        AgentLogger.info("request ping api parameters is: \(parameters)")
+        AgentLogger.info("request ping api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+            AgentLogger.info("ping request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)

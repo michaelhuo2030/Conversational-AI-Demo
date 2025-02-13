@@ -6,7 +6,7 @@ target 'Agent-oversea' do
   use_frameworks!
   
   # pod 'AgoraRtcEngine_iOS', '4.5.0'
-  
+  pod 'SSZipArchive'
   pod 'SwiftyBeaver', '1.9.5'
   pod 'ZSwiftBaseLib', '0.1.6.2'
   pod 'AgoraRtcEngine_iOS', :path => 'sdk.podspec'
@@ -27,7 +27,7 @@ target 'Agent-cn' do
   use_frameworks!
   
 #  pod 'AgoraRtcEngine_iOS', '4.5.0'
-  
+  pod 'SSZipArchive'
   pod 'SwiftyBeaver', '1.9.5'
   pod 'ZSwiftBaseLib', '0.1.6.2'
   pod 'AgoraRtcEngine_iOS', :path => 'sdk.podspec'

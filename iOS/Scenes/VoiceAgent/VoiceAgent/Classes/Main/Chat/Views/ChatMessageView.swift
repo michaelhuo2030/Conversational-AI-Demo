@@ -173,6 +173,10 @@ class ChatView: UIView {
         return messages.last?.isUser == true
     }
     
+    var lastMessgeIsFinal: Bool {
+        return messages.last?.isFinal == true
+    }
+    
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
         let table = UITableView()

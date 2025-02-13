@@ -291,7 +291,6 @@ class AgentControlToolbar: UIView {
         super.layoutSubviews()
         
         if startButtonContentView.frame.width > 0 {
-            // 禁用布局更新时的动画
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             

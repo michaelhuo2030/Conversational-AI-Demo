@@ -18,9 +18,9 @@ class AnimateView: NSObject {
     }
     
     private struct ScaleConstants {
-        static let scaleHigh: Float = 1.1
-        static let scaleMedium: Float = 1.06
-        static let scaleLow: Float = 1.04
+        static let scaleHigh: Float = 1.2
+        static let scaleMedium: Float = 1.15
+        static let scaleLow: Float = 1.1
     }
     
     private struct AnimationConstants {
@@ -47,7 +47,7 @@ class AnimateView: NSObject {
                 case .listening:
                     rtcMediaPlayer?.setPlaybackSpeed(150)
                 case .speaking:
-                    rtcMediaPlayer?.setPlaybackSpeed(250)
+                    rtcMediaPlayer?.setPlaybackSpeed(300)
                 }
             }
         }
@@ -92,13 +92,16 @@ class AnimateView: NSObject {
     }
     
     private func handleStateTransition(oldState: AgentState, newState: AgentState, volume: Int = 0) {
+        print("[AnimateView] State transition from \(oldState) to \(newState)")
         switch newState {
-        case .idle:
-            break
-        case .listening, .speaking:
-            if newState == .speaking {
-                startAgentAnimation(volume)
+        case .idle, .listening:
+            if let group = scaleAnimator {
+                group.setValue(true, forKey: "shouldStop")
             }
+            updateParentScale(1.0)
+            
+        case .speaking:
+            startAgentAnimation(volume)
         }
     }
     
@@ -142,44 +145,49 @@ class AnimateView: NSObject {
     }
     
     private func startNewAnimation(_ params: AnimParams) {
+        print("[AnimateView] Starting new animation with params - minScale: \(params.minScale), duration: \(params.duration)")
         currentAnimParams = params
         
         let group = CAAnimationGroup()
         group.animations = createAnimationSequence(params)
-        group.duration = params.duration * 2.5
+        group.duration = params.duration  // 使用完整的 duration
         group.delegate = self
-        group.repeatCount = .infinity
+        group.repeatCount = 1
+        group.beginTime = CACurrentMediaTime()
         
         scaleAnimator = group
         videoView.layer.add(group, forKey: "sizeAnimation")
     }
     
     private func createAnimationSequence(_ params: AnimParams) -> [CAAnimation] {
+        // 将总时长平均分配给各个阶段
+        let quarterDuration = params.duration / 4
+        
         let scaleDown = CABasicAnimation(keyPath: "transform.scale")
         scaleDown.fromValue = 1.0
         scaleDown.toValue = params.minScale
-        scaleDown.duration = params.duration
+        scaleDown.duration = quarterDuration
         scaleDown.timingFunction = CAMediaTimingFunction(name: .easeOut)
         
         let scaleUp1 = CABasicAnimation(keyPath: "transform.scale")
         scaleUp1.fromValue = params.minScale
         scaleUp1.toValue = params.minScale + AnimationConstants.bounceScale
-        scaleUp1.duration = params.duration / 3
-        scaleUp1.beginTime = params.duration
+        scaleUp1.duration = quarterDuration
+        scaleUp1.beginTime = quarterDuration
         scaleUp1.timingFunction = CAMediaTimingFunction(name: .easeIn)
         
         let scaleDown2 = CABasicAnimation(keyPath: "transform.scale")
         scaleDown2.fromValue = params.minScale + AnimationConstants.bounceScale
         scaleDown2.toValue = params.minScale
-        scaleDown2.duration = params.duration / 3
-        scaleDown2.beginTime = params.duration + params.duration / 3
+        scaleDown2.duration = quarterDuration
+        scaleDown2.beginTime = quarterDuration * 2
         scaleDown2.timingFunction = CAMediaTimingFunction(name: .easeOut)
         
         let scaleUp2 = CABasicAnimation(keyPath: "transform.scale")
         scaleUp2.fromValue = params.minScale
         scaleUp2.toValue = 1.0
-        scaleUp2.duration = params.duration
-        scaleUp2.beginTime = params.duration + (2 * params.duration / 3)
+        scaleUp2.duration = quarterDuration
+        scaleUp2.beginTime = quarterDuration * 3
         scaleUp2.timingFunction = CAMediaTimingFunction(name: .easeIn)
         
         return [scaleDown, scaleUp1, scaleDown2, scaleUp2]
@@ -203,15 +211,27 @@ class AnimateView: NSObject {
 
 extension AnimateView: CAAnimationDelegate {
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-        if flag && currentState == .speaking {
+        if flag {
+            if (anim.value(forKey: "shouldStop") as? Bool) == true {
+                print("[AnimateView] Animation reached end and should stop")
+                videoView.layer.removeAllAnimations()
+                scaleAnimator = nil
+                return
+            }
+            
+            if currentState != .speaking {
+                print("[AnimateView] Animation reached end and state is not speaking")
+                videoView.layer.removeAllAnimations()
+                scaleAnimator = nil
+                return
+            }
+            
             if let params = pendingAnimParams {
                 startNewAnimation(params)
                 pendingAnimParams = nil
+            } else {
+                startNewAnimation(currentAnimParams)
             }
-        } else {
-            videoView.layer.removeAllAnimations()
-            scaleAnimator = nil
-            updateParentScale(1.0)
         }
     }
 }

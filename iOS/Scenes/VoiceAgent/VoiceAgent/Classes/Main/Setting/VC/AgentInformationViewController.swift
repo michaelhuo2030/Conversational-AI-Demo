@@ -19,6 +19,7 @@ class AgentInformationViewController: UIViewController {
     
     private lazy var topView: AgentSettingTopView = {
         let view = AgentSettingTopView()
+        view.setTitle(title: ResourceManager.L10n.ChannelInfo.title)
         view.onCloseButtonTapped = { [weak self] in
             self?.animateBackgroundViewOut()
         }

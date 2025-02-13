@@ -280,7 +280,8 @@ extension ChatViewController {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
         return try await withCheckedThrowingContinuation { continuation in
-            agentManager.fetchAgentPresets { error, result in
+            agentManager.fetchAgentPresets {[weak self] error, result in
+                guard let self = self else { return }
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
@@ -360,7 +361,7 @@ extension ChatViewController {
                     AppContext.preferenceManager()?.updateAgentId(remoteAgentId)
                     AppContext.preferenceManager()?.updateUserId(self.uid)
                 }
-                addLog("start agent success")
+                addLog("start agent success, response is: \(self.remoteAgentId)")
                 prepareToPing()
                 agentCheck()
                 return
@@ -376,8 +377,15 @@ extension ChatViewController {
     private func agentCheck() {
         self.requestTimer?.invalidate()
         self.requestTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] _ in
-            guard let self = self, let manager = AppContext.preferenceManager(), self.remoteIsJoined else {
+            guard let self = self, let manager = AppContext.preferenceManager() else {
+                self?.addLog("will stop request timer")
                 self?.stopRequestTimer()
+                return
+            }
+            
+            if self.remoteIsJoined {
+                self.stopRequestTimer()
+                self.addLog("agent is joined in 10 seconds")
                 return
             }
             
@@ -528,7 +536,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             if dataType == "transcribe" {
                 if streamId == 0 {
                     // AI response message
-                    if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
+                    if self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
                         self.messageView.startNewStreamMessage(timestamp: textTs, isUser: false)
                     }
                     self.messageView.updateStreamContent(text)
@@ -537,9 +545,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                     }
                 } else {
                     // User message
-                    if isFinal {
+                    if !self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
                         self.messageView.startNewStreamMessage(timestamp: textTs, isUser: true)
-                        self.messageView.updateStreamContent(text)
+                    }
+                    self.messageView.updateStreamContent(text)
+                    if isFinal {
                         self.messageView.completeStreamMessage()
                     }
                 }

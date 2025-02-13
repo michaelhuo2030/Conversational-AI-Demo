@@ -17,14 +17,9 @@ class AgentSettingSwitchItemView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        registerDelegate()
         createViews()
         createConstrains()
         updateEnableState()
-    }
-    
-    deinit {
-        unregisterDelegate()
     }
     
     required init?(coder: NSCoder) {
@@ -33,13 +28,6 @@ class AgentSettingSwitchItemView: UIView {
 }
 
 extension AgentSettingSwitchItemView {
-    private func registerDelegate() {
-        AppContext.preferenceManager()?.addDelegate(self)
-    }
-    
-    private func unregisterDelegate() {
-        AppContext.preferenceManager()?.removeDelegate(self)
-    }
     
     private func createViews() {
         self.backgroundColor = UIColor.themColor(named: "ai_block2")
@@ -101,20 +89,26 @@ extension AgentSettingSwitchItemView {
     }
     
     func updateEnableState() {
-        guard let manager = AppContext.preferenceManager() else {
+        guard let manager = AppContext.preferenceManager(), let language = manager.preference.language else {
             return
         }
         
-        let state = manager.information.agentState == .unload
-        switcher.isEnabled = state
-        switcher.onTintColor = state ? UIColor.themColor(named: "ai_brand_lightbrand6") : UIColor.themColor(named: "ai_disable")
-        switcher.backgroundColor = state ? UIColor.themColor(named: "ai_brand_white10") : UIColor.themColor(named: "ai_brand_white6")
-    }
-}
-
-extension AgentSettingSwitchItemView: AgentPreferenceManagerDelegate {
-    func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
-        updateEnableState()
+        if AppContext.shared.appArea == .overseas {
+            if language.languageCode == "en-US" {
+                switcher.isEnabled = true
+                switcher.onTintColor = UIColor.themColor(named: "ai_brand_lightbrand6")
+                switcher.backgroundColor = UIColor.themColor(named: "ai_line2")
+            } else {
+                switcher.isEnabled = false
+                switcher.onTintColor = UIColor.themColor(named: "ai_disable")
+                switcher.backgroundColor = UIColor.themColor(named: "ai_disable")
+            }
+        } else {
+            let state = manager.information.agentState == .unload
+            switcher.isEnabled = state
+            switcher.onTintColor = state ? UIColor.themColor(named: "ai_brand_lightbrand6") : UIColor.themColor(named: "ai_disable")
+            switcher.backgroundColor = state ? UIColor.themColor(named: "ai_line2") : UIColor.themColor(named: "ai_disable")
+        }
     }
 }
 

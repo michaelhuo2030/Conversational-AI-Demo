@@ -31,7 +31,6 @@ class AgentSettingTopView: UIView {
     private func createViews() {
         backgroundColor = UIColor.themColor(named: "ai_fill2")
         
-        leftTitleLabel.text = ResourceManager.L10n.Settings.title
         leftTitleLabel.textColor = .white
         leftTitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         addSubview(leftTitleLabel)
@@ -71,6 +70,10 @@ class AgentSettingTopView: UIView {
             make.left.right.bottom.equalTo(0)
             make.height.equalTo(1.0)
         }
+    }
+    
+    public func setTitle(title: String) {
+        leftTitleLabel.text = title
     }
     
     @objc private func onClickClose(_ sender: UIButton) {

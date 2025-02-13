@@ -20,6 +20,7 @@ class AgentSettingViewController: UIViewController {
     
     private lazy var topView: AgentSettingTopView = {
         let view = AgentSettingTopView()
+        view.setTitle(title: ResourceManager.L10n.Settings.title)
         view.onCloseButtonTapped = { [weak self] in
             self?.animateBackgroundViewOut()
         }
@@ -426,8 +427,13 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         }
     }
     
+    func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
+        aiVadItem.updateEnableState()
+    }
+    
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {
         languageItem.detailLabel.text = language.languageName
+        aiVadItem.updateEnableState()
     }
 }
 
