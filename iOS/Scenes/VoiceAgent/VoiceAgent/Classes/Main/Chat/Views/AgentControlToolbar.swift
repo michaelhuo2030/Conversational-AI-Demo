@@ -26,6 +26,7 @@ class AgentControlToolbar: UIView {
     private let buttonHeight = 76.0
     private let startButtonHeight = 68.0
     private var _style: AgentControlStyle = .startButton
+    private var gradientLayer: CAGradientLayer?
     
     var style: AgentControlStyle {
         get {
@@ -50,20 +51,7 @@ class AgentControlToolbar: UIView {
         button.titleLabel?.font = .systemFont(ofSize: 18)
         button.setTitleColor(PrimaryColors.c_ffffff, for: .normal)
         
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [
-            UIColor(hex: 0x17F1FE)?.cgColor as Any,
-            UIColor(hex: 0x17C5FF)?.cgColor as Any,
-            UIColor(hex: 0x283DFF)?.cgColor as Any
-        ]
-        gradientLayer.locations = [0, 0.1, 1.0]
-        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
-        gradientLayer.cornerRadius = startButtonHeight / 2.0
-        gradientLayer.frame = CGRectMake(0, 0, UIScreen.main.bounds.width - 40, startButtonHeight)
-        button.layer.addSublayer(gradientLayer)
-        gradientLayer.zPosition = -0.1
-        button.layer.masksToBounds = true
+        setupStartButton(button: button)
         
         button.layer.cornerRadius = startButtonHeight / 2.0
         button.addTarget(self, action: #selector(startAction), for: .touchUpInside)
@@ -72,9 +60,6 @@ class AgentControlToolbar: UIView {
         let spacing: CGFloat = 5
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        
-        // Store gradient layer for later use
-        button.layer.setValue(gradientLayer, forKey: "gradientLayer")
         
         return button
     }()
@@ -208,10 +193,13 @@ class AgentControlToolbar: UIView {
         
         startButton.snp.makeConstraints { make in
             make.centerY.equalTo(startButtonContentView)
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
-            make.height.equalTo(startButtonHeight)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(startButtonContentView).multipliedBy(0.8)
+            make.height.equalTo(startButton.snp.width).multipliedBy(1/5.8)
         }
+        
+        startButton.layoutIfNeeded()
+        startButton.layer.cornerRadius = startButton.frame.height / 2
         
         buttonControlContentView.snp.makeConstraints { make in
             make.edges.equalTo(UIEdgeInsets.zero)
@@ -243,6 +231,30 @@ class AgentControlToolbar: UIView {
         }
     }
     
+    private func setupStartButton(button: UIButton) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor(hex: 0x17F1FE)?.cgColor as Any,
+            UIColor(hex: 0x17C5FF)?.cgColor as Any,
+            UIColor(hex: 0x283DFF)?.cgColor as Any
+        ]
+        gradientLayer.locations = [0, 0.1, 1.0]
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        gradientLayer.cornerRadius = startButtonHeight / 2.0
+        gradientLayer.frame = CGRectMake(0, 0, UIScreen.main.bounds.width - 40, startButtonHeight)
+        button.layer.addSublayer(gradientLayer)
+        gradientLayer.zPosition = -0.1
+        button.layer.masksToBounds = true
+        
+        self.gradientLayer = gradientLayer
+        
+        CATransaction.commit()
+    }
+    
     @objc private func startAction() {
         Task {
             await delegate?.getStart()
@@ -268,6 +280,32 @@ class AgentControlToolbar: UIView {
     
     private func setTintColor(state: Bool) {
         captionsButton.tintColor = state ? PrimaryColors.c_00c2ff : PrimaryColors.c_ffffff
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        if startButtonContentView.frame.width > 0 {
+            // 禁用布局更新时的动画
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            
+            startButton.layer.cornerRadius = startButton.frame.height / 2
+            gradientLayer?.frame = startButton.bounds
+            gradientLayer?.cornerRadius = startButton.frame.height / 2
+            
+            CATransaction.commit()
+        }
+    }
+    
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        
+        DispatchQueue.main.async {
+            self.startButtonContentView.layoutIfNeeded()
+            self.setNeedsLayout()
+            self.layoutIfNeeded()
+        }
     }
 }
 

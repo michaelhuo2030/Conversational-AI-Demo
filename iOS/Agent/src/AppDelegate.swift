@@ -15,7 +15,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        SVProgressHUD.setDefaultMaskType(.black)
+        SVProgressHUD.setMaximumDismissTimeInterval(1)
+        SVProgressHUD.setBackgroundColor(PrimaryColors.c_121212.withAlphaComponent(0.8))
+        SVProgressHUD.setForegroundColor(.white)
 
         #if MainLand
         AppContext.shared.appArea = .mainland

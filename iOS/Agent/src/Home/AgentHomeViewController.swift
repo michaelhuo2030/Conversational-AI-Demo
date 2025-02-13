@@ -37,16 +37,22 @@ class AgentHomeViewController: UIViewController {
         }
         return imageView
     }()
+    
+    private lazy var debugButton: UIButton = {
+        let button = UIButton()
+        return button
+    }()
 
     private lazy var titleButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.addTarget(self, action: #selector(onClickLogo(_:)), for: .touchUpInside)
         return button
     }()
 
     private lazy var centerImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage.va_named("ic_agent_home_center"))
-//        imageView.backgroundColor = .red
+        imageView.isUserInteractionEnabled = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onClickLogo))
+        imageView.addGestureRecognizer(tapGesture)
         return imageView
     }()
 
@@ -89,7 +95,7 @@ class AgentHomeViewController: UIViewController {
         button.addTarget(self, action: #selector(onTermsClicked), for: .touchUpInside)
         return button
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -113,22 +119,22 @@ class AgentHomeViewController: UIViewController {
     
     var clickCount = 0
     var lastClickTime: Date?
-    @objc private func onClickLogo(_ sender: UIButton) {
+    @objc private func onClickLogo() {
         let currentTime = Date()
         if let lastTime = lastClickTime, currentTime.timeIntervalSince(lastTime) > 1.0 {
             clickCount = 0
         }
         lastClickTime = currentTime
         clickCount += 1
-        if clickCount >= 5 {
-            onThresholdReached()
+        if clickCount >= 6 {
             clickCount = 0
+
+            if DebugManager.isDebugMode() {
+                return
+            }
+            DebugManager.openDebugMode()
+            addLog("Debug mode enabled")
         }
-    }
-    
-    func onThresholdReached() {
-        hostTextField.isHidden = false
-        hostTextField.becomeFirstResponder()
     }
     
     private func isValidURL(_ urlString: String) -> Bool {
@@ -178,7 +184,7 @@ class AgentHomeViewController: UIViewController {
         }
         
         nextStepButton.snp.makeConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-80)
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-30)
             make.height.equalTo(58)
             make.left.equalTo(20)
             make.right.equalTo(-20)
@@ -218,5 +224,6 @@ class AgentHomeViewController: UIViewController {
         let webVC = TermsServiceWebViewController()
         self.navigationController?.pushViewController(webVC)
     }
+
 }
 

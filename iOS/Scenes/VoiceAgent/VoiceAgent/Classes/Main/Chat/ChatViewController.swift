@@ -15,10 +15,11 @@ import Common
 class ChatViewController: UIViewController {
     private var isDenoise = true
     private let messageParser = MessageParser()
+    private var pingTimer: Timer?
+    private var requestTimer: Timer?
     private let uid = "\(RtcEnum.getUid())"
     private let pingTimeInterval = 10.0
-    private var pingTimer: Timer?
-    private var firstStartTimer: Timer?
+    private var remoteIsJoined = false
     private var channelName = ""
     private var token = ""
     private var agentUid = 0
@@ -152,8 +153,8 @@ class ChatViewController: UIViewController {
         }
         
         animateContentView.snp.makeConstraints { make in
-            make.height.equalTo(animateContentView.snp.width).multipliedBy(480.0/550.0)
-            make.width.equalTo(contentView.snp.width).multipliedBy(0.9)
+            make.height.equalTo(animateContentView.snp.width).multipliedBy(1080.0/1142.0)
+            make.width.equalTo(contentView.snp.width).multipliedBy(0.7)
             make.centerX.equalTo(contentView)
             make.centerY.equalTo(contentView)
         }
@@ -164,13 +165,12 @@ class ChatViewController: UIViewController {
         
         toastView.snp.makeConstraints { make in
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
-            make.centerX.equalTo(view)
-            make.height.equalTo(40)
-            make.width.equalTo(111)
+            make.left.right.equalTo(0)
+            make.height.equalTo(44)
         }
         
         bottomBar.snp.makeConstraints { make in
-            make.bottom.equalTo(-40)
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-30)
             make.left.right.equalTo(0)
             make.height.equalTo(76)
         }
@@ -238,14 +238,24 @@ class ChatViewController: UIViewController {
     
     private func stopAgent() {
         addLog("begin stop agent")
-        pingTimer?.invalidate()
-        pingTimer = nil
         animateView.updateAgentState(.idle)
         messageView.clearMessages()
         messageView.isHidden = true
         bottomBar.resetState()
+        
+        stopPingTimer()
         leaveChannel()
         stopAgentRequest()
+    }
+    
+    private func stopPingTimer() {
+        pingTimer?.invalidate()
+        pingTimer = nil
+    }
+    
+    private func stopRequestTimer() {
+        requestTimer?.invalidate()
+        requestTimer = nil
     }
     
     private func setupMuteState(state: Bool) {
@@ -329,6 +339,7 @@ extension ChatViewController {
         let bhvs = manager.preference.bhvs
         let presetName = manager.preference.preset?.name ?? ""
         let language = manager.preference.language?.languageCode ?? ""
+        remoteIsJoined = false
         agentManager.startAgent(appId: AppContext.shared.appId,
                                 uid: uid,
                                 agentUid: "\(agentUid)",
@@ -336,9 +347,13 @@ extension ChatViewController {
                                 aiVad: aiVad,
                                 bhvs: bhvs,
                                 presetName: presetName,
-                                language: language) { [weak self] error, remoteAgentId in
+                                language: language) { [weak self] error, channelName, remoteAgentId in
             guard let self = self else { return }
-
+            if self.channelName != channelName {
+                self.addLog("channelName is different, current : \(self.channelName), before: \(channelName)")
+                return
+            }
+            
             guard let error = error else {
                 if let remoteAgentId = remoteAgentId {
                     self.remoteAgentId = remoteAgentId
@@ -359,16 +374,19 @@ extension ChatViewController {
     }
     
     private func agentCheck() {
-        self.firstStartTimer?.invalidate()
-        self.firstStartTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] _ in
-            guard let self = self, let manager = AppContext.preferenceManager() else { return }
+        self.requestTimer?.invalidate()
+        self.requestTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] _ in
+            guard let self = self, let manager = AppContext.preferenceManager(), self.remoteIsJoined else {
+                self?.stopRequestTimer()
+                return
+            }
+            
             if manager.information.agentState != .connected {
                 addLog("agent is not joined in 10 seconds")
                 self.stopLoading()
                 self.stopAgent()
             }
-            self.firstStartTimer?.invalidate()
-            self.firstStartTimer = nil
+            self.stopRequestTimer()
         })
     }
     
@@ -442,6 +460,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         toastView.dismiss()
+        remoteIsJoined = true
         addLog("remote user didJoinedOfUid uid: \(uid)")
         AppContext.preferenceManager()?.updateAgentState(.connected)
         SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.agentJoined)
@@ -542,6 +561,16 @@ extension ChatViewController: AgoraRtcEngineDelegate {
 
             } else if (info.uid == 0) {
                 bottomBar.setVolumeProgress(value: Float(info.volume))
+            }
+        }
+    }
+    
+    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStateChangedOfUid uid: UInt, state: AgoraAudioRemoteState, reason: AgoraAudioRemoteReason, elapsed: Int) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            if uid == self.agentUid, state == .stopped {
+                animateView.updateAgentState(.listening)
             }
         }
     }
