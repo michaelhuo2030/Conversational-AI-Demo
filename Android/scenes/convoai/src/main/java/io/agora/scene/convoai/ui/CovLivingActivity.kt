@@ -343,7 +343,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 runOnUiThread {
                     if (uid == CovAgentManager.agentUID) {
                         mCovBallAnim?.updateAgentState(AgentState.STATIC)
-                        if (!isUserEndCall) {
+                        if (isUserEndCall){
+                            isUserEndCall = false
+                        }else{
                             ToastUtil.show(getString(R.string.cov_detail_agent_state_error), Toast.LENGTH_LONG)
                         }
                     }

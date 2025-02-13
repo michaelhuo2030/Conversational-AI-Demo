@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.dp
@@ -80,6 +81,18 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         binding?.apply {
             tvPresetDetail.text = CovAgentManager.getPreset()?.display_name
             tvLanguageDetail.text = CovAgentManager.language?.language_name
+            if (!ServerConfig.isMainlandVersion) {
+                // The non-English overseas version must disable AiVad.
+                if (CovAgentManager.language?.language_code == "en-US") {
+                    CovAgentManager.enableAiVad = true
+                    cbAiVad.isChecked = true
+                    cbAiVad.isEnabled = true
+                } else {
+                    CovAgentManager.enableAiVad = false
+                    cbAiVad.isChecked = false
+                    cbAiVad.isEnabled = false
+                }
+            }
         }
     }
 

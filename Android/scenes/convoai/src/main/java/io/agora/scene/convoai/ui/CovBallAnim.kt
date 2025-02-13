@@ -46,9 +46,9 @@ class CovBallAnim constructor(
         }
 
         private object ScaleConstants {
-            const val SCALE_HIGH = 1.1f
-            const val SCALE_MEDIUM = 1.06f
-            const val SCALE_LOW = 1.04f
+            const val SCALE_HIGH = 1.2f
+            const val SCALE_MEDIUM = 1.15f
+            const val SCALE_LOW = 1.1f
         }
 
         private const val TAG = "CovBallAnim"
@@ -81,7 +81,7 @@ class CovBallAnim constructor(
                     }
 
                     AgentState.SPEAKING -> {
-                        rtcMediaPlayer?.setPlaybackSpeed(250)
+                        rtcMediaPlayer?.setPlaybackSpeed(300)
                     }
                 }
             }
@@ -183,7 +183,9 @@ class CovBallAnim constructor(
                 rtcMediaPlayer?.apply {
                     mute(true)
                     play()
-                    preloadSrc(getVideoSrc(VIDEO_ROTATING_NAME), 0)
+                    if (!isRotatingVideoPreload){
+                        preloadSrc(getVideoSrc(VIDEO_ROTATING_NAME), 0)
+                    }
                 }
             } else if (state == MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED) {
                 rtcMediaPlayer?.apply {
@@ -191,13 +193,14 @@ class CovBallAnim constructor(
                         playPreloadedSrc(getVideoSrc(VIDEO_ROTATING_NAME))
                         mute(true)
                         setLoopCount(-1)
+                    }else{
+
                     }
                 }
             }
         }
 
         private var isRotatingVideoPreload = false
-        private var isRotatingVideoPlaying = false
 
         override fun onPreloadEvent(src: String?, event: Constants.MediaPlayerPreloadEvent?) {
             super.onPreloadEvent(src, event)
