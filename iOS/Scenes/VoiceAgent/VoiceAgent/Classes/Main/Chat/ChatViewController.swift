@@ -293,8 +293,7 @@ extension ChatViewController {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
         return try await withCheckedThrowingContinuation { continuation in
-            agentManager.fetchAgentPresets {[weak self] error, result in
-                guard let self = self else { return }
+            agentManager.fetchAgentPresets { error, result in
                 if let error = error {
                     continuation.resume(throwing: error)
                     return

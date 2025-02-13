@@ -18,9 +18,9 @@ class AnimateView: NSObject {
     }
     
     private struct ScaleConstants {
-        static let scaleHigh: Float = 1.2
-        static let scaleMedium: Float = 1.15
-        static let scaleLow: Float = 1.1
+        static let scaleHigh: Float = 1.12
+        static let scaleMedium: Float = 1.1
+        static let scaleLow: Float = 1.08
     }
     
     private struct AnimationConstants {
@@ -47,7 +47,7 @@ class AnimateView: NSObject {
                 case .listening:
                     rtcMediaPlayer?.setPlaybackSpeed(150)
                 case .speaking:
-                    rtcMediaPlayer?.setPlaybackSpeed(300)
+                    rtcMediaPlayer?.setPlaybackSpeed(250)
                 }
             }
         }
@@ -160,7 +160,6 @@ class AnimateView: NSObject {
     }
     
     private func createAnimationSequence(_ params: AnimParams) -> [CAAnimation] {
-        // 将总时长平均分配给各个阶段
         let quarterDuration = params.duration / 4
         
         let scaleDown = CABasicAnimation(keyPath: "transform.scale")
