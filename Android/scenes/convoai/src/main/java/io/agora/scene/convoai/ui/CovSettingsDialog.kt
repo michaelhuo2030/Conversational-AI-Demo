@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.dp
+import io.agora.scene.common.util.getDistanceFromScreenEdges
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.manager.AgentConnectionState
@@ -39,6 +40,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        
         binding?.apply {
             setOnApplyWindowInsets(root)
             rcOptions.adapter = optionsAdapter
@@ -68,6 +70,10 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
         updatePageEnable()
         updateBaseSettings()
+    }
+
+    override fun disableDragging(): Boolean {
+        return true
     }
 
     private fun updateBaseSettings() {
@@ -106,28 +112,34 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         val presets = CovAgentManager.getPresetList() ?: return
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            val itemLocation = IntArray(2)
-            clPreset.getLocationOnScreen(itemLocation)
-            val maskLocation = IntArray(2)
-            vOptionsMask.getLocationOnScreen(maskLocation)
-            val targetY = (itemLocation[1] - maskLocation[1]) + 30.dp
+            
+            // Calculate popup position using getDistanceFromScreenEdges
+            val itemDistances = clPreset.getDistanceFromScreenEdges()
+            val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
+            val targetY = itemDistances.top - maskDistances.top + 30.dp
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
+
+            // Calculate height with constraints
             val params = cvOptions.layoutParams
-            params.height = (48.dp * presets.size).toInt()
+            val itemHeight = 44.dp.toInt()
+            // Ensure maxHeight is at least one item height
+            val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
+            val finalHeight = (itemHeight * presets.size).coerceIn(itemHeight, finalMaxHeight)
+
+            params.height = finalHeight
             cvOptions.layoutParams = params
-            // update options and select action
+
+            // Update options and handle selection
             optionsAdapter.updateOptions(
                 presets.map { it.display_name }.toTypedArray(),
                 presets.indexOf(CovAgentManager.getPreset())
             ) { index ->
-                val preset= presets[index]
+                val preset = presets[index]
                 CovAgentManager.setPreset(preset)
                 onCallBack?.onPreset(preset)
                 updateBaseSettings()
-                binding?.apply {
-                    vOptionsMask.visibility = View.INVISIBLE
-                }
+                vOptionsMask.visibility = View.INVISIBLE
             }
         }
     }
@@ -136,28 +148,32 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         val languages = CovAgentManager.getLanguages() ?: return
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            val itemLocation = IntArray(2)
-            clLanguage.getLocationOnScreen(itemLocation)
-            val maskLocation = IntArray(2)
-            vOptionsMask.getLocationOnScreen(maskLocation)
-            val targetY = (itemLocation[1] - maskLocation[1]) + 30.dp
+            
+            // Calculate popup position using getDistanceFromScreenEdges
+            val itemDistances = clLanguage.getDistanceFromScreenEdges()
+            val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
+            val targetY = itemDistances.top - maskDistances.top + 30.dp
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
+            
+            // Calculate height with constraints
             val params = cvOptions.layoutParams
-            var height = (44.dp * languages.size).toInt()
-            if (height > 200.dp) height = 200.dp.toInt()
-            params.height = height
+            val itemHeight = 44.dp.toInt()
+            // Ensure maxHeight is at least one item height
+            val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
+            val finalHeight = (itemHeight * languages.size).coerceIn(itemHeight, finalMaxHeight)
+            
+            params.height = finalHeight
             cvOptions.layoutParams = params
-            // update options and select action
+
+            // Update options and handle selection
             optionsAdapter.updateOptions(
                 languages.map { it.language_name }.toTypedArray(),
                 languages.indexOf(CovAgentManager.language)
             ) { index ->
                 CovAgentManager.language = languages[index]
                 updateBaseSettings()
-                binding?.apply {
-                    vOptionsMask.visibility = View.INVISIBLE
-                }
+                vOptionsMask.visibility = View.INVISIBLE
             }
         }
     }

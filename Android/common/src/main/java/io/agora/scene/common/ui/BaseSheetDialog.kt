@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 
@@ -34,9 +35,21 @@ abstract class BaseSheetDialog<B : ViewBinding?> : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupFullScreen()
+        if (disableDragging()){
+            // Disable bottom sheet dragging
+            dialog?.let { dialog ->
+                val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                val behavior = BottomSheetBehavior.from(bottomSheet)
+                behavior.isDraggable = false
+            }
+        }
         dialog?.setOnShowListener { _: DialogInterface? ->
             (view.parent as ViewGroup).setBackgroundColor(Color.TRANSPARENT)
         }
+    }
+
+    open fun disableDragging(): Boolean {
+        return false
     }
 
     protected fun setOnApplyWindowInsets(view: View) {
