@@ -98,7 +98,6 @@ class AnimateView: NSObject {
     }
     
     private func handleStateTransition(oldState: AgentState, newState: AgentState, volume: Int = 0) {
-        print("[AnimateView] State transition from \(oldState) to \(newState)")
         switch newState {
         case .idle, .listening:
             if let group = scaleAnimator {
@@ -151,7 +150,6 @@ class AnimateView: NSObject {
     }
     
     private func startNewAnimation(_ params: AnimParams) {
-        print("[AnimateView] Starting new animation with params - minScale: \(params.minScale), duration: \(params.duration)")
         currentAnimParams = params
         
         let group = CAAnimationGroup()
@@ -218,14 +216,12 @@ extension AnimateView: CAAnimationDelegate {
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         if flag {
             if (anim.value(forKey: "shouldStop") as? Bool) == true {
-                print("[AnimateView] Animation reached end and should stop")
                 videoView.layer.removeAllAnimations()
                 scaleAnimator = nil
                 return
             }
             
             if currentState != .speaking {
-                print("[AnimateView] Animation reached end and state is not speaking")
                 videoView.layer.removeAllAnimations()
                 scaleAnimator = nil
                 return
