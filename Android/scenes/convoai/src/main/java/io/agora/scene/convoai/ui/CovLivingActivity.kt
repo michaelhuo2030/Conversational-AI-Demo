@@ -187,7 +187,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun onClickStartAgent() {
         // Immediately show the connecting status
         connectionState = AgentConnectionState.CONNECTING
-        CovAgentManager.channelName = "agent_" + UUID.randomUUID().toString().replace("-", "")
+        CovAgentManager.channelName = "agent_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8)
 
         coroutineScope.launch(Dispatchers.IO) {
             val needToken = rtcToken == null
