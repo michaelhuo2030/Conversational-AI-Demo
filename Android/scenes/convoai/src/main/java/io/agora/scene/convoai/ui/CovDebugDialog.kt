@@ -1,8 +1,5 @@
 package io.agora.scene.convoai.ui
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,10 +9,8 @@ import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
-import io.agora.scene.common.util.toast.ToastUtil
-import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovDebugDialogBinding
-import io.agora.scene.convoai.manager.CovServerManager
+import io.agora.scene.convoai.api.CovAgentApiManager
 
 class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
     BaseSheetDialog<CovDebugDialogBinding>() {
@@ -88,7 +83,7 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
         binding?.apply {
             setOnApplyWindowInsets(root)
             mtvRtcVersion.text = RtcEngine.getSdkVersion()
-            mtvServerHost.text = CovServerManager.currentHost ?: ""
+            mtvServerHost.text = CovAgentApiManager.currentHost ?: ""
             cbAudioDump.setChecked(settingBean.isAudioDumpEnabled)
             cbAudioDump.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (buttonView.isPressed) {

@@ -1,5 +1,6 @@
 package io.agora.scene.convoai.ui
 
+import android.content.DialogInterface
 import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,11 +15,11 @@ import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getDistanceFromScreenEdges
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
-import io.agora.scene.convoai.manager.AgentConnectionState
-import io.agora.scene.convoai.manager.CovAgentManager
-import io.agora.scene.convoai.manager.CovAgentPreset
+import io.agora.scene.convoai.constant.CovAgentManager
+import io.agora.scene.convoai.api.CovAgentPreset
+import io.agora.scene.convoai.constant.AgentConnectionState
 
-class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
+class CovSettingsDialog (private val onDismiss: () -> Unit) : BaseSheetDialog<CovSettingDialogBinding>() {
 
     interface Callback {
         fun onPreset(preset: CovAgentPreset)
@@ -31,6 +32,11 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     }
 
     private val optionsAdapter = OptionsAdapter()
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onDismiss.invoke()
+    }
 
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -81,8 +87,13 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         binding?.apply {
             tvPresetDetail.text = CovAgentManager.getPreset()?.display_name
             tvLanguageDetail.text = CovAgentManager.language?.language_name
-            if (!ServerConfig.isMainlandVersion) {
-                // The non-English overseas version must disable AiVad.
+        }
+    }
+
+    // The non-English overseas version must disable AiVad.
+    private fun setAiVadBySelectLanguage(){
+        if (!ServerConfig.isMainlandVersion) {
+            binding?.apply {
                 if (CovAgentManager.language?.language_code == "en-US") {
                     CovAgentManager.enableAiVad = true
                     cbAiVad.isChecked = true
@@ -96,9 +107,16 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
     }
 
+    private var connectionState = AgentConnectionState.IDLE
+
+    fun updateConnectStatus(connectionState: AgentConnectionState) {
+        this.connectionState = connectionState
+        updatePageEnable()
+    }
+
     private fun updatePageEnable() {
         val context = context ?: return
-        if (CovAgentManager.connectionState == AgentConnectionState.IDLE) {
+        if (connectionState == AgentConnectionState.IDLE) {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
@@ -186,6 +204,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             ) { index ->
                 CovAgentManager.language = languages[index]
                 updateBaseSettings()
+                setAiVadBySelectLanguage()
                 vOptionsMask.visibility = View.INVISIBLE
             }
         }

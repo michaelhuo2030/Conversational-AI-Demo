@@ -1,4 +1,4 @@
-package io.agora.scene.convoai.manager
+package io.agora.scene.convoai.api
 
 data class AgentRequestParams(
     val channelName: String,
@@ -40,10 +40,3 @@ data class CovAgentLanguage(
     val language_code: String,
     val language_name: String
 )
-
-enum class AgentConnectionState() {
-    IDLE,
-    CONNECTING,
-    CONNECTED,
-    CONNECTED_INTERRUPT,
-}

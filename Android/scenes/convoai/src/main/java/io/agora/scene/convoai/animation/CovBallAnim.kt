@@ -1,4 +1,4 @@
-package io.agora.scene.convoai.ui
+package io.agora.scene.convoai.animation
 
 import android.animation.Animator
 import android.animation.ValueAnimator
@@ -13,9 +13,8 @@ import io.agora.mediaplayer.Constants.MediaPlayerReason
 import io.agora.mediaplayer.Constants.MediaPlayerState
 import io.agora.mediaplayer.IMediaPlayer
 import io.agora.mediaplayer.data.MediaPlayerSource
-import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.BuildConfig
-import io.agora.scene.convoai.manager.CovMediaPlayerObserver
+import io.agora.scene.convoai.rtc.CovMediaPlayerObserver
 import io.agora.mediaplayer.Constants
 import io.agora.scene.convoai.CovLogger
 import java.io.File
@@ -33,6 +32,7 @@ enum class AgentState {
 
 class CovBallAnim constructor(
     private val context: Context,
+    private val rtcMediaPlayer: IMediaPlayer,
     private val videoView: TextureView
 ) {
 
@@ -63,9 +63,19 @@ class CovBallAnim constructor(
         private const val BOUNCE_SCALE = 0.02f  // Additional scale factor during bounce
     }
 
-    private var scaleAnimator: Animator? = null
+    fun setupView() {
+        rtcMediaPlayer.apply {
+            setView(videoView)
+            registerPlayerObserver(mediaPlayerObserver)
+            val source = MediaPlayerSource().apply {
+                url = getVideoSrc(VIDEO_START_NAME)
+            }
+            openWithMediaSource(source)
+        }
+    }
 
-    private var rtcMediaPlayer: IMediaPlayer? = null
+
+    private var scaleAnimator: Animator? = null
 
     private var currentState = AgentState.STATIC
         private set(value) {
@@ -73,15 +83,15 @@ class CovBallAnim constructor(
                 field = value
                 when (value) {
                     AgentState.STATIC -> {
-                        rtcMediaPlayer?.setPlaybackSpeed(100)
+                        rtcMediaPlayer.setPlaybackSpeed(100)
                     }
 
                     AgentState.LISTENING -> {
-                        rtcMediaPlayer?.setPlaybackSpeed(150)
+                        rtcMediaPlayer.setPlaybackSpeed(150)
                     }
 
                     AgentState.SPEAKING -> {
-                        rtcMediaPlayer?.setPlaybackSpeed(300)
+                        rtcMediaPlayer.setPlaybackSpeed(300)
                     }
                 }
             }
@@ -163,19 +173,6 @@ class CovBallAnim constructor(
         return context.filesDir.absolutePath + File.separator + fileName
     }
 
-    fun setupMediaPlayer(rtcEngine: RtcEngine) {
-        CovLogger.d(TAG,"called setupMediaPlayer")
-        rtcMediaPlayer = rtcEngine.createMediaPlayer()?.apply {
-            setView(videoView)
-            registerPlayerObserver(mediaPlayerObserver)
-            val source = MediaPlayerSource().apply {
-                url = getVideoSrc(VIDEO_START_NAME)
-            }
-            openWithMediaSource(source)
-        }
-        CovLogger.d(TAG,"called setupMediaPlayer rtcMediaPlayer:$rtcMediaPlayer")
-    }
-
     private val mediaPlayerObserver = object : CovMediaPlayerObserver() {
         override fun onPlayerStateChanged(state: MediaPlayerState?, reason: MediaPlayerReason?) {
             Log.d(TAG, "$state $reason")
@@ -183,17 +180,17 @@ class CovBallAnim constructor(
                 rtcMediaPlayer?.apply {
                     mute(true)
                     play()
-                    if (!isRotatingVideoPreload){
+                    if (!isRotatingVideoPreload) {
                         preloadSrc(getVideoSrc(VIDEO_ROTATING_NAME), 0)
                     }
                 }
             } else if (state == MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED) {
                 rtcMediaPlayer?.apply {
-                    if (isRotatingVideoPreload){
+                    if (isRotatingVideoPreload) {
                         playPreloadedSrc(getVideoSrc(VIDEO_ROTATING_NAME))
                         mute(true)
                         setLoopCount(-1)
-                    }else{
+                    } else {
 
                     }
                 }
@@ -205,17 +202,19 @@ class CovBallAnim constructor(
         override fun onPreloadEvent(src: String?, event: Constants.MediaPlayerPreloadEvent?) {
             super.onPreloadEvent(src, event)
             Log.d(TAG, "onPreloadEvent: $src $event")
-            src?:return
-            when(event){
-                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_BEGIN->{
+            src ?: return
+            when (event) {
+                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_BEGIN -> {
 
                 }
-                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_COMPLETE->{
-                    if (src.contains(VIDEO_ROTATING_NAME)){
+
+                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_COMPLETE -> {
+                    if (src.contains(VIDEO_ROTATING_NAME)) {
                         isRotatingVideoPreload = true
                     }
                 }
-                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_ERROR->{
+
+                Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_ERROR -> {
 
                 }
 
@@ -316,12 +315,11 @@ class CovBallAnim constructor(
     }
 
     fun release() {
-        CovLogger.d(TAG,"called release")
-        rtcMediaPlayer?.let {
-            CovLogger.d(TAG,"called release rtcMediaPlayer: $rtcMediaPlayer")
+        CovLogger.d(TAG, "called release")
+        rtcMediaPlayer.let {
+            CovLogger.d(TAG, "called release rtcMediaPlayer: $it")
             it.stop()
             it.destroy()
-            rtcMediaPlayer = null
         }
 
         scaleAnimator?.let {

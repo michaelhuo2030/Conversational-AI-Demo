@@ -1,4 +1,4 @@
-package io.agora.scene.convoai.manager
+package io.agora.scene.convoai.rtc
 
 import io.agora.mediaplayer.Constants
 import io.agora.mediaplayer.IMediaPlayerObserver

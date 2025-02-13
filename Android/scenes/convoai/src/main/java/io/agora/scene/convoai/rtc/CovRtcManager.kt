@@ -1,5 +1,6 @@
-package io.agora.scene.convoai.manager
+package io.agora.scene.convoai.rtc
 
+import io.agora.mediaplayer.IMediaPlayer
 import io.agora.rtc2.ChannelMediaOptions
 import io.agora.rtc2.Constants
 import io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
@@ -37,6 +38,17 @@ object CovRtcManager {
         }
         CovLogger.d(TAG, "current sdk version: ${RtcEngine.getSdkVersion()}")
         return rtcEngine!!
+    }
+
+    private var mediaPlayer: IMediaPlayer? = null
+
+    fun createMediaPlayer(): IMediaPlayer {
+        try {
+            mediaPlayer = rtcEngine?.createMediaPlayer()!!
+        } catch (e: Exception) {
+            CovLogger.e(TAG, "createMediaPlayer error: $e")
+        }
+        return mediaPlayer!!
     }
 
     fun joinChannel(rtcToken: String, channelName: String, uid: Int) {
@@ -103,6 +115,7 @@ object CovRtcManager {
 
     fun resetData() {
         rtcEngine = null
+        mediaPlayer = null
         RtcEngine.destroy()
     }
 }

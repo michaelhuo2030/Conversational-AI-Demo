@@ -1,6 +1,15 @@
-package io.agora.scene.convoai.manager
+package io.agora.scene.convoai.constant
 
+import io.agora.scene.convoai.api.CovAgentLanguage
+import io.agora.scene.convoai.api.CovAgentPreset
 import kotlin.random.Random
+
+enum class AgentConnectionState() {
+    IDLE,
+    CONNECTING,
+    CONNECTED,
+    CONNECTED_INTERRUPT,
+}
 
 object CovAgentManager {
 
@@ -13,7 +22,6 @@ object CovAgentManager {
 
     var enableAiVad = false
     val enableBHVS = true
-    var connectionState = AgentConnectionState.IDLE
 
     // values
     val uid = Random.nextInt(1000, 10000000)
