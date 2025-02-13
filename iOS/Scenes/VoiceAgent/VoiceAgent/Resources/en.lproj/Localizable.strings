@@ -57,3 +57,10 @@
 "error.room.error" = "Room no longer exists. Please join a new call.";
 "error.join.error" = "Failed to join. Please try again.";
 "error.network.disconnect" = "Network is unstable, please exit and try again.";
+
+"devmode.title" = "Developer Mode";
+"devmode.rtc" = "RTC Version";
+"devmode.host" = "Server Host";
+"devmode.dump" = "Audio Dump";
+"devmode.copy" = "Copy Mine Messages";
+"devmode.close" = "Close Developer Mode";

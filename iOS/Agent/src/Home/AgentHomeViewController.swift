@@ -11,6 +11,7 @@ import AgoraRtcKit
 import SwifterSwift
 import Common
 import DigitalHuman
+import VoiceAgent
 
 class AgentHomeViewController: UIViewController {
     private lazy var nextStepButton: UIButton = {
@@ -37,32 +38,16 @@ class AgentHomeViewController: UIViewController {
         }
         return imageView
     }()
-    
-    private lazy var debugButton: UIButton = {
-        let button = UIButton()
-        return button
-    }()
 
     private lazy var titleButton: UIButton = {
         let button = UIButton(type: .custom)
+        button.addTarget(self, action: #selector(onClickLogo(_:)), for: .touchUpInside)
         return button
     }()
 
     private lazy var centerImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage.va_named("ic_agent_home_center"))
-        imageView.isUserInteractionEnabled = true
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onClickLogo))
-        imageView.addGestureRecognizer(tapGesture)
         return imageView
-    }()
-
-    private lazy var hostTextField: UITextField = {
-        let textField = UITextField()
-        textField.backgroundColor = .white
-        textField.placeholder = "Input Your Agent Host"
-        textField.keyboardType = .URL
-        textField.isHidden = true
-        return textField
     }()
 
     private lazy var privacyCheckBox: UIButton = {
@@ -96,16 +81,19 @@ class AgentHomeViewController: UIViewController {
         return button
     }()
     
+    private lazy var devModeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "gear"), for: .normal)
+        button.isHidden = true
+        button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
+        return button
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupViews()
         setupConstraints()
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        hostTextField.resignFirstResponder()
     }
     
     @objc func onClickNextStep() {
@@ -119,22 +107,27 @@ class AgentHomeViewController: UIViewController {
     
     var clickCount = 0
     var lastClickTime: Date?
-    @objc private func onClickLogo() {
+    @objc private func onClickLogo(_ sender: UIButton) {
         let currentTime = Date()
         if let lastTime = lastClickTime, currentTime.timeIntervalSince(lastTime) > 1.0 {
             clickCount = 0
         }
         lastClickTime = currentTime
         clickCount += 1
-        if clickCount >= 6 {
+        if clickCount >= 5 {
+            onThresholdReached()
             clickCount = 0
-
-            if DebugManager.isDebugMode() {
-                return
-            }
-            DebugManager.openDebugMode()
-            addLog("Debug mode enabled")
         }
+    }
+    
+    @objc private func onClickDevMode() {
+        devModeButton.isHidden = true
+        AppContext.shared.enableDeveloperMode = false
+    }
+    
+    func onThresholdReached() {
+        devModeButton.isHidden = false
+        AppContext.shared.enableDeveloperMode = true
     }
     
     private func isValidURL(_ urlString: String) -> Bool {
@@ -147,9 +140,9 @@ class AgentHomeViewController: UIViewController {
     // MARK: - Create
     private func setupViews() {
         view.addSubview(titleImageView)
-        view.addSubview(titleButton)
         view.addSubview(centerImageView)
-        view.addSubview(hostTextField)
+        view.addSubview(titleButton)
+        view.addSubview(devModeButton)
         view.addSubview(nextStepButton)
         view.addSubview(privacyCheckBox)
         view.addSubview(privacyLabel)
@@ -164,18 +157,6 @@ class AgentHomeViewController: UIViewController {
             make.height.equalTo(60)
             make.centerX.equalToSuperview()
         }
-        
-        titleButton.snp.makeConstraints { make in
-            make.edges.equalTo(titleImageView)
-        }
-        
-        hostTextField.snp.makeConstraints { make in
-            make.top.equalTo(titleImageView.snp.bottom).offset(20)
-            make.width.equalTo(240)
-            make.height.equalTo(44)
-            make.centerX.equalToSuperview()
-        }
-        
         centerImageView.snp.makeConstraints { make in
             make.width.lessThanOrEqualTo(390)
             make.centerX.equalTo(self.view)
@@ -183,8 +164,12 @@ class AgentHomeViewController: UIViewController {
             make.height.equalTo(centerImageView.snp.width).multipliedBy(180.0/390.0)
         }
         
+        titleButton.snp.makeConstraints { make in
+            make.edges.equalTo(centerImageView)
+        }
+        
         nextStepButton.snp.makeConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-30)
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-80)
             make.height.equalTo(58)
             make.left.equalTo(20)
             make.right.equalTo(-20)
@@ -212,6 +197,12 @@ class AgentHomeViewController: UIViewController {
             make.right.equalTo(privacyLabel.snp.left).offset(-8)
             make.centerX.equalToSuperview().offset(-((24 + 8 + privacyLabel.intrinsicContentSize.width + 4 + termsButton.intrinsicContentSize.width) / 2))
         }
+        
+        devModeButton.snp.makeConstraints { make in
+            make.centerY.equalToSuperview()
+            make.right.equalTo(-20)
+            make.size.equalTo(CGSize(width: 44, height: 44))
+        }
     }
 
     @objc private func onPrivacyCheckBoxClicked(_ sender: UIButton) {
@@ -224,6 +215,5 @@ class AgentHomeViewController: UIViewController {
         let webVC = TermsServiceWebViewController()
         self.navigationController?.pushViewController(webVC)
     }
-
 }
 

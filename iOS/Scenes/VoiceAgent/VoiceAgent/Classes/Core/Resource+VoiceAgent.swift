@@ -101,6 +101,15 @@ extension ResourceManager {
             public static let networkPoor = ResourceManager.localizedString("channel.network.poor")
             public static let networkBad = ResourceManager.localizedString("channel.network.bad")
         }
+        
+        public enum DevMode {
+            public static let title = ResourceManager.localizedString("devmode.title")
+            public static let rtc = ResourceManager.localizedString("devmode.rtc")
+            public static let host = ResourceManager.localizedString("devmode.host")
+            public static let dump = ResourceManager.localizedString("devmode.dump")
+            public static let copy = ResourceManager.localizedString("devmode.copy")
+            public static let close = ResourceManager.localizedString("devmode.close")
+        }
     }
 }
 
