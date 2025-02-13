@@ -14,10 +14,6 @@ public class VoiceAgentContext: NSObject {
     public static let kSceneName = "VoiceAgent"
     
     public static func voiceAgentScene(viewController: UIViewController) {
-        SVProgressHUD.setMaximumDismissTimeInterval(1)
-        SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_mask1"))
-        SVProgressHUD.setForegroundColor(.white)
-        
         let vc = ChatViewController()
         viewController.navigationController?.pushViewController(vc, animated: true)
     }

@@ -20,8 +20,8 @@ protocol AgentAPI {
     ///   - bhvs: Boolean flag for Background vocal suppression
     ///   - presetName: The name of the preset configuration
     ///   - language: The language setting for the agent
-    ///   - completion: Callback with optional error and agent ID string
-    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void))
+    ///   - completion: Callback with optional error, channel name and agent ID string
+    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String, String?) -> Void))
     
     /// Stops a running AI agent
     /// - Parameters:
@@ -82,7 +82,7 @@ class AgentManager: AgentAPI {
         }
     }
     
-    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String?) -> Void)) {
+    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("convoai/start").toHttpUrlSting()
         let parameters: [String: Any] = [
             "app_id": appId,
@@ -104,21 +104,21 @@ class AgentManager: AgentAPI {
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
-                completion(error, nil)
+                completion(error, channelName, nil)
                 return
             }
             
             guard let data = result["data"] as? [String: Any], let agentId = data["agent_id"] as? String else {
                 let error = AgentError.serverError(code: -1, message: "data error")
-                completion(error, nil)
+                completion(error, channelName, nil)
                 return
             }
             
-            completion(nil, agentId)
+            completion(nil, channelName, agentId)
             
         } failure: { msg in
             let error = AgentError.serverError(code: -1, message: msg)
-            completion(error, nil)
+            completion(error,channelName, nil)
         }
     }
     

@@ -115,7 +115,7 @@ class AgentCardCell: UITableViewCell {
     }
     
     private func setupViews() {
-        backgroundColor = .clear
+        backgroundColor = UIColor(hex: 0x111111)
         selectionStyle = .none
         contentView.addSubview(cardView)
         cardView.addSubview(iconImageView)
@@ -185,7 +185,7 @@ class AgentSceneViewController: UIViewController {
     }
     
     private func setupViews() {
-        view.backgroundColor = UIColor.themColor(named: "ai_fill2")
+        view.backgroundColor = UIColor(hex: 0x111111)
         navigationController?.setNavigationBarHidden(true, animated: false)
         view.addSubview(titleLabel)
         view.addSubview(tableView)

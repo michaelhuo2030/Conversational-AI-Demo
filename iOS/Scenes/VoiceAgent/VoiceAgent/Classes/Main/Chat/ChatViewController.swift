@@ -15,9 +15,11 @@ import Common
 class ChatViewController: UIViewController {
     private var isDenoise = true
     private let messageParser = MessageParser()
+    private var pingTimer: Timer?
+    private var requestTimer: Timer?
     private let uid = "\(RtcEnum.getUid())"
     private let pingTimeInterval = 10.0
-    private var pingTimer: Timer?
+    private var remoteIsJoined = false
     private var channelName = ""
     private var token = ""
     private var agentUid = 0
@@ -159,8 +161,8 @@ class ChatViewController: UIViewController {
         }
         
         animateContentView.snp.makeConstraints { make in
-            make.height.equalTo(animateContentView.snp.width).multipliedBy(480.0/550.0)
-            make.width.equalTo(contentView.snp.width).multipliedBy(0.9)
+            make.height.equalTo(animateContentView.snp.width).multipliedBy(1080.0/1142.0)
+            make.width.equalTo(contentView.snp.width).multipliedBy(0.7)
             make.centerX.equalTo(contentView)
             make.centerY.equalTo(contentView)
         }
@@ -171,13 +173,12 @@ class ChatViewController: UIViewController {
         
         toastView.snp.makeConstraints { make in
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
-            make.centerX.equalTo(view)
-            make.height.equalTo(40)
-            make.width.equalTo(111)
+            make.left.right.equalTo(0)
+            make.height.equalTo(44)
         }
         
         bottomBar.snp.makeConstraints { make in
-            make.bottom.equalTo(-40)
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-30)
             make.left.right.equalTo(0)
             make.height.equalTo(76)
         }
@@ -250,13 +251,24 @@ class ChatViewController: UIViewController {
     
     private func stopAgent() {
         addLog("begin stop agent")
-        pingTimer?.invalidate()
-        pingTimer = nil
         animateView.updateAgentState(.idle)
         messageView.clearMessages()
         messageView.isHidden = true
+        bottomBar.resetState()
+        
+        stopPingTimer()
         leaveChannel()
         stopAgentRequest()
+    }
+    
+    private func stopPingTimer() {
+        pingTimer?.invalidate()
+        pingTimer = nil
+    }
+    
+    private func stopRequestTimer() {
+        requestTimer?.invalidate()
+        requestTimer = nil
     }
     
     private func setupMuteState(state: Bool) {
@@ -340,6 +352,7 @@ extension ChatViewController {
         let bhvs = manager.preference.bhvs
         let presetName = manager.preference.preset?.name ?? ""
         let language = manager.preference.language?.languageCode ?? ""
+        remoteIsJoined = false
         agentManager.startAgent(appId: AppContext.shared.appId,
                                 uid: uid,
                                 agentUid: "\(agentUid)",
@@ -347,9 +360,13 @@ extension ChatViewController {
                                 aiVad: aiVad,
                                 bhvs: bhvs,
                                 presetName: presetName,
-                                language: language) { [weak self] error, remoteAgentId in
+                                language: language) { [weak self] error, channelName, remoteAgentId in
             guard let self = self else { return }
-
+            if self.channelName != channelName {
+                self.addLog("channelName is different, current : \(self.channelName), before: \(channelName)")
+                return
+            }
+            
             guard let error = error else {
                 if let remoteAgentId = remoteAgentId {
                     self.remoteAgentId = remoteAgentId
@@ -358,6 +375,7 @@ extension ChatViewController {
                 }
                 addLog("start agent success")
                 prepareToPing()
+                agentCheck()
                 return
             }
 
@@ -366,6 +384,23 @@ extension ChatViewController {
             self.stopAgent()
             addLog("start agent failed : \(error.message)")
         }
+    }
+    
+    private func agentCheck() {
+        self.requestTimer?.invalidate()
+        self.requestTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] _ in
+            guard let self = self, let manager = AppContext.preferenceManager(), self.remoteIsJoined else {
+                self?.stopRequestTimer()
+                return
+            }
+            
+            if manager.information.agentState != .connected {
+                addLog("agent is not joined in 10 seconds")
+                self.stopLoading()
+                self.stopAgent()
+            }
+            self.stopRequestTimer()
+        })
     }
     
     private func startPingRequest() {
@@ -385,14 +420,8 @@ extension ChatViewController {
         addLog("prepare to ping")
         self.pingTimer?.invalidate()
         self.pingTimer = Timer.scheduledTimer(withTimeInterval: pingTimeInterval, repeats: true) { [weak self] _ in
-            guard let self = self, let manager = AppContext.preferenceManager() else { return }
-            
-            if manager.information.agentState != .connected && manager.information.rtcRoomState != .disconnected {
-                self.stopLoading()
-                self.stopAgent()
-            } else {
-                self.startPingRequest()
-            }
+            guard let self = self else { return }
+            self.startPingRequest()
         }
     }
     
@@ -444,6 +473,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         toastView.dismiss()
+        remoteIsJoined = true
         addLog("remote user didJoinedOfUid uid: \(uid)")
         AppContext.preferenceManager()?.updateAgentState(.connected)
         SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.agentJoined)
@@ -484,15 +514,12 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
         guard let rawString = String(data: data, encoding: .utf8) else {
             addLog("Failed to convert data to string")
-            print("Failed to convert data to string")
             return
         }
         
-        print("raw string: \(rawString)")
         // Use message parser to process the message
         addLog("receive raw string \(rawString)")
         if let message = messageParser.parseMessage(rawString) {
-            print("receive msg: \(message)")
             addLog("receive msg: \(message)")
             handleStreamMessage(message)
         }
@@ -514,32 +541,19 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             if dataType == "transcribe" {
                 if streamId == 0 {
                     // AI response message
-                    if let lastMessage = self.messageView.getLastMessage(fromUser: false) {
-                        if lastMessage.isFinal {
-                            // Check timestamp to avoid displaying old messages
-                            if textTs <= lastMessage.timestamp {
-                                print("Discarding old message")
-                                return
-                            }
-                            // Start new message
-                            self.messageView.startNewStreamMessage(timestamp: textTs)
-                        }
-                        self.messageView.updateStreamContent(text)
-                        if isFinal {
-                            self.messageView.completeStreamMessage()
-                        }
-                    } else {
-                        // No previous message, start new one
-                        self.messageView.startNewStreamMessage(timestamp: textTs)
-                        self.messageView.updateStreamContent(text)
-                        if isFinal {
-                            self.messageView.completeStreamMessage()
-                        }
+                    if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
+                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: false)
+                    }
+                    self.messageView.updateStreamContent(text)
+                    if isFinal {
+                        self.messageView.completeStreamMessage()
                     }
                 } else {
                     // User message
                     if isFinal {
-                        self.messageView.addUserMessage(text, timestamp: textTs)
+                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: true)
+                        self.messageView.updateStreamContent(text)
+                        self.messageView.completeStreamMessage()
                     }
                 }
             }
@@ -559,6 +573,16 @@ extension ChatViewController: AgoraRtcEngineDelegate {
 
             } else if (info.uid == 0) {
                 bottomBar.setVolumeProgress(value: Float(info.volume))
+            }
+        }
+    }
+    
+    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStateChangedOfUid uid: UInt, state: AgoraAudioRemoteState, reason: AgoraAudioRemoteReason, elapsed: Int) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            if uid == self.agentUid, state == .stopped {
+                animateView.updateAgentState(.listening)
             }
         }
     }
