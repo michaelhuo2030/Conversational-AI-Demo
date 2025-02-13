@@ -94,13 +94,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
             }
             btnDebug.isVisible = ServerConfig.isDebug
-            btnDebug.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    btnDebug.isVisible = false
-                    ServerConfig.isDebug = false
-                    ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_disable))
-                }
-            })
+            btnDebug.setOnLongClickListener {
+                btnDebug.isVisible = false
+                ServerConfig.isDebug = false
+                ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_disable))
+                return@setOnLongClickListener true
+            }
             updateStartButtonState()
         }
     }
