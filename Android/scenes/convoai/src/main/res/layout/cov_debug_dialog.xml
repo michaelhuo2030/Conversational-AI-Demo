@@ -135,12 +135,13 @@
 
         <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/cb_audio_dump"
-            android:layout_width="51dp"
-            android:layout_height="31dp"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
             android:layout_marginEnd="16dp"
             android:button="@drawable/cb_def_selector"
             android:checked="true"
             app:buttonTint="@null"
+            app:layout_constraintDimensionRatio="46:28"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
