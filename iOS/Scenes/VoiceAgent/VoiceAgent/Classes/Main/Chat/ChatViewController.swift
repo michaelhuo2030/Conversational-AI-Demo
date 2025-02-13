@@ -99,6 +99,13 @@ class ChatViewController: UIViewController {
         view.isHidden = true
         return view
     }()
+    
+    private lazy var devModeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "gear"), for: .normal)
+        button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
+        return button
+    }()
         
     deinit {
         print("liveing view controller deinit")
@@ -126,7 +133,8 @@ class ChatViewController: UIViewController {
     private func setupViews() {
         view.backgroundColor = .black
         
-        [topBar, contentView, bottomBar, toastView].forEach { view.addSubview($0) }
+        [topBar, contentView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        devModeButton.isHidden = !AppContext.shared.enableDeveloperMode
         
         contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
@@ -172,6 +180,11 @@ class ChatViewController: UIViewController {
             make.bottom.equalTo(-40)
             make.left.right.equalTo(0)
             make.height.equalTo(76)
+        }
+        devModeButton.snp.makeConstraints { make in
+            make.centerY.equalToSuperview()
+            make.right.equalTo(-20)
+            make.size.equalTo(CGSize(width: 44, height: 44))
         }
     }
     
@@ -594,6 +607,23 @@ private extension ChatViewController {
     
     private func clickMuteButton(state: Bool) {
         setupMuteState(state: state)
+    }
+    
+    @objc private func onClickDevMode() {
+        DeveloperModeViewController.show(from: self, serverHost: "") {
+            self.devModeButton.isHidden = true
+            AppContext.shared.enableDeveloperMode = false
+        } onAudioDump: { isOn in
+            self.rtcManager.enableAudioDump(enabled: isOn)
+        } onCopy: {
+            let messageContents = self.messageView.getAllMessages()
+                .filter { $0.isUser }
+                .map { $0.content }
+                .joined(separator: "\n")
+            let pasteboard = UIPasteboard.general
+            pasteboard.string = messageContents
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
+        }
     }
 }
 

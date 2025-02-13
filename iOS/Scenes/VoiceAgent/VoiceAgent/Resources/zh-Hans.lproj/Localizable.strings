@@ -55,3 +55,9 @@
 "error.join.error" = "加入失败。请重试。";
 "error.network.disconnect" = "网络异常，请检查网络设置";
 
+"devmode.title" = "开发者模式";
+"devmode.rtc" = "RTC 版本";
+"devmode.host" = "Server Host";
+"devmode.dump" = "音频 Dump";
+"devmode.copy" = "复制用户当前通话问题";
+"devmode.close" = "关闭开发者模式";

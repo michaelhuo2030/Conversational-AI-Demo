@@ -27,6 +27,9 @@ protocol RTCManagerProtocol {
     /// Returns the RTC engine instance
     func getRtcEntine() -> AgoraRtcEngineKit
     
+    /// Enables or disables audio dump
+    func enableAudioDump(enabled: Bool)
+    
     /// Destroys the agent and releases resources
     func destroy()
 }
@@ -82,6 +85,14 @@ extension RTCManager: RTCManagerProtocol {
     
     func muteVoice(state: Bool) {
         rtcEngine.adjustRecordingSignalVolume(state ? 0 : 100)
+    }
+    
+    func enableAudioDump(enabled: Bool) {
+        if (enabled) {
+            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
+        } else {
+            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
+        }
     }
     
     func getRtcEntine() -> AgoraRtcEngineKit {

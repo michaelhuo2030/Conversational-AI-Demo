@@ -217,6 +217,10 @@ class ChatView: UIView {
     }
     
     // MARK: - Public Methods
+    func getAllMessages() -> [Message] {
+        return messages
+    }
+    
     func addMessage(_ message: String, isUser: Bool) {
         messages.append(Message(content: message, isUser: isUser, isFinal: true, timestamp: 0))
         tableView.reloadData()

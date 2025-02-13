@@ -11,6 +11,7 @@ import AgoraRtcKit
 import SwifterSwift
 import Common
 import DigitalHuman
+import VoiceAgent
 
 class AgentHomeViewController: UIViewController {
     private lazy var nextStepButton: UIButton = {
@@ -46,17 +47,7 @@ class AgentHomeViewController: UIViewController {
 
     private lazy var centerImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage.va_named("ic_agent_home_center"))
-//        imageView.backgroundColor = .red
         return imageView
-    }()
-
-    private lazy var hostTextField: UITextField = {
-        let textField = UITextField()
-        textField.backgroundColor = .white
-        textField.placeholder = "Input Your Agent Host"
-        textField.keyboardType = .URL
-        textField.isHidden = true
-        return textField
     }()
 
     private lazy var privacyCheckBox: UIButton = {
@@ -89,17 +80,20 @@ class AgentHomeViewController: UIViewController {
         button.addTarget(self, action: #selector(onTermsClicked), for: .touchUpInside)
         return button
     }()
+    
+    private lazy var devModeButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "gear"), for: .normal)
+        button.isHidden = true
+        button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
+        return button
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupViews()
         setupConstraints()
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        hostTextField.resignFirstResponder()
     }
     
     @objc func onClickNextStep() {
@@ -126,9 +120,14 @@ class AgentHomeViewController: UIViewController {
         }
     }
     
+    @objc private func onClickDevMode() {
+        devModeButton.isHidden = true
+        AppContext.shared.enableDeveloperMode = false
+    }
+    
     func onThresholdReached() {
-        hostTextField.isHidden = false
-        hostTextField.becomeFirstResponder()
+        devModeButton.isHidden = false
+        AppContext.shared.enableDeveloperMode = true
     }
     
     private func isValidURL(_ urlString: String) -> Bool {
@@ -141,9 +140,9 @@ class AgentHomeViewController: UIViewController {
     // MARK: - Create
     private func setupViews() {
         view.addSubview(titleImageView)
-        view.addSubview(titleButton)
         view.addSubview(centerImageView)
-        view.addSubview(hostTextField)
+        view.addSubview(titleButton)
+        view.addSubview(devModeButton)
         view.addSubview(nextStepButton)
         view.addSubview(privacyCheckBox)
         view.addSubview(privacyLabel)
@@ -158,23 +157,15 @@ class AgentHomeViewController: UIViewController {
             make.height.equalTo(60)
             make.centerX.equalToSuperview()
         }
-        
-        titleButton.snp.makeConstraints { make in
-            make.edges.equalTo(titleImageView)
-        }
-        
-        hostTextField.snp.makeConstraints { make in
-            make.top.equalTo(titleImageView.snp.bottom).offset(20)
-            make.width.equalTo(240)
-            make.height.equalTo(44)
-            make.centerX.equalToSuperview()
-        }
-        
         centerImageView.snp.makeConstraints { make in
             make.width.lessThanOrEqualTo(390)
             make.centerX.equalTo(self.view)
             make.top.equalTo(titleImageView.snp.bottom).offset(140)
             make.height.equalTo(centerImageView.snp.width).multipliedBy(180.0/390.0)
+        }
+        
+        titleButton.snp.makeConstraints { make in
+            make.edges.equalTo(centerImageView)
         }
         
         nextStepButton.snp.makeConstraints { make in
@@ -205,6 +196,12 @@ class AgentHomeViewController: UIViewController {
         privacyCheckBox.snp.makeConstraints { make in
             make.right.equalTo(privacyLabel.snp.left).offset(-8)
             make.centerX.equalToSuperview().offset(-((24 + 8 + privacyLabel.intrinsicContentSize.width + 4 + termsButton.intrinsicContentSize.width) / 2))
+        }
+        
+        devModeButton.snp.makeConstraints { make in
+            make.centerY.equalToSuperview()
+            make.right.equalTo(-20)
+            make.size.equalTo(CGSize(width: 44, height: 44))
         }
     }
 

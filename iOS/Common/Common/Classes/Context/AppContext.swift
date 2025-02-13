@@ -19,6 +19,7 @@ import Foundation
     private var _baseServerUrl: String = ""
     private var _termsOfServiceUrl: String = ""
     private var _appArea: AppArea = .overseas
+    private var _developerMode: Bool = false
     
     override init() {
         super.init()
@@ -66,6 +67,15 @@ import Foundation
         }
         set {
             _termsOfServiceUrl = newValue
+        }
+    }
+    
+    @objc public var enableDeveloperMode: Bool {
+        get {
+            return _developerMode
+        }
+        set {
+            _developerMode = newValue
         }
     }
 }
