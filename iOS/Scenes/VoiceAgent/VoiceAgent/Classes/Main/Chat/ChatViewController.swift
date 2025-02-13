@@ -63,6 +63,7 @@ class ChatViewController: UIViewController {
     
     private lazy var animateView: AnimateView = {
         let view = AnimateView(videoView: animateContentView)
+        view.delegate = self
         return view
     }()
     
@@ -676,6 +677,15 @@ extension ChatViewController: AgentControlToolbarDelegate {
     
     func switchCaptions(selectedState: Bool) {
         clickCaptionsButton(state: selectedState)
+    }
+}
+
+extension ChatViewController: AnimateViewDelegate {
+    func onError(error: AgentError) {
+        AgentLogger.info(error.message)
+        
+        stopLoading()
+        stopAgent()
     }
 }
 

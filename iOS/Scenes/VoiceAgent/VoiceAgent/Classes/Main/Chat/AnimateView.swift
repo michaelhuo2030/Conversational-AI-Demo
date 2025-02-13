@@ -8,7 +8,13 @@ enum AgentState {
     case speaking  // AI speaking animation in progress
 }
 
+protocol AnimateViewDelegate: NSObject {
+    func onError(error: AgentError)
+}
+
 class AnimateView: NSObject {
+    weak var delegate: AnimateViewDelegate?
+    
     private struct VolumeConstants {
         static let minVolume: Int = 0
         static let maxVolume: Int = 255
@@ -150,7 +156,7 @@ class AnimateView: NSObject {
         
         let group = CAAnimationGroup()
         group.animations = createAnimationSequence(params)
-        group.duration = params.duration  // 使用完整的 duration
+        group.duration = params.duration
         group.delegate = self
         group.repeatCount = 1
         group.beginTime = CACurrentMediaTime()
@@ -236,6 +242,13 @@ extension AnimateView: CAAnimationDelegate {
 }
 
 extension AnimateView: AgoraRtcMediaPlayerDelegate {
+    func AgoraRtcMediaPlayer(_ playerKit: any AgoraRtcMediaPlayerProtocol, didPreloadEvent event: AgoraMediaPlayerPreloadEvent) {
+        AgentLogger.info("onPreloadEvent : \(event)")
+        if event == .error {
+            delegate?.onError(error: AgentError.unknownError(message: "video preload error: \(event)"))
+        }
+    }
+    
     func AgoraRtcMediaPlayer(_ playerKit: any AgoraRtcMediaPlayerProtocol, didChangedTo state: AgoraMediaPlayerState, reason: AgoraMediaPlayerReason) {
         if state == .openCompleted {
             rtcMediaPlayer?.mute(true)
@@ -256,6 +269,8 @@ extension AnimateView: AgoraRtcMediaPlayerDelegate {
                 rtcMediaPlayer?.setPlaybackSpeed(100)
                 rtcMediaPlayer?.setLoopCount(-1)
             }
+        } else if state == .failed {
+            delegate?.onError(error: AgentError.unknownError(message: "play video error: \(state)"))
         }
     }
 }
