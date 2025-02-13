@@ -29,7 +29,7 @@ class AgentSettingBar: UIView {
         let label = UILabel()
         label.text = ResourceManager.L10n.Join.title
         label.font = .systemFont(ofSize: 16)
-        label.textColor = UIColor.themColor(named: "ai_icontext4")
+        label.textColor = UIColor.themColor(named: "ai_icontext2")
         return label
     }()
     

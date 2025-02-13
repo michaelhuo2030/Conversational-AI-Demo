@@ -505,10 +505,9 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
         
         // Use message parser to process the message
-//        addLog("receive raw string \(rawString)")
+        addLog("receive raw string \(rawString)")
         if let message = messageParser.parseMessage(rawString) {
-            print("receive msg: \(message)")
-//            addLog("receive msg: \(message)")
+            addLog("receive msg: \(message)")
             handleStreamMessage(message)
         }
     }
