@@ -27,6 +27,7 @@ import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.animation.AgentState
 import io.agora.scene.convoai.animation.CovBallAnim
+import io.agora.scene.convoai.animation.CovBallAnimCallback
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.api.AgentRequestParams
 import io.agora.scene.convoai.constant.CovAgentManager
@@ -705,7 +706,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun setupBallAnimView() {
         val binding = mBinding ?: return
         val rtcMediaPlayer = CovRtcManager.createMediaPlayer()
-        mCovBallAnim = CovBallAnim(this, rtcMediaPlayer, binding.videoView)
+        mCovBallAnim = CovBallAnim(this, rtcMediaPlayer, binding.videoView,callback=object : CovBallAnimCallback{
+            override fun onError(error: Exception) {
+                coroutineScope.launch {
+                    delay(1000L)
+                    ToastUtil.show(getString(R.string.cov_detail_state_error), Toast.LENGTH_LONG)
+                    onHandleOnBackPressed()
+                }
+            }
+        })
         mCovBallAnim?.setupView()
     }
 }

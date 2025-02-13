@@ -30,10 +30,15 @@ enum class AgentState {
     SPEAKING
 }
 
+interface CovBallAnimCallback {
+    fun onError(error: Exception)
+}
+
 class CovBallAnim constructor(
     private val context: Context,
     private val rtcMediaPlayer: IMediaPlayer,
-    private val videoView: TextureView
+    private val videoView: TextureView,
+    private val callback: CovBallAnimCallback? = null
 ) {
 
     companion object {
@@ -46,9 +51,9 @@ class CovBallAnim constructor(
         }
 
         private object ScaleConstants {
-            const val SCALE_HIGH = 1.2f
-            const val SCALE_MEDIUM = 1.15f
-            const val SCALE_LOW = 1.1f
+            const val SCALE_HIGH = 1.12f
+            const val SCALE_MEDIUM = 1.1f
+            const val SCALE_LOW = 1.08f
         }
 
         private const val TAG = "CovBallAnim"
@@ -91,7 +96,7 @@ class CovBallAnim constructor(
                     }
 
                     AgentState.SPEAKING -> {
-                        rtcMediaPlayer.setPlaybackSpeed(300)
+                        rtcMediaPlayer.setPlaybackSpeed(250)
                     }
                 }
             }
@@ -170,14 +175,19 @@ class CovBallAnim constructor(
     }
 
     private fun getVideoSrc(fileName: String): String {
-        return context.filesDir.absolutePath + File.separator + fileName
+        try {
+            return context.filesDir.absolutePath + File.separator + fileName
+        } catch (e: Exception) {
+            callback?.onError(e)
+            return ""
+        }
     }
 
     private val mediaPlayerObserver = object : CovMediaPlayerObserver() {
         override fun onPlayerStateChanged(state: MediaPlayerState?, reason: MediaPlayerReason?) {
             Log.d(TAG, "$state $reason")
             if (state == MediaPlayerState.PLAYER_STATE_OPEN_COMPLETED) {
-                rtcMediaPlayer?.apply {
+                rtcMediaPlayer.apply {
                     mute(true)
                     play()
                     if (!isRotatingVideoPreload) {
@@ -185,7 +195,7 @@ class CovBallAnim constructor(
                     }
                 }
             } else if (state == MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED) {
-                rtcMediaPlayer?.apply {
+                rtcMediaPlayer.apply {
                     if (isRotatingVideoPreload) {
                         playPreloadedSrc(getVideoSrc(VIDEO_ROTATING_NAME))
                         mute(true)
@@ -194,6 +204,8 @@ class CovBallAnim constructor(
 
                     }
                 }
+            } else if (state == MediaPlayerState.PLAYER_STATE_FAILED) {
+                callback?.onError(Exception(state.name))
             }
         }
 
@@ -215,7 +227,7 @@ class CovBallAnim constructor(
                 }
 
                 Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_ERROR -> {
-
+                    callback?.onError(Exception(event.name))
                 }
 
                 else -> {}
@@ -247,10 +259,6 @@ class CovBallAnim constructor(
             }
 
             AgentState.LISTENING, AgentState.SPEAKING -> {
-                // TODO: oldState == AgentState.STATIC
-//                if (oldState == AgentState.STATIC) {
-//                    rtcMediaPlayer?.play()
-//                }
                 if (newState == AgentState.SPEAKING) {
                     startAgentAnimation(volume)
                 }

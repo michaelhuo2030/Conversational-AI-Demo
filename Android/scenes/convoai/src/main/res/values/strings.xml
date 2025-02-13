@@ -13,6 +13,7 @@
     <string name="cov_detail_agent_join_timeout">Timeout. Please try again.</string>
     <string name="cov_detail_agent_state_error">Agent left abnormally. Please try again.</string>
     <string name="cov_detail_net_state_error">Network error. Please check your network settings.</string>
+    <string name="cov_detail_state_error">Agent left abnormally. Please try again.</string>
 
     <string name="cov_info_dialog_title">INFO</string>
     <string name="cov_channel_info_title">CHANNEL INFO</string>
