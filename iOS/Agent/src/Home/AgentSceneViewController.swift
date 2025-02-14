@@ -43,7 +43,7 @@ enum AgentItem: CaseIterable {
         case .conversationalAI:
             return UIImage(named: "ic_con_ai_agent_icon")
 //        case .agoraV2V:
-//            return UIImage.va_named("ic_v2v_ai_agent_icon")
+//            return UIImage.ag_named("ic_v2v_ai_agent_icon")
 //        case .digitalHuman:
 //            return UIImage(named: "ic_digital_ai_agent_icon")
         }

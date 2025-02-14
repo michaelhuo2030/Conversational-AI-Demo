@@ -73,13 +73,13 @@ class ChatMessageCell: UITableViewCell {
             setupUserLayout()
             nameLabel.text = ResourceManager.L10n.Conversation.messageYou
             nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
-            avatarImageView.image = UIImage.va_named("ic_agent_mine_avatar")
+            avatarImageView.image = UIImage.ag_named("ic_agent_mine_avatar")
             messageLabel.textColor = UIColor.themColor(named: "ai_icontext1")
             messageBubble.backgroundColor = UIColor.themColor(named: "ai_block4_chat")
         } else {
             setupAgentLayout()
             avatarView.backgroundColor = .clear
-            avatarImageView.image = UIImage.va_named("ic_agent_avatar")
+            avatarImageView.image = UIImage.ag_named("ic_agent_avatar")
             nameLabel.text = AppContext.preferenceManager()?.preference.preset?.displayName ?? ""
             nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
             messageLabel.textColor = UIColor.themColor(named: "ai_icontext1")
@@ -156,7 +156,7 @@ class ChatView: UIView {
     private var shouldAutoScroll = true
     private lazy var arrowButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage.va_named("ic_captions_arrow_icon"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_captions_arrow_icon"), for: .normal)
         button.addTarget(self, action: #selector(clickArrowButton), for: .touchUpInside)
         button.setBackgroundColor(color: UIColor.themColor(named: "ai_line1"), forState: .normal)
         button.layer.cornerRadius = 22

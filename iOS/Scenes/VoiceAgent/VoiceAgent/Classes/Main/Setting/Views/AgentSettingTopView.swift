@@ -35,11 +35,11 @@ class AgentSettingTopView: UIView {
         leftTitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         addSubview(leftTitleLabel)
         
-        closeButton.setImage(UIImage.va_named("ic_agent_setting_close"), for: .normal)
+        closeButton.setImage(UIImage.ag_named("ic_agent_setting_close"), for: .normal)
         closeButton.addTarget(self, action: #selector(onClickClose(_:)), for: .touchUpInside)
         addSubview(closeButton)
         
-        centerImageView.image = UIImage.va_named("ic_setting_bar_icon")
+        centerImageView.image = UIImage.ag_named("ic_setting_bar_icon")
         centerImageView.contentMode = .scaleAspectFit
         addSubview(centerImageView)
         

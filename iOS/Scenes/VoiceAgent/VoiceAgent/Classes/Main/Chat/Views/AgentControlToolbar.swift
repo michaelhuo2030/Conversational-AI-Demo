@@ -55,7 +55,7 @@ class AgentControlToolbar: UIView {
         
         button.layer.cornerRadius = startButtonHeight / 2.0
         button.addTarget(self, action: #selector(startAction), for: .touchUpInside)
-        button.setImage(UIImage.va_named("ic_agent_join_button_icon"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agent_join_button_icon"), for: .normal)
         
         let spacing: CGFloat = 5
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
@@ -69,7 +69,7 @@ class AgentControlToolbar: UIView {
         button.addTarget(self, action: #selector(hangUpAction), for: .touchUpInside)
         button.layerCornerRadius = buttonWidth / 2.0
         button.clipsToBounds = true
-        button.setImage(UIImage.va_named("ic_agent_close"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agent_close"), for: .normal)
         button.setBackgroundColor(color: UIColor.themColor(named: "ai_block1"), forState: .normal)
         
         return button
@@ -81,8 +81,8 @@ class AgentControlToolbar: UIView {
         button.titleLabel?.textAlignment = .center
         button.layerCornerRadius = buttonWidth / 2.0
         button.clipsToBounds = true
-        button.setImage(UIImage.va_named("ic_agent_unmute"), for: .normal)
-        button.setImage(UIImage.va_named("ic_agent_mute"), for: .selected)
+        button.setImage(UIImage.ag_named("ic_agent_unmute"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agent_mute"), for: .selected)
         button.setBackgroundColor(color: UIColor.themColor(named: "ai_block1"), forState: .normal)
         button.setBackgroundColor(color: UIColor.themColor(named: "ai_brand_white10"), forState: .selected)
         return button
@@ -107,9 +107,9 @@ class AgentControlToolbar: UIView {
         button.layerCornerRadius = buttonWidth / 2.0
         button.clipsToBounds = true
         if AppContext.shared.appArea == .mainland {
-            button.setImage(UIImage.va_named("ic_captions_icon_cn")?.withRenderingMode(.alwaysTemplate), for: .normal)
+            button.setImage(UIImage.ag_named("ic_captions_icon_cn")?.withRenderingMode(.alwaysTemplate), for: .normal)
         } else {
-            button.setImage(UIImage.va_named("ic_captions_icon")?.withRenderingMode(.alwaysTemplate), for: .normal)
+            button.setImage(UIImage.ag_named("ic_captions_icon")?.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         if let color = UIColor(hex: 0x333333) {
             button.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
