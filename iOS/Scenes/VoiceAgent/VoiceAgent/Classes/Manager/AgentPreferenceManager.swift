@@ -118,7 +118,7 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
     }
     
     func resetAgentInformation() {
-        updateNetworkState(.unknown)
+        updateNetworkState(.good)
         updateRoomState(.unload)
         updateAgentState(.unload)
         updateAgentId("")
@@ -191,7 +191,6 @@ enum NetworkStatus: String {
     case good = "Good"
     case poor = "Poor"
     case veryBad = "VeryBad"
-    case unknown = ""
     
     init(agoraQuality: AgoraNetworkQuality) {
         switch agoraQuality {
@@ -202,7 +201,7 @@ enum NetworkStatus: String {
         case .vBad, .down:
             self = .veryBad
         default:
-            self = .unknown
+            self = .good
         }
     }
     
@@ -212,7 +211,7 @@ enum NetworkStatus: String {
             return ResourceManager.L10n.ChannelInfo.networkGood
         case .poor:
             return ResourceManager.L10n.ChannelInfo.networkPoor
-        case .veryBad, .unknown:
+        case .veryBad:
             return ResourceManager.L10n.ChannelInfo.networkBad
         }
     }
@@ -223,7 +222,7 @@ enum NetworkStatus: String {
             return UIColor(hex: 0x36B37E)
         case .poor:
             return UIColor(hex: 0xFFAB00)
-        case .veryBad, .unknown:
+        case .veryBad:
             return UIColor(hex: 0xFF5630)
         }
     }
@@ -237,7 +236,7 @@ class AgentPreference {
 }
 
 class AgentInfomation {
-    var networkState: NetworkStatus = .unknown
+    var networkState: NetworkStatus = .good
     var agentState: ConnectionStatus = .unload
     var rtcRoomState: ConnectionStatus = .unload
     var agentId: String = ""

@@ -35,7 +35,8 @@
 "settings.noise.forceResponse" = "Force Response";
 "settings.noise.bhvs" = "启用 对话人声锁定";
 
-"channel.info.title" = "频道信息";
+"channel.info.title" = "信息";
+"channel.info.subtitle" = "频道信息";
 "channel.network.info.title" = "网络信息";
 "channel.info.agent.status" = "智能体状态";
 "channel.info.agent.id" = "智能体 ID";
@@ -52,7 +53,7 @@
 
 "error.network" = "请求失败：";
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";
-"error.join.error" = "加入失败。请重试。";
+"error.join.error" = "智能体加入失败，请稍后重试。";
 "error.network.disconnect" = "网络异常，请检查网络设置";
 
 "devmode.title" = "开发者模式";

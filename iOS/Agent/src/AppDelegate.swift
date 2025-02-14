@@ -22,6 +22,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         SVProgressHUD.setMaximumDismissTimeInterval(1)
         SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_fill1").withAlphaComponent(0.8))
         SVProgressHUD.setForegroundColor(.white)
+        SVProgressHUD.setImageViewSize(CGSize.zero)
+        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180)) 
 
         #if MainLand
         AppContext.shared.appArea = .mainland

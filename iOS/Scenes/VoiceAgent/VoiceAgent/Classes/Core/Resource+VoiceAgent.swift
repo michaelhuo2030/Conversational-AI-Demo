@@ -87,6 +87,7 @@ extension ResourceManager {
         
         public enum ChannelInfo {
             public static let title = ResourceManager.localizedString("channel.info.title")
+            public static let subtitle = ResourceManager.localizedString("channel.info.subtitle")
             public static let networkInfoTitle = ResourceManager.localizedString("channel.network.info.title")
             public static let agentStatus = ResourceManager.localizedString("channel.info.agent.status")
             public static let agentId = ResourceManager.localizedString("channel.info.agent.id")

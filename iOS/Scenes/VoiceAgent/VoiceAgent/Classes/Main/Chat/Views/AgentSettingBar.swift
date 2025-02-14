@@ -130,7 +130,7 @@ extension AgentSettingBar: AgentPreferenceManagerDelegate {
         
         var imageName = "ic_agent_tips_icon"
         switch networkState {
-        case .good, .unknown:
+        case .good:
             imageName = "ic_agent_tips_icon"
             break
         case .poor:

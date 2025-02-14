@@ -34,7 +34,6 @@ class AgentInformationViewController: UIViewController {
     private lazy var backgroundView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.themColor(named: "ai_fill2")
-        view.alpha = 0.95
         return view
     }()
     
@@ -70,7 +69,7 @@ class AgentInformationViewController: UIViewController {
     
     private lazy var channelInfoTitle: UILabel = {
         let label = UILabel()
-        label.text = ResourceManager.L10n.ChannelInfo.title
+        label.text = ResourceManager.L10n.ChannelInfo.subtitle
         label.font = UIFont.boldSystemFont(ofSize: 16)
         label.textColor = UIColor.themColor(named: "ai_icontext3")
         return label
@@ -302,8 +301,8 @@ extension AgentInformationViewController {
         }
         
         // Update Network Status
-        networkItem.detailLabel.text = manager.information.networkState == .unknown ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
-        networkItem.detailLabel.textColor = manager.information.networkState.color
+        networkItem.detailLabel.text = manager.information.agentState != .connected ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
+        networkItem.detailLabel.textColor = manager.information.agentState != .connected ? ConnectionStatus.disconnected.color : manager.information.networkState.color
         
         agentItem.detailLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.agentState.rawValue
         agentItem.detailLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.agentState.color
@@ -332,7 +331,7 @@ extension AgentInformationViewController {
 
 extension AgentInformationViewController: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {
-        networkItem.detailLabel.text = networkState == .unknown ? ConnectionStatus.disconnected.rawValue : networkState.rawValue
+        networkItem.detailLabel.text = networkState.rawValue
         networkItem.detailLabel.textColor = networkState.color
     }
     

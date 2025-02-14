@@ -10,7 +10,7 @@ import Common
 import SVProgressHUD
 
 class AgentSettingViewController: UIViewController {
-    private let backgroundViewHeight: CGFloat = 427
+    private let backgroundViewHeight: CGFloat = 454
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
     private var basicSettingItems: [UIView] = []
@@ -35,7 +35,6 @@ class AgentSettingViewController: UIViewController {
     private lazy var backgroundView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.themColor(named: "ai_fill2")
-        view.alpha = 0.95
         return view
     }()
     
@@ -80,7 +79,7 @@ class AgentSettingViewController: UIViewController {
     private lazy var advancedSettingTitle: UILabel = {
         let label = UILabel()
         label.text = ResourceManager.L10n.Settings.advanced
-        label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.font = UIFont.boldSystemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_icontext3")
         return label
     }()
