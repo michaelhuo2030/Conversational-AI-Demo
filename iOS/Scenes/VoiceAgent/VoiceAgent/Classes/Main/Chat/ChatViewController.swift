@@ -587,14 +587,13 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                 var currentVolume: CGFloat = 0
                 currentVolume = CGFloat(info.volume)
                 if currentVolume > 0 {
+                    addLog("agent speak volume : \(currentVolume)")
                     animateView.updateAgentState(.speaking, volume: Int(currentVolume))
                 } else {
                     animateView.updateAgentState(.listening, volume: Int(currentVolume))
                 }
-                addLog("agent volume : \(currentVolume)")
             } else if (info.uid == 0) {
                 bottomBar.setVolumeProgress(value: Float(info.volume))
-                addLog("user volume : \(info.volume)")
             }
         }
     }
