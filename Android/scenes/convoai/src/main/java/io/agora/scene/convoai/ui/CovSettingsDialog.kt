@@ -95,8 +95,6 @@ class CovSettingsDialog (private val onDismiss: () -> Unit) : BaseSheetDialog<Co
         if (!ServerConfig.isMainlandVersion) {
             binding?.apply {
                 if (CovAgentManager.language?.language_code == "en-US") {
-                    CovAgentManager.enableAiVad = true
-                    cbAiVad.isChecked = true
                     cbAiVad.isEnabled = true
                 } else {
                     CovAgentManager.enableAiVad = false
