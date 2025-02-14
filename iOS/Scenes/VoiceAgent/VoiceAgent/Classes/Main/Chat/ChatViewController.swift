@@ -193,12 +193,12 @@ class ChatViewController: UIViewController {
     @MainActor
     private func prepareToStartAgent() async {
         startLoading()
-        
+        joinChannel()
+
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
             startAgentRequest()
-            joinChannel()
         } catch {
             handleStartError(error: error)
         }
@@ -243,6 +243,7 @@ class ChatViewController: UIViewController {
     private func leaveChannel() {
         addLog("[Call] leaveChannel()")
         rtcManager.leaveChannel()
+
         AppContext.preferenceManager()?.resetAgentInformation()
     }
     
