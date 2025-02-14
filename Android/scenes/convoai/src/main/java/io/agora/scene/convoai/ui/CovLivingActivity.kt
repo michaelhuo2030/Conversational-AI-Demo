@@ -185,6 +185,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         startForegroundService(intent)
     }
 
+    private fun persistentToast(visible: Boolean, text: String) {
+        mBinding?.tvDisconnect?.text = text
+        mBinding?.tvDisconnect?.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+
     private fun getAgentParams(): AgentRequestParams {
         return AgentRequestParams(
             channelName = CovAgentManager.channelName,
@@ -242,7 +247,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         if (connectionState == AgentConnectionState.CONNECTING) {
                             stopAgentAndLeaveChannel()
                             CovLogger.e(TAG, "Agent connection timeout")
-                            ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
+                            ToastUtil.show(getString(R.string.cov_detail_agent_join_timeout), Toast.LENGTH_LONG)
                         }
                     }
                 } else {
@@ -281,6 +286,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun onClickEndCall() {
         isUserEndCall = true
         stopAgentAndLeaveChannel()
+        persistentToast(false, "")
         ToastUtil.show(getString(R.string.cov_detail_agent_leave))
     }
 
@@ -360,7 +366,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         if (isUserEndCall) {
                             isUserEndCall = false
                         } else {
-                            ToastUtil.show(getString(R.string.cov_detail_agent_state_error), Toast.LENGTH_LONG)
+                            persistentToast(true, getString(R.string.cov_detail_agent_state_error))
                         }
                     }
                 }
@@ -371,7 +377,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     when (state) {
                         Constants.CONNECTION_STATE_CONNECTED -> {
                             if (reason == Constants.CONNECTION_CHANGED_REJOIN_SUCCESS) {
-                                connectionState = AgentConnectionState.CONNECTED
+                                if (connectionState != AgentConnectionState.CONNECTED) {
+                                    connectionState = AgentConnectionState.CONNECTED
+                                    persistentToast(false, "")
+                                }
                             }
                         }
 
@@ -386,7 +395,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         Constants.CONNECTION_STATE_RECONNECTING -> {
                             if (reason == Constants.CONNECTION_CHANGED_INTERRUPTED) {
                                 connectionState = AgentConnectionState.CONNECTED_INTERRUPT
-                                ToastUtil.show(getString(R.string.cov_detail_net_state_error), Toast.LENGTH_LONG)
+                                persistentToast(true, getString(R.string.cov_detail_net_state_error))
                             }
                         }
 
@@ -394,7 +403,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             if (reason == Constants.CONNECTION_CHANGED_JOIN_FAILED) {
                                 CovLogger.d(TAG, "onConnectionStateChanged: login")
                                 connectionState = AgentConnectionState.CONNECTED_INTERRUPT
-                                ToastUtil.show(getString(R.string.cov_detail_net_state_error), Toast.LENGTH_LONG)
+                                persistentToast(true, getString(R.string.cov_detail_room_error))
                             }
                         }
                     }
