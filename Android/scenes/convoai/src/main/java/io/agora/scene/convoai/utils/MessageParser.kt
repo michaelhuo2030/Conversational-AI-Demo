@@ -2,13 +2,11 @@ package io.agora.scene.convoai.utils
 
 import com.google.gson.Gson
 
-data class MessagePart(val messageId: String, val partIndex: Int, val totalParts: Int, val base64Content: String)
-
 class MessageParser {
     // Change message storage structure to Map<Int, String> for more intuitive partIndex and content storage
     private val messageMap = mutableMapOf<String, MutableMap<Int, String>>()
     private val gson = Gson()
-    private val maxMessageAge = 60 * 60 * 1000 // 1 hour
+    private val maxMessageAge = 5 * 60 * 1000 // 5 minutes
     private val lastAccessMap = mutableMapOf<String, Long>()
 
     fun parseStreamMessage(string: String): Map<String, Any>? {
