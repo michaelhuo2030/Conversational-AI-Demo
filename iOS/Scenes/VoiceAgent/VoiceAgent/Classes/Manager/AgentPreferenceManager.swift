@@ -21,6 +21,7 @@ protocol AgentPreferenceManagerDelegate: AnyObject {
     func preferenceManager(_ manager: AgentPreferenceManager, agentIdDidUpdated agentId: String)
     func preferenceManager(_ manager: AgentPreferenceManager, roomIdDidUpdated roomId: String)
     func preferenceManager(_ manager: AgentPreferenceManager, userIdDidUpdated userId: String)
+    func preferenceManager(_ manager: AgentPreferenceManager, targetServerDidUpdated host: String)
 }
 
 protocol AgentPreferenceManagerProtocol {
@@ -43,6 +44,7 @@ protocol AgentPreferenceManagerProtocol {
     func updateAgentId(_ agentId: String)
     func updateRoomId(_ roomId: String)
     func updateUserId(_ userId: String)
+    func updateTargetServer(_ host: String)
     
     func resetAgentInformation()
     func allPresets() -> [AgentPreset]?
@@ -117,6 +119,11 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
         notifyDelegates { $0.preferenceManager(self, userIdDidUpdated: userId) }
     }
     
+    func updateTargetServer(_ server: String) {
+        information.targetServer = server
+        notifyDelegates { $0.preferenceManager(self, targetServerDidUpdated: server) }
+    }
+    
     func resetAgentInformation() {
         updateNetworkState(.unknown)
         updateRoomState(.unload)
@@ -124,6 +131,7 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
         updateAgentId("")
         updateRoomId("")
         updateUserId("")
+        updateTargetServer("")
     }
     
     func allPresets() -> [AgentPreset]? {
@@ -243,6 +251,7 @@ class AgentInfomation {
     var agentId: String = ""
     var roomId: String = ""
     var userId: String = ""
+    var targetServer: String = ""
 }
 
 extension AgentPreferenceManagerDelegate {
@@ -257,4 +266,5 @@ extension AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, agentIdDidUpdated agentId: String) {}
     func preferenceManager(_ manager: AgentPreferenceManager, roomIdDidUpdated roomId: String) {}
     func preferenceManager(_ manager: AgentPreferenceManager, userIdDidUpdated userId: String) {}
+    func preferenceManager(_ manager: AgentPreferenceManager, targetServerDidUpdated host: String) {}
 }

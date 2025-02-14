@@ -83,7 +83,7 @@ class AgentHomeViewController: UIViewController {
     
     private lazy var devModeButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(systemName: "gear"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
         button.isHidden = true
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
         return button

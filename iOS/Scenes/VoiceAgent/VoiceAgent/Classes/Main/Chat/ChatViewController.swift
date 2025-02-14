@@ -105,7 +105,7 @@ class ChatViewController: UIViewController {
     
     private lazy var devModeButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage(systemName: "gear"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
         return button
     }()
@@ -361,7 +361,7 @@ extension ChatViewController {
                                 aiVad: aiVad,
                                 bhvs: bhvs,
                                 presetName: presetName,
-                                language: language) { [weak self] error, channelName, remoteAgentId in
+                                language: language) { [weak self] error, channelName, remoteAgentId, targetServer in
             guard let self = self else { return }
             if self.channelName != channelName {
                 self.addLog("channelName is different, current : \(self.channelName), before: \(channelName)")
@@ -369,10 +369,12 @@ extension ChatViewController {
             }
             
             guard let error = error else {
-                if let remoteAgentId = remoteAgentId {
+                if let remoteAgentId = remoteAgentId,
+                     let targetServer = targetServer {
                     self.remoteAgentId = remoteAgentId
                     AppContext.preferenceManager()?.updateAgentId(remoteAgentId)
                     AppContext.preferenceManager()?.updateUserId(self.uid)
+                    AppContext.preferenceManager()?.updateTargetServer(targetServer)
                 }
                 addLog("start agent success, response is: \(self.remoteAgentId)")
                 prepareToPing()
@@ -644,7 +646,10 @@ private extension ChatViewController {
     }
     
     @objc private func onClickDevMode() {
-        DeveloperModeViewController.show(from: self, serverHost: "") {
+        DeveloperModeViewController.show(
+            from: self,
+            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "") 
+        {
             self.devModeButton.isHidden = true
             AppContext.shared.enableDeveloperMode = false
         } onAudioDump: { isOn in
