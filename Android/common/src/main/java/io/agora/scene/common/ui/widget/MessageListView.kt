@@ -59,6 +59,8 @@ class MessageListView @JvmOverloads constructor(
     }
 
     fun clearMessages() {
+        autoScrollToBottom = true
+        binding.cvToBottom.visibility = View.INVISIBLE
         currentAgentMessage = null
         currentUserMessage = null
         messageAdapter.clearMessages()

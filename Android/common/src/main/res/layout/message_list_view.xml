@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingHorizontal="20dp"
-    android:background="@color/ai_mask1">
+    android:background="#D8000000">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_messages"
