@@ -10,7 +10,7 @@ import Common
 
 class AgentSettingSubOptionCell: UITableViewCell {
     private lazy var checkImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.va_named("ic_agent_setting_sel"))
+        let imageView = UIImageView(image: UIImage.ag_named("ic_agent_setting_sel"))
         imageView.isHidden = true
         return imageView
     }()

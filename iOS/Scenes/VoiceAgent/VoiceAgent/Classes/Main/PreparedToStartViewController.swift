@@ -48,7 +48,7 @@
 //    private lazy var agentImageView: UIImageView = {
 //        let imageView = UIImageView()
 //        imageView.contentMode = .scaleAspectFit
-//        imageView.image = UIImage.va_named("ic_agent_circle")
+//        imageView.image = UIImage.ag_named("ic_agent_circle")
 //        return imageView
 //    }()
 //    
@@ -83,7 +83,7 @@
 //        button.backgroundColor = PrimaryColors.c_0097d4
 //        button.layer.cornerRadius = 32
 //        button.addTarget(self, action: #selector(joinButtonTapped), for: .touchUpInside)
-//        button.setImage(UIImage.va_named("ic_agent_join_button_icon"), for: .normal)
+//        button.setImage(UIImage.ag_named("ic_agent_join_button_icon"), for: .normal)
 //        
 //        let spacing: CGFloat = 5
 //        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)

@@ -31,10 +31,10 @@ class AgentHomeViewController: UIViewController {
     private lazy var titleImageView: UIImageView = {
         let imageView = UIImageView()
         if AppContext.shared.appArea == .mainland {
-            imageView.image = UIImage.va_named("ic_shengwang_icon")?.withRenderingMode(.alwaysTemplate)
+            imageView.image = UIImage.ag_named("ic_shengwang_icon")?.withRenderingMode(.alwaysTemplate)
             imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
         } else {
-            imageView.image = UIImage.va_named("ic_agent_home_agora")
+            imageView.image = UIImage.ag_named("ic_agent_home_agora")
         }
         return imageView
     }()
@@ -46,14 +46,14 @@ class AgentHomeViewController: UIViewController {
     }()
 
     private lazy var centerImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.va_named("ic_agent_home_center"))
+        let imageView = UIImageView(image: UIImage.ag_named("ic_agent_home_center"))
         return imageView
     }()
 
     private lazy var privacyCheckBox: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.va_named("ic_checkbox_unchecked"), for: .normal)
-        button.setImage(UIImage.va_named("ic_checkbox_checked"), for: .selected)
+        button.setImage(UIImage.ag_named("ic_checkbox_unchecked"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_checkbox_checked"), for: .selected)
         button.addTarget(self, action: #selector(onPrivacyCheckBoxClicked), for: .touchUpInside)
         return button
     }()

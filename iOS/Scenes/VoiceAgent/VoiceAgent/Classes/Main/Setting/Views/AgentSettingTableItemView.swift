@@ -12,7 +12,7 @@ import SVProgressHUD
 class AgentSettingTableItemView: UIView {
     let titleLabel = UILabel()
     let detailLabel = UILabel()
-    let imageView = UIImageView(image: UIImage.va_named("ic_agent_setting_tab"))
+    let imageView = UIImageView(image: UIImage.ag_named("ic_agent_setting_tab"))
     let bottomLine = UIView()
     let button = UIButton(type: .custom)
     

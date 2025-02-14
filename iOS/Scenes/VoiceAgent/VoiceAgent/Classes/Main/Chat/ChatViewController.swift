@@ -93,7 +93,7 @@ class ChatViewController: UIViewController {
     }()
     
     private lazy var micStateImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.va_named("ic_agent_detail_mute"))
+        let imageView = UIImageView(image: UIImage.ag_named("ic_agent_detail_mute"))
         return imageView
     }()
     

@@ -20,7 +20,7 @@ class AgentSettingBar: UIView {
     
     lazy var backButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage.va_named("ic_agora_back"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agora_back"), for: .normal)
         button.addTarget(self, action: #selector(backEvent), for: .touchUpInside)
         return button
     }()
@@ -35,13 +35,13 @@ class AgentSettingBar: UIView {
     
     private let tipsButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.va_named("ic_agent_tips_icon"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agent_tips_icon"), for: .normal)
         return button
     }()
     
     private lazy var settingButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.va_named("ic_agent_setting"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agent_setting"), for: .normal)
         button.addTarget(self, action: #selector(settingButtonClicked), for: .touchUpInside)
         return button
     }()
@@ -141,12 +141,12 @@ extension AgentSettingBar: AgentPreferenceManagerDelegate {
             break
         }
         
-        tipsButton.setImage(UIImage.va_named(imageName), for: .normal)
+        tipsButton.setImage(UIImage.ag_named(imageName), for: .normal)
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {
         if roomState == .unload {
-            tipsButton.setImage(UIImage.va_named("ic_agent_tips_icon"), for: .normal)
+            tipsButton.setImage(UIImage.ag_named("ic_agent_tips_icon"), for: .normal)
         }
     }
 }

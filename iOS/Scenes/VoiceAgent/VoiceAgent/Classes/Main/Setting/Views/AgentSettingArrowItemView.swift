@@ -11,7 +11,7 @@ import Common
 class AgentSettingArrowItemView: UIView {
     let titleLabel = UILabel()
     let detialLabel = UILabel()
-    let imageView = UIImageView(image: UIImage.va_named("ic_agent_setting_arrow"))
+    let imageView = UIImageView(image: UIImage.ag_named("ic_agent_setting_arrow"))
     let bottomLine = UIView()
     let button = UIButton(type: .custom)
     

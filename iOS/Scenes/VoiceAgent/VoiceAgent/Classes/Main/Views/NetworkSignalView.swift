@@ -10,7 +10,7 @@ class NetworkSignalView: UIView {
     weak var delegate: NetworkSignalViewDelegate?
     lazy var signalButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage.va_named("ic_signal_bad"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_signal_bad"), for: .normal)
         button.addTarget(self, action: #selector(networkButtonClicked), for: .touchUpInside)
         return button
     }()
