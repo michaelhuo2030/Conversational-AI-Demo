@@ -114,18 +114,18 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/mtv_switch_server">
 
-            <RadioButton
+           <!-- <RadioButton
                 android:id="@+id/rbEnvProd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/agent_bg_env_mode_selector"
                 android:button="@null"
                 android:checked="true"
-                android:paddingHorizontal="8dp"
+                android:paddingHorizontal="4dp"
                 android:text="PORD"
                 android:visibility="gone"
                 android:textColor="@color/ai_brand_white10"
-                android:textSize="13sp" />
+                android:textSize="13sp" />-->
 
             <RadioButton
                 android:id="@+id/rbEnvStaging"
@@ -133,8 +133,8 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/agent_bg_env_mode_selector"
                 android:button="@null"
-                android:paddingHorizontal="8dp"
-                android:text="Staging"
+                android:paddingHorizontal="4dp"
+                android:text="ConvoAI Prod"
                 android:textColor="@color/ai_brand_white10"
                 android:textSize="13sp" />
 
@@ -144,8 +144,8 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/agent_bg_env_mode_selector"
                 android:button="@null"
-                android:paddingHorizontal="8dp"
-                android:text="Dev"
+                android:paddingHorizontal="4dp"
+                android:text="ConvoAI Staging"
                 android:textColor="@color/ai_brand_white10"
                 android:textSize="13sp" />
         </RadioGroup>

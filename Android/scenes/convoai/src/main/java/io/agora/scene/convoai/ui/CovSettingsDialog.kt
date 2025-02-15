@@ -92,6 +92,15 @@ class CovSettingsDialog (private val onDismiss: () -> Unit) : BaseSheetDialog<Co
 
     // The non-English overseas version must disable AiVad.
     private fun setAiVadBySelectLanguage(){
+        binding?.apply {
+            if (CovAgentManager.getPreset()?.isIndependent() == true) {
+                CovAgentManager.enableAiVad = false
+                cbAiVad.isChecked = false
+                cbAiVad.isEnabled = false
+            }else{
+                cbAiVad.isEnabled = true
+            }
+        }
         if (!ServerConfig.isMainlandVersion) {
             binding?.apply {
                 if (CovAgentManager.language?.language_code == "en-US") {
@@ -168,6 +177,7 @@ class CovSettingsDialog (private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                 CovAgentManager.setPreset(preset)
                 onCallBack?.onPreset(preset)
                 updateBaseSettings()
+                setAiVadBySelectLanguage()
                 vOptionsMask.visibility = View.INVISIBLE
             }
         }
