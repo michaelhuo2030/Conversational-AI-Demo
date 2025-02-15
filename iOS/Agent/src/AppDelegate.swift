@@ -35,7 +35,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppContext.shared.certificate = KeyCenter.Certificate ?? ""
         AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
         AppContext.shared.termsOfServiceUrl = KeyCenter.TermsOfService
-                
+        AppContext.shared.environments = KeyCenter.environments
         return true
     }
     
