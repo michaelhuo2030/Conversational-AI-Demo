@@ -17,6 +17,7 @@ import android.view.View
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.isVisible
+import io.agora.scene.common.constant.AgentKey
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.toast.ToastUtil
 
@@ -33,6 +34,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val stagingKey = AgentKey(BuildConfig.AG_APP_ID,BuildConfig.AG_APP_CERTIFICATE)
+        val devKey = AgentKey(BuildConfig.AG_APP_ID_DEV,BuildConfig.AG_APP_CERTIFICATE_DEV)
+        ServerConfig.initConfig(BuildConfig.IS_MAINLAND,
+            stagingKey = stagingKey,
+            devKey = devKey)
         setupLocale()
         super.onCreate(savedInstanceState)
     }

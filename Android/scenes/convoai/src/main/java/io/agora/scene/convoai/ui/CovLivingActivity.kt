@@ -633,6 +633,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     btnDebug.isVisible = ServerConfig.isDebug
                 }
 
+                override fun onSwitchEnv(env: Int) {
+                    coroutineScope.launch {
+                        delay(1000L)
+                        onHandleOnBackPressed()
+                    }
+                }
+
                 override fun onClickCopy() {
                     val messageContents = messageListView.getAllMessages()
                         .filter { it.isMe }

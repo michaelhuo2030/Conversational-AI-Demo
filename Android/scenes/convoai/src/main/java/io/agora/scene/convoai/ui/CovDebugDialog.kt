@@ -7,8 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.constant.ServerEnv
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.toast.ToastUtil
+import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovDebugDialogBinding
 import io.agora.scene.convoai.api.CovAgentApiManager
 
@@ -50,6 +53,10 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
         fun onClickCopy() {
             mCallback.onClickCopy()
         }
+
+        fun onClickSwitchEnv(env: Int) {
+            mCallback.onSwitchEnv(env)
+        }
     }
 
     interface Callback {
@@ -61,6 +68,8 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
         fun onAudioDumpEnable(enable: Boolean)
 
         fun onDebugEnable(enable: Boolean)
+
+        fun onSwitchEnv(env: Int)
 
         fun onClickCopy()
     }
@@ -77,6 +86,8 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
     }
+
+    private var tempEnv = ServerConfig.toolboxEnv
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -104,6 +115,58 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
             btnCopy.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     settingBean.onClickCopy()
+                }
+            })
+
+            when (ServerConfig.toolboxEnv) {
+                ServerEnv.PROD -> {
+                    rgSwitchEnv.check(R.id.rbEnvProd)
+                }
+
+                ServerEnv.STAGING -> {
+                    rgSwitchEnv.check(R.id.rbEnvStaging)
+                }
+
+                ServerEnv.DEV -> {
+                    rgSwitchEnv.check(R.id.rbEnvDev)
+                }
+
+                else -> {
+                    rgSwitchEnv.check(R.id.rbEnvProd)
+                }
+            }
+            rgSwitchEnv.setOnCheckedChangeListener { group, checkedId ->
+                when (checkedId) {
+                    R.id.rbEnvProd -> {
+                        tempEnv = ServerEnv.PROD
+                    }
+
+                    R.id.rbEnvStaging -> {
+                        tempEnv = ServerEnv.STAGING
+                    }
+
+                    R.id.rbEnvDev -> {
+                        tempEnv = ServerEnv.DEV
+                    }
+
+                    else -> {
+                        tempEnv = ServerEnv.PROD
+                    }
+                }
+            }
+            tvSwitch.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    if (ServerConfig.toolboxEnv == tempEnv) {
+                        return
+                    }
+                    ServerConfig.toolboxEnv = tempEnv
+                    settingBean.onClickSwitchEnv(tempEnv)
+                    ToastUtil.show(
+                        getString(
+                            io.agora.scene.common.R.string.common_debug_current_server,
+                            ServerConfig.toolBoxUrl
+                        )
+                    )
                 }
             })
         }

@@ -3,9 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
-if (project.getProperty("AG_APP_ID").toString().isEmpty()) {
-    throw new GradleException("请在 gradle.properties 中配置 Agora ID 和 Certificate")
-}
 def baseProps = new File(rootProject.projectDir.absolutePath + File.separator + "gradle.properties")
 def properties = new Properties()
 if (baseProps.exists()) {
@@ -25,10 +22,6 @@ android {
 
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion
-
-        buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("AG_APP_ID")}\"")
-        buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("AG_APP_CERTIFICATE")}\"")
-        buildConfigField("String", "TOOLBOX_SERVER_HOST", "\"${project.getProperty("TOOLBOX_SERVER_HOST")}\"")
     }
 
     buildTypes {
