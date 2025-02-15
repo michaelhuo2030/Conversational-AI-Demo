@@ -192,15 +192,12 @@ class ChatViewController: UIViewController {
     
     @MainActor
     private func prepareToStartAgent() async {
-        channelName = RtcEnum.getChannel()
-        agentUid = AppContext.agentUid
-        
         startLoading()
-        joinChannel()
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
             startAgentRequest()
+            joinChannel()
         } catch {
             handleStartError(error: error)
         }
@@ -225,7 +222,12 @@ class ChatViewController: UIViewController {
     }
     
     private func joinChannel() {
+        
         addLog("[Call] joinChannel()")
+        if channelName.isEmpty {
+            addLog("cancel to join channel")
+            return
+        }
         let ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
         addLog("Join channel: \(ret)")
         if (ret == 0) {
@@ -244,6 +246,7 @@ class ChatViewController: UIViewController {
     
     private func leaveChannel() {
         addLog("[Call] leaveChannel()")
+        channelName = ""
         rtcManager.leaveChannel()
 
         AppContext.preferenceManager()?.resetAgentInformation()
@@ -260,7 +263,7 @@ class ChatViewController: UIViewController {
         messageView.clearMessages()
         messageView.isHidden = true
         bottomBar.resetState()
-        
+        stopRequestTimer()
         stopPingTimer()
         leaveChannel()
         stopAgentRequest()
@@ -350,6 +353,8 @@ extension ChatViewController {
         let bhvs = manager.preference.bhvs
         let presetName = manager.preference.preset?.name ?? ""
         let language = manager.preference.language?.languageCode ?? ""
+        channelName = RtcEnum.getChannel()
+        agentUid = AppContext.agentUid
         remoteIsJoined = false
         agentManager.startAgent(appId: AppContext.shared.appId,
                                 uid: uid,
