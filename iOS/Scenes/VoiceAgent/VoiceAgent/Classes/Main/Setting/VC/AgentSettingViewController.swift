@@ -241,6 +241,7 @@ class AgentSettingViewController: UIViewController {
             if selected.displayName == currentPreset.displayName { return }
             
             AppContext.preferenceManager()?.updatePreset(selected)
+            self.onClickHideTable(nil)
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -267,6 +268,7 @@ class AgentSettingViewController: UIViewController {
             if currentLanguage.languageCode == selected.languageCode { return }
             
             AppContext.preferenceManager()?.updateLanguage(selected)
+            self.onClickHideTable(nil)
         }
         table.setSelectedIndex(currentIndex)
         view.addSubview(table)
@@ -289,7 +291,7 @@ class AgentSettingViewController: UIViewController {
         AppContext.preferenceManager()?.updateForceThresholdState(state)
     }
     
-    @objc func onClickHideTable(_ sender: UIButton) {
+    @objc func onClickHideTable(_ sender: UIButton?) {
         selectTable?.removeFromSuperview()
         selectTable = nil
         selectTableMask.isHidden = true

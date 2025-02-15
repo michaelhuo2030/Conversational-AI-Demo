@@ -88,9 +88,17 @@ class AgentHomeViewController: UIViewController {
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
         return button
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(hex: 0x111111)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.shadowColor = .clear
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
         
         setupViews()
         setupConstraints()

@@ -36,7 +36,6 @@ class TermsServiceWebViewController: UIViewController {
     }
     
     private func setupViews() {
-        title = ResourceManager.L10n.Main.termsOfService
         view.backgroundColor = .white
         view.addSubview(webView)
         view.addSubview(progressView)
@@ -82,6 +81,10 @@ class TermsServiceWebViewController: UIViewController {
 extension TermsServiceWebViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         progressView.isHidden = true
+        if let title = webView.title {
+            self.title = title
+        }
+        
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
