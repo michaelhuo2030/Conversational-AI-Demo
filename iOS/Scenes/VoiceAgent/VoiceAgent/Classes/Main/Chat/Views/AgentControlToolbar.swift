@@ -155,14 +155,6 @@ class AgentControlToolbar: UIView {
         AppContext.preferenceManager()?.removeDelegate(self)
     }
     
-    private func updateCaptionsButtonState() {
-        guard let manager = AppContext.preferenceManager() else {
-            return
-        }
-        
-        captionsButton.isEnabled = manager.preference.preset?.presetType != "independent"
-    }
-    
     func resetState() {
         startButton.isEnabled = true
         captionsButton.isEnabled = true
@@ -269,7 +261,6 @@ class AgentControlToolbar: UIView {
     }
     
     @objc private func startAction() {
-        updateCaptionsButtonState()
         Task {
             await delegate?.getStart()
         }
@@ -324,7 +315,7 @@ class AgentControlToolbar: UIView {
 
 extension AgentControlToolbar: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
-        captionsButton.isEnabled = preset.presetType != "independent"
+        
     }
 }
 

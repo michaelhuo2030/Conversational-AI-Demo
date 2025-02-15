@@ -670,6 +670,8 @@ private extension ChatViewController {
             AppContext.shared.enableDeveloperMode = false
         } onAudioDump: { isOn in
             self.rtcManager.enableAudioDump(enabled: isOn)
+        } onSwitchServer: {
+            self.clickTheBackButton()
         } onCopy: {
             let messageContents = self.messageView.getAllMessages()
                 .filter { $0.isUser }

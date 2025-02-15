@@ -2,6 +2,7 @@ import UIKit
 import SnapKit
 import Common
 import AgoraRtcKit
+import SVProgressHUD
 
 public class DeveloperModeViewController: UIViewController {
     
@@ -9,6 +10,7 @@ public class DeveloperModeViewController: UIViewController {
                             serverHost: String,
                             onClose: (() -> Void)? = nil,
                             onAudioDump: ((Bool) -> Void)? = nil,
+                            onSwitchServer: (() -> Void)? = nil,
                             onCopy: (() -> Void)? = nil) {
         let devViewController = DeveloperModeViewController()
         devViewController.modalTransitionStyle = .crossDissolve
@@ -17,12 +19,14 @@ public class DeveloperModeViewController: UIViewController {
         devViewController.closeCallback = onClose
         devViewController.audioDumpCallback = onAudioDump
         devViewController.copyCallback = onCopy
+        devViewController.onSwitchServer = onSwitchServer
         vc.present(devViewController, animated: true)
     }
     
     private var closeCallback: (() -> Void)?
     private var audioDumpCallback: ((Bool) -> Void)?
     private var copyCallback: (() -> Void)?
+    private var onSwitchServer: (() -> Void)?
     
     private var serverHost: String = ""
     private let rtcVersionValueLabel = UILabel()
@@ -64,14 +68,17 @@ extension DeveloperModeViewController {
         copyCallback?()
     }
     
-    @objc private func onEnvironmentChanged(_ sender: UISegmentedControl) {
-        // Handle environment change
-        let index = sender.selectedSegmentIndex
+    @objc private func onSwitchButtonClicked(_ sender: UIButton) {
+        let index = segmentCtrl.selectedSegmentIndex
         if index >= 0 && index < AppContext.shared.environments.count {
             let envi = AppContext.shared.environments[index]
-            AppContext.shared.baseServerUrl = envi["host"] ?? ""
+            let host = envi["host"]
+            AppContext.shared.baseServerUrl = host ?? ""
             AppContext.shared.appId = envi["appId"] ?? ""
+            SVProgressHUD.showInfo(withStatus: host)
         }
+        self.dismiss(animated: true)
+        onSwitchServer?()
     }
 }
 
@@ -156,14 +163,16 @@ extension DeveloperModeViewController {
         
         // Environment
         let enviroimentTitleLabel = UILabel()
-        enviroimentTitleLabel.text = "Environment"
+        enviroimentTitleLabel.text = "Switch Server"
         enviroimentTitleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         enviroimentTitleLabel.font = UIFont.systemFont(ofSize: 14)
+                
+        // 添加切换按钮
+        let switchButton = UIButton(type: .system)
+        switchButton.setTitle("Switch", for: .normal)
+        switchButton.addTarget(self, action: #selector(onSwitchButtonClicked(_:)), for: .touchUpInside)
         
-        segmentCtrl.selectedSegmentIndex = 0
-        segmentCtrl.addTarget(self, action: #selector(onEnvironmentChanged(_:)), for: .valueChanged)
-        
-        let enviroimentStack = UIStackView(arrangedSubviews: [enviroimentTitleLabel, segmentCtrl])
+        let enviroimentStack = UIStackView(arrangedSubviews: [enviroimentTitleLabel, segmentCtrl, switchButton])
         enviroimentStack.axis = .horizontal
         enviroimentStack.spacing = 12
         enviroimentStack.alignment = .center
