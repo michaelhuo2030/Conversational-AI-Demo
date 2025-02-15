@@ -1,4 +1,5 @@
 <resources>
+    <string name="cov_main_agent_title">AI Agents</string>
     <string name="cov_detail_agent_title">Convo AI Agent</string>
     <string name="cov_detail_not_joined">Not Joined</string>
     <string name="cov_detail_join_call">Call AI Agent</string>
@@ -7,6 +8,7 @@
     <string name="cov_detail_agent_ending">Ending</string>
     <string name="cov_detail_join_call_failed">Failed to join. Please try again.</string>
     <string name="cov_detail_join_call_succeed">Agent joined!</string>
+    <string name="cov_detail_join_call_tips">At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice.</string>
     <string name="cov_detail_agent_leave">Agent Left!</string>
     <string name="cov_detail_message_list_you">You</string>
     <string name="cov_detail_connecting">Connecting…</string>

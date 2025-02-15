@@ -3,6 +3,7 @@ package io.agora.scene.convoai.ui
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -22,6 +23,7 @@ import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.copyToClipboard
+import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
@@ -352,6 +354,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     if (uid == CovAgentManager.agentUID) {
                         connectionState = AgentConnectionState.CONNECTED
                         ToastUtil.show(getString(R.string.cov_detail_join_call_succeed))
+                        ToastUtil.showByPosition(
+                            getString(R.string.cov_detail_join_call_tips),
+                            gravity = Gravity.BOTTOM,
+                            offsetY = 100.dp.toInt(),
+                            duration = Toast.LENGTH_LONG
+                        )
                     }
                 }
             }
@@ -372,8 +380,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
 
+            override fun onConnectionLost() {
+                super.onConnectionLost()
+                CovLogger.d(TAG, "onConnectionLost")
+            }
+
             override fun onConnectionStateChanged(state: Int, reason: Int) {
                 runOnUiThread {
+                    CovLogger.d(TAG, "onConnectionStateChanged: $state $reason")
                     when (state) {
                         Constants.CONNECTION_STATE_CONNECTED -> {
                             if (reason == Constants.CONNECTION_CHANGED_REJOIN_SUCCESS) {
@@ -389,6 +403,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         }
 
                         Constants.CONNECTION_STATE_DISCONNECTED -> {
+                            // TODO: 断网后只有  CONNECTION_STATE_DISCONNECTED，没有设置 connectionState 为 CONNECTED_INTERRUPT
                             CovLogger.d(TAG, "onConnectionStateChanged: disconnected")
                         }
 

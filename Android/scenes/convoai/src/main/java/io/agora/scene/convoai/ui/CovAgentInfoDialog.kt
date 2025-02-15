@@ -144,6 +144,11 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                     mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_yellow6))
                 }
 
+                Constants.QUALITY_DOWN->{
+                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
+                }
+
                 else -> {
                     mtvNetworkStatus.text = getString(R.string.cov_info_your_network_poor)
                     mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
