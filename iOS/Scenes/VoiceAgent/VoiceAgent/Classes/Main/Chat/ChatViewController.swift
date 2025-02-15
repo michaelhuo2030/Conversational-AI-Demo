@@ -192,9 +192,11 @@ class ChatViewController: UIViewController {
     
     @MainActor
     private func prepareToStartAgent() async {
+        channelName = RtcEnum.getChannel()
+        agentUid = AppContext.agentUid
+        
         startLoading()
         joinChannel()
-
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
@@ -339,8 +341,6 @@ extension ChatViewController {
     
     private func startAgentRequest() {
         addLog("[Call] startAgentRequest()")
-        channelName = RtcEnum.getChannel()
-        agentUid = AppContext.agentUid
         guard let manager = AppContext.preferenceManager() else {
             addLog("preference manager is nil")
             return
