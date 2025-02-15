@@ -124,7 +124,7 @@
                 android:paddingHorizontal="8dp"
                 android:text="PORD"
                 android:visibility="gone"
-                android:textColor="@color/ai_icontext4"
+                android:textColor="@color/ai_brand_white10"
                 android:textSize="13sp" />
 
             <RadioButton
@@ -135,7 +135,7 @@
                 android:button="@null"
                 android:paddingHorizontal="8dp"
                 android:text="Staging"
-                android:textColor="@color/ai_icontext4"
+                android:textColor="@color/ai_brand_white10"
                 android:textSize="13sp" />
 
             <RadioButton
@@ -146,7 +146,7 @@
                 android:button="@null"
                 android:paddingHorizontal="8dp"
                 android:text="Dev"
-                android:textColor="@color/ai_icontext4"
+                android:textColor="@color/ai_brand_white10"
                 android:textSize="13sp" />
         </RadioGroup>
 

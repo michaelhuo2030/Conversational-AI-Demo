@@ -7,7 +7,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.PermissionHelp
@@ -36,6 +35,7 @@ import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.api.CovAgentApiManager
 import io.agora.scene.convoai.constant.AgentConnectionState
+import io.agora.scene.convoai.debug.CovDebugDialog
 import kotlinx.coroutines.*
 import java.util.UUID
 import kotlin.coroutines.*
@@ -122,8 +122,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var isUserEndCall = false
 
     private var mCovBallAnim: CovBallAnim? = null
-
-    private var mDebugSettingBean: CovDebugDialog.DebugSettingBean? = null
 
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
@@ -370,6 +368,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
                 runOnUiThread {
                     if (uid == CovAgentManager.agentUID) {
+                        connectionState = AgentConnectionState.IDLE
                         mCovBallAnim?.updateAgentState(AgentState.STATIC)
                         if (isUserEndCall) {
                             isUserEndCall = false
@@ -493,6 +492,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
                 if (uid == 0) {
                     runOnUiThread {
+                        CovLogger.e(TAG, "onNetworkQuality: txQuality:$txQuality rxQuality:")
                         updateNetworkStatus(rxQuality)
                     }
                 }
@@ -617,20 +617,20 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private val onPresetCallback = object : CovSettingsDialog.Callback {
         override fun onPreset(preset: CovAgentPreset) {
             mBinding?.apply {
-                if (preset.isIndependent()) {
-                    btnCc.isEnabled = false
-                    btnCc.setBackgroundColor(
-                        ResourcesCompat.getColor(
-                            resources,
-                            io.agora.scene.common.R.color.ai_disable, null
-                        )
-                    )
-                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_disable1), PorterDuff.Mode.SRC_IN)
-                } else {
-                    btnCc.isEnabled = true
-                    btnCc.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
-                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
-                }
+//                if (preset.isIndependent()) {
+//                    btnCc.isEnabled = false
+//                    btnCc.setBackgroundColor(
+//                        ResourcesCompat.getColor(
+//                            resources,
+//                            io.agora.scene.common.R.color.ai_disable, null
+//                        )
+//                    )
+//                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_disable1), PorterDuff.Mode.SRC_IN)
+//                } else {
+//                    btnCc.isEnabled = true
+//                    btnCc.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
+//                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+//                }
             }
         }
     }
@@ -639,37 +639,36 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setOnApplyWindowInsetsListener(root)
-            mDebugSettingBean = CovDebugDialog.DebugSettingBean(object : CovDebugDialog.Callback {
-                override fun onAudioDumpEnable(enable: Boolean) {
-                    CovRtcManager.onAudioDump(enable)
-                }
-
-                override fun onDebugEnable(enable: Boolean) {
-                    btnDebug.isVisible = ServerConfig.isDebug
-                }
-
-                override fun onSwitchEnv(env: Int) {
-                    coroutineScope.launch {
-                        delay(1000L)
-                        onHandleOnBackPressed()
-                    }
-                }
-
-                override fun onClickCopy() {
-                    val messageContents = messageListView.getAllMessages()
-                        .filter { it.isMe }
-                        .map { it.content }
-                        .joinToString("\n")
-                    this@CovLivingActivity.copyToClipboard(messageContents)
-                    ToastUtil.show(getString(R.string.cov_copy_succeed))
-                }
-            })
             btnDebug.isVisible = ServerConfig.isDebug
             btnDebug.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     CovLogger.d(TAG, "showCovDebugDialog called")
-                    val debug = mDebugSettingBean ?: return
-                    val dialog = CovDebugDialog(debug)
+                    val callback = object : CovDebugDialog.Callback {
+                        override fun onAudioDumpEnable(enable: Boolean) {
+                            CovRtcManager.onAudioDump(enable)
+                        }
+
+                        override fun onDebugEnable(enable: Boolean) {
+                            btnDebug.isVisible = ServerConfig.isDebug
+                        }
+
+                        override fun onSwitchEnv(env: Int) {
+                            coroutineScope.launch {
+                                delay(1000L)
+                                onHandleOnBackPressed()
+                            }
+                        }
+
+                        override fun onClickCopy() {
+                            val messageContents = messageListView.getAllMessages()
+                                .filter { it.isMe }
+                                .map { it.content }
+                                .joinToString("\n")
+                            this@CovLivingActivity.copyToClipboard(messageContents)
+                            ToastUtil.show(getString(R.string.cov_copy_succeed))
+                        }
+                    }
+                    val dialog = CovDebugDialog(callback)
                     dialog.show(supportFragmentManager, "debugSettings")
                 }
             })
@@ -711,8 +710,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     infoDialog = CovAgentInfoDialog {
                         infoDialog = null
                     }
-                    infoDialog?.updateConnectStatus(connectionState)
                     infoDialog?.updateNetworkStatus(networkValue)
+                    infoDialog?.updateConnectStatus(connectionState)
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
             })
@@ -724,8 +723,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private fun showSettingDialog(){
-        settingDialog = CovSettingsDialog{
+    private fun showSettingDialog() {
+        settingDialog = CovSettingsDialog {
             settingDialog = null
         }.apply {
             onCallBack = onPresetCallback
@@ -737,7 +736,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun setupBallAnimView() {
         val binding = mBinding ?: return
         val rtcMediaPlayer = CovRtcManager.createMediaPlayer()
-        mCovBallAnim = CovBallAnim(this, rtcMediaPlayer, binding.videoView,callback=object : CovBallAnimCallback{
+        mCovBallAnim = CovBallAnim(this, rtcMediaPlayer, binding.videoView, callback = object : CovBallAnimCallback {
             override fun onError(error: Exception) {
                 coroutineScope.launch {
                     delay(1000L)

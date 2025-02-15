@@ -90,7 +90,6 @@ object ServerConfig {
     var isMainlandVersion: Boolean = false
         private set
 
-    private var mProdKey = AgentKey()
     private var mStagingKey = AgentKey()
     private var mDevKey = AgentKey()
 
@@ -98,10 +97,9 @@ object ServerConfig {
     val rtcAppId: String
         get() {
             return when (toolboxEnv) {
-                ServerEnv.PROD -> mProdKey.appId
                 ServerEnv.STAGING -> mStagingKey.appId
                 ServerEnv.DEV -> mDevKey.appId
-                else -> mProdKey.appId
+                else -> mStagingKey.appId
             }
         }
 
@@ -109,20 +107,17 @@ object ServerConfig {
     val rtcAppCert: String
         get() {
             return when (toolboxEnv) {
-                ServerEnv.PROD -> mProdKey.appCert
                 ServerEnv.STAGING -> mStagingKey.appCert
                 ServerEnv.DEV -> mDevKey.appCert
-                else -> mProdKey.appCert
+                else -> mStagingKey.appCert
             }
         }
 
     fun initConfig(
         isMainland: Boolean,
-        prodKey: AgentKey = AgentKey(),
         stagingKey: AgentKey = AgentKey(),
         devKey: AgentKey= AgentKey(),
     ) {
-        mProdKey = prodKey
         mStagingKey = stagingKey
         mDevKey = devKey
         isMainlandVersion = isMainland

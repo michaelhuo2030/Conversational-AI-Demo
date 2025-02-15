@@ -68,9 +68,6 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
         binding?.apply {
             when (connectionState) {
                 AgentConnectionState.IDLE -> {
-                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
-
                     mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
                     mtvRoomStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
 
@@ -83,12 +80,6 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                 }
 
                 AgentConnectionState.CONNECTING -> {
-                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
-
-                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
-
                     mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
                     mtvRoomStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
 
@@ -101,7 +92,6 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                 }
 
                 AgentConnectionState.CONNECTED -> {
-                    updateNetworkStatus(value)
                     mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
                     mtvRoomStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_green6))
 
@@ -114,7 +104,6 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                 }
 
                 AgentConnectionState.CONNECTED_INTERRUPT -> {
-                    updateNetworkStatus(value)
                     mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
                     mtvRoomStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_green6))
 

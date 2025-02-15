@@ -20,6 +20,8 @@ import androidx.core.view.isVisible
 import io.agora.scene.common.constant.AgentKey
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.toast.ToastUtil
+import io.agora.scene.convoai.debug.CovDebugDialog
+import io.agora.scene.convoai.rtc.CovRtcManager
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -100,12 +102,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
             }
             btnDebug.isVisible = ServerConfig.isDebug
-            btnDebug.setOnLongClickListener {
-                btnDebug.isVisible = false
-                ServerConfig.isDebug = false
-                ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_disable))
-                return@setOnLongClickListener true
-            }
+            btnDebug.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    showDebugDialog()
+                }
+            })
             updateStartButtonState()
         }
     }
@@ -160,5 +161,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             @Suppress("DEPRECATION")
             resources.updateConfiguration(config, resources.displayMetrics)
         }
+    }
+
+    private fun showDebugDialog(){
+        val callback = object : CovDebugDialog.Callback {
+            override fun onAudioDumpEnable(enable: Boolean) {
+                CovRtcManager.onAudioDump(enable)
+            }
+
+            override fun onDebugEnable(enable: Boolean) {
+                mBinding?.btnDebug?.isVisible =false
+            }
+        }
+        val dialog = CovDebugDialog(callback)
+        dialog.show(supportFragmentManager, "debugSettings")
     }
 }

@@ -1,4 +1,4 @@
-package io.agora.scene.convoai.ui
+package io.agora.scene.convoai.debug
 
 import android.content.DialogInterface
 import android.os.Bundle
@@ -15,49 +15,16 @@ import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovDebugDialogBinding
 import io.agora.scene.convoai.api.CovAgentApiManager
 
-class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
+object DebugSettings {
+    val debugConfig = DebugSettingConfig()
+}
+
+data class DebugSettingConfig constructor(
+    var isAudioDumpEnabled: Boolean = false
+)
+
+class CovDebugDialog constructor(val mCallback: Callback) :
     BaseSheetDialog<CovDebugDialogBinding>() {
-
-    class DebugSettingBean(callback: Callback) {
-        private val mCallback: Callback = callback
-
-
-        /**
-         * Is audio dump enabled boolean.
-         *
-         * @return the boolean
-         */
-        var isAudioDumpEnabled: Boolean = false
-            private set(value) {
-                if (field != value) {
-                    field = value
-                    mCallback.onAudioDumpEnable(value)
-                }
-            }
-
-
-        /**
-         * Enable audio dump.
-         *
-         * @param enable the enable
-         */
-        fun enableAudioDump(enable: Boolean) {
-            this.isAudioDumpEnabled = enable
-        }
-
-        fun enableDebug(enable: Boolean) {
-            ServerConfig.isDebug = enable
-            mCallback.onDebugEnable(enable)
-        }
-
-        fun onClickCopy() {
-            mCallback.onClickCopy()
-        }
-
-        fun onClickSwitchEnv(env: Int) {
-            mCallback.onSwitchEnv(env)
-        }
-    }
 
     interface Callback {
         /**
@@ -65,13 +32,13 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
          *
          * @param enable the enable
          */
-        fun onAudioDumpEnable(enable: Boolean)
+        fun onAudioDumpEnable(enable: Boolean) {}
 
-        fun onDebugEnable(enable: Boolean)
+        fun onDebugEnable(enable: Boolean) {}
 
-        fun onSwitchEnv(env: Int)
+        fun onSwitchEnv(env: Int) {}
 
-        fun onClickCopy()
+        fun onClickCopy() {}
     }
 
     private var value: Int = 0
@@ -95,10 +62,11 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
             setOnApplyWindowInsets(root)
             mtvRtcVersion.text = RtcEngine.getSdkVersion()
             mtvServerHost.text = CovAgentApiManager.currentHost ?: ""
-            cbAudioDump.setChecked(settingBean.isAudioDumpEnabled)
+            cbAudioDump.setChecked(DebugSettings.debugConfig.isAudioDumpEnabled)
             cbAudioDump.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (buttonView.isPressed) {
-                    settingBean.enableAudioDump(isChecked)
+                    DebugSettings.debugConfig.isAudioDumpEnabled = isChecked
+                    mCallback.onAudioDumpEnable(isChecked)
                 }
             }
             btnClose.setOnClickListener(object : OnFastClickListener() {
@@ -108,39 +76,30 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
             })
             layoutCloseDebug.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    settingBean.enableDebug(false)
+                    ServerConfig.isDebug = false
+                    mCallback.onDebugEnable(false)
                     dismiss()
                 }
             })
             btnCopy.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    settingBean.onClickCopy()
+                    mCallback.onClickCopy()
                 }
             })
 
             when (ServerConfig.toolboxEnv) {
-                ServerEnv.PROD -> {
-                    rgSwitchEnv.check(R.id.rbEnvProd)
-                }
-
                 ServerEnv.STAGING -> {
                     rgSwitchEnv.check(R.id.rbEnvStaging)
                 }
-
                 ServerEnv.DEV -> {
                     rgSwitchEnv.check(R.id.rbEnvDev)
                 }
-
                 else -> {
-                    rgSwitchEnv.check(R.id.rbEnvProd)
+                    rgSwitchEnv.check(R.id.rbEnvStaging)
                 }
             }
             rgSwitchEnv.setOnCheckedChangeListener { group, checkedId ->
                 when (checkedId) {
-                    R.id.rbEnvProd -> {
-                        tempEnv = ServerEnv.PROD
-                    }
-
                     R.id.rbEnvStaging -> {
                         tempEnv = ServerEnv.STAGING
                     }
@@ -150,7 +109,7 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
                     }
 
                     else -> {
-                        tempEnv = ServerEnv.PROD
+                        tempEnv = ServerEnv.STAGING
                     }
                 }
             }
@@ -160,7 +119,8 @@ class CovDebugDialog constructor(private val settingBean: DebugSettingBean) :
                         return
                     }
                     ServerConfig.toolboxEnv = tempEnv
-                    settingBean.onClickSwitchEnv(tempEnv)
+                    mCallback.onSwitchEnv(tempEnv)
+                    dismiss()
                     ToastUtil.show(
                         getString(
                             io.agora.scene.common.R.string.common_debug_current_server,

@@ -104,8 +104,8 @@ android:background="@drawable/bottom_dialog_bg">
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical|end"
-                android:text="@string/cov_info_agent_connected"
-                android:textColor="@color/ai_green6"
+                android:text="@string/cov_info_your_network_disconnected"
+                android:textColor="@color/ai_red6"
                 android:textSize="16sp" />
         </LinearLayout>
 
