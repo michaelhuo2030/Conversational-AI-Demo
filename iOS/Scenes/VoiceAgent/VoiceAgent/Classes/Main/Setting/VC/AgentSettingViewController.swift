@@ -106,9 +106,9 @@ class AgentSettingViewController: UIViewController {
     private lazy var aiVadItem: AgentSettingSwitchItemView = {
         let view = AgentSettingSwitchItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.Settings.aiVad
-        view.switcher.addTarget(self, action: #selector(onClickAiVad(_:)), for: .touchUpInside)
+        view.addtarget(self, action: #selector(onClickAiVad(_:)), for: .touchUpInside)
         if let manager = AppContext.preferenceManager() {
-            view.switcher.isOn = manager.preference.aiVad
+            view.setOn(manager.preference.aiVad)
         }
         view.bottomLine.isHidden = true
         view.updateLayout()
@@ -426,15 +426,60 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         if let language = supportLanguages.first(where: { $0.languageCode == resetLanguageCode }) {
             manager.updateLanguage(language)
         }
+        if AppContext.shared.appArea == .overseas {
+            if (preset.name == "amy") {
+                manager.updateAiVadState(false)
+            }
+        } else {
+            if (preset.name == "spoken_english_practice") {
+                manager.updateAiVadState(false)
+            }
+        }
+        updateAiVADEnabelState()
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
-        aiVadItem.updateEnableState()
+        updateAiVADEnabelState()
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {
         languageItem.detailLabel.text = language.languageName
-        aiVadItem.updateEnableState()
+        if AppContext.shared.appArea == .overseas {
+            if language.languageCode != "en-US" {
+                manager.updateAiVadState(false)
+            }
+        }
+        updateAiVADEnabelState()
+    }
+    
+    func preferenceManager(_ manager: AgentPreferenceManager, aiVadStateDidUpdated state: Bool) {
+        aiVadItem.setOn(state)
+    }
+    
+    func updateAiVADEnabelState() {
+        guard let preset = AppContext.preferenceManager()?.preference.preset,
+              let language = AppContext.preferenceManager()?.preference.language,
+              let agetnState = AppContext.preferenceManager()?.information.agentState
+        else {
+            return
+        }
+        var aiVadEnable = true
+        if AppContext.shared.appArea == .overseas {
+            if (preset.name == "amy") {
+                aiVadEnable = false
+            }
+            if language.languageCode != "en-US" {
+                aiVadEnable = false
+            }
+        } else {
+            if (preset.name == "spoken_english_practice") {
+                aiVadEnable = false
+            }
+        }
+        if (agetnState != .unload) {
+            aiVadEnable = false
+        }
+        aiVadItem.setEnable(aiVadEnable)
     }
 }
 

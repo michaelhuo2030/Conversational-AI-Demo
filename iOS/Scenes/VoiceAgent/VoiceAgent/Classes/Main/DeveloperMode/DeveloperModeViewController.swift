@@ -7,36 +7,42 @@ import SVProgressHUD
 public class DeveloperModeViewController: UIViewController {
     
     public static func show(from vc: UIViewController,
+                            audioDump: Bool,
                             serverHost: String,
-                            onClose: (() -> Void)? = nil,
+                            onCloseDevMode: (() -> Void)? = nil,
                             onAudioDump: ((Bool) -> Void)? = nil,
                             onSwitchServer: (() -> Void)? = nil,
                             onCopy: (() -> Void)? = nil) {
         let devViewController = DeveloperModeViewController()
         devViewController.modalTransitionStyle = .crossDissolve
         devViewController.modalPresentationStyle = .overCurrentContext
+        devViewController.isAudioDumpEnabled = audioDump
         devViewController.serverHost = serverHost
-        devViewController.closeCallback = onClose
+        devViewController.onCloseDevModeCallback = onCloseDevMode
         devViewController.audioDumpCallback = onAudioDump
         devViewController.copyCallback = onCopy
         devViewController.onSwitchServer = onSwitchServer
         vc.present(devViewController, animated: true)
     }
     
-    private var closeCallback: (() -> Void)?
+    private var onCloseDevModeCallback: (() -> Void)?
     private var audioDumpCallback: ((Bool) -> Void)?
     private var copyCallback: (() -> Void)?
     private var onSwitchServer: (() -> Void)?
     
     private var serverHost: String = ""
+    private var isAudioDumpEnabled: Bool = false
     private let rtcVersionValueLabel = UILabel()
     private let serverHostValueLabel = UILabel()
     private let segmentCtrl = UISegmentedControl(items: AppContext.shared.environments.map { ($0["name"]) ?? "" })
+    private let audioDumpSwitch = UISwitch()
     
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black.withAlphaComponent(0.7)
         setupViews()
+        
+        audioDumpSwitch.isOn = isAudioDumpEnabled
         rtcVersionValueLabel.text = AgoraRtcEngineKit.getSdkVersion()
         serverHostValueLabel.text = serverHost
         // update environment segment        
@@ -56,7 +62,8 @@ extension DeveloperModeViewController {
     }
     
     @objc private func onClickCloseMode(_ sender: UIButton) {
-        closeCallback?()
+        AppContext.shared.enableDeveloperMode = false
+        onCloseDevModeCallback?()
         self.dismiss(animated: true)
     }
     
@@ -91,7 +98,7 @@ extension DeveloperModeViewController {
         view.addSubview(cotentView)
         cotentView.snp.makeConstraints { make in
             make.left.right.bottom.equalToSuperview()
-            make.height.equalTo(360)
+            make.height.equalTo(380)
         }
         
         // Title Grabber
@@ -163,7 +170,7 @@ extension DeveloperModeViewController {
         
         // Environment
         let enviroimentTitleLabel = UILabel()
-        enviroimentTitleLabel.text = "Switch Server"
+        enviroimentTitleLabel.text = "Convo AI服务器"
         enviroimentTitleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         enviroimentTitleLabel.font = UIFont.systemFont(ofSize: 14)
                 
@@ -213,8 +220,6 @@ extension DeveloperModeViewController {
         audioDumpLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         audioDumpLabel.font = UIFont.systemFont(ofSize: 14)
         
-        let audioDumpSwitch = UISwitch()
-        audioDumpSwitch.isOn = true
         audioDumpSwitch.addTarget(self, action: #selector(onClickAudioDump(_ :)), for: .touchUpInside)
         
         let audioDumpStackView = UIStackView()

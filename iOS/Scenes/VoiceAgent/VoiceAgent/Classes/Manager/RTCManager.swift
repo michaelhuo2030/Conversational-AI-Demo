@@ -28,6 +28,9 @@ protocol RTCManagerProtocol {
     func getRtcEntine() -> AgoraRtcEngineKit
     
     /// Enables or disables audio dump
+    func getAudioDump() -> Bool
+    
+    /// Enables or disables audio dump
     func enableAudioDump(enabled: Bool)
     
     /// Destroys the agent and releases resources
@@ -38,6 +41,7 @@ class RTCManager: NSObject {
     private var rtcEngine: AgoraRtcEngineKit!
     private weak var delegate: AgoraRtcEngineDelegate?
     private var appId: String = ""
+    private var audioDumpEnabled: Bool = false
     init(appId: String, delegate: AgoraRtcEngineDelegate?) {
         self.appId = appId
         self.delegate = delegate
@@ -88,11 +92,16 @@ extension RTCManager: RTCManagerProtocol {
     }
     
     func enableAudioDump(enabled: Bool) {
+        audioDumpEnabled = enabled
         if (enabled) {
             rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
         } else {
             rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
         }
+    }
+    
+    func getAudioDump() -> Bool {
+        return audioDumpEnabled
     }
     
     func getRtcEntine() -> AgoraRtcEngineKit {
@@ -104,6 +113,7 @@ extension RTCManager: RTCManagerProtocol {
     }
     
     func destroy() {
+        audioDumpEnabled = false
         AgoraRtcEngineKit.destroy()
     }
 }

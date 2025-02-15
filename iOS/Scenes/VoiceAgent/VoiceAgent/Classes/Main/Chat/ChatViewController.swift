@@ -664,10 +664,10 @@ private extension ChatViewController {
     @objc private func onClickDevMode() {
         DeveloperModeViewController.show(
             from: self,
+            audioDump: rtcManager.getAudioDump(),
             serverHost: AppContext.preferenceManager()?.information.targetServer ?? "") 
         {
             self.devModeButton.isHidden = true
-            AppContext.shared.enableDeveloperMode = false
         } onAudioDump: { isOn in
             self.rtcManager.enableAudioDump(enabled: isOn)
         } onSwitchServer: {

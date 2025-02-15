@@ -85,7 +85,8 @@ class AgentHomeViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
         button.isHidden = true
-        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onLongPressDevMode(_:)))
         button.addGestureRecognizer(longPressGesture)
         return button
     }()
@@ -129,9 +130,18 @@ class AgentHomeViewController: UIViewController {
         }
     }
     
-    @objc private func handleLongPress(_ sender: UILongPressGestureRecognizer) {
+    @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
         devModeButton.isHidden = true
         AppContext.shared.enableDeveloperMode = false
+    }
+    
+    @objc func onClickDevMode() {
+        DeveloperModeViewController.show(
+            from: self,
+            audioDump: false,
+            serverHost: "", onCloseDevMode: {
+                self.devModeButton.isHidden = true
+            })
     }
     
     func onThresholdReached() {

@@ -11,7 +11,7 @@ import Common
 class AgentSettingSwitchItemView: UIView {
     let titleLabel = UILabel()
     let detailLabel = UILabel()
-    let switcher = UISwitch()
+    private let switcher = UISwitch()
     let bottomLine = UIView()
     
     override init(frame: CGRect) {
@@ -19,11 +19,29 @@ class AgentSettingSwitchItemView: UIView {
         
         createViews()
         createConstrains()
-        updateEnableState()
+        updateViewState()
+    }
+    
+    public func addtarget(_ target: Any?, action: Selector, for controlEvents: UIControl.Event) {
+        switcher.addTarget(target, action: action, for: controlEvents)
+    }
+    
+    func setEnable(_ enable: Bool) {
+        switcher.isEnabled = enable
+        updateViewState()
+    }
+    
+    func setOn(_ on: Bool) {
+        switcher.isOn = on
+        updateViewState()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    @objc func switcherValueChanged(_ sender: UISwitch) {
+        updateViewState()
     }
 }
 
@@ -49,6 +67,7 @@ extension AgentSettingSwitchItemView {
         switcher.backgroundColor = UIColor.themColor(named: "ai_brand_white10")
         switcher.layer.cornerRadius = switcher.frame.height / 2
         switcher.clipsToBounds = true
+        switcher.addTarget(self, action: #selector(switcherValueChanged(_:)), for: .valueChanged)
     }
     
     private func createConstrains() {
@@ -88,27 +107,23 @@ extension AgentSettingSwitchItemView {
         }
     }
     
-    func updateEnableState() {
-        guard let manager = AppContext.preferenceManager(), let language = manager.preference.language else {
-            return
-        }
-        
-        if AppContext.shared.appArea == .overseas {
-            if language.languageCode == "en-US" {
-                switcher.isEnabled = true
-                switcher.onTintColor = UIColor.themColor(named: "ai_brand_lightbrand6")
-                switcher.backgroundColor = UIColor.themColor(named: "ai_line2")
-            } else {
-                switcher.isEnabled = false
-                switcher.onTintColor = UIColor.themColor(named: "ai_disable")
-                switcher.backgroundColor = UIColor.themColor(named: "ai_disable")
-            }
+    private func updateViewState() {
+        let isOn = switcher.isOn
+        let enable = switcher.isEnabled
+        if (isOn && enable) {
+            switcher.onTintColor = UIColor.themColor(named: "ai_brand_lightbrand6")
+            switcher.backgroundColor = UIColor.themColor(named: "ai_brand_white10")
+        } else if (isOn && !enable) {
+            switcher.onTintColor = UIColor.themColor(named: "ai_disable")
+            switcher.backgroundColor = UIColor.themColor(named: "ai_brand_white10")
+        } else if (!isOn && enable) {
+            switcher.tintColor = UIColor.themColor(named: "ai_line2")
+            switcher.backgroundColor = UIColor.themColor(named: "ai_brand_white10")
         } else {
-            let state = manager.information.agentState == .unload
-            switcher.isEnabled = state
-            switcher.onTintColor = state ? UIColor.themColor(named: "ai_brand_lightbrand6") : UIColor.themColor(named: "ai_disable")
-            switcher.backgroundColor = state ? UIColor.themColor(named: "ai_line2") : UIColor.themColor(named: "ai_disable")
+            switcher.onTintColor = UIColor.themColor(named: "ai_disable")
+            switcher.backgroundColor = UIColor.themColor(named: "ai_brand_white6")
         }
+        switcher.isOn = isOn
     }
 }
 
