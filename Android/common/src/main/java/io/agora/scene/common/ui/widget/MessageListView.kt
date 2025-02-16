@@ -126,7 +126,8 @@ class MessageListView @JvmOverloads constructor(
 
 
     private fun handleAgentMessage(turnId: Double, text: String, isFinal: Boolean) {
-        val isNewMessage = currentAgentMessage?.turnId != turnId
+        // 修改判断新消息的逻辑
+        val isNewMessage = currentAgentMessage?.turnId != turnId || currentAgentMessage == null
         if (isNewMessage) {
             startNewAgentMessage(turnId, text)
         } else {
@@ -301,7 +302,9 @@ class MessageListView @JvmOverloads constructor(
         }
 
         fun updateMessage(message: Message) {
-            val index = messages.indexOfLast { it.turnId == message.turnId }
+            val index = messages.indexOfLast { 
+                it.turnId == message.turnId && it.isMe == message.isMe 
+            }
             if (index != -1) {
                 messages[index] = message
                 notifyItemChanged(index)
