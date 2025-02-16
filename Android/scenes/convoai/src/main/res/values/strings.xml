@@ -31,7 +31,7 @@
     <string name="cov_info_your_network">Your Network</string>
     <string name="cov_info_your_network_disconnected">Disconnected</string>
     <string name="cov_info_your_network_good">Good</string>
-    <string name="cov_info_your_network_medium">Okay</string>
+    <string name="cov_info_your_network_medium">Fair</string>
     <string name="cov_info_your_network_poor">Poor</string>
     <string name="cov_netwotk_info_title">NETWORK INFO</string>
 

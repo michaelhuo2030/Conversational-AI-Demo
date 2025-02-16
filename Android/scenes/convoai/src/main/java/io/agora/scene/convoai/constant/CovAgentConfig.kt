@@ -9,6 +9,7 @@ enum class AgentConnectionState() {
     CONNECTING,
     CONNECTED,
     CONNECTED_INTERRUPT,
+    ERROR
 }
 
 object CovAgentManager {

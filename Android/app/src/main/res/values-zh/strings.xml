@@ -6,7 +6,7 @@
 
     <string name="scenes_selection_title">选择演示</string>
     <string name="scenes_item_conversation_agent_title">对话式 AI 引擎</string>
-    <string name="scenes_item_conversation_agent_info">对话式 AI 引擎 （与 AI 进行实时语音互动体验）</string>
+    <string name="scenes_item_conversation_agent_info">与 AI 进行实时语音互动体验</string>
     <string name="scenes_item_v2v_title">声网 V2V</string>
     <string name="scenes_item_v2v_info">创建AI驱动的实时语音、视频和聊天体验。</string>
     <string name="scenes_item_digital_human_title">数字人</string>

@@ -18,7 +18,7 @@ import io.agora.scene.convoai.constant.AgentConnectionState
 
 class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<CovInfoDialogBinding>() {
 
-    private var value: Int = 0
+    private var value: Int = -1
     private var connectionState: AgentConnectionState = AgentConnectionState.IDLE
 
     override fun getViewBinding(
@@ -67,7 +67,7 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
         val context = context ?: return
         binding?.apply {
             when (connectionState) {
-                AgentConnectionState.IDLE -> {
+                AgentConnectionState.IDLE, AgentConnectionState.ERROR -> {
                     mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
                     mtvRoomStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
 
@@ -104,8 +104,8 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                 }
 
                 AgentConnectionState.CONNECTED_INTERRUPT -> {
-                    mtvRoomStatus.text = getString(R.string.cov_info_agent_connected)
-                    mtvRoomStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_green6))
+                    mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                    mtvRoomStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
 
                     mtvAgentStatus.text = getString(R.string.cov_info_your_network_disconnected)
                     mtvAgentStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
@@ -115,6 +115,7 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                     mtvUidValue.text = CovAgentManager.uid.toString()
                 }
             }
+            updateNetworkStatus(value)
         }
     }
 
@@ -123,9 +124,14 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
         val context = context ?: return
         binding?.apply {
             when (value) {
-                Constants.QUALITY_EXCELLENT, Constants.QUALITY_GOOD -> {
-                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_good)
-                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_green6))
+                -1 -> {
+                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
+                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
+                }
+
+                Constants.QUALITY_VBAD, Constants.QUALITY_DOWN -> {
+                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_poor)
+                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
                 }
 
                 Constants.QUALITY_POOR, Constants.QUALITY_BAD -> {
@@ -133,14 +139,9 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
                     mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_yellow6))
                 }
 
-                Constants.QUALITY_DOWN->{
-                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
-                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
-                }
-
                 else -> {
-                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_poor)
-                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
+                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_good)
+                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_green6))
                 }
             }
         }

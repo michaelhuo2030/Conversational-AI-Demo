@@ -56,7 +56,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     // Add a coroutine scope for log processing
     private val logScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private var networkValue: Int = 0
+    private var networkValue: Int = -1
 
     private var parser = MessageParser()
 
@@ -101,6 +101,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
 
                     AgentConnectionState.IDLE -> {
+                        // 取消 ping
+                        pingJob?.cancel()
+                        pingJob = null
+                        waitingAgentJob?.cancel()
+                        waitingAgentJob = null
+                    }
+
+                    AgentConnectionState.ERROR -> {
                         // 取消 ping
                         pingJob?.cancel()
                         pingJob = null
@@ -156,7 +164,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         coroutineScope.cancel()
 
         // if agent is connected, leave channel
-        if (connectionState == AgentConnectionState.CONNECTED) {
+        if (connectionState == AgentConnectionState.CONNECTED || connectionState == AgentConnectionState.ERROR) {
             stopAgentAndLeaveChannel()
         }
         mCovBallAnim?.let {
@@ -284,6 +292,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickEndCall() {
+        networkValue = -1
         isUserEndCall = true
         stopAgentAndLeaveChannel()
         persistentToast(false, "")
@@ -340,7 +349,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     CovLogger.d(TAG, "local user didLeaveChannel")
                 }
                 runOnUiThread {
-                    updateNetworkStatus(1)
+                    updateNetworkStatus(-1)
                 }
             }
 
@@ -368,7 +377,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
                 runOnUiThread {
                     if (uid == CovAgentManager.agentUID) {
-                        connectionState = AgentConnectionState.IDLE
+                        connectionState = AgentConnectionState.ERROR
                         mCovBallAnim?.updateAgentState(AgentState.STATIC)
                         if (isUserEndCall) {
                             isUserEndCall = false
@@ -404,6 +413,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         Constants.CONNECTION_STATE_DISCONNECTED -> {
                             // TODO: 断网后只有  CONNECTION_STATE_DISCONNECTED，没有设置 connectionState 为 CONNECTED_INTERRUPT
                             CovLogger.d(TAG, "onConnectionStateChanged: disconnected")
+                            if (reason == Constants.CONNECTION_CHANGED_LEAVE_CHANNEL) {
+                                connectionState = AgentConnectionState.IDLE
+                                persistentToast(false, "")
+                            }
                         }
 
                         Constants.CONNECTION_STATE_RECONNECTING -> {
@@ -415,7 +428,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
                         Constants.CONNECTION_STATE_FAILED -> {
                             if (reason == Constants.CONNECTION_CHANGED_JOIN_FAILED) {
-                                CovLogger.d(TAG, "onConnectionStateChanged: login")
+                                CovLogger.d(TAG, "onConnectionStateChanged: failed")
                                 connectionState = AgentConnectionState.CONNECTED_INTERRUPT
                                 persistentToast(true, getString(R.string.cov_detail_room_error))
                             }
@@ -448,11 +461,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                                 if (BuildConfig.DEBUG) {
                                     Log.d(TAG, "onAudioVolumeIndication ${it.uid} ${it.volume}")
                                 }
-                                // mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
-                                if (it.volume > 0) {
-                                    mCovBallAnim?.updateAgentState(AgentState.SPEAKING, it.volume)
-                                } else {
-                                    mCovBallAnim?.updateAgentState(AgentState.LISTENING, it.volume)
+
+                                if (connectionState != AgentConnectionState.IDLE) {
+                                    if (it.volume > 0) {
+                                        mCovBallAnim?.updateAgentState(AgentState.SPEAKING, it.volume)
+                                    } else {
+                                        mCovBallAnim?.updateAgentState(AgentState.LISTENING, it.volume)
+                                    }
                                 }
                             }
 
@@ -557,6 +572,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     llJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.GONE
                 }
+
+                AgentConnectionState.ERROR -> {}
             }
         }
     }

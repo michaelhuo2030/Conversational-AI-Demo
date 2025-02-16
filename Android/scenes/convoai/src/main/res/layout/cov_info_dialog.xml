@@ -94,8 +94,7 @@ android:background="@drawable/bottom_dialog_bg">
                 android:gravity="center"
                 android:text="@string/cov_info_your_network"
                 android:textColor="@color/ai_icontext1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"/>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/mtv_network_status"
@@ -147,8 +146,7 @@ android:background="@drawable/bottom_dialog_bg">
                 android:gravity="center"
                 android:text="@string/cov_info_agent_status"
                 android:textColor="@color/ai_icontext1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"/>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/mtv_agent_status"
@@ -180,8 +178,7 @@ android:background="@drawable/bottom_dialog_bg">
                 android:gravity="center"
                 android:text="@string/cov_info_agent_id"
                 android:textColor="@color/ai_icontext1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"/>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/mtv_agent_id"

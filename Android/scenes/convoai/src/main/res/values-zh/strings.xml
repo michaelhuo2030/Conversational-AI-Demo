@@ -31,7 +31,7 @@
     <string name="cov_info_your_network">您的网络</string>
     <string name="cov_info_your_network_disconnected">未连接</string>
     <string name="cov_info_your_network_good">良好</string>
-    <string name="cov_info_your_network_medium">中等</string>
+    <string name="cov_info_your_network_medium">一般</string>
     <string name="cov_info_your_network_poor">较差</string>
     <string name="cov_netwotk_info_title">网络信息</string>
 
