@@ -69,7 +69,6 @@ class TermsServiceWebViewController: UIViewController {
                            context: nil)
     }
     
-    // 添加返回按钮点击事件
     @objc private func backButtonTapped() {
         navigationController?.popViewController(animated: true)
     }
