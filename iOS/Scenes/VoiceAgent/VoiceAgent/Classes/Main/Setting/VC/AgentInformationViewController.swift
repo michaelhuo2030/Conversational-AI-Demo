@@ -301,8 +301,8 @@ extension AgentInformationViewController {
         }
         
         // Update Network Status
-        networkItem.detailLabel.text = manager.information.agentState != .connected ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
-        networkItem.detailLabel.textColor = manager.information.agentState != .connected ? ConnectionStatus.disconnected.color : manager.information.networkState.color
+        networkItem.detailLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
+        networkItem.detailLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.networkState.color
         
         agentItem.detailLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.agentState.rawValue
         agentItem.detailLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.agentState.color

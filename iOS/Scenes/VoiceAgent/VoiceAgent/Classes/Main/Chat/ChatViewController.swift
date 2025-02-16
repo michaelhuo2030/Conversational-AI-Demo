@@ -73,7 +73,6 @@ class ChatViewController: UIViewController {
         view.layer.masksToBounds = true
         view.layer.borderWidth = 1.0
         view.layer.isHidden = true
-        view.backgroundColor = .black
         return view
     }()
     
@@ -195,13 +194,14 @@ class ChatViewController: UIViewController {
     @MainActor
     private func prepareToStartAgent() async {
         startLoading()
+        
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
             startAgentRequest()
             joinChannel()
         } catch {
-            handleStartError(error: error)
+            handleStartError()
         }
     }
     
@@ -286,7 +286,7 @@ class ChatViewController: UIViewController {
     }
     
     private func addLog(_ txt: String) {
-        AgentLogger.info(txt)
+        VoiceAgentLogger.info(txt)
     }
 }
 
@@ -337,10 +337,10 @@ extension ChatViewController {
         }
     }
     
-    private func handleStartError(error: Error) {
+    private func handleStartError() {
         stopLoading()
         stopAgent()
-        SVProgressHUD.showError(withStatus: error.localizedDescription)
+        SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
     }
     
     private func startAgentRequest() {
@@ -714,7 +714,7 @@ extension ChatViewController: AgentControlToolbarDelegate {
 
 extension ChatViewController: AnimateViewDelegate {
     func onError(error: AgentError) {
-        AgentLogger.info(error.message)
+        VoiceAgentLogger.info(error.message)
         
         stopLoading()
         stopAgent()

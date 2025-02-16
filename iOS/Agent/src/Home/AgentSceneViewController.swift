@@ -206,7 +206,7 @@ class AgentSceneViewController: UIViewController {
     private func handleItemSelected(_ item: AgentItem) {
         switch item {
         case .conversationalAI:
-            VoiceAgentContext.voiceAgentScene(viewController: self)
+            VoiceAgentEntrance.voiceAgentScene(viewController: self)
 //        case .agoraV2V:
 //            print("Agora V2V selected")
 //        case .digitalHuman:

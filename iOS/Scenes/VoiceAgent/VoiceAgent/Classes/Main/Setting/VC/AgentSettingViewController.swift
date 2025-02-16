@@ -158,17 +158,17 @@ class AgentSettingViewController: UIViewController {
         }
         
         SVProgressHUD.show()
-        AgentLogger.info("request presets in setting page")
+        VoiceAgentLogger.info("request presets in setting page")
         agentManager.fetchAgentPresets { error, result in
             SVProgressHUD.dismiss()
             if let error = error {
                 SVProgressHUD.showError(withStatus: error.message)
-                AgentLogger.info(error.message)
+                VoiceAgentLogger.info(error.message)
                 return
             }
             
             guard let result = result else {
-                AgentLogger.info("preset is empty")
+                VoiceAgentLogger.info("preset is empty")
                 SVProgressHUD.showError(withStatus: "preset is empty")
                 return
             }

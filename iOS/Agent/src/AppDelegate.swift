@@ -49,7 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             do {
                 try FileManager.default.createDirectory(atPath: destinationPath, withIntermediateDirectories: true)
             } catch {
-                AgentLogger.info("[Resource] Failed to create directory: \(error)")
+                VoiceAgentLogger.info("[Resource] Failed to create directory: \(error)")
                 return
             }
         }
@@ -72,12 +72,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let success = SSZipArchive.unzipFile(atPath: zipPath, toDestination: destinationPath)
             
             if success {
-                AgentLogger.info("[Resource] Successfully unzipped common_resource to: \(destinationPath)")
+                VoiceAgentLogger.info("[Resource] Successfully unzipped common_resource to: \(destinationPath)")
             } else {
-                AgentLogger.info("[Resource] Failed to unzip file")
+                VoiceAgentLogger.info("[Resource] Failed to unzip file")
             }
         } catch {
-            AgentLogger.info("[Resource] Error during unzip: \(error)")
+            VoiceAgentLogger.info("[Resource] Error during unzip: \(error)")
         }
     }
     

@@ -239,7 +239,7 @@ extension AnimateView: CAAnimationDelegate {
 
 extension AnimateView: AgoraRtcMediaPlayerDelegate {
     func AgoraRtcMediaPlayer(_ playerKit: any AgoraRtcMediaPlayerProtocol, didPreloadEvent event: AgoraMediaPlayerPreloadEvent) {
-        AgentLogger.info("onPreloadEvent : \(event)")
+        VoiceAgentLogger.info("onPreloadEvent : \(event)")
         if event == .error {
             delegate?.onError(error: AgentError.unknownError(message: "video preload error: \(event)"))
         }

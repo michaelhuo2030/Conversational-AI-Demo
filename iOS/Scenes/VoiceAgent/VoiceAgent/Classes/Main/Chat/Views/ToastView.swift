@@ -23,6 +23,8 @@ class TextContentView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
+        backgroundColor = .black
+
         self.addSubview(textLabel)
         
         textLabel.snp.makeConstraints { make in
@@ -41,7 +43,7 @@ class TextContentView: UIView {
 class ImageContentView: UIView {
     private lazy var imageView: UIImageView = {
         let view = UIImageView()
-        if let bundlePath = Bundle.main.path(forResource: VoiceAgentContext.kSceneName, ofType: "bundle"),
+        if let bundlePath = Bundle.main.path(forResource: VoiceAgentEntrance.kSceneName, ofType: "bundle"),
            let bundle = Bundle(path: bundlePath),
            let gifPath = bundle.path(forResource: "agent_connecting", ofType: "gif") {
             let gifURL = URL(fileURLWithPath: gifPath)
