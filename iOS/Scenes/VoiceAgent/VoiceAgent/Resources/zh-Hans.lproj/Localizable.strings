@@ -1,7 +1,7 @@
 
-"join.start.title" = "对话智能体";
+"join.start.title" = "对话式 AI 引擎";
 "join.start.state" = "未加入";
-"join.start.button.title" = "加入通话";
+"join.start.button.title" = "连接 AI 引擎";
 "join.start.agent.name" = "智能体";
 
 "conversation.agent.name" = "智能体";
@@ -17,6 +17,7 @@
 "conversation.message.alert.title" = "清除消息";
 "conversation.message.alert.content" = "您确定要清除所有消息吗？";
 "conversation.agent.connecting" = "连接中...";
+"conversation.user.speak.toast" = "请在对话初期大声、清晰地说话，提升智能体对您的声音锁定效果。";
 
 "conversation.alert.cancel" = "取消";
 "conversation.alert.clear" = "清除";
@@ -48,8 +49,8 @@
 "channel.connected.state" = "已连接";
 "channel.info.copied" = "已复制";
 "channel.network.good" = "良好";
-"channel.network.poor" = "中等";
-"channel.network.bad" = "较差";
+"channel.network.fair" = "一般";
+"channel.network.poor" = "较差";
 
 "error.network" = "请求失败：";
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";

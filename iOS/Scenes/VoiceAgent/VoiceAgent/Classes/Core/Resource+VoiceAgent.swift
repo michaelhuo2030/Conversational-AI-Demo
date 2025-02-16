@@ -54,6 +54,7 @@ extension ResourceManager {
             public static let clearMessageContent = ResourceManager.localizedString("conversation.message.alert.content")
             public static let alertCancel = ResourceManager.localizedString("conversation.alert.cancel")
             public static let alertClear = ResourceManager.localizedString("conversation.alert.clear")
+            public static let userSpeakToast = ResourceManager.localizedString("conversation.user.speak.toast")
         }
         
         public enum Setting {
@@ -100,7 +101,7 @@ extension ResourceManager {
             public static let copyToast = ResourceManager.localizedString("channel.info.copied")
             public static let networkGood = ResourceManager.localizedString("channel.network.good")
             public static let networkPoor = ResourceManager.localizedString("channel.network.poor")
-            public static let networkBad = ResourceManager.localizedString("channel.network.bad")
+            public static let networkFair = ResourceManager.localizedString("channel.network.fair")
         }
         
         public enum DevMode {

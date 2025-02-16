@@ -73,6 +73,7 @@ class ChatViewController: UIViewController {
         view.layer.masksToBounds = true
         view.layer.borderWidth = 1.0
         view.layer.isHidden = true
+        view.backgroundColor = .black
         return view
     }()
     
@@ -116,7 +117,8 @@ class ChatViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        UIApplication.shared.isIdleTimerDisabled = true
+
         preloadData()
         setupViews()
         setupConstraints()
@@ -248,8 +250,6 @@ class ChatViewController: UIViewController {
         addLog("[Call] leaveChannel()")
         channelName = ""
         rtcManager.leaveChannel()
-
-        AppContext.preferenceManager()?.resetAgentInformation()
     }
     
     private func destoryRtc() {
@@ -267,6 +267,7 @@ class ChatViewController: UIViewController {
         stopPingTimer()
         leaveChannel()
         stopAgentRequest()
+        AppContext.preferenceManager()?.resetAgentInformation()
     }
     
     private func stopPingTimer() {
@@ -484,6 +485,9 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             manager.updateRoomState(.connected)
             
             dismissErrorToast()
+        } else if reason == .reasonLeaveChannel {
+            dismissErrorToast()
+            AppContext.preferenceManager()?.resetAgentInformation()
         }
         
         if state == .failed {
@@ -501,6 +505,10 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         addLog("[RTC Call Back] didJoinedOfUid uid: \(uid)")
         AppContext.preferenceManager()?.updateAgentState(.connected)
         SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.agentJoined)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.userSpeakToast)
+        }
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
@@ -623,6 +631,7 @@ private extension ChatViewController {
         stopAgent()
         animateView.release()
         AppContext.destory()
+        UIApplication.shared.isIdleTimerDisabled = false
         self.navigationController?.popViewController(animated: true)
     }
     

@@ -87,6 +87,15 @@ class ChatMessageCell: UITableViewCell {
         }
         
         messageLabel.text = message.content
+        
+        let detector = NSLinguisticTagger(tagSchemes: [.language], options: 0)
+        detector.string = message.content
+        if let language = detector.dominantLanguage {
+            let rtlLanguages = ["ar", "fa", "he", "ur"]
+            messageLabel.textAlignment = rtlLanguages.contains(language) ? .right : .left
+        } else {
+            messageLabel.textAlignment = .left
+        }
     }
     
     private func setupUserLayout() {
@@ -138,7 +147,7 @@ class ChatMessageCell: UITableViewCell {
         messageBubble.snp.remakeConstraints { make in
             make.top.equalTo(avatarView.snp.bottom).offset(8)
             make.left.equalToSuperview().offset(20)
-            make.right.lessThanOrEqualToSuperview().offset(-20)
+            make.right.equalTo(-20)
             make.bottom.equalToSuperview().offset(-8)
         }
         

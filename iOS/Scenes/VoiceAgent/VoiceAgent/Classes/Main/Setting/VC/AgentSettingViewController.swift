@@ -136,6 +136,7 @@ class AgentSettingViewController: UIViewController {
         createConstrains()
         setupPanGesture()
         animateBackgroundViewIn()
+        updateAiVADEnabelState()
     }
     
     override func viewDidAppear(_ animated: Bool) {

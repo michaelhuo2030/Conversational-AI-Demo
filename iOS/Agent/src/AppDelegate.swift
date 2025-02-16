@@ -19,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         copyResource()
         
-        SVProgressHUD.setMaximumDismissTimeInterval(1)
+        SVProgressHUD.setMaximumDismissTimeInterval(2)
         SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_fill1").withAlphaComponent(0.8))
         SVProgressHUD.setForegroundColor(.white)
         SVProgressHUD.setImageViewSize(CGSize.zero)

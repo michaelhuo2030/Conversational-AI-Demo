@@ -37,6 +37,29 @@ class TermsServiceWebViewController: UIViewController {
     
     private func setupViews() {
         view.backgroundColor = .white
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(hex: 0x111111)
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.shadowColor = .clear
+        
+        let backButton = UIButton(type: .custom)
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: -18, bottom: 0, trailing: 0)
+            config.image = UIImage.ag_named("ic_agora_back")
+            backButton.configuration = config
+        } else {
+            backButton.setImage(UIImage.ag_named("ic_agora_back"), for: .normal)
+            backButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -18, bottom: 0, right: 0)
+        }
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        self.title = ResourceManager.L10n.Scene.aiCardTitle
+        
         view.addSubview(webView)
         view.addSubview(progressView)
         
@@ -44,6 +67,11 @@ class TermsServiceWebViewController: UIViewController {
                            forKeyPath: "estimatedProgress",
                            options: .new,
                            context: nil)
+    }
+    
+    // 添加返回按钮点击事件
+    @objc private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
     }
     
     private func setupConstraints() {

@@ -133,10 +133,10 @@ extension AgentSettingBar: AgentPreferenceManagerDelegate {
         case .good:
             imageName = "ic_agent_tips_icon"
             break
-        case .poor:
+        case .fair:
             imageName = "ic_agent_tips_icon_yellow"
             break
-        case .veryBad:
+        case .poor:
             imageName = "ic_agent_tips_icon_red"
             break
         }

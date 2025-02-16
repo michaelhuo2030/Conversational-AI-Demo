@@ -197,17 +197,17 @@ enum ConnectionStatus: String {
 
 enum NetworkStatus: String {
     case good = "Good"
+    case fair = "Fair"
     case poor = "Poor"
-    case veryBad = "VeryBad"
     
     init(agoraQuality: AgoraNetworkQuality) {
         switch agoraQuality {
         case .excellent, .good:
             self = .good
         case .poor, .bad:
-            self = .poor
+            self = .fair
         case .vBad, .down:
-            self = .veryBad
+            self = .poor
         default:
             self = .good
         }
@@ -217,10 +217,10 @@ enum NetworkStatus: String {
         switch self {
         case .good:
             return ResourceManager.L10n.ChannelInfo.networkGood
+        case .fair:
+            return ResourceManager.L10n.ChannelInfo.networkFair
         case .poor:
             return ResourceManager.L10n.ChannelInfo.networkPoor
-        case .veryBad:
-            return ResourceManager.L10n.ChannelInfo.networkBad
         }
     }
     
@@ -228,9 +228,9 @@ enum NetworkStatus: String {
         switch self {
         case .good:
             return UIColor(hex: 0x36B37E)
-        case .poor:
+        case .fair:
             return UIColor(hex: 0xFFAB00)
-        case .veryBad:
+        case .poor:
             return UIColor(hex: 0xFF5630)
         }
     }

@@ -15,6 +15,7 @@
 "conversation.message.you" = "You";
 "conversation.message.agent.name" = "AI Agent";
 "conversation.agent.connecting" = "Connecting...";
+"conversation.user.speak.toast" = "At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice.";
 
 "conversation.message.alert.title" = "Clear Messages";
 "conversation.message.alert.content" = "Are you sure you want to clear all messages?";
@@ -52,7 +53,7 @@
 "channel.info.copied" = "copied";
 "channel.network.good" = "Good";
 "channel.network.poor" = "Poor";
-"channel.network.bad" = "VeryBad";
+"channel.network.fair" = "Fair";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";
