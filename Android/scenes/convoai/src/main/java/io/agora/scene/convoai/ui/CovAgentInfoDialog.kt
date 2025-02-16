@@ -16,8 +16,17 @@ import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.api.CovAgentApiManager
 import io.agora.scene.convoai.constant.AgentConnectionState
 
-class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<CovInfoDialogBinding>() {
-
+class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
+    private var onDismissCallback: (() -> Unit)? = null
+    
+    companion object {
+        fun newInstance(onDismissCallback: () -> Unit): CovAgentInfoDialog {
+            return CovAgentInfoDialog().apply {
+                this.onDismissCallback = onDismissCallback
+            }
+        }
+    }
+    
     private var value: Int = -1
     private var connectionState: AgentConnectionState = AgentConnectionState.IDLE
 
@@ -30,7 +39,7 @@ class CovAgentInfoDialog(private val onDismiss: () -> Unit) : BaseSheetDialog<Co
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        onDismiss.invoke()
+        onDismissCallback?.invoke()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

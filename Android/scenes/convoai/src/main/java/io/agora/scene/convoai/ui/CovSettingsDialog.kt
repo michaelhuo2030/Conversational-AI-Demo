@@ -19,23 +19,31 @@ import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.constant.AgentConnectionState
 
-class CovSettingsDialog (private val onDismiss: () -> Unit) : BaseSheetDialog<CovSettingDialogBinding>() {
+class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
+    private var onDismissCallback: (() -> Unit)? = null
+    
     interface Callback {
         fun onPreset(preset: CovAgentPreset)
     }
 
-    var onCallBack:Callback?=null
+    var onCallBack: Callback? = null
 
     companion object {
         private const val TAG = "AgentSettingsSheetDialog"
+        
+        fun newInstance(onDismiss: () -> Unit): CovSettingsDialog {
+            return CovSettingsDialog().apply {
+                this.onDismissCallback = onDismiss
+            }
+        }
     }
 
     private val optionsAdapter = OptionsAdapter()
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        onDismiss.invoke()
+        onDismissCallback?.invoke()
     }
 
     override fun getViewBinding(

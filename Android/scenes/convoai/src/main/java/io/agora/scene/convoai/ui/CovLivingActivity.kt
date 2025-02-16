@@ -190,7 +190,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun startRecordingService() {
         val intent = Intent(this, CovRtcForegroundService::class.java)
-        startForegroundService(intent)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
     }
 
     private fun persistentToast(visible: Boolean, text: String) {
@@ -724,7 +728,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             btnInfo.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    infoDialog = CovAgentInfoDialog {
+                    infoDialog = CovAgentInfoDialog.newInstance {
                         infoDialog = null
                     }
                     infoDialog?.updateNetworkStatus(networkValue)
@@ -741,7 +745,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun showSettingDialog() {
-        settingDialog = CovSettingsDialog {
+        settingDialog = CovSettingsDialog.newInstance {
             settingDialog = null
         }.apply {
             onCallBack = onPresetCallback
