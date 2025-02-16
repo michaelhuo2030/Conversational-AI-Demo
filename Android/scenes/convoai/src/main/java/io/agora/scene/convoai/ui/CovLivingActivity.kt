@@ -213,6 +213,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun onClickStartAgent() {
         // Immediately show the connecting status
+        isUserEndCall = false
         connectionState = AgentConnectionState.CONNECTING
         CovAgentManager.channelName = "agent_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8)
 
@@ -411,7 +412,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         }
 
                         Constants.CONNECTION_STATE_DISCONNECTED -> {
-                            // TODO: 断网后只有  CONNECTION_STATE_DISCONNECTED，没有设置 connectionState 为 CONNECTED_INTERRUPT
                             CovLogger.d(TAG, "onConnectionStateChanged: disconnected")
                             if (reason == Constants.CONNECTION_CHANGED_LEAVE_CHANNEL) {
                                 connectionState = AgentConnectionState.IDLE
