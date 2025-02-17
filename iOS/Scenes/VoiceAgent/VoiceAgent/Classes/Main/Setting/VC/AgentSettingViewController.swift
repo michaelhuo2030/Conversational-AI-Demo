@@ -427,7 +427,7 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         if let language = supportLanguages.first(where: { $0.languageCode == resetLanguageCode }) {
             manager.updateLanguage(language)
         }
-        if AppContext.shared.appArea == .overseas {
+        if AppContext.shared.appArea == .global {
             if (preset.name == "amy") {
                 manager.updateAiVadState(false)
             }
@@ -445,7 +445,7 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {
         languageItem.detailLabel.text = language.languageName
-        if AppContext.shared.appArea == .overseas {
+        if AppContext.shared.appArea == .global {
             if language.languageCode != "en-US" {
                 manager.updateAiVadState(false)
             }
@@ -465,7 +465,7 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
             return
         }
         var aiVadEnable = true
-        if AppContext.shared.appArea == .overseas {
+        if AppContext.shared.appArea == .global {
             if (preset.name == "amy") {
                 aiVadEnable = false
             }

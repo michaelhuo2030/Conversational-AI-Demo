@@ -149,12 +149,12 @@ class AgentSceneViewController: UIViewController {
 //            description: ResourceManager.L10n.Scene.v2vCardDes,
 //            icon: UIImage(named: "ic_v2v_ai_agent_icon")
 //        ),
-//        AgentItem(
-//            rawValue: 2,
-//            title: ResourceManager.L10n.Scene.digCardTitle,
-//            description: ResourceManager.L10n.Scene.digCardDes,
-//            icon: UIImage(named: "ic_digital_ai_agent_icon")
-//        )
+        AgentItem(
+            rawValue: 2,
+            title: ResourceManager.L10n.Scene.digCardTitle,
+            description: ResourceManager.L10n.Scene.digCardDes,
+            icon: UIImage(named: "ic_digital_ai_agent_icon")
+        )
     ]
     
     override func viewDidLoad() {
@@ -192,7 +192,7 @@ class AgentSceneViewController: UIViewController {
         case 2:
             // Digital Human selected
             print("Digital Human selected")
-            // DigitalHumanContext.digitalHumanAgentScene(viewController: self)
+             DigitalHumanContext.digitalHumanAgentScene(viewController: self)
         default:
             break
         }
