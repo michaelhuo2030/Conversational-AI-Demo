@@ -8,17 +8,19 @@
 import Foundation
 
 @objc public enum AppArea: Int {
-    case overseas = 0
+    case global = 0
     case mainland = 1
 }
 
 @objc public class AppContext: NSObject {
     @objc public static let shared: AppContext = .init()
+    
+    public let termsOfServiceUrl: String = "https://www.agora.io/en/terms-of-service/"
+    
     private var _appId: String = ""
     private var _certificate: String = ""
     private var _baseServerUrl: String = ""
-    private var _termsOfServiceUrl: String = ""
-    private var _appArea: AppArea = .overseas
+    private var _appArea: AppArea = .global
     private var _developerMode: Bool = false
     private var _environments: [[String : String]] = [[String : String]]()
     
@@ -59,15 +61,6 @@ import Foundation
         }
         set {
             _baseServerUrl = newValue
-        }
-    }
-
-    @objc public var termsOfServiceUrl: String {
-        get {
-            return _termsOfServiceUrl
-        }
-        set {
-            _termsOfServiceUrl = newValue
         }
     }
     

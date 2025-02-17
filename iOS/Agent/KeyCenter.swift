@@ -50,7 +50,6 @@ struct KeyCenter {
 
     static var ReleaseHostUrl: String = "https://service.agora.io/toolbox"
     static var BaseHostUrl: String = DebugHostUrl
-    static var TermsOfService: String = "https://www.agora.io/en/terms-of-service/"
 #else
     /**
      Agora APP ID.
@@ -86,6 +85,5 @@ struct KeyCenter {
 
     static var ReleaseHostUrl: String = "https://service.agora.io/toolbox-overseas"
     static var BaseHostUrl: String = DebugHostUrl
-    static var TermsOfService: String = "https://www.agora.io/en/terms-of-service/"
 #endif
 }

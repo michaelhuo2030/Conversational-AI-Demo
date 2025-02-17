@@ -28,13 +28,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #if MainLand
         AppContext.shared.appArea = .mainland
         #else
-        AppContext.shared.appArea = .overseas
+        AppContext.shared.appArea = .global
         #endif
 
         AppContext.shared.appId = KeyCenter.AppId
         AppContext.shared.certificate = KeyCenter.Certificate ?? ""
         AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
-        AppContext.shared.termsOfServiceUrl = KeyCenter.TermsOfService
         AppContext.shared.environments = KeyCenter.environments
         return true
     }
