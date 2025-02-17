@@ -34,7 +34,7 @@ class DigitalHumanSettingViewController: UIViewController {
         
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = PrimaryColors.c_171717
+        view.backgroundColor = UIColor.themColor(named: "ai_fill2")
         createViews()
         createConstrains()
         updateUIWithCurrentSettings()
@@ -221,7 +221,7 @@ extension DigitalHumanSettingViewController {
         if let navigationController = self.navigationController {
             let navBarApperance = UINavigationBarAppearance()
             navBarApperance.configureWithOpaqueBackground()
-            navBarApperance.backgroundColor = PrimaryColors.c_171717
+            navBarApperance.backgroundColor = UIColor.themColor(named: "ai_fill2")
             
             navigationController.navigationBar.standardAppearance = navBarApperance
             navigationController.navigationBar.scrollEdgeAppearance = navBarApperance
@@ -240,10 +240,10 @@ extension DigitalHumanSettingViewController {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        contentView1.backgroundColor = PrimaryColors.c_1d1d1d
+        contentView1.backgroundColor = UIColor.themColor(named: "ai_block2")
         contentView1.layerCornerRadius = 10
         contentView1.layer.borderWidth = 1.0
-        contentView1.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView1.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView1)
         
         infoItem.titleLabel.text = ResourceManager.L10n.Settings.preset
@@ -253,13 +253,13 @@ extension DigitalHumanSettingViewController {
         
         content2Title.text = ResourceManager.L10n.Settings.advanced
         content2Title.font = UIFont.boldSystemFont(ofSize: 16)
-        content2Title.textColor = PrimaryColors.c_ffffff_a
+        content2Title.textColor = UIColor.themColor(named: "ai_icontext3")
         contentView.addSubview(content2Title)
         
-        contentView2.backgroundColor = PrimaryColors.c_1d1d1d
+        contentView2.backgroundColor = UIColor.themColor(named: "ai_block2")
         contentView2.layerCornerRadius = 10
         contentView2.layer.borderWidth = 1.0
-        contentView2.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView2.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView2)
         
         let currentPreset = DHSceneManager.shared.currentPresetType
@@ -281,13 +281,13 @@ extension DigitalHumanSettingViewController {
         
         content3Title.text = ResourceManager.L10n.Settings.device
         content3Title.font = UIFont.boldSystemFont(ofSize: 16)
-        content3Title.textColor = PrimaryColors.c_ffffff_a
+        content3Title.textColor = UIColor.themColor(named: "ai_icontext3")
         contentView.addSubview(content3Title)
         
-        contentView3.backgroundColor = PrimaryColors.c_1d1d1d
+        contentView3.backgroundColor = UIColor.themColor(named: "ai_block2")
         contentView3.layerCornerRadius = 10
         contentView3.layer.borderWidth = 1.0
-        contentView3.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView3.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView3)
         
 //        microphoneItem.titleLabel.text = ResourceManager.L10n.Settings.microphone

@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingVertical="12dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/ai_icontext1"
-            android:text="@string/cov_detail_message_list_you"
+            android:text="@string/common_detail_message_list_you"
             android:textSize="14sp" />
 
     </LinearLayout>
@@ -34,8 +34,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
         android:layout_gravity="end"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textColor="@color/ai_icontext1"
         android:background="@drawable/message_mine_item_border"
         android:paddingHorizontal="16dp"

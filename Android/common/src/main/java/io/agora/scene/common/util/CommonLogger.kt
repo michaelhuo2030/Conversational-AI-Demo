@@ -4,7 +4,7 @@ import com.elvishew.xlog.XLog
 import com.elvishew.xlog.printer.Printer
 import io.agora.scene.common.constant.AgentScenes
 
-object CommonLogger {
+internal object CommonLogger {
 
     private val printers: List<Printer> by lazy {
         AgoraLogger.getPrinter(AgentScenes.Common)

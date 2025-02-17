@@ -8,13 +8,22 @@
 import UIKit
 import Common
 import SVProgressHUD
+import VoiceAgent
+import SSZipArchive
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        SVProgressHUD.setDefaultMaskType(.black)
+        
+        copyResource()
+        
+        SVProgressHUD.setMaximumDismissTimeInterval(2)
+        SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_fill1").withAlphaComponent(0.8))
+        SVProgressHUD.setForegroundColor(.white)
+        SVProgressHUD.setImageViewSize(CGSize.zero)
+        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180)) 
 
         #if MainLand
         AppContext.shared.appArea = .mainland
@@ -26,8 +35,50 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppContext.shared.certificate = KeyCenter.Certificate ?? ""
         AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
         AppContext.shared.termsOfServiceUrl = KeyCenter.TermsOfService
-        
+        AppContext.shared.environments = KeyCenter.environments
         return true
+    }
+    
+    func copyResource() {
+        guard let bundleId = Bundle.main.bundleIdentifier else { return }
+        
+        let cachesPath = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first!
+        let destinationPath = (cachesPath as NSString).appendingPathComponent(bundleId)
+        
+        if !FileManager.default.fileExists(atPath: destinationPath) {
+            do {
+                try FileManager.default.createDirectory(atPath: destinationPath, withIntermediateDirectories: true)
+            } catch {
+                VoiceAgentLogger.info("[Resource] Failed to create directory: \(error)")
+                return
+            }
+        }
+        
+        guard let zipPath = Bundle.main.path(forResource: "common_resource", ofType: "zip") else {
+            print("[Resource] common_resource.zip not found in bundle")
+            return
+        }
+        
+        do {
+            let fileManager = FileManager.default
+            if fileManager.fileExists(atPath: destinationPath) {
+                let contents = try fileManager.contentsOfDirectory(atPath: destinationPath)
+                for file in contents {
+                    let filePath = (destinationPath as NSString).appendingPathComponent(file)
+                    try fileManager.removeItem(atPath: filePath)
+                }
+            }
+            
+            let success = SSZipArchive.unzipFile(atPath: zipPath, toDestination: destinationPath)
+            
+            if success {
+                VoiceAgentLogger.info("[Resource] Successfully unzipped common_resource to: \(destinationPath)")
+            } else {
+                VoiceAgentLogger.info("[Resource] Failed to unzip file")
+            }
+        } catch {
+            VoiceAgentLogger.info("[Resource] Error during unzip: \(error)")
+        }
     }
     
 

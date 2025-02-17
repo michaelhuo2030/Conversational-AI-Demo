@@ -10,15 +10,15 @@ import Common
 
 class AgentSettingSubOptionCell: UITableViewCell {
     private lazy var checkImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.va_named("ic_agent_setting_sel"))
+        let imageView = UIImageView(image: UIImage.ag_named("ic_agent_setting_sel"))
         imageView.isHidden = true
         return imageView
     }()
 
     lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.textColor = PrimaryColors.c_ffffff_a
-        label.font = .systemFont(ofSize: 16)
+        label.textColor = UIColor.themColor(named: "ai_icontext3")
+        label.font = .systemFont(ofSize: 15)
         return label
     }()
 
@@ -28,7 +28,7 @@ class AgentSettingSubOptionCell: UITableViewCell {
     }
 
     private func setupViews() {
-        backgroundColor = PrimaryColors.c_262626
+        backgroundColor = UIColor.themColor(named: "ai_line1")
         selectionStyle = .none
         
         contentView.addSubview(titleLabel)

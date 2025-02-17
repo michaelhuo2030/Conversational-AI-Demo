@@ -4,3 +4,4 @@ libagora*
 libvideo*
 libudrm3.so
 /release/
+**/assets/**/*.zip

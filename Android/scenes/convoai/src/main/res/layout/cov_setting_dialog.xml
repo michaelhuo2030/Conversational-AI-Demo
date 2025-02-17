@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="429dp"
+    android:layout_height="360dp"
     android:background="@drawable/bottom_dialog_bg"
     tools:theme="@style/Theme.AppCompat">
 
@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="26dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/cov_setting_title"
                 android:textColor="@color/ai_icontext1"
                 android:textSize="14sp"
@@ -156,6 +156,7 @@
                         android:layout_height="wrap_content"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
+                        android:textDirection="ltr"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/iv_language_arrow"
                         app:layout_constraintTop_toTopOf="parent"
@@ -192,35 +193,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_device">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp">
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tv_noise_cancellation"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:text="@string/cov_setting_noise_cancellation"
-                        android:textColor="@color/ai_icontext1"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <androidx.appcompat.widget.AppCompatCheckBox
-                        android:id="@+id/cb_noise_cancellation"
-                        android:layout_width="51dp"
-                        android:layout_height="31dp"
-                        android:layout_marginEnd="16dp"
-                        android:button="@drawable/cb_def_selector"
-                        app:buttonTint="@null"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
@@ -230,39 +202,28 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/cl_ai_vad"
                     android:layout_width="match_parent"
-                    android:layout_height="72dp">
+                    android:layout_height="50dp">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/tv_ai_vad"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:layout_marginTop="20dp"
                         android:text="@string/cov_setting_ai_vad"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tv_ai_vad_info"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:text="@string/cov_setting_ai_vad_info"
-                        android:textColor="@color/ai_icontext3"
-                        android:textSize="12sp"
-                        app:layout_constraintTop_toBottomOf="@+id/tv_ai_vad"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent" />
 
                     <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/cb_ai_vad"
-                        android:layout_width="51dp"
-                        android:layout_height="31dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
                         android:layout_marginEnd="16dp"
                         android:button="@drawable/cb_def_selector"
                         android:checked="true"
+                        app:layout_constraintDimensionRatio="46:28"
                         app:buttonTint="@null"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -275,36 +236,6 @@
                     android:layout_height="0.5dp"
                     android:layout_marginStart="16dp"
                     android:background="@color/ai_line1" />
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cl_force_response"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp">
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tv_force_response"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:text="@string/cov_setting_force_response"
-                        android:textColor="@color/ai_icontext1"
-                        android:textSize="14sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <androidx.appcompat.widget.AppCompatCheckBox
-                        android:id="@+id/cb_force_response"
-                        android:layout_width="51dp"
-                        android:layout_height="31dp"
-                        android:layout_marginEnd="16dp"
-                        android:button="@drawable/cb_def_selector"
-                        app:buttonTint="@null"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </LinearLayout>
 
@@ -316,24 +247,26 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
-    <View
+    <FrameLayout
         android:id="@+id/v_options_mask"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="invisible">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cv_options"
-        android:layout_width="218dp"
-        android:layout_height="150dp"
-        android:backgroundTint="@color/ai_line1"
-        app:cardCornerRadius="12dp">
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_options"
+            android:layout_width="218dp"
+            android:layout_height="150dp"
+            android:backgroundTint="@color/ai_line1"
+            app:cardCornerRadius="12dp">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rc_options"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
-
-    </androidx.cardview.widget.CardView>
+            </androidx.recyclerview.widget.RecyclerView>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
 </FrameLayout>

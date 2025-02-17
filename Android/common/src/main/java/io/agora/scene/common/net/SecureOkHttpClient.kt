@@ -6,6 +6,8 @@ import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 object SecureOkHttpClient {
     private fun createTrustManager(): X509TrustManager {
@@ -18,13 +20,21 @@ object SecureOkHttpClient {
         return trustManagers[0] as X509TrustManager
     }
 
-    fun create(): OkHttpClient.Builder {
+    fun create(
+        readTimeout: Duration = 30.seconds,
+        writeTimeout: Duration = 30.seconds,
+        connectTimeout: Duration = 30.seconds
+    ):
+            OkHttpClient.Builder {
         val trustManager = createTrustManager()
         val sslContext = SSLContext.getInstance("TLS").apply {
             init(null, arrayOf(trustManager), null)
         }
 
         return OkHttpClient.Builder()
+            .writeTimeout(writeTimeout)
+            .readTimeout(readTimeout)
+            .connectTimeout(connectTimeout)
             .sslSocketFactory(sslContext.socketFactory, trustManager)
             .hostnameVerifier { hostname, session ->
                 HttpsURLConnection.getDefaultHostnameVerifier().verify(hostname, session)

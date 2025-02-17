@@ -1,5 +1,5 @@
 Pod::Spec.new do |spec|
-   spec.name          = "AgoraRtcEngine"
+   spec.name          = "AgoraRtcEngine_iOS"
    spec.version       = "4.4.30"
    spec.summary       = "Agora iOS video SDK"
    spec.description   = "iOS library for agora A/V communication, broadcasting and data channel service."
