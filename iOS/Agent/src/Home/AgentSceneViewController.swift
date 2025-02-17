@@ -11,53 +11,11 @@ import VoiceAgent
 import DigitalHuman
 
 // MARK: - Models
-enum AgentItem: CaseIterable {
-    case conversationalAI
-//    case agoraV2V
-//    case digitalHuman
-//    
-    var title: String {
-        switch self {
-        case .conversationalAI:
-            return ResourceManager.L10n.Scene.aiCardTitle
-//        case .agoraV2V:
-//            return ResourceManager.L10n.Scene.v2vCardTitle
-//        case .digitalHuman:
-//            return ResourceManager.L10n.Scene.digCardTitle
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .conversationalAI:
-            return ResourceManager.L10n.Scene.aiCardDes
-//        case .agoraV2V:
-//            return ResourceManager.L10n.Scene.v2vCardDes
-//        case .digitalHuman:
-//            return ResourceManager.L10n.Scene.digCardDes
-        }
-    }
-    
-    var icon: UIImage? {
-        switch self {
-        case .conversationalAI:
-            return UIImage(named: "ic_con_ai_agent_icon")
-//        case .agoraV2V:
-//            return UIImage.ag_named("ic_v2v_ai_agent_icon")
-//        case .digitalHuman:
-//            return UIImage(named: "ic_digital_ai_agent_icon")
-        }
-    }
-    
-    var shouldShowMineContent: Bool {
-        switch self {
-//        case .digitalHuman:
-//            return true
-//        case .conversationalAI, .agoraV2V:
-        case .conversationalAI:
-            return false
-        }
-    }
+struct AgentItem {
+    var rawValue: Int
+    var title: String
+    var description: String
+    var icon: UIImage?
 }
 
 // MARK: - AgentCardCell
@@ -178,6 +136,27 @@ class AgentSceneViewController: UIViewController {
         return tableView
     }()
     
+    var dataSource: [AgentItem] = [
+        AgentItem(
+            rawValue: 0,
+            title: ResourceManager.L10n.Scene.aiCardTitle,
+            description: ResourceManager.L10n.Scene.aiCardDes,
+            icon: UIImage(named: "ic_con_ai_agent_icon")
+        ),
+//        AgentItem(
+//            rawValue: 1,
+//            title: ResourceManager.L10n.Scene.v2vCardTitle,
+//            description: ResourceManager.L10n.Scene.v2vCardDes,
+//            icon: UIImage(named: "ic_v2v_ai_agent_icon")
+//        ),
+//        AgentItem(
+//            rawValue: 2,
+//            title: ResourceManager.L10n.Scene.digCardTitle,
+//            description: ResourceManager.L10n.Scene.digCardDes,
+//            icon: UIImage(named: "ic_digital_ai_agent_icon")
+//        )
+    ]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
@@ -204,14 +183,18 @@ class AgentSceneViewController: UIViewController {
     }
     
     private func handleItemSelected(_ item: AgentItem) {
-        switch item {
-        case .conversationalAI:
+        switch item.rawValue {
+        case 0:
             VoiceAgentEntrance.voiceAgentScene(viewController: self)
-//        case .agoraV2V:
-//            print("Agora V2V selected")
-//        case .digitalHuman:
-//            print("Digital Human selected")
-//            DigitalHumanContext.digitalHumanAgentScene(viewController: self)
+        case 1:
+            // Agora V2V selected
+            print("Agora V2V selected")
+        case 2:
+            // Digital Human selected
+            print("Digital Human selected")
+            // DigitalHumanContext.digitalHumanAgentScene(viewController: self)
+        default:
+            break
         }
     }
 }
@@ -219,18 +202,18 @@ class AgentSceneViewController: UIViewController {
 // MARK: - UITableViewDataSource & UITableViewDelegate
 extension AgentSceneViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return AgentItem.allCases.count
+        return dataSource.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: AgentCardCell.identifier, for: indexPath) as! AgentCardCell
-        let item = AgentItem.allCases[indexPath.row]
+        let item = dataSource[indexPath.row]
         cell.configure(with: item)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = AgentItem.allCases[indexPath.row]
+        let item = dataSource[indexPath.row]
         handleItemSelected(item)
     }
 }
