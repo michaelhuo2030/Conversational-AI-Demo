@@ -32,13 +32,16 @@ static let Certificate: String? = <Your Agora App Certificate>
 | Path | Description |
 |------------------------------------------------------------------|-------------|
 | [VoiceAgent/Classes/APIService/](VoiceAgent/Classes/APIService/) | Network service implementation for AI agent communication. |
-| [VoiceAgent/Classes/Configuration/](VoiceAgent/Classes/Configuration/) | Configuration management for the voice agent module. |
-| [VoiceAgent/Classes/Core/](VoiceAgent/Classes/Core/) | Core functionality implementation for voice processing and AI interaction. |
+| [VoiceAgent/Classes/Core/](VoiceAgent/Classes/Utils/) | Utility classes for message parsing, logging system, and localization. |
 | [VoiceAgent/Classes/Main/](VoiceAgent/Classes/Main/) | Main UI screens and view controllers. |
-| [VoiceAgent/Classes/Manager/](VoiceAgent/Classes/Manager/) | Manager classes for various functionalities. |
+| [VoiceAgent/Classes/Manager/](VoiceAgent/Classes/Manager/) | Manager classes for various functionalities, including RTC engine, Agent, configuration, and network. |
 | [VoiceAgent/Classes/Model/](VoiceAgent/Classes/Model/) | Data models and entities. |
-| [VoiceAgent/Classes/VoiceAgentContext.swift](VoiceAgent/Classes/VoiceAgentContext.swift) | Context management for the voice agent module. |
+| [VoiceAgent/Classes/VoiceAgentContext.swift](VoiceAgent/Classes/VoiceAgentEntrance) | Voice agent module entry point. |
 | [VoiceAgent/Resources/](VoiceAgent/Resources/) | Resource files including images and localization. |
+| [ChatViewController.swift](ChatViewController.swift) | Agent interaction implementation class. |
+| [RTCManager.swift](RTCManager.swift) | RTC implementation class. |
+| [AgentAPI.swift](AgentAPI.swift) | Agent network request implementation class. |
+| [AgentPreferenceManager.swift](AgentPreferenceManager.swift) | Agent state management class. |
 
 ### 3. Related Resources
 
