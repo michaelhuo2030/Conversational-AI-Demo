@@ -43,7 +43,7 @@ enum AgentItem: CaseIterable {
         case .conversationalAI:
             return UIImage(named: "ic_con_ai_agent_icon")
 //        case .agoraV2V:
-//            return UIImage.va_named("ic_v2v_ai_agent_icon")
+//            return UIImage.ag_named("ic_v2v_ai_agent_icon")
 //        case .digitalHuman:
 //            return UIImage(named: "ic_digital_ai_agent_icon")
         }
@@ -72,7 +72,7 @@ class AgentCardCell: UITableViewCell {
     private lazy var cardView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = Constants.cornerRadius
-        view.layer.borderColor = PrimaryColors.c_262626.cgColor
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         view.layer.borderWidth = 1.0
         view.layer.masksToBounds = true
         view.backgroundColor = .clear
@@ -90,7 +90,7 @@ class AgentCardCell: UITableViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 20)
         label.textAlignment = .left
-        label.textColor = PrimaryColors.c_fdfcfb
+        label.textColor = UIColor.themColor(named: "ai_icontext2")
         label.numberOfLines = 0
         return label
     }()
@@ -99,7 +99,7 @@ class AgentCardCell: UITableViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16)
         label.textAlignment = .left
-        label.textColor = PrimaryColors.c_ffffff_a
+        label.textColor = UIColor.themColor(named: "ai_icontext3")
         label.numberOfLines = 0
         return label
     }()
@@ -115,7 +115,7 @@ class AgentCardCell: UITableViewCell {
     }
     
     private func setupViews() {
-        backgroundColor = .clear
+        backgroundColor = UIColor(hex: 0x111111)
         selectionStyle = .none
         contentView.addSubview(cardView)
         cardView.addSubview(iconImageView)
@@ -162,7 +162,7 @@ class AgentSceneViewController: UIViewController {
         label.text = ResourceManager.L10n.Scene.title
         label.font = .systemFont(ofSize: 16)
         label.textAlignment = .center
-        label.textColor = PrimaryColors.c_b3b3b3
+        label.textColor = UIColor.themColor(named: "ai_icontext4")
         return label
     }()
     
@@ -185,7 +185,7 @@ class AgentSceneViewController: UIViewController {
     }
     
     private func setupViews() {
-        view.backgroundColor = PrimaryColors.c_0a0a0a
+        view.backgroundColor = UIColor(hex: 0x111111)
         navigationController?.setNavigationBarHidden(true, animated: false)
         view.addSubview(titleLabel)
         view.addSubview(tableView)
@@ -206,7 +206,7 @@ class AgentSceneViewController: UIViewController {
     private func handleItemSelected(_ item: AgentItem) {
         switch item {
         case .conversationalAI:
-            VoiceAgentContext.voiceAgentScene(viewController: self)
+            VoiceAgentEntrance.voiceAgentScene(viewController: self)
 //        case .agoraV2V:
 //            print("Agora V2V selected")
 //        case .digitalHuman:

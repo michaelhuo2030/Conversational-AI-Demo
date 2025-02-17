@@ -77,7 +77,7 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
         
         switch model.type {
         case .voiceAgent:
-            VoiceAgentContext.voiceAgentScene(viewController: self)
+            VoiceAgentEntrance.voiceAgentScene(viewController: self)
             break
         }
     }

@@ -4,7 +4,8 @@ import Common
 struct Message {
     var content: String
     let isUser: Bool
-    var isCompleted: Bool
+    var isFinal: Bool
+    let timestamp: Int64
 }
 
 // MARK: - ChatMessageCell
@@ -28,7 +29,7 @@ class ChatMessageCell: UITableViewCell {
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14, weight: .semibold)
-        label.textColor = PrimaryColors.c_ffffff
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
         return label
     }()
     
@@ -71,21 +72,30 @@ class ChatMessageCell: UITableViewCell {
         if message.isUser {
             setupUserLayout()
             nameLabel.text = ResourceManager.L10n.Conversation.messageYou
-            nameLabel.textColor = PrimaryColors.c_ffffff
-            avatarImageView.image = UIImage.va_named("ic_agent_mine_avatar")
-            messageLabel.textColor = PrimaryColors.c_ffffff
-            messageBubble.backgroundColor = PrimaryColors.c_2b2b2b
+            nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+            avatarImageView.image = UIImage.ag_named("ic_agent_mine_avatar")
+            messageLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+            messageBubble.backgroundColor = UIColor.themColor(named: "ai_block4_chat")
         } else {
             setupAgentLayout()
             avatarView.backgroundColor = .clear
-            avatarImageView.image = UIImage.va_named("ic_agent_avatar")
-            nameLabel.text = ResourceManager.L10n.Conversation.messageAgentName
-            nameLabel.textColor = PrimaryColors.c_ffffff
-            messageLabel.textColor = PrimaryColors.c_b3b3b3
+            avatarImageView.image = UIImage.ag_named("ic_agent_avatar")
+            nameLabel.text = AppContext.preferenceManager()?.preference.preset?.displayName ?? ""
+            nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+            messageLabel.textColor = UIColor.themColor(named: "ai_icontext1")
             messageBubble.backgroundColor = .clear
         }
         
         messageLabel.text = message.content
+        
+        let detector = NSLinguisticTagger(tagSchemes: [.language], options: 0)
+        detector.string = message.content
+        if let language = detector.dominantLanguage {
+            let rtlLanguages = ["ar", "fa", "he", "ur"]
+            messageLabel.textAlignment = rtlLanguages.contains(language) ? .right : .left
+        } else {
+            messageLabel.textAlignment = .left
+        }
     }
     
     private func setupUserLayout() {
@@ -137,7 +147,7 @@ class ChatMessageCell: UITableViewCell {
         messageBubble.snp.remakeConstraints { make in
             make.top.equalTo(avatarView.snp.bottom).offset(8)
             make.left.equalToSuperview().offset(20)
-            make.right.lessThanOrEqualToSuperview().offset(-20)
+            make.right.equalTo(-20)
             make.bottom.equalToSuperview().offset(-8)
         }
         
@@ -152,6 +162,17 @@ class ChatView: UIView {
     // MARK: - Properties
     private var messages: [Message] = []
     private var currentStreamMessage: String = ""
+    private var shouldAutoScroll = true
+    private lazy var arrowButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage.ag_named("ic_captions_arrow_icon"), for: .normal)
+        button.addTarget(self, action: #selector(clickArrowButton), for: .touchUpInside)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_line1"), forState: .normal)
+        button.layer.cornerRadius = 22
+        button.layer.masksToBounds = true
+        button.isHidden = true
+        return button
+    }()
     
     var isEmpty: Bool {
         return messages.isEmpty
@@ -159,6 +180,10 @@ class ChatView: UIView {
     
     var isLastMessageFromUser: Bool {
         return messages.last?.isUser == true
+    }
+    
+    var lastMessgeIsFinal: Bool {
+        return messages.last?.isFinal == true
     }
     
     // MARK: - UI Components
@@ -186,51 +211,61 @@ class ChatView: UIView {
     
     // MARK: - Setup
     private func setupViews() {
-        backgroundColor = UIColor(red: 0.09, green: 0.09, blue: 0.09, alpha: 1.0)
-        layer.cornerRadius = 12
+        backgroundColor = UIColor.black.withAlphaComponent(0.85)
         addSubview(tableView)
+        addSubview(arrowButton)
     }
     
     private func setupConstraints() {
         tableView.snp.makeConstraints { make in
             make.top.left.right.equalTo(0)
-            make.bottom.equalTo(-40)
+            make.bottom.equalTo(0)
+        }
+        
+        arrowButton.snp.makeConstraints { make in
+            make.bottom.equalTo(-10)
+            make.width.height.equalTo(44)
+            make.centerX.equalTo(self)
         }
     }
     
     // MARK: - Public Methods
+    func getAllMessages() -> [Message] {
+        return messages
+    }
+    
     func addMessage(_ message: String, isUser: Bool) {
-        messages.append(Message(content: message, isUser: isUser, isCompleted: true))
+        messages.append(Message(content: message, isUser: isUser, isFinal: true, timestamp: 0))
         tableView.reloadData()
         scrollToBottom()
     }
     
-    func addUserMessage(_ message: String) {
-        messages.append(Message(content: message, isUser: true, isCompleted: true))
-        tableView.reloadData()
-        scrollToBottom()
-    }
-    
-    func startNewStreamMessage() {
+    func startNewStreamMessage(timestamp: Int64, isUser: Bool) {
         currentStreamMessage = ""
-        messages.append(Message(content: "", isUser: false, isCompleted: false))
+        messages.append(Message(content: "", 
+                              isUser: isUser, 
+                              isFinal: false, 
+                              timestamp: timestamp))
+        messages.sort { $0.timestamp < $1.timestamp }
         tableView.reloadData()
         scrollToBottom()
     }
     
     func updateStreamContent(_ text: String) {
         currentStreamMessage = text
-        if var lastMessage = messages.last, !lastMessage.isUser {
+        if var lastMessage = messages.last, !lastMessage.isFinal {
             lastMessage.content = currentStreamMessage
             messages[messages.count - 1] = lastMessage
             tableView.reloadData()
-            scrollToBottom(animated: true)
+            if shouldAutoScroll {
+                scrollToBottom(animated: true)
+            }
         }
     }
     
     func completeStreamMessage() {
-        if var lastMessage = messages.last, !lastMessage.isUser {
-            lastMessage.isCompleted = true
+        if var lastMessage = messages.last, !lastMessage.isFinal {
+            lastMessage.isFinal = true
             lastMessage.content = currentStreamMessage
             messages[messages.count - 1] = lastMessage
             tableView.reloadData()
@@ -247,10 +282,19 @@ class ChatView: UIView {
     
     private func scrollToBottom(animated: Bool = true) {
         guard messages.count > 0 else { return }
+        guard shouldAutoScroll else { return }
         let indexPath = IndexPath(row: messages.count - 1, section: 0)
-        DispatchQueue.main.async { [weak self] in
-            self?.tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
-        }
+        self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
+    }
+    
+    @objc func clickArrowButton() {
+        shouldAutoScroll = true
+        arrowButton.isHidden = true
+        scrollToBottom()
+    }
+    
+    func getLastMessage(fromUser: Bool) -> Message? {
+        return messages.last { $0.isUser == fromUser }
     }
 }
 
@@ -265,5 +309,19 @@ extension ChatView: UITableViewDelegate, UITableViewDataSource {
         cell.configure(with: messages[indexPath.row])
         return cell
     }
-} 
+    
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        shouldAutoScroll = false
+        arrowButton.isHidden = false
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let isAtBottom = (scrollView.contentOffset.y >= (scrollView.contentSize.height - scrollView.frame.size.height))
+        if isAtBottom {
+            shouldAutoScroll = true
+            arrowButton.isHidden = true
+        }
+    }
+    
+}
 
