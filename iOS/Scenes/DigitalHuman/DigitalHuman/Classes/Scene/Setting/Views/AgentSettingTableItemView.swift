@@ -33,17 +33,19 @@ class AgentSettingTableItemView: UIView {
 
 extension AgentSettingTableItemView {
     private func createViews() {
-        self.backgroundColor = PrimaryColors.c_1d1d1d
+        self.backgroundColor = UIColor.themColor(named: "ai_block2")
 
-        titleLabel.textColor = PrimaryColors.c_ffffff
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+        titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         addSubview(titleLabel)
         
-        detialLabel.textColor = PrimaryColors.c_ffffff_a
+        detialLabel.textColor = UIColor.themColor(named: "ai_icontext3")
+        detialLabel.font = UIFont.systemFont(ofSize: 12, weight: .regular)
         addSubview(detialLabel)
         
         addSubview(imageView)
         
-        bottomLine.backgroundColor = PrimaryColors.c_27272a_a
+        bottomLine.backgroundColor = UIColor.themColor(named: "ai_line1")
         addSubview(bottomLine)
         
         addSubview(button)

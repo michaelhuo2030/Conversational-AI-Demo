@@ -1,71 +1,56 @@
-# Agora & OpenAI Demo
+# Conversational AI Agent
 
-An intelligent conversation demo built with Agora Real-time Communication SDK and OpenAI API.
+*__其他语言版本：__  [__简体中文__](README.zh.md)*
 
-## 🎥 Demo Preview
+The Conversational AI Agent ...
 
-<div align="center" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-    <img src="demo_preview.jpg" alt="Demo preview of the conversation interface" width="45%" max-width="400px" />
-    <img src="demo_preview1.jpg" alt="Demo preview of additional features" width="45%" max-width="400px" />
-</div>
+### 1. Quick Start
 
-## ✨ Features
+This section mainly describes how to quickly run the Conversational AI Agent Demo.
 
-- Real-time Voice Communication
-- AI-powered Responses
-- High-quality Audio Transmission
-- Low-latency Interaction
+#### 1.1 Environment Preparation
 
-## 🏗 Architecture
+- Xcode 15 or higher.
+- A mobile device that runs iPhone 15.0 or higher.
 
-<!-- <img src="./architecture.png" alt="architecture" width="700" height="400" /> -->
-<picture>
-  <source srcset="architecture-dark-theme.png" media="(prefers-color-scheme: dark)">
-  <img src="architecture-light-theme.png" alt="Architecture diagram of Conversational Ai by Agora and OpenAi">
-</picture>
+#### 1.2 Running the Sample
 
-## 💻 Core Components
-- **KeyCenter.swift**: Project configuration management
-- **AgentAPIService.swift**: Core Agent interface definitions
-- **AgentManager.swift**: RTC and Agent lifecycle management
-- **ChatViewController.swift**: Voice chat interface implementation
+1. Follow [The Account Document](https://docs.agora.io/en/video-calling/reference/manage-agora-account) to get the **App ID** and **App Certificate**.
+2. Please contact Agora technical support to grant conversational ai permission to your APPID. Only after granting permission can you properly experience the demo features.
+3. Open the `iOS` project and fill in properties got above to the root [KeyCenter.swift](../../KeyCenter.swift) file. 
 
-## 🚀 Getting Started
-
-### Requirements
-
-- iOS 13.0+
-- Xcode 15.0+
-
-### Configuration
-
-1. Get your [Agora App ID](https://docs.agora.io/en/video-calling/get-started/manage-agora-account?platform=web#create-an-agora-project) 
-2. If security mode is enabled, obtain your [App Certificate](https://docs.agora.io/en/video-calling/get-started/manage-agora-account?platform=web#create-an-agora-project)
-
-### Run the Project
-1. Clone the repository
-2. Enter the directory of iOS and run the following command
 ```
-	pod install
+# RTC SDK key Config
+#----------- AppKey --------------
+static let AppId: String = <Your Agora App ID>
+static let Certificate: String? = <Your Agora App Certificate>
 ```
-3. Open Agent.xcworkspace with Xcode
-4. Open KeyCenter.swift and configure your Agora credentials:
-```
-	static let AppId: String = <#YOUR APPID#>
-	static let AppId: String = <#YOUR APPID#>
-```
-5. Run the project
+4. Now you can run the project with Xcode to experience the application.
 
-### How to Connect to your own service
-You can also connect to your own server.
-Modify the following configuration in KeyCenter.swift and fill in your own host
-```
-	static let BaseHostUrl: String = <#YOUR HOST#>
-```
-### Server Example
+### 2. Source Code Sitemap
 
-- [openai-realtime-python](https://github.com/AgoraIO/openai-realtime-python/)
+| Path | Description |
+|------------------------------------------------------------------|-------------|
+| [VoiceAgent/Classes/APIService/](VoiceAgent/Classes/APIService/) | Network service implementation for AI agent communication. |
+| [VoiceAgent/Classes/Configuration/](VoiceAgent/Classes/Configuration/) | Configuration management for the voice agent module. |
+| [VoiceAgent/Classes/Core/](VoiceAgent/Classes/Core/) | Core functionality implementation for voice processing and AI interaction. |
+| [VoiceAgent/Classes/Main/](VoiceAgent/Classes/Main/) | Main UI screens and view controllers. |
+| [VoiceAgent/Classes/Manager/](VoiceAgent/Classes/Manager/) | Manager classes for various functionalities. |
+| [VoiceAgent/Classes/Model/](VoiceAgent/Classes/Model/) | Data models and entities. |
+| [VoiceAgent/Classes/VoiceAgentContext.swift](VoiceAgent/Classes/VoiceAgentContext.swift) | Context management for the voice agent module. |
+| [VoiceAgent/Resources/](VoiceAgent/Resources/) | Resource files including images and localization. |
 
-## 📄 License
+### 3. Related Resources
 
-This project is open-sourced under the Apache 2.0 license - see the [LICENSE](LICENSE) file for details.
+- Check our [Conversational AI Agent Document]() to see more about Conversational AI Agent.
+- Dive into [Agora SDK Samples](https://github.com/AgoraIO) to see more tutorials.
+- Repositories managed by developer communities can be found at [Agora Community](https://github.com/AgoraIO-Community).
+- If you encounter problems during integration, feel free to ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io).
+
+### 4. Feedback
+
+If you have any problems or suggestions regarding the sample projects, feel free to file an issue.
+
+### 5. License
+
+The sample projects are under the MIT license.

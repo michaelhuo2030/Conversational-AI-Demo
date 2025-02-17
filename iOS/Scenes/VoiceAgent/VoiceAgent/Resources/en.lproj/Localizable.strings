@@ -1,7 +1,7 @@
 
-"join.start.title" = "Convo AI Agent";
+"join.start.title" = "Conversational AI Engine";
 "join.start.state" = "Not Joined";
-"join.start.button.title" = "Join Call";
+"join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";
 
 "conversation.agent.name" = "Agent";
@@ -9,11 +9,13 @@
 "conversation.agent.loading" = "Joining";
 "conversation.agent.joined" = "Agent Joined!";
 "conversation.join.failed" = "join channel failed:";
-"conversation.agent.leave" = "Agent did leave channel";
+"conversation.agent.leave" = "Agent left abnormally. Please try again.";
 "conversation.end.call.loading" = "Ending";
-"conversation.end.call.leave" = "Agent Left!";
+"conversation.end.call.leave" = "Agent left!";
 "conversation.message.you" = "You";
 "conversation.message.agent.name" = "AI Agent";
+"conversation.agent.connecting" = "Connecting...";
+"conversation.user.speak.toast" = "At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice.";
 
 "conversation.message.alert.title" = "Clear Messages";
 "conversation.message.alert.content" = "Are you sure you want to clear all messages?";
@@ -24,7 +26,7 @@
 // Settings View
 "settings.title" = "Settings";
 "settings.preset" = "Preset";
-"settings.advanced" = "Advanced Setting";
+"settings.advanced" = "Advanced Settings";
 "settings.device" = "DEVICE";
 "settings.language" = "Language";
 "settings.voice" = "Voice";
@@ -32,18 +34,35 @@
 "settings.microphone" = "Microphone";
 "settings.speaker" = "Speaker";
 "settings.noise.cancellation" = "Noise Cancellation";
-"settings.noise.aiVad" = "AI VAD";
+"settings.noise.aiVad" = "Intelligent Interruption Handling";
 "settings.noise.forceResponse" = "Force Response";
+"settings.noise.bhvs" = "Background Human Voice Suppression";
 
 // Channel Info View
-"channel.info.title" = "CHANNEL INFO";
+"channel.info.title" = "INFO";
+"channel.info.subtitle" = "CHANNEL INFO";
 "channel.network.info.title" = "NETWORK INFO";
 "channel.info.agent.status" = "Agent Status";
+"channel.info.agent.id" = "Agent-ID";
 "channel.info.room.status" = "Room Status";
 "channel.info.room.id" = "Room-ID";
 "channel.info.your.id" = "Your-ID";
 "channel.info.your.network" = "Your Network";
+"channel.disconnected.state" = "Disconnected";
+"channel.connected.state" = "Connected";
+"channel.info.copied" = "copied";
+"channel.network.good" = "Good";
+"channel.network.poor" = "Poor";
+"channel.network.fair" = "Fair";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";
 "error.join.error" = "Failed to join. Please try again.";
+"error.network.disconnect" = "Network is unstable, please exit and try again.";
+
+"devmode.title" = "Developer Mode";
+"devmode.rtc" = "RTC Version";
+"devmode.host" = "Server Host";
+"devmode.dump" = "Audio Dump";
+"devmode.copy" = "Copy Mine Messages";
+"devmode.close" = "Close Developer Mode";

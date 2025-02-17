@@ -1,7 +1,7 @@
 //
 //  ViewController.swift
 //  Agent
-//  
+//
 //  Created by HeZhengQing on 2024/9/29.
 //
 
@@ -13,133 +13,74 @@ import SwifterSwift
 import Common
 
 class ChatViewController: UIViewController {
-    // MARK: - Properties
-    private var showMineContent: Bool = true {
-        didSet {
-            mineContentView.isHidden = !showMineContent
-        }
-    }
-    
-    static func showAgent(host: String,
-                          token: String,
-                          uid: Int,
-                          agentUid: Int,
-                          channel: String,
-                          showMineContent: Bool = true,
-                          vc: UIViewController) {
-        let livingVC = ChatViewController()
-        livingVC.host = host
-        livingVC.rtcToken = token
-        livingVC.uid = uid
-        livingVC.agentUid = agentUid
-        livingVC.channelName = channel
-        livingVC.showMineContent = showMineContent
-        livingVC.modalPresentationStyle = .fullScreen
-        livingVC.fromVC = vc
-        vc.present(livingVC, animated: false)
-    }
-    
-    private var fromVC: UIViewController? = nil
-    private var host = ""
-    private var rtcToken = ""
-    private var uid = 0
-    private var agentUid = 0
-    private var channelName = ""
-    private var isMute = false
     private var isDenoise = true
-    private var agentManager: AgentManager!
-    private var agent_rtc_id = ""
-
-    private var selectTable: AgentSettingInfoView? = nil
-    private var selectTableMask = UIButton(type: .custom)
     private let messageParser = MessageParser()
+    private var pingTimer: Timer?
+    private var requestTimer: Timer?
+    private let uid = "\(RtcEnum.getUid())"
+    private let pingTimeInterval = 10.0
+    private var remoteIsJoined = false
+    private var channelName = ""
+    private var token = ""
+    private var agentUid = 0
+    private var remoteAgentId = ""
 
+    private lazy var rtcManager: RTCManager = {
+        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self)
+        addLog("rtc sdk version: \(AgoraRtcEngineKit.getSdkVersion())")
+        return manager
+    }()
+    
+    private lazy var agentManager: AgentManager = {
+        let manager = AgentManager(host: AppContext.shared.baseServerUrl)
+        return manager
+    }()
+    
     private lazy var topBar: AgentSettingBar = {
         let view = AgentSettingBar()
         view.onTipsButtonTapped = { [weak self] in
-            self?.handleTipsAction()
+            self?.clickTheInformationButton()
         }
         view.onSettingButtonTapped = { [weak self] in
-            self?.handleSettingAction()
-        }
-        view.onNetworkStatusChanged = { [weak self] in
-            self?.handleNetworkButtonTapped()
+            self?.clickTheSettingButton()
         }
         view.onBackButtonTapped = { [weak self] in
-            self?.stopPageAction()
+            self?.clickTheBackButton()
         }
         return view
     }()
+
+    private lazy var bottomBar: AgentControlToolbar = {
+        let view = AgentControlToolbar()
+        view.delegate = self
+        return view
+    }()
     
-//    private lazy var waveVC: WaveWebViewController = {
-//        let vc = VoiceAgentContext.waveWebView
-//        return vc
-//    }()
+    private lazy var animateContentView: UIView = {
+        let view = UIView()
+        return view
+    }()
     
-    private lazy var videoView: VideoPlayerView = {
-        let view = VideoPlayerView()
+    private lazy var animateView: AnimateView = {
+        let view = AnimateView(videoView: animateContentView)
+        view.delegate = self
+        return view
+    }()
+    
+    private lazy var toastView: ToastView = {
+        let view = ToastView()
+        view.layer.cornerRadius = 20
+        view.layer.masksToBounds = true
+        view.layer.borderWidth = 1.0
+        view.layer.isHidden = true
         return view
     }()
     
     private lazy var contentView: UIView = {
         let view = UIView()
-//        view.backgroundColor = UIColor(hex:0x222222)
-        view.backgroundColor = .black
         view.layerCornerRadius = 16
         view.clipsToBounds = true
         return view
-    }()
-    
-//    private lazy var waveView: AgoraWaveGroupView = {
-//        let view = AgoraWaveGroupView(frame: CGRect(x: 0, y: 0, width: 200, height: 200), count: 4, padding: 10)
-//        return view
-//    }()
-    
-    private lazy var closeButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setTitle(ResourceManager.L10n.Conversation.buttonEndCall, for: .normal)
-        button.addTarget(self, action: #selector(handleEndCallAction), for: .touchUpInside)
-        button.titleLabel?.textAlignment = .center
-        button.layerCornerRadius = 36
-        button.clipsToBounds = true
-        button.setImage(UIImage.va_named("ic_agent_detail_phone"), for: .normal)
-        button.isEnabled = false
-        button.alpha = 0.5
-        
-        if let color = UIColor(hex: 0xFF414D) {
-            button.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
-        }
-        
-        let spacing: CGFloat = 5
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        
-        return button
-    }()
-    
-    private lazy var muteButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.addTarget(self, action: #selector(handleMuteAction(_ :)), for: .touchUpInside)
-        button.titleLabel?.textAlignment = .center
-        button.layerCornerRadius = 36
-        button.clipsToBounds = true
-        button.setBackgroundImage(UIImage(color: PrimaryColors.c_00c2ff, size: CGSize(width: 1, height: 1)), for: .normal)
-        return button
-    }()
-    
-    private lazy var msgButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.addTarget(self, action: #selector(handleMsgAction(_ :)), for: .touchUpInside)
-        button.titleLabel?.textAlignment = .center
-        button.layerCornerRadius = 36
-        button.clipsToBounds = true
-        button.setImage(UIImage.va_named("ic_msg_icon"), for: .normal)
-        button.setBackgroundColor(color: PrimaryColors.c_00c2ff, forState: .normal)
-        button.setBackgroundColor(color: PrimaryColors.c_0097d4, forState: .selected)
-        if let color = UIColor(hex: 0x333333) {
-            button.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
-        }
-        return button
     }()
     
     private lazy var aiNameLabel: UILabel = {
@@ -151,42 +92,8 @@ class ChatViewController: UIViewController {
         return label
     }()
     
-    private lazy var mineContentView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor(hex:0x333333)
-        view.layerCornerRadius = 8
-        view.clipsToBounds = true
-        return view
-    }()
-    
-    private lazy var mineAvatarLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor(hex:0x222222)
-        label.backgroundColor = UIColor(hex:0xBDCFDB)
-        label.text = "Y"
-        label.textAlignment = .center
-        label.layerCornerRadius = 30
-        label.clipsToBounds = true
-        return label
-    }()
-    
-    private lazy var mineNameView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor(hex: 0x1D1D1D)
-        view.layerCornerRadius = 4
-        view.clipsToBounds = true
-        return view
-    }()
-    
-    private lazy var mineNameLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .white
-        label.text = "You"
-        return label
-    }()
-    
     private lazy var micStateImageView: UIImageView = {
-        let imageView = UIImageView(image: UIImage.va_named("ic_agent_detail_mute"))
+        let imageView = UIImageView(image: UIImage.ag_named("ic_agent_detail_mute"))
         return imageView
     }()
     
@@ -196,87 +103,49 @@ class ChatViewController: UIViewController {
         return view
     }()
     
-    private var stopInitiative = false
-    
-    private lazy var clearButton: UIButton = {
+    private lazy var devModeButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.va_named("ic_msg_clean_icon"), for: .normal)
-        button.setTitle("Clear", for: .normal)
-        button.setTitleColor(PrimaryColors.c_0097d4, for: .normal)
-        button.titleLabel?.textAlignment = .center
-        button.addTarget(self, action: #selector(handleClearAction), for: .touchUpInside)
-        let spacing: CGFloat = 5
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        button.isHidden = true
+        button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
+        button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
         return button
     }()
-    
+        
     deinit {
         print("liveing view controller deinit")
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        setupAgentCoordinator()
+        UIApplication.shared.isIdleTimerDisabled = true
+
+        preloadData()
         setupViews()
         setupConstraints()
-        
-        mineContentView.isHidden = !showMineContent
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        
-        let centerX = contentView.bounds.width / 2
-        let centerY = contentView.bounds.height / 2
-        
-//        waveView.center = CGPoint(x: centerX, y: centerY)
-    }
-    
-    private func setupAgentCoordinator() {
-        AgentSettingManager.shared.updateRoomId(channelName)
-        agentManager = AgentManager(appId: AppContext.shared.appId, channelName: channelName, token: rtcToken, host: host, delegate: self)
-        startAgent()
-        setupMuteState()
+    private func preloadData() {
+        Task {
+            do {
+                try await fetchPresetsIfNeeded()
+                try await fetchTokenIfNeeded()
+            } catch {
+                addLog("[PreloadData error]: \(error)")
+            }
+        }
     }
     
     private func setupViews() {
-        view.backgroundColor = UIColor(hex: 0x111111)
+        view.backgroundColor = .black
         
-        [topBar, contentView, closeButton, muteButton, 
-         msgButton, mineContentView].forEach { view.addSubview($0) }
+        [topBar, contentView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        devModeButton.isHidden = !AppContext.shared.enableDeveloperMode
         
-//        contentView.addSubview(waveView)
-        contentView.addSubview(videoView)
+        contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
         contentView.addSubview(messageView)
         
-        messageView.addSubview(clearButton)
-        
-        mineContentView.addSubview(mineAvatarLabel)
-        mineContentView.addSubview(mineNameView)
-        mineNameView.addSubview(mineNameLabel)
-        mineNameView.addSubview(micStateImageView)
-        
-        videoView.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
-        }
-        
-        messageView.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
-        }
-        
-        clearButton.snp.makeConstraints { make in
-            make.right.equalTo(-20)
-            make.bottom.equalTo(-10)
-            make.height.equalTo(24)
-        }
-        
-        selectTableMask.addTarget(self, action: #selector(onClickHideTable(_ :)), for: .touchUpInside)
-        selectTableMask.isHidden = true
-        view.addSubview(selectTableMask)
+        animateView.setupMediaPlayer(rtcManager.getRtcEntine())
+        animateView.updateAgentState(.idle)
     }
     
     private func setupConstraints() {
@@ -285,325 +154,405 @@ class ChatViewController: UIViewController {
             make.left.right.equalToSuperview().inset(20)
             make.height.equalTo(48)
         }
+        
         contentView.snp.makeConstraints { make in
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
+            make.left.equalTo(0)
+            make.right.equalTo(0)
             make.top.equalTo(topBar.snp.bottom).offset(20)
-            make.bottom.equalTo(closeButton.snp.top).offset(-20)
+            make.bottom.equalTo(bottomBar.snp.top).offset(-20)
         }
-        muteButton.snp.makeConstraints { make in
-            make.bottom.equalTo(-40)
-            make.left.equalTo(20)
-            make.width.height.equalTo(72)
+        
+        animateContentView.snp.makeConstraints { make in
+            make.height.equalTo(animateContentView.snp.width).multipliedBy(1080.0/1142.0)
+            make.width.equalTo(contentView.snp.width).multipliedBy(0.7)
+            make.centerX.equalTo(contentView)
+            make.centerY.equalTo(contentView)
         }
-        msgButton.snp.makeConstraints { make in
-            make.centerY.equalTo(muteButton)
-            make.left.equalTo(muteButton.snp.right).offset(16)
-            make.width.height.equalTo(72)
+        
+        messageView.snp.makeConstraints { make in
+            make.edges.equalTo(UIEdgeInsets.zero)
         }
-        closeButton.snp.makeConstraints { make in
-            make.left.equalTo(msgButton.snp.right).offset(16)
+        
+        toastView.snp.makeConstraints { make in
+            make.bottom.equalTo(bottomBar.snp.top).offset(-94)
+            make.left.right.equalTo(0)
+            make.height.equalTo(44)
+        }
+        
+        bottomBar.snp.makeConstraints { make in
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-30)
+            make.left.right.equalTo(0)
+            make.height.equalTo(76)
+        }
+        devModeButton.snp.makeConstraints { make in
+            make.centerY.equalToSuperview()
             make.right.equalTo(-20)
-            make.height.equalTo(72)
-            make.centerY.equalTo(muteButton)
-        }
-        aiNameLabel.snp.makeConstraints { make in
-            make.width.equalTo(75)
-            make.height.equalTo(32)
-            make.left.equalTo(12)
-            make.bottom.equalTo(-12)
-        }
-        mineContentView.snp.makeConstraints { make in
-            make.width.equalTo(215)
-            make.height.equalTo(100)
-            make.top.equalTo(contentView).offset(16)
-            make.right.equalTo(contentView).offset(-16)
-        }
-        mineAvatarLabel.snp.makeConstraints { make in
-            make.width.height.equalTo(60)
-            make.center.equalTo(mineContentView)
-        }
-        mineNameView.snp.makeConstraints { make in
-            make.width.equalTo(66)
-            make.height.equalTo(32)
-            make.left.equalTo(mineContentView).offset(8)
-            make.bottom.equalTo(mineContentView).offset(-8)
-        }
-        micStateImageView.snp.makeConstraints { make in
-            make.left.equalTo(mineNameView).offset(6)
-            make.width.height.equalTo(20)
-            make.centerY.equalTo(mineNameView)
-        }
-        mineNameLabel.snp.makeConstraints { make in
-            make.left.equalTo(micStateImageView.snp.right).offset(2)
-            make.centerY.equalTo(mineNameView)
-        }
-        
-        selectTableMask.snp.makeConstraints { make in
-            make.top.left.right.bottom.equalToSuperview()
+            make.size.equalTo(CGSize(width: 44, height: 44))
         }
     }
     
-    private func startAgent() {
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
-        addLog("begin start agent")
-        closeButton.isEnabled = false
-        closeButton.alpha = 0.5
-        topBar.backButton.isEnabled = false
-        topBar.backButton.alpha = 0.5
+    @MainActor
+    private func prepareToStartAgent() async {
+        startLoading()
         
-        agentManager.startAgent(uid: uid, agentUid: agentUid) { [weak self] err, agentId in
-            guard let self = self else { return }
-            SVProgressHUD.dismiss()
-            
-            guard let error = err else {
-                self.agent_rtc_id = agentId ?? ""
-                self.setupDenoise()
-                self.joinChannel()
-                addLog("start agent success")
-                
-                self.closeButton.isEnabled = true
-                self.closeButton.alpha = 1.0
-                self.topBar.backButton.isEnabled = true
-                self.topBar.backButton.alpha = 1.0
-                return
-            }
-            
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Error.joinError)
-            addLog("start agent failed : \(error.message)")
-            self.dismiss(animated: false)
+        do {
+            try await fetchPresetsIfNeeded()
+            try await fetchTokenIfNeeded()
+            startAgentRequest()
+            joinChannel()
+        } catch {
+            handleStartError()
         }
     }
     
-    private func restartAgent() {
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.agentLoading)
-        addLog("begin restart agent")
-        closeButton.isEnabled = false
-        closeButton.alpha = 0.5
-        topBar.backButton.isEnabled = false
-        topBar.backButton.alpha = 0.5
-        
-        agentManager.startAgent(uid: uid, agentUid: agentUid) { [weak self] err, agentId in
-            guard let self = self else { return }
-            SVProgressHUD.dismiss()
-            
-            guard let error = err else {
-                self.agent_rtc_id = agentId ?? ""
-                self.setupDenoise()
-                AgentSettingManager.shared.updateAgentStatus(.connected)
-                self.selectTable?.updateStatus()
-                addLog("restart agent success")
-                
-                self.closeButton.isEnabled = true
-                self.closeButton.alpha = 1.0
-                self.topBar.backButton.isEnabled = true
-                self.topBar.backButton.alpha = 1.0
-                return
-            }
-            
-            SVProgressHUD.showInfo(withStatus: error.message)
-            addLog("restart agent failed : \(error.message)")
-            self.dismiss(animated: false)
-            return
-        }
+    private func showErrorToast(text: String) {
+        toastView.showToast(text: text)
+    }
+    
+    private func dismissErrorToast() {
+        toastView.dismiss()
+    }
+    
+    private func startLoading() {
+        bottomBar.style = .controlButtons
+        toastView.showLoading()
+    }
+    
+    private func stopLoading() {
+        bottomBar.style = .startButton
+        toastView.dismiss()
     }
     
     private func joinChannel() {
-        AgentSettingManager.shared.updateAgentStatus(.connected)
-        let ret = agentManager.joinChannel()
+        
+        addLog("[Call] joinChannel()")
+        if channelName.isEmpty {
+            addLog("cancel to join channel")
+            return
+        }
+        let ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
+        addLog("Join channel: \(ret)")
         if (ret == 0) {
-            self.addLog("join rtc room success")
-            AgentSettingManager.shared.updateRoomStatus(.connected)
-            self.selectTable?.updateStatus()
+            self.addLog("Join success")
+            self.setupMuteState(state: false)
+            AppContext.preferenceManager()?.updateRoomState(.connected)
+            AppContext.preferenceManager()?.updateRoomId(channelName)
         }else{
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.joinFailed + "\(ret)")
-            self.addLog("join rtc room failed ret: \(ret)")
-            AgentSettingManager.shared.updateRoomStatus(.disconnected)
-            self.selectTable?.updateStatus()
+            stopLoading()
+            stopAgent()
+            AppContext.preferenceManager()?.updateRoomState(.disconnected)
+            self.addLog("Join failed")
         }
     }
     
     private func leaveChannel() {
-        SVProgressHUD.dismiss()
-        
-        AgentSettingManager.shared.updateRoomStatus(.unload)
-        AgentSettingManager.shared.updateAgentStatus(.unload)
-        AgentSettingManager.shared.updateRoomId("")
-        agentManager.destroy()
+        addLog("[Call] leaveChannel()")
+        channelName = ""
+        rtcManager.leaveChannel()
     }
     
-    private func setupDenoise() {
-        if isDenoise {
-            addLog("isDenoise true")
-            agentManager.openDenoise()
-        } else {
-            addLog("isDenoise false")
-            agentManager.closeDenoise()
-        }
+    private func destoryRtc() {
+        leaveChannel()
+        rtcManager.destroy()
     }
     
-    private func setupMuteState() {
-        agentManager.muteVoice(state: isMute)
-        updateMuteButtonAppearance()
+    private func stopAgent() {
+        addLog("[Call] stopAgent()]")
+        animateView.updateAgentState(.idle)
+        messageView.clearMessages()
+        messageView.isHidden = true
+        bottomBar.resetState()
+        stopRequestTimer()
+        stopPingTimer()
+        leaveChannel()
+        stopAgentRequest()
+        AppContext.preferenceManager()?.resetAgentInformation()
     }
     
-    private func updateMuteButtonAppearance() {
-        let backgroundColor = isMute ? UIColor(hex: 0x333333) : UIColor(hex: 0x00C2FF)
-        let image = isMute ? UIImage.va_named("ic_agent_detail_mute") : UIImage.va_named("ic_agent_detail_unmute")
-        let smallImage = isMute ? UIImage.va_named("ic_agent_detail_mute_small") : UIImage.va_named("ic_agent_detail_unmute_small")
-        
-        muteButton.setBackgroundImage(UIImage(color: backgroundColor ?? .clear, size: CGSize(width: 1, height: 1)), for: .normal)
-        muteButton.setImage(image, for: .normal)
-        micStateImageView.image = smallImage
+    private func stopPingTimer() {
+        pingTimer?.invalidate()
+        pingTimer = nil
+    }
+    
+    private func stopRequestTimer() {
+        requestTimer?.invalidate()
+        requestTimer = nil
+    }
+    
+    private func setupMuteState(state: Bool) {
+        addLog("setupMuteState: \(state)")
+        rtcManager.muteVoice(state: state)
     }
     
     private func addLog(_ txt: String) {
-        AgentLogger.info(txt)
+        VoiceAgentLogger.info(txt)
     }
-    
-    private func handleTipsAction() {
-        print("Tips button tapped")
-        selectTableMask.isHidden = false
-        let v = AgentSettingInfoView()
-        self.view.addSubview(v)
-        selectTable = v
-        let button = topBar.networkSignalView
-        v.snp.makeConstraints { make in
-            make.right.equalTo(button.snp.right).offset(20)
-            make.top.equalTo(button.snp.bottom)
-            make.width.equalTo(320)
-            make.height.equalTo(290)
-        }
-    }
-    
-    private func handleNetworkButtonTapped() {
-        selectTableMask.isHidden = false
-        let v = AgentNetworkInfoView()
-        self.view.addSubview(v)
-        selectTable = v
-        let button = topBar.networkSignalView
-        v.snp.makeConstraints { make in
-            make.right.equalTo(button.snp.right).offset(20)
-            make.top.equalTo(button.snp.bottom)
-            make.width.equalTo(304)
-            make.height.equalTo(104)
-        }
-    }
-    
-    private func extractJsonData(from rawString: String) -> Data? {
-        let components = rawString.components(separatedBy: "|")
-        guard components.count >= 4 else { return nil }
-        let base64String = components[3]
-        return Data(base64Encoded: base64String)
-    }
-    
-    @objc func onClickHideTable(_ sender: UIButton) {
-        selectTable?.removeFromSuperview()
-        selectTable = nil
-        selectTableMask.isHidden = true
-    }
-    
-    @objc private func handleClearAction() {
-        let alert = UIAlertController(
-            title: ResourceManager.L10n.Conversation.clearMessageTitle,
-            message: ResourceManager.L10n.Conversation.clearMessageContent,
-            preferredStyle: .alert
-        )
+}
+
+// MARK: - Agent Request
+extension ChatViewController {
+    private func fetchPresetsIfNeeded() async throws {
+        guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Clear", style: .destructive) { [weak self] _ in
-            self?.messageView.clearMessages()
+        return try await withCheckedThrowingContinuation { continuation in
+            agentManager.fetchAgentPresets { error, result in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let result = result else {
+                    continuation.resume(throwing: NSError(domain: "", code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "result is empty"]))
+                    return
+                }
+                
+                AppContext.preferenceManager()?.setPresets(presets: result)
+                continuation.resume()
+            }
+        }
+    }
+    
+    private func fetchTokenIfNeeded() async throws {
+        guard token.isEmpty else { return }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            NetworkManager.shared.generateToken(
+                channelName: "",
+                uid: uid,
+                types: [.rtc]
+            ) { [weak self] token in
+                guard let self = self else { return }
+                
+                if let token = token {
+                    print("rtc token is : \(token)")
+                    self.token = token
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: NSError(domain: "", code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "generate token error"]))
+                }
+            }
+        }
+    }
+    
+    private func handleStartError() {
+        stopLoading()
+        stopAgent()
+        SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+    }
+    
+    private func startAgentRequest() {
+        addLog("[Call] startAgentRequest()")
+        guard let manager = AppContext.preferenceManager() else {
+            addLog("preference manager is nil")
+            return
+        }
+        manager.updateAgentState(.disconnected)
+        let aiVad = manager.preference.aiVad
+        let bhvs = manager.preference.bhvs
+        let presetName = manager.preference.preset?.name ?? ""
+        let language = manager.preference.language?.languageCode ?? ""
+        channelName = RtcEnum.getChannel()
+        agentUid = AppContext.agentUid
+        remoteIsJoined = false
+        agentManager.startAgent(appId: AppContext.shared.appId,
+                                uid: uid,
+                                agentUid: "\(agentUid)",
+                                channelName: channelName,
+                                aiVad: aiVad,
+                                bhvs: bhvs,
+                                presetName: presetName,
+                                language: language) { [weak self] error, channelName, remoteAgentId, targetServer in
+            guard let self = self else { return }
+            if self.channelName != channelName {
+                self.addLog("channelName is different, current : \(self.channelName), before: \(channelName)")
+                return
+            }
+            
+            guard let error = error else {
+                if let remoteAgentId = remoteAgentId,
+                     let targetServer = targetServer {
+                    self.remoteAgentId = remoteAgentId
+                    AppContext.preferenceManager()?.updateAgentId(remoteAgentId)
+                    AppContext.preferenceManager()?.updateUserId(self.uid)
+                    AppContext.preferenceManager()?.updateTargetServer(targetServer)
+                }
+                addLog("start agent success, agent id is: \(self.remoteAgentId)")
+                prepareToPing()
+                agentCheck()
+                return
+            }
+
+            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+            self.stopLoading()
+            self.stopAgent()
+            addLog("start agent failed : \(error.message)")
+        }
+    }
+    
+    private func agentCheck() {
+        addLog("[Call] agentCheck()")
+        self.requestTimer?.invalidate()
+        self.requestTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] _ in
+            guard let self = self, let manager = AppContext.preferenceManager() else {
+                self?.addLog("view controller or manager is release, will stop request timer")
+                self?.stopRequestTimer()
+                return
+            }
+            
+            if self.remoteIsJoined {
+                self.stopRequestTimer()
+                self.addLog("agent is joined in 10 seconds")
+                return
+            }
+            
+            if manager.information.agentState != .connected {
+                addLog("agent is not joined in 10 seconds")
+                self.stopLoading()
+                self.stopAgent()
+            }
+            self.stopRequestTimer()
         })
+    }
+    
+    private func startPingRequest() {
+        addLog("[Call] startPingRequest()")
+        let presetName = AppContext.preferenceManager()?.preference.preset?.name ?? ""
+        agentManager.ping(appId: AppContext.shared.appId, channelName: channelName, presetName: presetName) { [weak self] err, res in
+            guard let self = self else { return }
+            guard let error = err else {
+                self.addLog("ping request")
+                return
+            }
+            
+            self.addLog("ping error : \(error.message)")
+        }
+    }
+    
+    private func prepareToPing() {
+        addLog("[Call] prepareToPing()")
+        self.pingTimer?.invalidate()
+        self.pingTimer = Timer.scheduledTimer(withTimeInterval: pingTimeInterval, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.startPingRequest()
+        }
+    }
+    
+    private func stopAgentRequest() {
+        guard let preset = AppContext.preferenceManager()?.preference.preset else {
+            return
+        }
         
-        present(alert, animated: true)
+        if remoteAgentId.isEmpty {
+            return
+        }
+        agentManager.stopAgent(appId: AppContext.shared.appId, agentId: remoteAgentId, channelName: channelName, presetName: preset.name) { _, _ in }
     }
 }
 
 // MARK: - AgoraRtcEngineDelegate
 extension ChatViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOccurError errorCode: AgoraErrorCode) {
-        addLog("engine didOccurError: \(errorCode.rawValue)")
+        addLog("[RTC Call Back] engine didOccurError: \(errorCode.rawValue)")
         SVProgressHUD.dismiss()
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didLeaveChannelWith stats: AgoraChannelStats) {
-        addLog("didLeaveChannelWith : \(stats)")
+        addLog("[RTC Call Back] didLeaveChannelWith : \(stats)")
         print("didLeaveChannelWith")
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
-        addLog("connectionChangedTo: \(state), reason: \(reason)")
+        addLog("[RTC Call Back] connectionChangedToState: \(state), reason: \(reason)")
         if reason == .reasonInterrupted {
-            AgentSettingManager.shared.updateAgentStatus(.disconnected)
-            AgentSettingManager.shared.updateRoomStatus(.disconnected)
+            animateView.updateAgentState(.idle)
+            AppContext.preferenceManager()?.updateAgentState(.disconnected)
+            AppContext.preferenceManager()?.updateRoomState(.disconnected)
+            showErrorToast(text: ResourceManager.L10n.Error.networkDisconnected)
         } else if reason == .reasonRejoinSuccess {
-            AgentSettingManager.shared.updateAgentStatus(.connected)
-            AgentSettingManager.shared.updateRoomStatus(.connected)
+            guard let manager = AppContext.preferenceManager() else {
+                dismissErrorToast()
+                return
+            }
+            
+            if manager.information.rtcRoomState == .connected {
+                return
+            }
+            
+            manager.updateAgentState(.connected)
+            manager.updateRoomState(.connected)
+            
+            dismissErrorToast()
+        } else if reason == .reasonLeaveChannel {
+            dismissErrorToast()
+            AppContext.preferenceManager()?.resetAgentInformation()
         }
         
         if state == .failed {
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.roomError)
-            self.leaveChannel()
-            self.dismiss(animated: false)
-        } else if state == .disconnected {
-//            SVProgressHUD.showError(withStatus: <#T##String?#>)
+            showErrorToast(text: ResourceManager.L10n.Error.roomError)
         }
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
-        addLog("local user didJoinChannel uid: \(uid)")
+        addLog("[RTC Call Back] didJoinChannel uid: \(uid)")
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
-        addLog("remote user didJoinedOfUid uid: \(uid)")
-        if (uid == agentUid) {
-            SVProgressHUD.dismiss()
-            SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Conversation.agentJoined)
+        toastView.dismiss()
+        remoteIsJoined = true
+        addLog("[RTC Call Back] didJoinedOfUid uid: \(uid)")
+        AppContext.preferenceManager()?.updateAgentState(.connected)
+        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.agentJoined)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.userSpeakToast)
         }
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
-        addLog("user didOfflineOfUid uid: \(uid)")
-        if (uid == agentUid && !stopInitiative) {
-            AgentSettingManager.shared.updateAgentStatus(.disconnected)
-            self.selectTable?.updateStatus()
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Conversation.agentLeave)
-            restartAgent()
-        }
+        addLog("[RTC Call Back] didOfflineOfUid uid: \(uid)")
+        animateView.updateAgentState(.idle)
+        AppContext.preferenceManager()?.updateAgentState(.disconnected)
+        showErrorToast(text: ResourceManager.L10n.Conversation.agentLeave)
+        remoteIsJoined = false
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
-        self.rtcToken = ""
-        addLog("tokenPrivilegeWillExpire")
+        self.token = ""
+        addLog("[RTC Call Back] tokenPrivilegeWillExpire")
         NetworkManager.shared.generateToken(
             channelName: "",
-            uid: "\(uid)",
+            uid: uid,
             types: [.rtc]
         ) { [weak self] token in
             self?.addLog("regenerate token is: \(token ?? "")")
-            guard let self = self, let token = token else {
+            guard let self = self, let newToken = token else {
                 return
             }
-            self.addLog("will update token: \(token)")
-            let rtcEnigne = self.agentManager.getRtcEntine()
-            rtcEnigne.renewToken(token)
+            self.addLog("will update token: \(newToken)")
+            let rtcEnigne = self.rtcManager.getRtcEntine()
+            rtcEnigne.renewToken(newToken)
+            self.token = newToken
         }
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
-        topBar.updateNetworkStatus(NetworkStatus(agoraQuality: txQuality))
+        if AppContext.preferenceManager()?.information.agentState == .unload { return }
+        addLog("[RTC Call Back] networkQuality: \(rxQuality)")
+        AppContext.preferenceManager()?.updateNetworkState(NetworkStatus(agoraQuality: rxQuality))
     }
         
     func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
         guard let rawString = String(data: data, encoding: .utf8) else {
-            print("Failed to convert data to string")
+            addLog("Failed to convert data to string")
             return
         }
         
-//        print("raw string: \(rawString)")
         // Use message parser to process the message
+        addLog("receive raw string \(rawString)")
         if let message = messageParser.parseMessage(rawString) {
-            print("receive msg: \(message)")
             addLog("receive msg: \(message)")
             handleStreamMessage(message)
         }
@@ -617,6 +566,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             let streamId = message["stream_id"] as? Int ?? 0
             let text = message["text"] as? String ?? ""
             let dataType = message["data_type"] as? String ?? ""
+            let textTs = message["text_ts"] as? Int64 ?? 0
             
             // Ignore empty messages
             guard !text.isEmpty else { return }
@@ -624,24 +574,21 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             if dataType == "transcribe" {
                 if streamId == 0 {
                     // AI response message
-                    if !isFinal {
-                        // Non-final message, update streaming content
-                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            self.messageView.startNewStreamMessage()
-                        }
-                        self.messageView.updateStreamContent(text)
-                    } else {
-                        // Final message, update and complete
-                        if self.messageView.isLastMessageFromUser || self.messageView.isEmpty {
-                            self.messageView.startNewStreamMessage()
-                        }
-                        self.messageView.updateStreamContent(text)
+                    if self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
+                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: false)
+                    }
+                    self.messageView.updateStreamContent(text)
+                    if isFinal {
                         self.messageView.completeStreamMessage()
                     }
                 } else {
                     // User message
+                    if !self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
+                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: true)
+                    }
+                    self.messageView.updateStreamContent(text)
                     if isFinal {
-                        self.messageView.addUserMessage(text)
+                        self.messageView.completeStreamMessage()
                     }
                 }
             }
@@ -652,156 +599,126 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         speakers.forEach { info in
             if (info.uid == agentUid) {
                 var currentVolume: CGFloat = 0
-//                let minValue = (self.waveView.getWaveWidth()) * 1.2
-//                let maxValue = minValue * 2
-                for volumeInfo in speakers {
-                    if (volumeInfo.uid == 0) {
-                    } else {
-//                        currentVolume = CGFloat(volumeInfo.volume) / 256
-                        currentVolume = CGFloat(volumeInfo.volume)
-                        print("current volume is \(currentVolume)")
-                        break
-                    }
+                currentVolume = CGFloat(info.volume)
+                if currentVolume > 0 {
+                    addLog("agent speak volume : \(currentVolume)")
+                    animateView.updateAgentState(.speaking, volume: Int(currentVolume))
+                } else {
+                    animateView.updateAgentState(.listening, volume: Int(currentVolume))
                 }
-                            
-                videoView.updateWithVolume(Float(currentVolume))
-//                self.waveVC.updateVolume(volume: currentVolume)
-//                let heights = [
-//                    mapValueToRange1(value1: currentVolume, x: minValue, y: maxValue),
-//                    mapValueToRange2(value1: currentVolume, x: minValue, y: maxValue),
-//                    mapValueToRange3(value1: currentVolume, x: minValue, y: maxValue),
-//                    mapValueToRange4(value1: currentVolume, x: minValue, y: maxValue),
-//                ]
-//                self.waveView.updateAnimation(duration: 0.2, heights: heights)
+            } else if (info.uid == 0) {
+                bottomBar.setVolumeProgress(value: Float(info.volume))
             }
         }
-    }
-}
-// MARK: - AgentSettingViewDelegate
-extension ChatViewController: AgentSettingViewDelegate {
-    func onClickNoiseCancellationChanged(isOn: Bool) {
-        isDenoise = isOn
-        setupDenoise()
     }
     
-    func onClickVoice() {
-        let voiceId = AgentSettingManager.shared.currentVoiceType.voiceId
-        SVProgressHUD.show()
-        agentManager.updateAgent(agentUid: self.agent_rtc_id, appId: AppContext.shared.appId, voiceId: voiceId) { error in
-            SVProgressHUD.dismiss()
-            guard let error = error else {
-                return
-            }
+    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStateChangedOfUid uid: UInt, state: AgoraAudioRemoteState, reason: AgoraAudioRemoteReason, elapsed: Int) {
+        addLog("[RTC Call Back] remoteAudioStateChangedOfUid")
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             
-            SVProgressHUD.showError(withStatus: error.message)
-            self.dismiss(animated: false)
+            if uid == self.agentUid, state == .stopped {
+                animateView.updateAgentState(.listening)
+            }
         }
-    }
-}
-
-// MARK: - Wave
-extension ChatViewController {
-    func randomMultiplier() -> CGFloat {
-        return CGFloat.random(in: 0.5...1.5) // Generate a random number between 0.5 and 1.5
-    }
-
-    func mapValueToRange1(value1: CGFloat, x: CGFloat, y: CGFloat) -> CGFloat {
-        if value1 == 0 {
-            return x // Return x instead of 0
-        }
-        let scaledValue1 = min(max(value1, 0.0), 1.0)
-        let mappedValue = x + (scaledValue1 * (y - x) * 0.5) // Scale down the range
-        return max(min(mappedValue * randomMultiplier(), y), x) // Ensure the returned value is within [x, y]
-    }
-
-    func mapValueToRange2(value1: CGFloat, x: CGFloat, y: CGFloat) -> CGFloat {
-        if value1 == 0 {
-            return x // Return x instead of 0
-        }
-        let scaledValue1 = min(max(value1, 0.0), 1.0)
-        let mappedValue = x + (scaledValue1 * (y - x) * 0.75) // Scale down the range differently
-        return max(min(mappedValue * randomMultiplier(), y), x) // Ensure the returned value is within [x, y]
-    }
-
-    func mapValueToRange3(value1: CGFloat, x: CGFloat, y: CGFloat) -> CGFloat {
-        if value1 == 0 {
-            return x // Return x instead of 0
-        }
-        let scaledValue1 = min(max(value1, 0.0), 1.0)
-        let mappedValue = x + (scaledValue1 * (y - x) * 0.5) // Same scaling as mapValueToRange1
-        return max(min(mappedValue * randomMultiplier(), y), x) // Ensure the returned value is within [x, y]
-    }
-
-    func mapValueToRange4(value1: CGFloat, x: CGFloat, y: CGFloat) -> CGFloat {
-        if value1 == 0 {
-            return x // Return x instead of 0
-        }
-        let scaledValue1 = min(max(value1, 0.0), 1.0)
-        let mappedValue = x + (scaledValue1 * (y - x) * 0.75) // Same scaling as mapValueToRange2
-        return max(min(mappedValue * randomMultiplier(), y), x) // Ensure the returned value is within [x, y]
     }
 }
 
 // MARK: - Actions
 private extension ChatViewController {
-    func stopPageAction() {
-        agentManager.stopAgent(agentUid: self.agent_rtc_id) { err, res in
+    private func clickTheBackButton() {
+        addLog("[Call] clickTheBackButton()")
+        stopAgent()
+        animateView.release()
+        AppContext.destory()
+        UIApplication.shared.isIdleTimerDisabled = false
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    private func clickTheInformationButton() {
+        let settingVC = AgentInformationViewController()
+        settingVC.modalPresentationStyle = .overFullScreen
+        present(settingVC, animated: false)
+    }
+    
+    private func clickTheSettingButton() {
+        let settingVC = AgentSettingViewController()
+        settingVC.modalPresentationStyle = .overFullScreen
+        settingVC.agentManager = agentManager
+        present(settingVC, animated: false)
+    }
+    
+    private func clickTheCloseButton() {
+        addLog("[Call] clickTheCloseButton()")
+        if AppContext.preferenceManager()?.information.agentState == .connected {
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
         }
-        stopInitiative = false
-        self.leaveChannel()
-        self.dismiss(animated: false)
-        self.fromVC?.navigationController?.popViewController(animated: true)
+        stopLoading()
+        stopAgent()
     }
     
-    @objc func handleEndCallAction() {
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.Conversation.endCallLoading)
-        addLog("begin stop agent")
-        stopInitiative = true
-        self.topBar.backButton.isEnabled = false
-        self.topBar.backButton.alpha = 0.5
-        closeButton.isEnabled = false
-        closeButton.alpha = 0.5
-        agentManager.stopAgent(agentUid: self.agent_rtc_id) { [weak self] err, res in
-            guard let self = self else { return }
-            SVProgressHUD.dismiss()
-            self.closeButton.isEnabled = true
-            self.closeButton.alpha = 1.0
-            self.topBar.backButton.isEnabled = true
-            self.topBar.backButton.alpha = 1.0
-            
-            guard let error = err else {
-                SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.endCallLeave)
-                self.leaveChannel()
-                addLog("stop agent success")
-                self.dismiss(animated: false)
-                return
-            }
-            
-            SVProgressHUD.showInfo(withStatus: error.localizedDescription)
-            addLog("stop agent failed: \(error.localizedDescription)")
-            stopInitiative = false
-            
-            self.dismiss(animated: false)
-            return
+    private func clickTheStartButton() async {
+        addLog("[Call] clickTheStartButton()")
+        await prepareToStartAgent()
+    }
+    
+    private func clickCaptionsButton(state: Bool) {
+        messageView.isHidden = !state
+    }
+    
+    private func clickMuteButton(state: Bool) {
+        setupMuteState(state: state)
+    }
+    
+    @objc private func onClickDevMode() {
+        DeveloperModeViewController.show(
+            from: self,
+            audioDump: rtcManager.getAudioDump(),
+            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "") 
+        {
+            self.devModeButton.isHidden = true
+        } onAudioDump: { isOn in
+            self.rtcManager.enableAudioDump(enabled: isOn)
+        } onSwitchServer: {
+            self.clickTheBackButton()
+        } onCopy: {
+            let messageContents = self.messageView.getAllMessages()
+                .filter { $0.isUser }
+                .map { $0.content }
+                .joined(separator: "\n")
+            let pasteboard = UIPasteboard.general
+            pasteboard.string = messageContents
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
         }
-    }
-    
-    @objc func handleMuteAction(_ sender: UIButton) {
-        isMute = !isMute
-        setupMuteState()
-    }
-    
-    @objc func handleSettingAction() {
-        let settingVc = AgentSettingViewController()
-        settingVc.delegate = self
-        let navigationVC = UINavigationController(rootViewController: settingVc)
-        present(navigationVC, animated: true)
-    }
-    
-    @objc func handleMsgAction(_ sender: UIButton) {
-        sender.isSelected.toggle()
-        messageView.isHidden = !sender.isSelected
-//        clearButton.isHidden = !sender.isSelected
     }
 }
+
+// MARK: - AgentControlToolbarDelegate
+extension ChatViewController: AgentControlToolbarDelegate {
+    func hangUp() {
+        clickTheCloseButton()
+    }
+    
+    func getStart() async {
+        await clickTheStartButton()
+    }
+    
+    func mute(selectedState: Bool) {
+        clickMuteButton(state: selectedState)
+    }
+    
+    func switchCaptions(selectedState: Bool) {
+        clickCaptionsButton(state: selectedState)
+    }
+}
+
+extension ChatViewController: AnimateViewDelegate {
+    func onError(error: AgentError) {
+        VoiceAgentLogger.info(error.message)
+        
+        stopLoading()
+        stopAgent()
+    }
+}
+
 

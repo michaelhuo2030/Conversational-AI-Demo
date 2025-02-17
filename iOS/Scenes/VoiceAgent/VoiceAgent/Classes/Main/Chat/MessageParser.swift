@@ -1,25 +1,13 @@
-//
-//  MessageParser.swift
-//  VoiceAgent
-//
-//  Created by qinhui on 2024/12/25.
-//
-
 import Foundation
 
-extension String {
-    var base64Decoded: String? {
-        guard let data = Data(base64Encoded: self) else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-}
-
-// MARK: - Message Parser
 class MessageParser {
     private var messageBuffer: [String: [String]] = [:]
-    
+    private var lastAccessTime: [String: Date] = [:]
+    private let maxMessageAge: TimeInterval = 5 * 60 // 5 minutes
+
     func parseMessage(_ rawMessage: String) -> [String: Any]? {
-        // Check message format: messageId|partIndex|totalParts|base64Content
+        cleanExpiredMessages()
+        
         let components = rawMessage.split(separator: "|")
         guard components.count == 4 else {
             print("Invalid message format")
@@ -34,31 +22,41 @@ class MessageParser {
             return nil
         }
         
-        // If it's a single part message, parse directly
-        if totalParts == 1 {
-            return parseJsonContent(base64Content)
+        if partIndex < 1 || partIndex > totalParts {
+            print("partIndex out of range")
+            return nil
         }
         
-        // Handle multi-part message
+        lastAccessTime[messageId] = Date()
+        
         if messageBuffer[messageId] == nil {
             messageBuffer[messageId] = Array(repeating: "", count: totalParts)
         }
         
-        // Store current part
         messageBuffer[messageId]?[partIndex - 1] = base64Content
         
-        // Check if all parts are received
-        if let parts = messageBuffer[messageId],
-           !parts.contains("") {
-            // Combine all parts
+        if let parts = messageBuffer[messageId], parts.contains("") == false {
             let fullContent = parts.joined()
-            // Clean up buffer
             messageBuffer.removeValue(forKey: messageId)
-            // Parse complete message
+            lastAccessTime.removeValue(forKey: messageId)
             return parseJsonContent(fullContent)
         }
         
         return nil
+    }
+    
+    private func cleanExpiredMessages() {
+        let currentTime = Date()
+        var keysToRemove: [String] = []
+        for (messageId, accessTime) in lastAccessTime {
+            if currentTime.timeIntervalSince(accessTime) > maxMessageAge {
+                keysToRemove.append(messageId)
+            }
+        }
+        for key in keysToRemove {
+            messageBuffer.removeValue(forKey: key)
+            lastAccessTime.removeValue(forKey: key)
+        }
     }
     
     private func parseJsonContent(_ content: String) -> [String: Any]? {
@@ -68,5 +66,12 @@ class MessageParser {
             return nil
         }
         return json
+    }
+}
+
+extension String {
+    var base64Decoded: String? {
+        guard let data = Data(base64Encoded: self) else { return nil }
+        return String(data: data, encoding: .utf8)
     }
 }

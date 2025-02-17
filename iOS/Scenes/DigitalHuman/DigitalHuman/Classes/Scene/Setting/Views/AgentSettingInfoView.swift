@@ -12,23 +12,23 @@ class AgentNetworkInfoView: AgentSettingInfoView {
     private let networkItem = AgentSettingTableItemView(frame: .zero)
 
     override func createViews() {
-        backgroundColor = PrimaryColors.c_1d1d1d
+        backgroundColor = UIColor.themColor(named: "ai_fill2")
         addSubview(scrollView)
         scrollView.addSubview(contentView)
         
         content1Title.text = ResourceManager.L10n.ChannelInfo.networkInfoTitle
-        content1Title.textColor = PrimaryColors.c_ffffff_a
+        content1Title.textColor = UIColor.themColor(named: "ai_icontext4")
         contentView.addSubview(content1Title)
         
-        contentView1.backgroundColor = PrimaryColors.c_141414
+        contentView1.backgroundColor = UIColor.themColor(named: "ai_block2")
         contentView1.layerCornerRadius = 10
         contentView1.layer.borderWidth = 1
-        contentView1.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView1.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView1)
         
         networkItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourNetwork
-        networkItem.detialLabel.textColor = PrimaryColors.c_36b37e
-        networkItem.backgroundColor = PrimaryColors.c_141414
+        networkItem.detialLabel.textColor = UIColor.themColor(named: "ai_icontext4")
+        networkItem.backgroundColor = UIColor.themColor(named: "ai_block2")
         networkItem.imageView.isHidden = true
         contentView1.addSubview(networkItem)
     }
@@ -111,53 +111,53 @@ class AgentSettingInfoView: UIView {
         // Update Room ID
         roomIDItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomId
         roomIDItem.detialLabel.text = manager.channelName
-        roomIDItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
+        roomIDItem.detialLabel.textColor = UIColor.themColor(named: "ai_icontext4")
         roomIDItem.bottomLineStyle2()
         
         // Update Participant ID
         idItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
         idItem.detialLabel.text = (status == .unload) ? "" : String(manager.uid)
-        idItem.detialLabel.textColor = PrimaryColors.c_ffffff_a
+        idItem.detialLabel.textColor = UIColor.themColor(named: "ai_icontext4")
         idItem.bottomLineStyle2()
     }
     
     func createViews() {
-        backgroundColor = PrimaryColors.c_1d1d1d
+        backgroundColor = UIColor.themColor(named: "ai_fill2")
         
         addSubview(scrollView)
         scrollView.addSubview(contentView)
         
         content1Title.text = ResourceManager.L10n.ChannelInfo.title
-        content1Title.textColor = PrimaryColors.c_ffffff_a
+        content1Title.textColor = UIColor.themColor(named: "ai_icontext4")
         contentView.addSubview(content1Title)
         
-        contentView1.backgroundColor = PrimaryColors.c_141414
+        contentView1.backgroundColor = UIColor.themColor(named: "ai_block2")
         contentView1.layerCornerRadius = 10
         contentView1.layer.borderWidth = 1
-        contentView1.layer.borderColor = PrimaryColors.c_262626.cgColor
+        contentView1.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         contentView.addSubview(contentView1)
         
         agentItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentStatus
-        agentItem.detialLabel.textColor = PrimaryColors.c_36b37e
-        agentItem.backgroundColor = PrimaryColors.c_141414
+        agentItem.detialLabel.textColor = UIColor.themColor(named: "ai_icontext4")
+//        agentItem.backgroundColor = PrimaryColors.c_141414
         agentItem.imageView.isHidden = true
         contentView1.addSubview(agentItem)
         
         roomItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomStatus
-        roomItem.detialLabel.textColor = PrimaryColors.c_36b37e
-        roomItem.backgroundColor = PrimaryColors.c_141414
+        roomItem.detialLabel.textColor = UIColor.themColor(named: "ai_icontext4")
+//        roomItem.backgroundColor = PrimaryColors.c_141414
         roomItem.imageView.isHidden = true
 
         contentView1.addSubview(roomItem)
         
         roomIDItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomId
         roomIDItem.imageView.isHidden = true
-        roomIDItem.backgroundColor = PrimaryColors.c_141414
+//        roomIDItem.backgroundColor = PrimaryColors.c_141414
         contentView1.addSubview(roomIDItem)
         
         idItem.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
         idItem.bottomLine.isHidden = true
-        idItem.backgroundColor = PrimaryColors.c_141414
+//        idItem.backgroundColor = PrimaryColors.c_141414
         idItem.imageView.isHidden = true
         contentView1.addSubview(idItem)
     }
