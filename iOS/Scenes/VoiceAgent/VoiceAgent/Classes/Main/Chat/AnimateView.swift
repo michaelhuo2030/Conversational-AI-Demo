@@ -38,7 +38,8 @@ class AnimateView: NSObject {
         static let videoFileName = "ball_small_video.mov"
     }
     
-    private let videoView: UIView
+    private weak var videoView: UIView?
+    private weak var rtcEngine: AgoraRtcEngineKit?
     private weak var rtcMediaPlayer: AgoraRtcMediaPlayerProtocol?
     private var scaleAnimator: CAAnimationGroup?
     private var currentAnimParams = AnimParams()
@@ -70,6 +71,7 @@ class AnimateView: NSObject {
     }
     
     func setupMediaPlayer(_ rtcEngine: AgoraRtcEngineKit) {
+        self.rtcEngine = rtcEngine
         rtcMediaPlayer = rtcEngine.createMediaPlayer(with: self)
         if let player = rtcMediaPlayer {
             player.mute(true)
@@ -160,7 +162,7 @@ class AnimateView: NSObject {
         group.beginTime = CACurrentMediaTime()
         
         scaleAnimator = group
-        videoView.layer.add(group, forKey: "sizeAnimation")
+        videoView?.layer.add(group, forKey: "sizeAnimation")
     }
     
     private func createAnimationSequence(_ params: AnimParams) -> [CAAnimation] {
@@ -197,17 +199,18 @@ class AnimateView: NSObject {
     }
     
     private func updateParentScale(_ scale: Float) {
-        if let parentView = videoView.superview {
+        if let parentView = videoView?.superview {
             parentView.transform = CGAffineTransform(scaleX: CGFloat(scale), y: CGFloat(scale))
         }
     }
     
-    func release() {
+    func releaseView() {
         rtcMediaPlayer?.stop()
+        rtcEngine?.destroyMediaPlayer(rtcMediaPlayer)
         rtcMediaPlayer = nil
         
         scaleAnimator = nil
-        videoView.layer.removeAllAnimations()
+        videoView?.layer.removeAllAnimations()
         currentState = .idle
     }
 }
@@ -216,13 +219,13 @@ extension AnimateView: CAAnimationDelegate {
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
         if flag {
             if (anim.value(forKey: "shouldStop") as? Bool) == true {
-                videoView.layer.removeAllAnimations()
+                videoView?.layer.removeAllAnimations()
                 scaleAnimator = nil
                 return
             }
             
             if currentState != .speaking {
-                videoView.layer.removeAllAnimations()
+                videoView?.layer.removeAllAnimations()
                 scaleAnimator = nil
                 return
             }

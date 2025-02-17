@@ -629,7 +629,7 @@ private extension ChatViewController {
     private func clickTheBackButton() {
         addLog("[Call] clickTheBackButton()")
         stopAgent()
-        animateView.release()
+        animateView.releaseView()
         AppContext.destory()
         UIApplication.shared.isIdleTimerDisabled = false
         self.navigationController?.popViewController(animated: true)
