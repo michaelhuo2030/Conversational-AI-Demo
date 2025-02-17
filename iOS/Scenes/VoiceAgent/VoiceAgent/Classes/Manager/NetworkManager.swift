@@ -51,7 +51,7 @@ class NetworkManager:NSObject {
     ///   - types: [token type :  token string]
     func generateToken(channelName: String,
                        uid: String,
-                       expire: Int = 1500,
+                       expire: Int = 86400,
                        types: [AgoraTokenType],
                        success: @escaping (String?) -> Void) {
         let date = Date()
@@ -63,7 +63,7 @@ class NetworkManager:NSObject {
                       "ts": 0,
                       "types": types.map({NSNumber(value: $0.rawValue)}),
                       "uid": uid] as [String: Any]
-        let url = "\(baseServerUrl)v2/token/generate"
+        let url = "\(baseServerUrl)/token/generate"
         NetworkManager.shared.postRequest(urlString: url,
                                           params: params) { response in
             let data = response["data"] as? [String: String]

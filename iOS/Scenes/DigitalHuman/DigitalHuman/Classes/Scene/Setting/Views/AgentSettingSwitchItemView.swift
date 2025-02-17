@@ -10,6 +10,7 @@ import Common
 
 class AgentSettingSwitchItemView: UIView {
     let titleLabel = UILabel()
+    let detailLabel = UILabel()
     let switcher = UISwitch()
     let bottomLine = UIView()
     
@@ -27,21 +28,30 @@ class AgentSettingSwitchItemView: UIView {
 
 extension AgentSettingSwitchItemView {
     private func createViews() {
-        self.backgroundColor = PrimaryColors.c_1d1d1d
-
-        titleLabel.textColor = PrimaryColors.c_ffffff
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+        titleLabel.font = UIFont.systemFont(ofSize: 14)
         addSubview(titleLabel)
         
-        bottomLine.backgroundColor = PrimaryColors.c_27272a_a
+        detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
+        detailLabel.font = UIFont.systemFont(ofSize: 12)
+        addSubview(detailLabel)
+        
+        bottomLine.backgroundColor = UIColor.themColor(named: "ai_line1")
         addSubview(bottomLine)
         
         addSubview(switcher)
+        
+        switcher.onTintColor = UIColor.themColor(named: "ai_brand_lightbrand6")
     }
     
     private func createConstrains() {
         titleLabel.snp.makeConstraints { make in
             make.left.equalTo(16)
-            make.centerY.equalToSuperview()
+            make.centerY.equalToSuperview().offset(-10)
+        }
+        detailLabel.snp.makeConstraints { make in
+            make.left.equalTo(titleLabel)
+            make.top.equalTo(titleLabel.snp.bottom).offset(4)
         }
         switcher.snp.makeConstraints { make in
             make.right.equalTo(-16)
@@ -53,6 +63,19 @@ extension AgentSettingSwitchItemView {
             make.height.equalTo(0.5)
             make.bottom.equalToSuperview()
         }
-        
+    }
+    
+    func updateLayout() {
+        if let text = detailLabel.text, !text.isEmpty {
+            detailLabel.isHidden = false
+            titleLabel.snp.updateConstraints { make in
+                make.centerY.equalToSuperview().offset(-10)
+            }
+        } else {
+            detailLabel.isHidden = true
+            titleLabel.snp.updateConstraints { make in
+                make.centerY.equalToSuperview()
+            }
+        }
     }
 }

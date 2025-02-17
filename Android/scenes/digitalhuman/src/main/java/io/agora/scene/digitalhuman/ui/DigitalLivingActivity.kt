@@ -493,10 +493,10 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
             val targetHeight: Int
 
             if (containerRatio > 1.0f) {
-                // 容器高度大于宽度，以容器高度为基准
+                // The container height is greater than the width, using the container height as the reference
                 targetHeight = containerHeight
                 targetWidth = (containerHeight / videoRatio).toInt()
-                // 水平居中
+                // Horizontal center
                 val left = (containerWidth - targetWidth) / 2
                 mRemoteVideoView.layout(
                     left,
@@ -505,7 +505,7 @@ class DigitalLivingActivity : BaseActivity<DigitalActivityLivingBinding>() {
                     targetHeight
                 )
             } else {
-                // 容器宽度大于高度，以容器宽度为基准
+                // The container width is greater than the height, using the container width as the reference
                 targetWidth = containerWidth
                 targetHeight = (containerWidth * videoRatio).toInt()
                 mRemoteVideoView.layout(
