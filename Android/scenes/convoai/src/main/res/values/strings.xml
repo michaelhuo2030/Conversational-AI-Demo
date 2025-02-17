@@ -1,0 +1,62 @@
+<resources>
+    <string name="cov_main_agent_title">AI Agents</string>
+    <string name="cov_detail_agent_title">Conversational AI Engine</string>
+    <string name="cov_detail_not_joined">Not Joined</string>
+    <string name="cov_detail_join_call">Call AI Agent</string>
+    <string name="cov_detail_end_call">End Call</string>
+    <string name="cov_detail_agent_joining">Joining</string>
+    <string name="cov_detail_agent_ending">Ending</string>
+    <string name="cov_detail_join_call_failed">Failed to join. Please try again.</string>
+    <string name="cov_detail_join_call_succeed">Agent joined!</string>
+    <string name="cov_detail_join_call_tips">At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice.</string>
+    <string name="cov_detail_agent_leave">Agent Left!</string>
+    <string name="cov_detail_message_list_you">You</string>
+    <string name="cov_detail_connecting">Connecting…</string>
+    <string name="cov_detail_agent_join_timeout">Timeout. Please try again.</string>
+    <string name="cov_detail_agent_state_error">Agent left abnormally. Please try again.</string>
+    <string name="cov_detail_net_state_error">Network error. Please check your network settings.</string>
+    <string name="cov_detail_state_error">Agent left abnormally. Please try again.</string>
+    <string name="cov_detail_room_error">Room no longer exists. Please join a new call.</string>
+
+    <string name="cov_info_dialog_title">INFO</string>
+    <string name="cov_channel_info_title">CHANNEL INFO</string>
+    <string name="cov_info_agent_status">Agent Status</string>
+    <string name="cov_info_agent_id">Agent ID</string>
+    <string name="cov_info_agent_connected">Connected</string>
+    <string name="cov_info_room_status">Room Status</string>
+    <string name="cov_info_room_id">Room-ID</string>
+    <string name="cov_info_empty">--</string>
+    <string name="cov_info_participant_id">Participant-ID</string>
+    <string name="cov_info_your_id">Your-ID</string>
+    <string name="cov_info_your_network">Your Network</string>
+    <string name="cov_info_your_network_disconnected">Disconnected</string>
+    <string name="cov_info_your_network_good">Good</string>
+    <string name="cov_info_your_network_medium">Fair</string>
+    <string name="cov_info_your_network_poor">Poor</string>
+    <string name="cov_netwotk_info_title">NETWORK INFO</string>
+
+    <string name="cov_setting_title">Settings</string>
+    <string name="cov_setting_agent">AGENT</string>
+    <string name="cov_setting_preset">Preset</string>
+    <string name="cov_setting_voice">Voice</string>
+    <string name="cov_setting_model">Model</string>
+    <string name="cov_setting_language">Language</string>
+    <string name="cov_setting_device">DEVICE</string>
+    <string name="cov_setting_advanced_settings">Advanced Settings</string>
+    <string name="cov_setting_microphone">Microphone</string>
+    <string name="cov_setting_speaker">Speaker</string>
+    <string name="cov_setting_bhvs">Enable BHVS</string>
+    <string name="cov_setting_ai_vad">Intelligent Interruption Handling</string>
+    <string name="cov_setting_network_error">Network Error!</string>
+    <string name="cov_agent_connecting">Connecting…</string>
+    <string name="cov_copy_succeed">Copied</string>
+
+    <string-array name="cov_setting_microphone_array">
+        <item>Inbuilt Mic</item>
+    </string-array>
+
+    <string-array name="cov_setting_speaker_array">
+        <item>Inbuilt Speaker</item>
+    </string-array>
+
+</resources>

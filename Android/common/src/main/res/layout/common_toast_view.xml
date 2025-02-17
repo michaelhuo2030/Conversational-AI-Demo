@@ -22,7 +22,7 @@
         android:id="@+id/tvContent"
         android:layout_gravity="center"
         android:gravity="center"
-        android:maxWidth="172dp"
+        android:maxWidth="250dp"
         android:minWidth="172dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

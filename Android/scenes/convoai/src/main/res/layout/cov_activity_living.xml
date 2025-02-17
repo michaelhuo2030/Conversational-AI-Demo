@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/ai_fill1"
+    android:background="#000000"
     android:orientation="vertical">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -23,7 +23,8 @@
             android:src="@drawable/app_icon_back"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/ai_icontext1" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -44,7 +45,8 @@
             android:src="@drawable/scene_detail_setting"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/ai_icontext1" />
 
         <ImageButton
             android:id="@+id/btn_info"
@@ -54,118 +56,217 @@
             android:src="@drawable/app_living_info"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btn_settings"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/ai_icontext1" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:layout_marginTop="20dp"
-        app:cardElevation="0dp"
-        app:cardCornerRadius="10dp"
-        app:cardBackgroundColor="#6627272A">
+        android:layout_weight="1">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_animation_content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent">
 
-            <io.agora.scene.common.ui.widget.RecordingAnimationView
-                android:id="@+id/recordingAnimationView"
-                android:layout_width="match_parent"
-                android:layout_height="160dp"
-                android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/video_card_view"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:cardCornerRadius="999dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:layout_constraintDimensionRatio="1142:1080"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_percent="0.7"
+                app:strokeColor="@android:color/transparent">
+
+                <TextureView
+                    android:id="@+id/video_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!--            <io.agora.scene.common.ui.widget.RecordingAnimationView-->
+            <!--                android:id="@+id/recordingAnimationView"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="160dp"-->
+            <!--                android:layout_marginLeft="20dp"-->
+            <!--                android:layout_marginRight="20dp"-->
+            <!--                app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--                app:layout_constraintEnd_toEndOf="parent"-->
+            <!--                app:layout_constraintStart_toStartOf="parent"-->
+            <!--                app:layout_constraintTop_toTopOf="parent" />-->
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <io.agora.scene.common.ui.widget.MessageListView
             android:id="@+id/messageListView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
 
-        <include
-            android:id="@+id/v_not_joined"
-            layout="@layout/cov_not_joined_view" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="30dp">
+
+            <io.agora.scene.common.ui.widget.GradientBorderView
+                android:id="@+id/v_connecting"
+                android:layout_width="108dp"
+                android:layout_height="39dp"
+                android:layout_gravity="center_horizontal"
+                app:borderWidth="2dp"
+                app:cornerRadius="99dp"
+                app:gradientColors="@array/gradient_border_default_colors">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/cov_agent_connecting"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp" />
+            </io.agora.scene.common.ui.widget.GradientBorderView>
+
+            <TextView
+                android:id="@+id/tv_disconnect"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:paddingHorizontal="16dp"
+                android:textSize="14sp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:background="@drawable/connect_state_error_border"
+                android:textColor="@color/ai_red6"
+                tools:text="Connecting..."
+                android:visibility="invisible"/>
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/btn_debug"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="40dp"
+            android:layout_gravity="bottom|end"
+            android:background="@android:color/transparent"
+            android:src="@drawable/btn_debug_selector" />
     </FrameLayout>
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
         android:layout_height="72dp"
-        android:paddingHorizontal="40dp">
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="30dp">
 
         <LinearLayout
             android:id="@+id/ll_calling"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center"
             android:layout_gravity="center"
-            tools:visibility="visible"
-            android:visibility="gone" >
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="40dp"
+            android:visibility="gone"
+            tools:visibility="visible">
 
-            <ImageButton
-                android:id="@+id/btn_cc"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cv_cc"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:background="@drawable/btn_ai_block1_round"
-                android:src="@drawable/scene_detail_captions" />
+                android:backgroundTint="@android:color/transparent"
+                app:cardCornerRadius="36dp"
+                app:cardElevation="0dp">
+
+                <ImageButton
+                    android:id="@+id/btn_cc"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:background="@drawable/btn_bg_block1_selector"
+                    android:src="@drawable/scene_detail_captions"
+                    app:tint="@color/ai_icontext1" />
+            </androidx.cardview.widget.CardView>
+
 
             <Space
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <ImageButton
-                android:id="@+id/btn_mic"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cv_mic"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:background="@drawable/btn_ai_block1_round"
-                android:src="@drawable/scene_detail_microphone" />
+                android:backgroundTint="@android:color/transparent"
+                app:cardCornerRadius="36dp"
+                app:cardElevation="0dp">
+
+                <ImageButton
+                    android:id="@+id/btn_mic"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/btn_bg_block1_selector"
+                    android:src="@drawable/agent_user_speaker" />
+            </androidx.cardview.widget.CardView>
 
             <Space
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <ImageButton
-                android:id="@+id/btn_end_call"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cv_end_call"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:background="@drawable/btn_ai_block1_round"
-                android:src="@drawable/scene_detail_close" />
+                android:backgroundTint="@android:color/transparent"
+                app:cardCornerRadius="36dp"
+                app:cardElevation="0dp">
+
+                <ImageButton
+                    android:id="@+id/btn_end_call"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:background="@drawable/btn_bg_block1_selector"
+                    android:src="@drawable/scene_detail_close"
+                    app:tint="@color/ai_icontext1" />
+            </androidx.cardview.widget.CardView>
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/ll_join_call"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:layout_gravity="center"
+            android:background="@drawable/btn_join_call_selector"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
             android:gravity="center_horizontal|center_vertical"
-            android:background="@drawable/btn_join_call_gradient"
-            tools:visibility="gone"
+            app:layout_constraintWidth_percent="0.8"
+            app:layout_constraintDimensionRatio="5.8:1"
             android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:src="@drawable/cov_detail_join_call"
-                android:layout_marginEnd="8dp" />
+                app:tint="@color/ai_icontext1" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cov_detail_join_call"
-                android:textColor="#FDFCFB"
+                android:textColor="@color/ai_icontext1"
                 android:textSize="18sp" />
         </LinearLayout>
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

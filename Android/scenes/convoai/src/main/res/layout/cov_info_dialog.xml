@@ -94,8 +94,7 @@ android:background="@drawable/bottom_dialog_bg">
                 android:gravity="center"
                 android:text="@string/cov_info_your_network"
                 android:textColor="@color/ai_icontext1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"/>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/mtv_network_status"
@@ -104,8 +103,8 @@ android:background="@drawable/bottom_dialog_bg">
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical|end"
-                android:text="@string/cov_info_agent_connected"
-                android:textColor="@color/ai_green6"
+                android:text="@string/cov_info_your_network_disconnected"
+                android:textColor="@color/ai_red6"
                 android:textSize="16sp" />
         </LinearLayout>
 
@@ -147,8 +146,7 @@ android:background="@drawable/bottom_dialog_bg">
                 android:gravity="center"
                 android:text="@string/cov_info_agent_status"
                 android:textColor="@color/ai_icontext1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"/>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/mtv_agent_status"
@@ -159,6 +157,38 @@ android:background="@drawable/bottom_dialog_bg">
                 android:gravity="center_vertical|end"
                 android:text="@string/cov_info_agent_connected"
                 android:textColor="@color/ai_green6"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_marginStart="16dp"
+            android:background="@color/ai_line1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:paddingHorizontal="16dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/cov_info_agent_id"
+                android:textColor="@color/ai_icontext1"
+                android:textSize="16sp"/>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/mtv_agent_id"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="xxx"
+                android:textColor="@color/ai_icontext4"
                 android:textSize="16sp" />
         </LinearLayout>
 

@@ -1,42 +1,50 @@
 package io.agora.scene.convoai.ui
 
-import android.content.Context
-import android.graphics.Color
+import android.content.DialogInterface
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.CompoundButton
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseSheetDialog
-import io.agora.scene.common.ui.LoadingDialog
-import io.agora.scene.common.util.toast.ToastUtil
-import io.agora.scene.convoai.R
+import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.dp
+import io.agora.scene.common.util.getDistanceFromScreenEdges
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
-import io.agora.scene.convoai.http.ConvAIManager
-import io.agora.scene.convoai.rtc.AgentLLMType
-import io.agora.scene.convoai.rtc.AgentLanguageType
-import io.agora.scene.convoai.rtc.AgentMicrophoneType
-import io.agora.scene.convoai.rtc.AgentPresetType
-import io.agora.scene.convoai.rtc.AgentSpeakerType
-import io.agora.scene.convoai.rtc.AgentVoiceType
-import io.agora.scene.convoai.rtc.CovAgoraManager
+import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
+import io.agora.scene.convoai.constant.CovAgentManager
+import io.agora.scene.convoai.api.CovAgentPreset
+import io.agora.scene.convoai.constant.AgentConnectionState
 
 class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
-    companion object {
-        private const val TAG = "AgentSettingsSheetDialog"
+    private var onDismissCallback: (() -> Unit)? = null
+    
+    interface Callback {
+        fun onPreset(preset: CovAgentPreset)
     }
 
-    private val presets = AgentPresetType.options
-    private var voices = AgentVoiceType.options
-    private var LLMs = AgentLLMType.values()
-    private var languages = AgentLanguageType.values()
-    private val microphones = AgentMicrophoneType.values()
-    private val speakers = AgentSpeakerType.values()
+    var onCallBack: Callback? = null
+
+    companion object {
+        private const val TAG = "AgentSettingsSheetDialog"
+        
+        fun newInstance(onDismiss: () -> Unit): CovSettingsDialog {
+            return CovSettingsDialog().apply {
+                this.onDismissCallback = onDismiss
+            }
+        }
+    }
+
+    private val optionsAdapter = OptionsAdapter()
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onDismissCallback?.invoke()
+    }
 
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -47,172 +55,216 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        updateOptionsByPresets()
+        
         binding?.apply {
             setOnApplyWindowInsets(root)
-            clPreset.setOnClickListener {
-                onClickPreset()
-            }
-            clLanguage.setOnClickListener {
-                onClickLanguage()
-            }
-            vOptionsMask.setOnClickListener {
-                onClickMaskView()
-            }
-            cbNoiseCancellation.isChecked = CovAgoraManager.getDenoiseStatus()
-            cbNoiseCancellation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-                CovAgoraManager.updateDenoise(isChecked)
-            }
-            cbAiVad.isChecked = CovAgoraManager.isAiVad
+            rcOptions.adapter = optionsAdapter
+            rcOptions.layoutManager = LinearLayoutManager(context)
+            clPreset.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickPreset()
+                }
+            })
+            clLanguage.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickLanguage()
+                }
+            })
+            vOptionsMask.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickMaskView()
+                }
+            })
+            cbAiVad.isChecked = CovAgentManager.enableAiVad
             cbAiVad.setOnClickListener {
-                CovAgoraManager.isAiVad = cbAiVad.isChecked
-                CovAgoraManager.isForceThreshold = cbAiVad.isChecked
-                updateViewSettings()
-            }
-            cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
-            cbForceResponse.setOnClickListener {
-                CovAgoraManager.isForceThreshold = cbForceResponse.isChecked
-                updateViewSettings()
+                CovAgentManager.enableAiVad = cbAiVad.isChecked
             }
             btnClose.setOnClickListener {
                 dismiss()
             }
         }
-        setupPresetSpinner()
-        setupLanguageSpinner()
-        updateViewSettings()
+        updatePageEnable()
+        updateBaseSettings()
     }
 
-    private fun uploadNewSetting(voice: AgentVoiceType? = null, llm: AgentLLMType? = null, language: AgentLanguageType? = null) {
-        val context = context?:return
-        if (CovAgoraManager.agentStarted) {
-            val loadingDialog = LoadingDialog(context).apply {
-                show()
+    override fun disableDragging(): Boolean {
+        return true
+    }
+
+    private fun updateBaseSettings() {
+        binding?.apply {
+            tvPresetDetail.text = CovAgentManager.getPreset()?.display_name
+            tvLanguageDetail.text = CovAgentManager.language?.language_name
+        }
+    }
+
+    // The non-English overseas version must disable AiVad.
+    private fun setAiVadBySelectLanguage(){
+        binding?.apply {
+            if (CovAgentManager.getPreset()?.isIndependent() == true) {
+                CovAgentManager.enableAiVad = false
+                cbAiVad.isChecked = false
+                cbAiVad.isEnabled = false
+            }else{
+                cbAiVad.isEnabled = true
             }
-            ConvAIManager.updateAgent(voice?.value) { success ->
-                loadingDialog.dismiss()
-                if (success) {
-                    voice?.let {CovAgoraManager.voiceType = it}
-                    llm?.let { CovAgoraManager.llmType = llm }
-                    language?.let { CovAgoraManager.languageType = language }
-                    updateViewSettings()
+        }
+        if (!ServerConfig.isMainlandVersion) {
+            binding?.apply {
+                if (CovAgentManager.language?.language_code == "en-US") {
+                    cbAiVad.isEnabled = true
                 } else {
-                    updateViewSettings()
-                    ToastUtil.show(io.agora.scene.common.R.string.cov_setting_network_error)
+                    CovAgentManager.enableAiVad = false
+                    cbAiVad.isChecked = false
+                    cbAiVad.isEnabled = false
                 }
+            }
+        }
+    }
+
+    private var connectionState = AgentConnectionState.IDLE
+
+    fun updateConnectStatus(connectionState: AgentConnectionState) {
+        this.connectionState = connectionState
+        updatePageEnable()
+    }
+
+    private fun updatePageEnable() {
+        val context = context ?: return
+        if (connectionState == AgentConnectionState.IDLE) {
+            binding?.apply {
+                tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
+                tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
+                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                clPreset.isEnabled = true
+                clLanguage.isEnabled = true
+                cbAiVad.isEnabled = true
             }
         } else {
-            voice?.let {CovAgoraManager.voiceType = it}
-            llm?.let { CovAgoraManager.llmType = llm }
-            language?.let { CovAgoraManager.languageType = language }
-            updateViewSettings()
-        }
-    }
-
-    private fun updateViewSettings() {
-        binding?.apply {
-            // ai vad
-            if (CovAgoraManager.agentStarted) {
-                clAiVad.visibility = View.GONE
-                clForceResponse.visibility = View.GONE
-            } else {
-                clAiVad.visibility = View.VISIBLE
-                cbAiVad.isChecked = CovAgoraManager.isAiVad
-                cbForceResponse.isChecked = CovAgoraManager.isForceThreshold
-                if (CovAgoraManager.isAiVad) {
-                    clForceResponse.visibility = View.VISIBLE
-                } else {
-                    clForceResponse.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    private fun setupPresetSpinner() {
-        val context = context?:return
-        binding?.apply {
-
-
-        }
-    }
-
-    private fun setupLanguageSpinner() {
-        val context = context?:return
-        binding?.apply {
-
-        }
-    }
-
-    private fun updateOptionsByPresets() {
-        when (CovAgoraManager.currentPresetType()) {
-            AgentPresetType.VERSION1 -> {
-                voices = arrayOf(AgentVoiceType.AVA_MULTILINGUAL)
-                LLMs = arrayOf(AgentLLMType.OPEN_AI)
-                languages = arrayOf(AgentLanguageType.EN)
-            }
-            AgentPresetType.XIAO_AI -> {
-                voices = arrayOf(AgentVoiceType.FEMALE_SHAONV)
-                LLMs = arrayOf(AgentLLMType.MINIMAX)
-                languages = arrayOf(AgentLanguageType.CN)
-            }
-            AgentPresetType.TBD -> {
-                voices = arrayOf(AgentVoiceType.TBD)
-                LLMs = arrayOf(AgentLLMType.MINIMAX, AgentLLMType.TONG_YI)
-                languages = arrayOf(AgentLanguageType.CN, AgentLanguageType.EN)
-            }
-            AgentPresetType.DEFAULT -> {
-                voices = arrayOf(AgentVoiceType.ANDREW, AgentVoiceType.EMMA, AgentVoiceType.DUSTIN, AgentVoiceType.SERENA)
-                LLMs = arrayOf(AgentLLMType.OPEN_AI)
-                languages = arrayOf(AgentLanguageType.EN)
-            }
-            AgentPresetType.AMY -> {
-                voices = arrayOf(AgentVoiceType.EMMA)
-                LLMs = arrayOf(AgentLLMType.OPEN_AI)
-                languages = arrayOf(AgentLanguageType.EN)
+            binding?.apply {
+                tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
+                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
+                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
+                clPreset.isEnabled = false
+                clLanguage.isEnabled = false
+                cbAiVad.isEnabled = false
             }
         }
     }
 
     private fun onClickPreset() {
+        val presets = CovAgentManager.getPresetList() ?: return
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            cvOptions.visibility = View.VISIBLE
-            val itemLocation = IntArray(2)
-            clPreset.getLocationOnScreen(itemLocation)
-            val maskLocation = IntArray(2)
-            vOptionsMask.getLocationOnScreen(maskLocation)
-            // 获取目标视图的坐标
-            val targetX = itemLocation[0] - maskLocation[0]
-            val targetY = itemLocation[1] - maskLocation[1]
+            
+            // Calculate popup position using getDistanceFromScreenEdges
+            val itemDistances = clPreset.getDistanceFromScreenEdges()
+            val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
+            val targetY = itemDistances.top - maskDistances.top + 30.dp
+            cvOptions.x = vOptionsMask.width - 250.dp
+            cvOptions.y = targetY
 
-            // 设置源视图的位置
-            cvOptions.x = targetX.toFloat()
-            cvOptions.y = targetY.toFloat()
+            // Calculate height with constraints
+            val params = cvOptions.layoutParams
+            val itemHeight = 44.dp.toInt()
+            // Ensure maxHeight is at least one item height
+            val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
+            val finalHeight = (itemHeight * presets.size).coerceIn(itemHeight, finalMaxHeight)
+
+            params.height = finalHeight
+            cvOptions.layoutParams = params
+
+            // Update options and handle selection
+            optionsAdapter.updateOptions(
+                presets.map { it.display_name }.toTypedArray(),
+                presets.indexOf(CovAgentManager.getPreset())
+            ) { index ->
+                val preset = presets[index]
+                CovAgentManager.setPreset(preset)
+                onCallBack?.onPreset(preset)
+                updateBaseSettings()
+                setAiVadBySelectLanguage()
+                vOptionsMask.visibility = View.INVISIBLE
+            }
         }
     }
 
     private fun onClickLanguage() {
+        val languages = CovAgentManager.getLanguages() ?: return
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            cvOptions.visibility = View.VISIBLE
-            val itemLocation = IntArray(2)
-            clLanguage.getLocationOnScreen(itemLocation)
-            val maskLocation = IntArray(2)
-            vOptionsMask.getLocationOnScreen(maskLocation)
-            // 获取目标视图的坐标
-            val targetX = itemLocation[0] - maskLocation[0]
-            val targetY = itemLocation[1] - maskLocation[1]
+            
+            // Calculate popup position using getDistanceFromScreenEdges
+            val itemDistances = clLanguage.getDistanceFromScreenEdges()
+            val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
+            val targetY = itemDistances.top - maskDistances.top + 30.dp
+            cvOptions.x = vOptionsMask.width - 250.dp
+            cvOptions.y = targetY
+            
+            // Calculate height with constraints
+            val params = cvOptions.layoutParams
+            val itemHeight = 44.dp.toInt()
+            // Ensure maxHeight is at least one item height
+            val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
+            val finalHeight = (itemHeight * languages.size).coerceIn(itemHeight, finalMaxHeight)
+            
+            params.height = finalHeight
+            cvOptions.layoutParams = params
 
-            // 设置源视图的位置
-            cvOptions.x = targetX.toFloat()
-            cvOptions.y = targetY.toFloat()
+            // Update options and handle selection
+            optionsAdapter.updateOptions(
+                languages.map { it.language_name }.toTypedArray(),
+                languages.indexOf(CovAgentManager.language)
+            ) { index ->
+                CovAgentManager.language = languages[index]
+                updateBaseSettings()
+                setAiVadBySelectLanguage()
+                vOptionsMask.visibility = View.INVISIBLE
+            }
         }
     }
 
     private fun onClickMaskView() {
         binding?.apply {
-            vOptionsMask.visibility = View.GONE
-            cvOptions.visibility = View.GONE
+            vOptionsMask.visibility = View.INVISIBLE
+        }
+    }
+
+    inner class OptionsAdapter : RecyclerView.Adapter<OptionsAdapter.ViewHolder>() {
+
+        private var options: Array<String> = emptyArray()
+        private var listener: ((Int) -> Unit)? = null
+        private var selectedIndex: Int? = null
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            return ViewHolder(CovSettingOptionItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.bind(options[position], (position == selectedIndex))
+            holder.itemView.setOnClickListener {
+                listener?.invoke(position)
+            }
+        }
+
+        override fun getItemCount(): Int {
+            return options.size
+        }
+
+        fun updateOptions(newOptions: Array<String>, selected: Int, newListener: (Int) -> Unit) {
+            options = newOptions
+            listener = newListener
+            selectedIndex = selected
+            notifyDataSetChanged()
+        }
+
+        inner class ViewHolder(private val binding: CovSettingOptionItemBinding) : RecyclerView.ViewHolder(binding.root) {
+            fun bind(option: String, selected: Boolean) {
+                binding.tvText.text = option
+                binding.ivIcon.visibility = if (selected) View.VISIBLE else View.INVISIBLE
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package io.agora.scene.common.net
 
 import android.util.Log
+import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.util.CommonLogger
 import okhttp3.Interceptor
 import okhttp3.Request
@@ -51,6 +52,7 @@ class HttpLogger : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val url = request.url
+        val requestId = java.util.UUID.randomUUID().toString().substring(0, 8)
 
         // Skip excluded paths and content types checks
         if (shouldSkipLogging(request)) {
@@ -60,16 +62,18 @@ class HttpLogger : Interceptor {
         // Build curl command for request logging
         val (fullCurl, maskedCurl) = buildCurlCommand(request)
 
-        // Log requests
-        Log.d("HttpLogger", "HTTP-Request: $fullCurl")
-        CommonLogger.d("HTTP-Request", maskedCurl)
+        // Log requests with requestId
+        if (BuildConfig.DEBUG) {
+            Log.d("HttpLogger", "[$requestId] HTTP-Request: $fullCurl")
+        }
+        CommonLogger.d("[$requestId] HTTP-Request", maskedCurl)
 
         // Execute request and log response
         val startNs = System.nanoTime()
         val response = chain.proceed(request)
         
         // Log response if needed
-        logResponse(response, startNs, url)
+        logResponse(response, startNs, url, requestId)
 
         return response
     }
@@ -203,11 +207,10 @@ class HttpLogger : Interceptor {
                 return true
             }
         }
-        
         return false
     }
 
-    private fun logResponse(response: Response, startNs: Long, url: HttpUrl) {
+    private fun logResponse(response: Response, startNs: Long, url: HttpUrl, requestId: String) {
         val tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs)
 
         val responseBody = response.body ?: return
@@ -283,8 +286,10 @@ class HttpLogger : Interceptor {
         }
 
         // Print full response to console
-        Log.d("HttpLogger","HTTP-Response: $fullResponseLog")
+        if (BuildConfig.DEBUG){
+            Log.d("HttpLogger","[$requestId] HTTP-Response: $fullResponseLog")
+        }
         // Log masked response
-        CommonLogger.d("HTTP-Response", maskedResponseLog)
+        CommonLogger.d("[$requestId] HTTP-Response", maskedResponseLog)
     }
 } 

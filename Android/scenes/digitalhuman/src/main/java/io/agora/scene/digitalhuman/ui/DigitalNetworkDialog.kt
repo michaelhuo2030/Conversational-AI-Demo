@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Window
 import android.view.WindowManager
+import io.agora.scene.digitalhuman.R
 import io.agora.scene.digitalhuman.databinding.DigitalNetworkDialogBinding
 import io.agora.scene.digitalhuman.rtc.DigitalAgoraManager
 
@@ -35,8 +36,8 @@ class DigitalNetworkDialog : DialogFragment() {
                 dialog.dismiss()
             }
             if (!DigitalAgoraManager.agentStarted) {
-                binding.mtvNetworkStatus.text = getString(io.agora.scene.common.R.string
-                    .cov_info_your_network_disconnected)
+                binding.mtvNetworkStatus.text = getString(R.string
+                    .digital_info_your_network_disconnected)
                 binding.mtvNetworkStatus.setTextColor(Color.parseColor("#FF414D"))
             } else {
                 updateNetworkStatus(value)
@@ -60,15 +61,15 @@ class DigitalNetworkDialog : DialogFragment() {
         binding?.apply {
             when (value) {
                 1, 2 -> {
-                    mtvNetworkStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_good)
+                    mtvNetworkStatus.text = getString(R.string.digital_info_your_network_good)
                     mtvNetworkStatus.setTextColor(Color.parseColor("#36B37E"))
                 }
                 3, 4 -> {
-                    mtvNetworkStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_medium)
+                    mtvNetworkStatus.text = getString(R.string.digital_info_your_network_medium)
                     mtvNetworkStatus.setTextColor(Color.parseColor("#FFAB00"))
                 }
                 else -> {
-                    mtvNetworkStatus.text = getString(io.agora.scene.common.R.string.cov_info_your_network_poor)
+                    mtvNetworkStatus.text = getString(R.string.digital_info_your_network_poor)
                     mtvNetworkStatus.setTextColor(Color.parseColor("#FF414D"))
                 }
             }

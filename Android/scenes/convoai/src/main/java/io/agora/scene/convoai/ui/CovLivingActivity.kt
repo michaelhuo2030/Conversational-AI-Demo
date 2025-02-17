@@ -1,68 +1,135 @@
 package io.agora.scene.convoai.ui
 
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.PorterDuff
 import android.util.Log
+import android.view.Gravity
 import android.view.View
-import androidx.core.content.ContextCompat
-import io.agora.scene.common.AgentApp
+import android.view.WindowManager
+import android.widget.Toast
+import androidx.core.view.isVisible
+import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.util.PermissionHelp
+import io.agora.scene.convoai.rtc.CovRtcManager
+import io.agora.scene.convoai.utils.MessageParser
+import io.agora.rtc2.Constants
+import io.agora.rtc2.IRtcEngineEventHandler
+import io.agora.rtc2.RtcEngineEx
+import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
-import io.agora.scene.common.ui.BaseActivity
-import io.agora.scene.common.ui.LoadingDialog
-import io.agora.scene.common.util.PermissionHelp
-import io.agora.scene.convoai.http.AgentRequestParams
-import io.agora.scene.convoai.rtc.CovAgoraManager
-import io.agora.scene.convoai.utils.MessageParser
-import io.agora.rtc2.ChannelMediaOptions
-import io.agora.rtc2.Constants
-import io.agora.rtc2.Constants.CLIENT_ROLE_BROADCASTER
-import io.agora.rtc2.Constants.ERR_OK
-import io.agora.rtc2.IRtcEngineEventHandler
-import io.agora.rtc2.RtcEngine
-import io.agora.rtc2.RtcEngineConfig
-import io.agora.rtc2.RtcEngineEx
+import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.copyToClipboard
+import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
+import io.agora.scene.convoai.animation.AgentState
+import io.agora.scene.convoai.animation.CovBallAnim
+import io.agora.scene.convoai.animation.CovBallAnimCallback
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
-import io.agora.scene.convoai.http.ConvAIManager
-import kotlin.random.Random
+import io.agora.scene.convoai.api.AgentRequestParams
+import io.agora.scene.convoai.constant.CovAgentManager
+import io.agora.scene.convoai.api.CovAgentPreset
+import io.agora.scene.convoai.api.CovAgentApiManager
+import io.agora.scene.convoai.constant.AgentConnectionState
+import io.agora.scene.convoai.debug.CovDebugDialog
+import kotlinx.coroutines.*
+import java.util.UUID
+import kotlin.coroutines.*
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val TAG = "LivingActivity"
 
-    private lateinit var engine: RtcEngineEx
+    private var infoDialog: CovAgentInfoDialog? = null
+    private var settingDialog: CovSettingsDialog? = null
 
-    private var loadingDialog: LoadingDialog? = null
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
+    private var waitingAgentJob: Job? = null
+
+    private var pingJob: Job? = null
+
+    // Add a coroutine scope for log processing
+    private val logScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    private var networkValue: Int = -1
 
     private var parser = MessageParser()
 
-    private var isLocalAudioMuted = false
     private var rtcToken: String? = null
-    private var channelName = ""
-    private var localUid: Int = 0
-    private val agentUID = 999
-    private var networkStatus: Int? = null
+
+    private var isLocalAudioMuted = false
+        set(value) {
+            if (field != value) {
+                field = value
+                updateMicrophoneView()
+            }
+        }
+
     private var isShowMessageList = false
         set(value) {
             if (field != value) {
                 field = value
-                updateCenterView()
+                updateMessageList()
             }
         }
 
-    var isAgentStarted = false
+    var connectionState = AgentConnectionState.IDLE
         set(value) {
             if (field != value) {
                 field = value
-                updateCenterView()
+                updateStateView()
+                infoDialog?.updateConnectStatus(value)
+                settingDialog?.updateConnectStatus(value)
+                when (connectionState) {
+                    AgentConnectionState.CONNECTED -> {
+                        waitingAgentJob?.cancel()
+                        waitingAgentJob = null
+
+                        // 使用协程替代 Timer 进行 ping
+                        pingJob = coroutineScope.launch {
+                            while (isActive) {
+                                val presetName = CovAgentManager.getPreset()?.name ?: return@launch
+                                CovAgentApiManager.ping(CovAgentManager.channelName, presetName) {}
+                                delay(10000) // 10秒间隔
+                            }
+                        }
+                    }
+
+                    AgentConnectionState.IDLE -> {
+                        // 取消 ping
+                        pingJob?.cancel()
+                        pingJob = null
+                        waitingAgentJob?.cancel()
+                        waitingAgentJob = null
+                    }
+
+                    AgentConnectionState.ERROR -> {
+                        // 取消 ping
+                        pingJob?.cancel()
+                        pingJob = null
+                        waitingAgentJob?.cancel()
+                        waitingAgentJob = null
+                    }
+
+                    AgentConnectionState.CONNECTED_INTERRUPT -> {
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
+                    }
+
+                    AgentConnectionState.CONNECTING -> {
+                    }
+                }
             }
         }
+
+    // Add a flag to indicate whether the call was ended by the user
+    private var isUserEndCall = false
+
+    private var mCovBallAnim: CovBallAnim? = null
 
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
@@ -70,129 +137,187 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun initView() {
         setupView()
-        updateCenterView()
-        // data
-        CovAgoraManager.resetData()
+        updateStateView()
+        CovAgentManager.resetData()
         createRtcEngine()
-        loadingDialog = LoadingDialog(this)
-        channelName = "agora_" + Random.nextInt(1, 10000000).toString()
-        localUid = Random.nextInt(1000, 10000000)
-        getToken { }
+        setupBallAnimView()
         PermissionHelp(this).checkMicPerm({}, {
             finish()
-        }, true
-        )
+        }, true)
+
+        // Fetch token and presets when entering the scene
+        coroutineScope.launch {
+            val deferreds = listOf(
+                async { updateTokenAsync() },
+                async { fetchPresetsAsync() }
+            )
+            deferreds.awaitAll()
+        }
+    }
+
+    override fun onHandleOnBackPressed() {
+        super.onHandleOnBackPressed()
+    }
+
+    override fun finish() {
+        logScope.cancel()
+        coroutineScope.cancel()
+
+        // if agent is connected, leave channel
+        if (connectionState == AgentConnectionState.CONNECTED || connectionState == AgentConnectionState.ERROR) {
+            stopAgentAndLeaveChannel()
+        }
+        mCovBallAnim?.let {
+            it.release()
+            mCovBallAnim = null
+        }
+        CovRtcManager.resetData()
+        CovAgentManager.resetData()
+        super.finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        engine.leaveChannel()
-        ConvAIManager.stopAgent { ok ->
-            if (ok) {
-                Log.d(TAG, "Agent stopped successfully")
-            } else {
-                Log.d(TAG, "Failed to stop agent")
-            }
-        }
-        RtcEngine.destroy()
-        CovAgoraManager.resetData()
-        loadingDialog?.dismiss()
+        CovLogger.d(TAG, "activity onDestroy")
     }
 
     override fun onPause() {
         super.onPause()
-        if (isAgentStarted) {
+        if (connectionState == AgentConnectionState.CONNECTED) {
             startRecordingService()
         }
     }
 
     private fun startRecordingService() {
-        val intent = Intent("io.agora.agent.START_FOREGROUND_SERVICE")
-        sendBroadcast(intent)
+        val intent = Intent(this, CovRtcForegroundService::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun persistentToast(visible: Boolean, text: String) {
+        mBinding?.tvDisconnect?.text = text
+        mBinding?.tvDisconnect?.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     private fun getAgentParams(): AgentRequestParams {
         return AgentRequestParams(
-            channelName = channelName,
-            remoteRtcUid = localUid,
-            agentRtcUid = agentUID,
-            ttsVoiceId = if (CovAgoraManager.isMainlandVersion) null else CovAgoraManager.voiceType.value,
+            channelName = CovAgentManager.channelName,
+            remoteRtcUid = CovAgentManager.uid.toString(),
+            agentRtcUid = CovAgentManager.agentUID.toString(),
             audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
-            enableAiVad = CovAgoraManager.isAiVad,
-            forceThreshold = CovAgoraManager.isForceThreshold,
+            enableAiVad = CovAgentManager.enableAiVad,
+            enableBHVS = CovAgentManager.enableBHVS,
+            presetName = CovAgentManager.getPreset()?.name,
+            asrLanguage = CovAgentManager.language?.language_code,
         )
     }
 
     private fun onClickStartAgent() {
-        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
-        loadingDialog?.show()
-        CovAgoraManager.channelName = channelName
-        CovAgoraManager.uid = localUid
+        // Immediately show the connecting status
+        isUserEndCall = false
+        connectionState = AgentConnectionState.CONNECTING
+        CovAgentManager.channelName = "agent_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8)
 
-        ConvAIManager.startAgent(getAgentParams()) { isAgentOK ->
-            if (isAgentOK) {
-                if (rtcToken == null) {
-                    getToken { isTokenOK ->
-                        if (isTokenOK) {
-                            joinChannel()
-                        } else {
-                            loadingDialog?.dismiss()
-                            CovLogger.e(TAG, "Token error")
-                            ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_failed)
+        coroutineScope.launch(Dispatchers.IO) {
+            val needToken = rtcToken == null
+            val needPresets = CovAgentManager.getPresetList().isNullOrEmpty()
+
+            if (needToken || needPresets) {
+                val deferreds = buildList {
+                    if (needToken) add(async { updateTokenAsync() })
+                    if (needPresets) add(async { fetchPresetsAsync() })
+                }
+                // Check whether all tasks are successful
+                val results = deferreds.awaitAll()
+                if (results.any { !it }) {
+                    withContext(Dispatchers.Main) {
+                        connectionState = AgentConnectionState.IDLE
+                        ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
+                    }
+                    return@launch
+                }
+            }
+            withContext(Dispatchers.Main) {
+                mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
+            }
+
+            CovRtcManager.joinChannel(rtcToken ?: "", CovAgentManager.channelName, CovAgentManager.uid)
+            val startRet = startAgentAsync()
+
+            withContext(Dispatchers.Main) {
+                val channelName = startRet.first
+                if (channelName != CovAgentManager.channelName) {
+                    return@withContext
+                }
+                val isAgentOK = startRet.second
+                if (isAgentOK) {
+                    // Startup timeout check
+                    waitingAgentJob = launch {
+                        delay(10000)
+                        if (connectionState == AgentConnectionState.CONNECTING) {
+                            stopAgentAndLeaveChannel()
+                            CovLogger.e(TAG, "Agent connection timeout")
+                            ToastUtil.show(getString(R.string.cov_detail_agent_join_timeout), Toast.LENGTH_LONG)
                         }
                     }
                 } else {
-                    joinChannel()
+                    connectionState = AgentConnectionState.IDLE
+                    CovRtcManager.leaveChannel()
+                    CovLogger.e(TAG, "Agent start error")
+                    ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
                 }
+            }
+        }
+    }
+
+    private suspend fun startAgentAsync(): Pair<String, Boolean> = suspendCoroutine { cont ->
+        CovAgentApiManager.startAgent(getAgentParams()) { err, channelName ->
+            cont.resume(Pair(channelName, err == null))
+        }
+    }
+
+    private suspend fun updateTokenAsync(): Boolean = suspendCoroutine { cont ->
+        updateToken { isTokenOK ->
+            cont.resume(isTokenOK)
+        }
+    }
+
+    private suspend fun fetchPresetsAsync(): Boolean = suspendCoroutine { cont ->
+        CovAgentApiManager.fetchPresets { err, presets ->
+            if (err == null && presets.isNotEmpty()) {
+                CovAgentManager.setPresetList(presets)
+                cont.resume(true)
             } else {
-                loadingDialog?.dismiss()
-                CovLogger.e(TAG, "Agent error")
-                ToastUtil.show( io.agora.scene.common.R.string.cov_detail_join_call_failed)
+                cont.resume(false)
             }
         }
     }
 
     private fun onClickEndCall() {
-        engine.leaveChannel()
-        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_ending))
-        loadingDialog?.show()
-        ConvAIManager.stopAgent { ok ->
-            loadingDialog?.dismiss()
-            if (ok) {
-                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
-                isAgentStarted = false
-                networkStatus = null
-                CovAgoraManager.agentStarted = false
-                resetSceneState()
-            } else {
-                ToastUtil.show( "Agent Leave Failed")
-            }
-        }
+        networkValue = -1
+        isUserEndCall = true
+        stopAgentAndLeaveChannel()
+        persistentToast(false, "")
+        ToastUtil.show(getString(R.string.cov_detail_agent_leave))
     }
 
-    private fun joinChannel() {
-        CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $localUid, agentUID: $agentUID")
-        val options = ChannelMediaOptions()
-        options.clientRoleType = CLIENT_ROLE_BROADCASTER
-        options.publishMicrophoneTrack = true
-        options.publishCameraTrack = false
-        options.autoSubscribeAudio = true
-        options.autoSubscribeVideo = false
-        engine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
-        engine.setParameters("{\"che.audio.sf.enabled\":false}")
-        CovAgoraManager.updateDenoise(true)
-        val ret = engine.joinChannel(rtcToken, channelName, localUid, options)
-        CovLogger.d(TAG, "Joining RTC channel: $channelName, uid: $localUid")
-        if (ret == ERR_OK) {
-            CovLogger.d(TAG, "Join RTC room success")
-        } else {
-            CovLogger.e(TAG, "Join RTC room failed, ret: $ret")
+    private fun stopAgentAndLeaveChannel() {
+        CovRtcManager.leaveChannel()
+        if (connectionState == AgentConnectionState.IDLE) {
+            return
         }
+        connectionState = AgentConnectionState.IDLE
+        mCovBallAnim?.updateAgentState(AgentState.STATIC)
+        CovAgentApiManager.stopAgent(CovAgentManager.channelName, CovAgentManager.getPreset()?.name) {}
+        resetSceneState()
     }
 
-    private fun getToken(complete: (Boolean) -> Unit) {
+    private fun updateToken(complete: (Boolean) -> Unit) {
         TokenGenerator.generateToken("",
-            localUid.toString(),
+            CovAgentManager.uid.toString(),
             TokenGeneratorType.Token007,
             AgoraTokenType.Rtc,
             success = { token ->
@@ -206,60 +331,125 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             })
     }
 
-    private fun createRtcEngine() {
-        val config = RtcEngineConfig()
-        config.mContext = AgentApp.instance()
-        config.mAppId = ServerConfig.rtcAppId
-        config.mChannelProfile = Constants.CHANNEL_PROFILE_LIVE_BROADCASTING
-        config.mAudioScenario = Constants.AUDIO_SCENARIO_CHORUS
-        config.mEventHandler = object : IRtcEngineEventHandler() {
+    private fun createRtcEngine(): RtcEngineEx {
+        return CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
             override fun onError(err: Int) {
                 super.onError(err)
-                CovLogger.e(TAG, "Rtc Error code:$err, msg:" + RtcEngine.getErrorDescription(err))
+                logScope.launch {
+                    CovLogger.e(TAG, "Rtc Error code:$err")
+                }
             }
 
             override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
-                CovLogger.d(TAG, "local user didJoinChannel uid: $uid")
-                updateNetworkStatus(1)
+                logScope.launch {
+                    CovLogger.d(TAG, "local user didJoinChannel uid: $uid")
+                }
+                runOnUiThread {
+                    updateNetworkStatus(1)
+                }
             }
 
             override fun onLeaveChannel(stats: RtcStats?) {
-                CovLogger.d(TAG, "local user didLeaveChannel")
+                logScope.launch {
+                    CovLogger.d(TAG, "local user didLeaveChannel")
+                }
                 runOnUiThread {
-                    updateNetworkStatus(0)
+                    updateNetworkStatus(-1)
                 }
             }
 
             override fun onUserJoined(uid: Int, elapsed: Int) {
+                logScope.launch {
+                    CovLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
+                }
                 runOnUiThread {
-                    if (uid == agentUID) {
-                        isAgentStarted = true
-                        CovAgoraManager.agentStarted = true
-                        loadingDialog?.dismiss()
-                        ToastUtil.show(io.agora.scene.common.R.string.cov_detail_join_call_succeed,)
+                    if (uid == CovAgentManager.agentUID) {
+                        connectionState = AgentConnectionState.CONNECTED
+                        ToastUtil.show(getString(R.string.cov_detail_join_call_succeed))
+                        ToastUtil.showByPosition(
+                            getString(R.string.cov_detail_join_call_tips),
+                            gravity = Gravity.BOTTOM,
+                            offsetY = 100.dp.toInt(),
+                            duration = Toast.LENGTH_LONG
+                        )
                     }
                 }
-                CovLogger.d(TAG, "remote user didJoinedOfUid uid: $uid")
             }
 
             override fun onUserOffline(uid: Int, reason: Int) {
-                CovLogger.d(TAG, "remote user onUserOffline uid: $uid")
-                if (uid == agentUID) {
-                    runOnUiThread {
-                        CovLogger.d(TAG, "start agent reconnect")
-                        rtcToken = null
-                        // reconnect
-                        loadingDialog?.setMessage(getString(io.agora.scene.common.R.string.cov_detail_agent_joining))
-                        loadingDialog?.show()
-                        ConvAIManager.startAgent(getAgentParams()) { isAgentOK ->
-                            if (!isAgentOK) {
-                                loadingDialog?.dismiss()
-                                ToastUtil.show(io.agora.scene.common.R.string.cov_detail_agent_leave)
-                                engine.leaveChannel()
-                                isAgentStarted = false
-                                CovAgoraManager.agentStarted = false
-                                resetSceneState()
+                logScope.launch {
+                    CovLogger.d(TAG, "remote user onUserOffline uid: $uid")
+                }
+                runOnUiThread {
+                    if (uid == CovAgentManager.agentUID) {
+                        connectionState = AgentConnectionState.ERROR
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
+                        if (isUserEndCall) {
+                            isUserEndCall = false
+                        } else {
+                            persistentToast(true, getString(R.string.cov_detail_agent_state_error))
+                        }
+                    }
+                }
+            }
+
+            override fun onConnectionLost() {
+                super.onConnectionLost()
+                CovLogger.d(TAG, "onConnectionLost")
+            }
+
+            override fun onConnectionStateChanged(state: Int, reason: Int) {
+                runOnUiThread {
+                    CovLogger.d(TAG, "onConnectionStateChanged: $state $reason")
+                    when (state) {
+                        Constants.CONNECTION_STATE_CONNECTED -> {
+                            if (reason == Constants.CONNECTION_CHANGED_REJOIN_SUCCESS) {
+                                if (connectionState != AgentConnectionState.CONNECTED) {
+                                    connectionState = AgentConnectionState.CONNECTED
+                                    persistentToast(false, "")
+                                }
                             }
+                        }
+
+                        Constants.CONNECTION_STATE_CONNECTING -> {
+                            CovLogger.d(TAG, "onConnectionStateChanged: connecting")
+                        }
+
+                        Constants.CONNECTION_STATE_DISCONNECTED -> {
+                            CovLogger.d(TAG, "onConnectionStateChanged: disconnected")
+                            if (reason == Constants.CONNECTION_CHANGED_LEAVE_CHANNEL) {
+                                connectionState = AgentConnectionState.IDLE
+                                persistentToast(false, "")
+                            }
+                        }
+
+                        Constants.CONNECTION_STATE_RECONNECTING -> {
+                            if (reason == Constants.CONNECTION_CHANGED_INTERRUPTED) {
+                                connectionState = AgentConnectionState.CONNECTED_INTERRUPT
+                                persistentToast(true, getString(R.string.cov_detail_net_state_error))
+                            }
+                        }
+
+                        Constants.CONNECTION_STATE_FAILED -> {
+                            if (reason == Constants.CONNECTION_CHANGED_JOIN_FAILED) {
+                                CovLogger.d(TAG, "onConnectionStateChanged: failed")
+                                connectionState = AgentConnectionState.CONNECTED_INTERRUPT
+                                persistentToast(true, getString(R.string.cov_detail_room_error))
+                            }
+                        }
+                    }
+                }
+            }
+
+            override fun onRemoteAudioStateChanged(uid: Int, state: Int, reason: Int, elapsed: Int) {
+                super.onRemoteAudioStateChanged(uid, state, reason, elapsed)
+                runOnUiThread {
+                    if (uid == CovAgentManager.agentUID) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "onRemoteAudioStateChanged $uid $state $reason")
+                        }
+                        if (state == Constants.REMOTE_AUDIO_STATE_STOPPED) {
+                            mCovBallAnim?.updateAgentState(AgentState.LISTENING)
                         }
                     }
                 }
@@ -268,32 +458,60 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onAudioVolumeIndication(
                 speakers: Array<out AudioVolumeInfo>?, totalVolume: Int
             ) {
-                super.onAudioVolumeIndication(speakers, totalVolume)
-                speakers?.forEach {
-                    if (it.uid == agentUID) {
-                        runOnUiThread {
-                            mBinding?.recordingAnimationView?.startVolumeAnimation(it.volume)
+                runOnUiThread {
+                    speakers?.forEach {
+                        when (it.uid) {
+                            CovAgentManager.agentUID -> {
+                                if (BuildConfig.DEBUG) {
+                                    Log.d(TAG, "onAudioVolumeIndication ${it.uid} ${it.volume}")
+                                }
+
+                                if (connectionState != AgentConnectionState.IDLE) {
+                                    if (it.volume > 0) {
+                                        mCovBallAnim?.updateAgentState(AgentState.SPEAKING, it.volume)
+                                    } else {
+                                        mCovBallAnim?.updateAgentState(AgentState.LISTENING, it.volume)
+                                    }
+                                }
+                            }
+
+                            0 -> {
+                                updateUserVolumeAnim(it.volume)
+                            }
                         }
                     }
                 }
             }
 
             override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
-                data?.let {
-                    val rawString = String(it, Charsets.UTF_8)
-//                    ConvoAiLogger.d(TAG, "onStreamMessage rawString: $rawString")
-                    val message = parser.parseStreamMessage(rawString)
-//                    ConvoAiLogger.d(TAG, "onStreamMessage message: $message")
-                    message?.let { msg ->
-                        handleStreamMessage(msg)
+                data?.let { bytes ->
+                    try {
+                        val rawString = String(bytes, Charsets.UTF_8)
+                        val message = parser.parseStreamMessage(rawString)
+                        message?.let { msg ->
+                            CovLogger.d(TAG, "onStreamMessage: $msg")
+                            val isFinal = msg["is_final"] as? Boolean ?: false
+                            val streamId = msg["stream_id"] as? Double ?: 0.0
+                            val turnId = msg["turn_id"] as? Double ?: 0.0
+                            val text = msg["text"] as? String ?: ""
+                            if (text.isNotEmpty()) {
+                                runOnUiThread {
+                                    mBinding?.messageListView?.updateStreamContent(
+                                        (streamId != 0.0), turnId, text, isFinal
+                                    )
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        CovLogger.e(TAG, "Process stream message error: ${e.message}")
                     }
                 }
             }
 
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
-                CovLogger.d(TAG, "onNetworkQuality uid: $uid, txQuality: $txQuality, rxQuality: $rxQuality")
                 if (uid == 0) {
                     runOnUiThread {
+                        CovLogger.e(TAG, "onNetworkQuality: txQuality:$txQuality rxQuality:")
                         updateNetworkStatus(rxQuality)
                     }
                 }
@@ -301,37 +519,26 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
             override fun onTokenPrivilegeWillExpire(token: String?) {
                 CovLogger.d(TAG, "onTokenPrivilegeWillExpire")
-                getToken { isOK ->
+                updateToken { isOK ->
                     if (isOK) {
-                        engine.renewToken(rtcToken)
+                        CovRtcManager.renewRtcToken(rtcToken ?: "")
                     } else {
-                        onClickEndCall()
+                        stopAgentAndLeaveChannel()
+                        ToastUtil.show("renew token error")
                     }
                 }
             }
-        }
-        engine = (RtcEngine.create(config) as RtcEngineEx).apply {
-            //set audio scenario 10，open AI-QoS
-            setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
-            enableAudioVolumeIndication(100, 10, true)
-            adjustRecordingSignalVolume(100)
-        }
-        engine.loadExtensionProvider("ai_echo_cancellation_extension")
-        engine.loadExtensionProvider("ai_echo_cancellation_ll_extension")
-        engine.loadExtensionProvider("ai_noise_suppression_extension")
-        engine.loadExtensionProvider("ai_noise_suppression_ll_extension")
-        CovAgoraManager.rtcEngine = engine
+        })
     }
 
-    private fun handleStreamMessage(message: Map<String, Any>) {
-        val isFinal = message["is_final"] as? Boolean ?: false
-        val streamId = message["stream_id"] as? Double ?: 0.0
-        val text = message["text"] as? String ?: ""
-        if (text.isEmpty()) {
-            return
-        }
-        runOnUiThread {
-            mBinding?.messageListView?.updateStreamContent((streamId != 0.0), text, isFinal)
+    private fun updateUserVolumeAnim(volume: Int) {
+        if (volume > 10) {
+            // todo  0～10000 icon high 20 top 6
+            var level = volume * 20 + 3500
+            if (level > 8500) level = 8500
+            mBinding?.btnMic?.setImageLevel(level)
+        } else {
+            mBinding?.btnMic?.setImageLevel(0)
         }
     }
 
@@ -340,89 +547,225 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             messageListView.clearMessages()
             if (isShowMessageList) {
                 isShowMessageList = false
-                btnCc.setBackgroundColor(Color.parseColor("#212121"))
             }
             if (isLocalAudioMuted) {
                 isLocalAudioMuted = false
-                engine.adjustRecordingSignalVolume(100)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.app_living_mic_on)
+                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
         }
-
     }
 
-    private fun updateCenterView() {
-        if (!isAgentStarted) {
-            mBinding?.apply {
-                llCalling.visibility = View.INVISIBLE
-                vNotJoined.root.visibility = View.VISIBLE
-                llJoinCall.visibility = View.VISIBLE
-                messageListView.visibility = View.INVISIBLE
-                clAnimationContent.visibility = View.INVISIBLE
-            }
-            return
-        }
+    private fun updateStateView() {
         mBinding?.apply {
-            llCalling.visibility = View.VISIBLE
-            vNotJoined.root.visibility = View.INVISIBLE
-            llJoinCall.visibility = View.INVISIBLE
+            when (connectionState) {
+                AgentConnectionState.IDLE -> {
+                    llCalling.visibility = View.INVISIBLE
+                    llJoinCall.visibility = View.VISIBLE
+                    vConnecting.visibility = View.GONE
+                }
+
+                AgentConnectionState.CONNECTING -> {
+                    llCalling.visibility = View.VISIBLE
+                    llJoinCall.visibility = View.INVISIBLE
+                    vConnecting.visibility = View.VISIBLE
+                }
+
+                AgentConnectionState.CONNECTED,
+                AgentConnectionState.CONNECTED_INTERRUPT -> {
+                    llCalling.visibility = View.VISIBLE
+                    llJoinCall.visibility = View.INVISIBLE
+                    vConnecting.visibility = View.GONE
+                }
+
+                AgentConnectionState.ERROR -> {}
+            }
+        }
+    }
+
+    private fun updateMicrophoneView() {
+        mBinding?.apply {
+            if (isLocalAudioMuted) {
+                btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
+                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_brand_white_selector)
+            } else {
+                btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
+                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
+            }
+        }
+    }
+
+    private fun updateMessageList() {
+        mBinding?.apply {
             if (isShowMessageList) {
                 messageListView.visibility = View.VISIBLE
-                clAnimationContent.visibility = View.INVISIBLE
+                btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_brand_main6), PorterDuff.Mode.SRC_IN)
             } else {
                 messageListView.visibility = View.INVISIBLE
-                clAnimationContent.visibility = View.VISIBLE
+                btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
             }
         }
     }
 
     private fun updateNetworkStatus(value: Int) {
-        networkStatus = value
+        networkValue = value
+        infoDialog?.updateNetworkStatus(value)
         mBinding?.apply {
             when (value) {
-                1, 2 -> {
-//                    btnInfo.setColorFilter(ContextCompat.getColor(this, R.color.my_tint_color), PorterDuff.Mode.SRC_IN)
-                }
                 3, 4 -> {
-                    btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
+                    btnInfo.setColorFilter(
+                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_yellow6),
+                        PorterDuff.Mode.SRC_IN
+                    )
                 }
+
+                5, 6 -> {
+                    btnInfo.setColorFilter(
+                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_red6),
+                        PorterDuff.Mode.SRC_IN
+                    )
+                }
+
                 else -> {
-                    btnInfo.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
+                    btnInfo.setColorFilter(
+                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_icontext1),
+                        PorterDuff.Mode.SRC_IN
+                    )
                 }
             }
         }
+    }
 
+    private val onPresetCallback = object : CovSettingsDialog.Callback {
+        override fun onPreset(preset: CovAgentPreset) {
+            mBinding?.apply {
+//                if (preset.isIndependent()) {
+//                    btnCc.isEnabled = false
+//                    btnCc.setBackgroundColor(
+//                        ResourcesCompat.getColor(
+//                            resources,
+//                            io.agora.scene.common.R.color.ai_disable, null
+//                        )
+//                    )
+//                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_disable1), PorterDuff.Mode.SRC_IN)
+//                } else {
+//                    btnCc.isEnabled = true
+//                    btnCc.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
+//                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+//                }
+            }
+        }
     }
 
     private fun setupView() {
         mBinding?.apply {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setOnApplyWindowInsetsListener(root)
-            btnBack.setOnClickListener {
-                finish()
-            }
-            btnEndCall.setOnClickListener {
-                onClickEndCall()
-            }
+            btnDebug.isVisible = ServerConfig.isDebug
+            btnDebug.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    CovLogger.d(TAG, "showCovDebugDialog called")
+                    val callback = object : CovDebugDialog.Callback {
+                        override fun onAudioDumpEnable(enable: Boolean) {
+                            CovRtcManager.onAudioDump(enable)
+                        }
+
+                        override fun onDebugEnable(enable: Boolean) {
+                            btnDebug.isVisible = ServerConfig.isDebug
+                        }
+
+                        override fun onSwitchEnv(env: Int) {
+                            coroutineScope.launch {
+                                delay(1000L)
+                                onHandleOnBackPressed()
+                            }
+                        }
+
+                        override fun onClickCopy() {
+                            val messageContents = messageListView.getAllMessages()
+                                .filter { it.isMe }
+                                .map { it.content }
+                                .joinToString("\n")
+                            this@CovLivingActivity.copyToClipboard(messageContents)
+                            ToastUtil.show(getString(R.string.cov_copy_succeed))
+                        }
+                    }
+                    val dialog = CovDebugDialog(callback)
+                    dialog.show(supportFragmentManager, "debugSettings")
+                }
+            })
+            btnBack.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onHandleOnBackPressed()
+                }
+            })
+            btnEndCall.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickEndCall()
+                }
+            })
             btnMic.setOnClickListener {
                 isLocalAudioMuted = !isLocalAudioMuted
-                engine.adjustRecordingSignalVolume(if (isLocalAudioMuted) 0 else 100)
-                btnMic.setBackgroundResource(
-                    if (isLocalAudioMuted) io.agora.scene.common.R.drawable.app_living_mic_off else io.agora.scene.common.R.drawable.app_living_mic_on
-                )
+                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
-            btnSettings.setOnClickListener {
-                CovSettingsDialog().show(supportFragmentManager, "AgentSettingsSheetDialog")
-            }
+            btnSettings.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    if (CovAgentManager.getPresetList().isNullOrEmpty()) {
+                        coroutineScope.launch {
+                            val success = fetchPresetsAsync()
+                            if (success) {
+                                showSettingDialog()
+                            } else {
+                                ToastUtil.show(getString(R.string.cov_detail_net_state_error))
+                            }
+                        }
+                    } else {
+                        showSettingDialog()
+                    }
+                }
+            })
             btnCc.setOnClickListener {
                 isShowMessageList = !isShowMessageList
             }
-            btnInfo.setOnClickListener {
-                CovAgentInfoDialog().apply {
-                }.show(supportFragmentManager, "StatsDialog")
-            }
-            llJoinCall.setOnClickListener {
-                onClickStartAgent()
-            }
+            btnInfo.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    infoDialog = CovAgentInfoDialog.newInstance {
+                        infoDialog = null
+                    }
+                    infoDialog?.updateNetworkStatus(networkValue)
+                    infoDialog?.updateConnectStatus(connectionState)
+                    infoDialog?.show(supportFragmentManager, "InfoDialog")
+                }
+            })
+            llJoinCall.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickStartAgent()
+                }
+            })
         }
+    }
+
+    private fun showSettingDialog() {
+        settingDialog = CovSettingsDialog.newInstance {
+            settingDialog = null
+        }.apply {
+            onCallBack = onPresetCallback
+        }
+        settingDialog?.updateConnectStatus(connectionState)
+        settingDialog?.show(supportFragmentManager, "AgentSettingsSheetDialog")
+    }
+
+    private fun setupBallAnimView() {
+        val binding = mBinding ?: return
+        val rtcMediaPlayer = CovRtcManager.createMediaPlayer()
+        mCovBallAnim = CovBallAnim(this, rtcMediaPlayer, binding.videoView, callback = object : CovBallAnimCallback {
+            override fun onError(error: Exception) {
+                coroutineScope.launch {
+                    delay(1000L)
+                    ToastUtil.show(getString(R.string.cov_detail_state_error), Toast.LENGTH_LONG)
+                    onHandleOnBackPressed()
+                }
+            }
+        })
+        mCovBallAnim?.setupView()
     }
 }

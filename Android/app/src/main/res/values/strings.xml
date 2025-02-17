@@ -1,0 +1,14 @@
+<resources>
+    <string name="main_terms_info">I agree to the</string>
+    <string name="main_terms_selection"><u>Agora Terms of Service</u></string>
+    <string name="main_get_started">Get Started</string>
+    <string name="scenes_coming_soon">Coming soon</string>
+
+    <string name="scenes_selection_title">SELECT A DEMO</string>
+    <string name="scenes_item_conversation_agent_title">Conversational AI Engine</string>
+    <string name="scenes_item_conversation_agent_info">Empowering real-time voice interaction for every AI agent.</string>
+    <string name="scenes_item_v2v_title">Agora V2V</string>
+    <string name="scenes_item_v2v_info">Create AI-powered real-time voice, video, and chat experiences.</string>
+    <string name="scenes_item_digital_human_title">Digital Human</string>
+    <string name="scenes_item_digital_human_info">Create AI-powered real-time voice, video, and chat experiences.</string>
+</resources>

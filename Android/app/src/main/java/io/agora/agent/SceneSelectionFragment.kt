@@ -42,16 +42,16 @@ class SceneSelectionFragment : Fragment() {
                     AgentScenes.ConvoAi,
                     "io.agora.scene.convoai.ui.CovLivingActivity",
                     io.agora.scene.common.R.drawable.scene_selection_conversation,
-                    getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_title),
-                    getString(io.agora.scene.common.R.string.scenes_item_conversation_agent_info),
+                    getString(R.string.scenes_item_conversation_agent_title),
+                    getString(R.string.scenes_item_conversation_agent_info),
                 ),
-                SceneModel(
-                    AgentScenes.DigitalHuman,
-                    "io.agora.scene.digitalhuman.ui.DigitalLivingActivity",
-                    io.agora.scene.common.R.drawable.scene_selection_digital,
-                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_title),
-                    getString(io.agora.scene.common.R.string.scenes_item_digital_human_info),
-                )
+//                SceneModel(
+//                    AgentScenes.DigitalHuman,
+//                    "io.agora.scene.digitalhuman.ui.DigitalLivingActivity",
+//                    io.agora.scene.common.R.drawable.scene_selection_digital,
+//                    getString(R.string.scenes_item_digital_human_title),
+//                    getString(R.string.scenes_item_digital_human_info),
+//                )
             )
         )
     }
@@ -97,7 +97,7 @@ class SceneSelectionFragment : Fragment() {
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    ToastUtil.show(io.agora.scene.common.R.string.scenes_coming_soon)
+                    ToastUtil.show(context.getString(R.string.scenes_coming_soon))
                 }
             }
         }

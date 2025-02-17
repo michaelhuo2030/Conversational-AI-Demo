@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.databinding.CovMessageAgentItemBinding
 import io.agora.scene.common.databinding.CovMessageMineItemBinding
@@ -22,77 +23,154 @@ class MessageListView @JvmOverloads constructor(
 
     val TAG = "MessageListView"
 
-    private val binding: MessageListViewBinding = MessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
+    private val binding: MessageListViewBinding =
+        MessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
     private val messageAdapter: MessageAdapter = MessageAdapter()
     private var currentAgentMessage: Message? = null
+    private var currentUserMessage: Message? = null
+    private var autoScrollToBottom = true
 
     init {
         binding.rvMessages.layoutManager = LinearLayoutManager(context)
         binding.rvMessages.adapter = messageAdapter
         binding.rvMessages.itemAnimator = null
-        binding.btnClear.setOnClickListener {
-            clearMessages()
+        binding.rvMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                Log.d(TAG, "onScrollStateChanged: $newState")
+                when (newState) {
+                    RecyclerView.SCROLL_STATE_IDLE -> {
+                        checkShowToBottomButton()
+                    }
+                    RecyclerView.SCROLL_STATE_DRAGGING -> {
+                        autoScrollToBottom = false
+                    }
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            }
+        })
+        binding.btnToBottom.setOnClickListener {
+            autoScrollToBottom = true
+            binding.cvToBottom.visibility = View.INVISIBLE
+            scrollToBottom()
         }
-        binding.btnClear.visibility = View.GONE
     }
 
     fun clearMessages() {
+        autoScrollToBottom = true
+        binding.cvToBottom.visibility = View.INVISIBLE
         currentAgentMessage = null
+        currentUserMessage = null
         messageAdapter.clearMessages()
     }
 
-    fun updateStreamContent(isMe: Boolean, text: String, isFinal: Boolean = false) {
+    fun getAllMessages(): List<Message> {
+        return messageAdapter.getAllMessage()
+    }
+
+    fun updateAgentName(str: String) {
+        messageAdapter.updateFromTitle(str)
+    }
+
+    fun updateStreamContent(isMe: Boolean, turnId: Double, text: String, isFinal: Boolean = false) {
         if (isMe) {
-            if (isFinal) {
-                addMineMessage(text)
-                completeCurrentMessage()
-            }
+            handleUserMessage(turnId, text, isFinal)
         } else {
-            if (isFinal) {
-                if (currentAgentMessage == null) {
-                    startNewAgentMessage(text)
-                } else {
-                    updateCurrentMessage(text)
-                }
-                completeCurrentMessage()
-            } else {
-                if (currentAgentMessage == null) {
-                    startNewAgentMessage(text)
-                } else {
-                    updateCurrentMessage(text)
-                }
-            }
+            handleAgentMessage(turnId, text, isFinal)
         }
     }
 
-    private fun startNewAgentMessage(content: String) {
-        val message = Message(false, content, false)
-        messageAdapter.addMessage(message)
-        currentAgentMessage = message
-        checkAndScrollToBottom()
+    private fun handleUserMessage(turnId: Double, text: String, isFinal: Boolean) {
+        val isNewMessage = currentUserMessage == null
+        if (isNewMessage) {
+            startNewUserMessage(turnId, text)
+        } else {
+            updateCurrentUserMessage(text)
+        }
+
+        if (isFinal) {
+            completeCurrentUserMessage()
+        } else {
+            autoScrollIfNeeded()
+        }
     }
 
-    private fun completeCurrentMessage() {
+    private fun startNewUserMessage(turnId: Double, content: String) {
+        currentUserMessage?.let {
+            completeCurrentUserMessage()
+        }
+
+        val message = Message(true, turnId, content, false)
+        messageAdapter.addMessage(message)
+        currentUserMessage = message
+    }
+
+    private fun updateCurrentUserMessage(content: String) {
+        currentUserMessage?.let {
+            it.content = content
+            messageAdapter.updateMessage(it)
+        }
+    }
+
+    private fun completeCurrentUserMessage() {
+        currentUserMessage?.let {
+            if (!messageAdapter.containsMessage(it)) {
+                messageAdapter.addMessage(it)
+            }
+            currentUserMessage = null
+        }
+        autoScrollIfNeeded()
+    }
+
+
+    private fun handleAgentMessage(turnId: Double, text: String, isFinal: Boolean) {
+        // 修改判断新消息的逻辑
+        val isNewMessage = currentAgentMessage?.turnId != turnId || currentAgentMessage == null
+        if (isNewMessage) {
+            startNewAgentMessage(turnId, text)
+        } else {
+            updateCurrentAgentMessage(text)
+        }
+        
+        if (isFinal) {
+            completeCurrentAgentMessage()
+        } else {
+            autoScrollIfNeeded()
+        }
+    }
+
+    private fun autoScrollIfNeeded() {
+        if (autoScrollToBottom) {
+            checkAndScrollToBottom()
+        }
+    }
+
+    private fun startNewAgentMessage(turnId: Double, content: String) {
+        currentAgentMessage?.let {
+            completeCurrentAgentMessage()
+        }
+        
+        val message = Message(false, turnId, content, false)
+        messageAdapter.addMessage(message)
+        currentAgentMessage = message
+    }
+
+    private fun completeCurrentAgentMessage() {
         currentAgentMessage?.let {
             if (!messageAdapter.containsMessage(it)) {
                 messageAdapter.addMessage(it)
             }
             currentAgentMessage = null
         }
-        checkAndScrollToBottom()
+        autoScrollIfNeeded()
     }
 
-    private fun addMineMessage(text: String) {
-        Log.d(TAG, "addUserMessage: $text")
-        messageAdapter.addMessage(Message(true, text, true))
-        checkAndScrollToBottom()
-    }
-
-    private fun updateCurrentMessage(content: String) {
+    private fun updateCurrentAgentMessage(content: String) {
         currentAgentMessage?.let {
             it.content = content
             messageAdapter.updateMessage(it)
-            checkAndScrollToBottom()
         }
     }
 
@@ -103,10 +181,7 @@ class MessageListView @JvmOverloads constructor(
         if (isScrollScheduled) return
         scrollRunnable = Runnable {
             binding.rvMessages.post {
-                val lastPosition = messageAdapter.itemCount - 1
-                if (lastPosition >= 0) {
-                    (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(lastPosition, -9999.dp.toInt())
-                }
+                scrollToBottom()
             }
             isScrollScheduled = false
         }
@@ -114,14 +189,41 @@ class MessageListView @JvmOverloads constructor(
         isScrollScheduled = true
     }
 
-    data class Message(
+    private fun scrollToBottom() {
+        val lastPosition = messageAdapter.itemCount - 1
+        if (lastPosition >= 0) {
+            (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
+                lastPosition,
+                -9999.dp.toInt()
+            )
+        }
+    }
+
+    private fun checkShowToBottomButton() {
+        val layoutManager = binding.rvMessages.layoutManager as LinearLayoutManager
+        val lastItemPosition = layoutManager.findLastVisibleItemPosition()
+        val lastIndex = messageAdapter.itemCount - 1
+        val lastVisible = (lastIndex == lastItemPosition)
+        Log.d(TAG, "lastItemPosition: $lastItemPosition, lastIndex: $lastIndex, lastVisible: $lastVisible")
+        if (lastVisible) {
+            binding.cvToBottom.visibility = View.INVISIBLE
+            autoScrollToBottom = true
+        } else {
+            binding.cvToBottom.visibility = View.VISIBLE
+            autoScrollToBottom = false
+        }
+    }
+
+    data class Message constructor(
         val isMe: Boolean,
+        val turnId: Double,
         var content: String,
         var isFinal: Boolean = false
     )
 
     class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
+        private var fromTitle: String = ""
         private val messages = mutableListOf<Message>()
 
         abstract class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -134,17 +236,31 @@ class MessageListView @JvmOverloads constructor(
             }
         }
 
-        class AgentMessageViewHolder(private val binding: CovMessageAgentItemBinding) : MessageViewHolder(binding.root) {
+        inner class AgentMessageViewHolder(private val binding: CovMessageAgentItemBinding) :
+            MessageViewHolder(binding.root) {
             override fun bind(message: Message) {
                 binding.tvMessageContent.text = message.content
+                binding.tvMessageTitle.text = fromTitle
             }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
             return if (viewType == 0) {
-                MineMessageViewHolder(CovMessageMineItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+                MineMessageViewHolder(
+                    CovMessageMineItemBinding.inflate(
+                        LayoutInflater.from(parent.context),
+                        parent,
+                        false
+                    )
+                )
             } else {
-                AgentMessageViewHolder(CovMessageAgentItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+                AgentMessageViewHolder(
+                    CovMessageAgentItemBinding.inflate(
+                        LayoutInflater.from(parent.context),
+                        parent,
+                        false
+                    )
+                )
             }
         }
 
@@ -158,18 +274,23 @@ class MessageListView @JvmOverloads constructor(
             return if (messages[position].isMe) 0 else 1
         }
 
-        fun clearMessages() {
-            messages.clear()
-            notifyDataSetChanged()
-        }
-
         fun addMessage(message: Message) {
             messages.add(message)
-            notifyDataSetChanged()
+            notifyItemInserted(messages.size - 1)
+        }
+
+        fun clearMessages() {
+            val size = messages.size
+            messages.clear()
+            notifyItemRangeRemoved(0, size)
         }
 
         fun getLastMessage(): Message? {
             return messages.lastOrNull()
+        }
+
+        fun getAllMessage(): List<Message> {
+            return messages
         }
 
         fun containsMessage(message: Message): Boolean {
@@ -181,12 +302,20 @@ class MessageListView @JvmOverloads constructor(
         }
 
         fun updateMessage(message: Message) {
-            val index = messages.indexOf(message)
+            val index = messages.indexOfLast { 
+                it.turnId == message.turnId && it.isMe == message.isMe 
+            }
             if (index != -1) {
+                messages[index] = message
                 notifyItemChanged(index)
             } else {
                 addMessage(message)
             }
+        }
+
+        fun updateFromTitle(title: String) {
+            fromTitle = title
+            notifyDataSetChanged()
         }
     }
 }
