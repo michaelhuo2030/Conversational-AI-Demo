@@ -15,7 +15,7 @@ import Foundation
 @objc public class AppContext: NSObject {
     @objc public static let shared: AppContext = .init()
     
-    private let termsOfServiceUrl: String = "https://www.agora.io/en/terms-of-service/"
+    public let termsOfServiceUrl: String = "https://www.agora.io/en/terms-of-service/"
     
     private var _appId: String = ""
     private var _certificate: String = ""
