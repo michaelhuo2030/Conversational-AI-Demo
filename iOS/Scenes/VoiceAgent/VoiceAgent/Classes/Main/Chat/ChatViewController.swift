@@ -26,7 +26,7 @@ class ChatViewController: UIViewController {
     private var remoteAgentId = ""
 
     private lazy var rtcManager: RTCManager = {
-        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self)
+        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self, audioSpectrumDelegate: self)
         addLog("rtc sdk version: \(AgoraRtcEngineKit.getSdkVersion())")
         return manager
     }()
@@ -621,6 +621,18 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                 animateView.updateAgentState(.listening)
             }
         }
+    }
+}
+// MARK: - AgoraRtcAudioSpectrumDelegate
+extension ChatViewController: AgoraAudioSpectrumDelegate {
+    
+    func onLocalAudioSpectrum(_ audioSpectrumData: [NSNumber]?) -> Bool {
+        
+        return true
+    }
+    
+    func onRemoteAudioSpectrum(_ AudioSpectrumInfo: [AgoraAudioSpectrumInfo]?) -> Bool {
+        return true
     }
 }
 

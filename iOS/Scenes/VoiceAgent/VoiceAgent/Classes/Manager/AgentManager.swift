@@ -21,7 +21,17 @@ protocol AgentAPI {
     ///   - presetName: The name of the preset configuration
     ///   - language: The language setting for the agent
     ///   - completion: Callback with optional error, channel name and agent ID string, and server address
-    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String, String?, String?) -> Void))
+    func startAgent(appId:String,
+                    uid: String,
+                    agentUid: String,
+                    channelName: String,
+                    aiVad: Bool,
+                    bhvs: Bool,
+                    presetName: String,
+                    language: String,
+                    protocolVersion: String?,
+                    graphId: String?,
+                    completion: @escaping ((AgentError?, String, String?, String?) -> Void))
     
     /// Stops a running AI agent
     /// - Parameters:
@@ -84,9 +94,19 @@ class AgentManager: AgentAPI {
         }
     }
     
-    func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
+    func startAgent(appId:String,
+                    uid: String,
+                    agentUid: String,
+                    channelName: String,
+                    aiVad: Bool,
+                    bhvs: Bool,
+                    presetName: String,
+                    language: String,
+                    protocolVersion: String? = nil,
+                    graphId: String? = nil,
+                    completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("convoai/start").toHttpUrlSting()
-        let parameters: [String: Any] = [
+        var parameters: [String: Any] = [
             "app_id": appId,
             "preset_name": presetName,
             "channel_name": channelName,
@@ -100,7 +120,17 @@ class AgentManager: AgentAPI {
                 "language": language
             ]
         ]
-                
+        if let protocolVersion = protocolVersion {
+            parameters["parameters"] = [
+                "transcript": [
+                    "protocol_version": protocolVersion
+                ]
+            ]
+        }
+        if let graphId = graphId {
+            parameters["graph_id"] = graphId
+        }
+        
         VoiceAgentLogger.info("request start api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
             VoiceAgentLogger.info("start request response: \(result)")

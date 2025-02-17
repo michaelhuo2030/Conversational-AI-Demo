@@ -46,10 +46,11 @@ public class DeveloperModeViewController: UIViewController {
         rtcVersionValueLabel.text = AgoraRtcEngineKit.getSdkVersion()
         serverHostValueLabel.text = serverHost
         // update environment segment        
-        AppContext.shared.environments.forEach { envi in
+        for (index, envi) in AppContext.shared.environments.enumerated() {
             let host = envi["host"]
             if host == AppContext.shared.baseServerUrl {
-                segmentCtrl.selectedSegmentIndex = AppContext.shared.environments.firstIndex(of: envi) ?? 0
+                segmentCtrl.selectedSegmentIndex = index
+                break
             }
         }
     }
@@ -77,8 +78,9 @@ extension DeveloperModeViewController {
     
     @objc private func onSwitchButtonClicked(_ sender: UIButton) {
         let index = segmentCtrl.selectedSegmentIndex
-        if index >= 0 && index < AppContext.shared.environments.count {
-            let envi = AppContext.shared.environments[index]
+        let environments = AppContext.shared.environments
+        if index >= 0 && index < environments.count {
+            let envi = environments[index]
             let host = envi["host"]
             AppContext.shared.baseServerUrl = host ?? ""
             AppContext.shared.appId = envi["appId"] ?? ""

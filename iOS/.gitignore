@@ -5,7 +5,7 @@
 *.framework
 *.xcworkspacedata
 xcshareddata
-
+**/environments.json
 agora_sdk
 *.xcarchive
 

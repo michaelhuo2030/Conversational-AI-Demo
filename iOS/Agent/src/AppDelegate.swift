@@ -16,6 +16,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+#if MainLand
+        AppContext.shared.appArea = .mainland
+#else
+        AppContext.shared.appArea = .global
+#endif
+        
+        AppContext.shared.appId = KeyCenter.AppId
+        AppContext.shared.certificate = KeyCenter.Certificate ?? ""
+        AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
+        AppContext.shared.loadEnvironment()
         
         copyResource()
         
@@ -23,18 +33,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_fill1").withAlphaComponent(0.8))
         SVProgressHUD.setForegroundColor(.white)
         SVProgressHUD.setImageViewSize(CGSize.zero)
-        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180)) 
-
-        #if MainLand
-        AppContext.shared.appArea = .mainland
-        #else
-        AppContext.shared.appArea = .global
-        #endif
-
-        AppContext.shared.appId = KeyCenter.AppId
-        AppContext.shared.certificate = KeyCenter.Certificate ?? ""
-        AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
-        AppContext.shared.environments = KeyCenter.environments
+        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180))
+        
         return true
     }
     

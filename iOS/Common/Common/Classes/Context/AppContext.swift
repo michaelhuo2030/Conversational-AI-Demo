@@ -22,7 +22,7 @@ import Foundation
     private var _baseServerUrl: String = ""
     private var _appArea: AppArea = .global
     private var _developerMode: Bool = false
-    private var _environments: [[String : String]] = [[String : String]]()
+    private var _environments: [[String : String]] = []
     
     override init() {
         super.init()
@@ -77,8 +77,24 @@ import Foundation
         get {
             return _environments
         }
-        set {
-            _environments = newValue
+    }
+    
+    public func loadEnvironment() {
+        if let bundlePath = Bundle.main.path(forResource: "Common", ofType: "bundle"),
+           let bundle = Bundle(path: bundlePath),
+           let environmentsPath = bundle.path(forResource: "environments", ofType: "json"),
+           let data = try? Data(contentsOf: URL(fileURLWithPath: environmentsPath)),
+           let environments = try? JSONDecoder().decode([String: [[String: String]]].self, from: data) {
+            if (AppContext.shared.appArea == .mainland) {
+                _environments = environments["cn"] ?? []
+            } else {
+                _environments = environments["global"] ?? []
+            }
+            if (appId.isEmpty) {
+                _appId = _environments.first?["appId"] ?? ""
+                _certificate = _environments.first?["certificate"] ?? ""
+                _baseServerUrl = _environments.first?["host"] ?? ""
+            }
         }
     }
 }
