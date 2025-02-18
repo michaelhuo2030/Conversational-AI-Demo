@@ -36,12 +36,12 @@ object ServerConfig {
     const val IS_DEBUG = "is_debug"
 
     private const val GLOBAL_CONVOAI_PROD_TOOLBOX_HOST = "https://toolbox-global.la3d.agoralab.co"
-    private const val GLOBAL_CONVOAI_PROD_TOOLBOX_STAGING_HOST = "https://toolbox-global-staging.la3d.agoralab.co"
+    private const val GLOBAL_CONVOAI_PROD_TOOLBOX_STAGING_HOST = "https://service.agora.io/toolbox-global"
     private const val GLOBAL_CONVOAI_STAGING_TOOLBOX_STAGING_HOST =
         "https://toolbox-global-staging-convoai-dev.ty3.agoralab.co"
 
     private const val CONVOAI_PROD_TOOLBOX_HOST = "https://toolbox.sh3t.agoralab.co"
-    private const val CONVOAI_PROD_TOOLBOX_STAGING_HOST = "https://toolbox-staging.sh3t.agoralab.co"
+    private const val CONVOAI_PROD_TOOLBOX_STAGING_HOST = "https://service.apprtc.cn/toolbox"
     private const val CONVOAI_STAGING_TOOLBOX_STAGING_HOST = "https://toolbox-staging-convoai-dev.gz3.agoralab.co"
 
     var isDebug: Boolean = LocalStorageUtil.getBoolean(IS_DEBUG, false)
