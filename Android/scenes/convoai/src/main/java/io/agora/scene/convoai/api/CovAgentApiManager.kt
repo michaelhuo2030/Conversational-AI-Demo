@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.net.HttpLogger
 import io.agora.scene.common.net.SecureOkHttpClient
 import io.agora.scene.convoai.CovLogger
@@ -90,6 +91,12 @@ object CovAgentApiManager {
             if (tts.length() > 0) {
                 postBody.put("tts", tts)
             }
+            params.graphId?.let { postBody.put("graph_id", it) }
+            params.protocolVersion?.let {
+                val transcript = JSONObject()
+                transcript.put("protocol_version", it)
+                postBody.put("transcript",transcript)
+            }
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }
@@ -113,6 +120,7 @@ object CovAgentApiManager {
                         val jsonObj = JSONObject(json)
                         val code = jsonObj.optInt("code")
                         val aid = jsonObj.optJSONObject("data")?.optString("agent_id")
+
                         currentHost = jsonObj.optJSONObject("data")?.optString("agent_url")
                         if (code == 0 && !aid.isNullOrEmpty()) {
                             agentId = aid

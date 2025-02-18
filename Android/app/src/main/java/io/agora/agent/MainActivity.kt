@@ -16,31 +16,38 @@ import android.annotation.SuppressLint
 import android.view.View
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.isVisible
-import io.agora.scene.common.constant.AgentKey
+import io.agora.scene.common.AgentApp
+import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.toast.ToastUtil
-import io.agora.scene.convoai.debug.CovDebugDialog
-import io.agora.scene.convoai.rtc.CovRtcManager
+import io.agora.scene.common.debugMode.DebugDialog
+import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.debugMode.DebugButton
+import io.agora.scene.common.debugMode.DebugDialogCallback
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val REQUEST_CODE = 100
 
+    // Counter for debug mode activation
     private var counts = 0
     private val debugModeOpenTime: Long = 2000
     private var beginTime: Long = 0
+    private var mDebugDialog: DebugDialog? = null
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val stagingKey = AgentKey(BuildConfig.AG_APP_ID,BuildConfig.AG_APP_CERTIFICATE)
-        val devKey = AgentKey(BuildConfig.AG_APP_ID_DEV,BuildConfig.AG_APP_CERTIFICATE_DEV)
-        ServerConfig.initConfig(BuildConfig.IS_MAINLAND,
-            stagingKey = stagingKey,
-            devKey = devKey)
+        DebugConfigSettings.init(this, BuildConfig.IS_MAINLAND)
+        ServerConfig.initBuildConfig(
+            BuildConfig.IS_MAINLAND,
+            "",
+            BuildConfig.TOOLBOX_SERVER_HOST,
+            BuildConfig.AG_APP_ID,
+            BuildConfig.AG_APP_CERTIFICATE
+        )
         setupLocale()
         super.onCreate(savedInstanceState)
     }
@@ -62,11 +69,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onResume() {
         super.onResume()
         setupLocale()
+        // Set debug callback when page is resumed
+        DebugButton.setDebugCallback {
+            showDebugDialog()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Clear debug callback when activity is paused
+        DebugButton.setDebugCallback(null)
     }
 
     private fun setupView() {
         mBinding?.apply {
             setOnApplyWindowInsetsListener(root)
+            // Set logo based on region
             if (ServerConfig.isMainlandVersion) {
                 ivLogo.setImageResource(R.drawable.app_main_logo_cn)
                 ivLogo.setColorFilter(Color.WHITE)
@@ -74,6 +92,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 ivLogo.setImageResource(R.drawable.app_main_logo)
                 ivLogo.clearColorFilter()
             }
+
+            // Setup UI event listeners
             cbTerms.setOnCheckedChangeListener { _, _ ->
                 updateStartButtonState()
             }
@@ -87,8 +107,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     onClickGetStarted()
                 }
             })
+
+            // Debug mode activation with multiple taps
             ivIcon.setOnClickListener {
-                if (ServerConfig.isDebug) return@setOnClickListener
+                if (DebugConfigSettings.isDebug) return@setOnClickListener
                 if (counts == 0 || System.currentTimeMillis() - beginTime > debugModeOpenTime) {
                     beginTime = System.currentTimeMillis()
                     counts = 0
@@ -96,23 +118,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 counts++
                 if (counts > 7) {
                     counts = 0
-                    btnDebug.isVisible = true
-                    ServerConfig.isDebug = true
+                    DebugConfigSettings.enableDebugMode(true)
+                    DebugButton.getInstance(AgentApp.instance()).show()
+                    // Add callback setup here for first time activation
+                    DebugButton.setDebugCallback {
+                        showDebugDialog()
+                    }
                     ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_enable))
                 }
             }
-            btnDebug.isVisible = ServerConfig.isDebug
-            btnDebug.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    showDebugDialog()
-                }
-            })
             updateStartButtonState()
         }
     }
 
     private fun updateStartButtonState() {
         mBinding?.apply {
+            // Update start button opacity and enabled state based on terms acceptance
             if (cbTerms.isChecked) {
                 tvGetStarted.alpha = 1f
                 tvGetStarted.isEnabled = true
@@ -163,17 +184,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun showDebugDialog(){
-        val callback = object : CovDebugDialog.Callback {
-            override fun onAudioDumpEnable(enable: Boolean) {
-                CovRtcManager.onAudioDump(enable)
+    private fun showDebugDialog() {
+        if (!isFinishing && !isDestroyed) {  // Add safety check
+            if (mDebugDialog?.dialog?.isShowing == true) return
+            mDebugDialog = DebugDialog(AgentScenes.Common)
+            mDebugDialog?.onDebugDialogCallback = object : DebugDialogCallback {
+                override fun onDialogDismiss() {
+                    mDebugDialog = null
+                }
             }
-
-            override fun onDebugEnable(enable: Boolean) {
-                mBinding?.btnDebug?.isVisible =false
-            }
+            mDebugDialog?.show(supportFragmentManager, "mainDebugDialog")
         }
-        val dialog = CovDebugDialog(callback)
-        dialog.show(supportFragmentManager, "debugSettings")
+    }
+
+    override fun onDestroy() {
+        DebugButton.getInstance(AgentApp.instance()).hide()
+        super.onDestroy()
     }
 }
