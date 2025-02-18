@@ -42,13 +42,13 @@ class RTCManager: NSObject {
     private weak var delegate: AgoraRtcEngineDelegate?
     private var appId: String = ""
     private var audioDumpEnabled: Bool = false
-    init(appId: String, delegate: AgoraRtcEngineDelegate?, audioSpectrumDelegate: AgoraAudioSpectrumDelegate?) {
+    init(appId: String, delegate: AgoraRtcEngineDelegate?, audioFrameDelegate: AgoraAudioFrameDelegate?) {
         self.appId = appId
         self.delegate = delegate
         super.init()
         
         initRtcEngine()
-        rtcEngine.registerAudioSpectrumDelegate(audioSpectrumDelegate)
+        rtcEngine.setAudioFrameDelegate(audioFrameDelegate)
     }
     
     private func initRtcEngine() {

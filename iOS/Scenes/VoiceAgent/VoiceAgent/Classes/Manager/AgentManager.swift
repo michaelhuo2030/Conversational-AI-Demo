@@ -29,8 +29,6 @@ protocol AgentAPI {
                     bhvs: Bool,
                     presetName: String,
                     language: String,
-                    protocolVersion: String?,
-                    graphId: String?,
                     completion: @escaping ((AgentError?, String, String?, String?) -> Void))
     
     /// Stops a running AI agent
@@ -102,11 +100,9 @@ class AgentManager: AgentAPI {
                     bhvs: Bool,
                     presetName: String,
                     language: String,
-                    protocolVersion: String? = nil,
-                    graphId: String? = nil,
                     completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("convoai/start").toHttpUrlSting()
-        var parameters: [String: Any] = [
+        var requesetBody: [String: Any] = [
             "app_id": appId,
             "preset_name": presetName,
             "channel_name": channelName,
@@ -120,19 +116,17 @@ class AgentManager: AgentAPI {
                 "language": language
             ]
         ]
-        if let protocolVersion = protocolVersion {
-            parameters["parameters"] = [
-                "transcript": [
-                    "protocol_version": protocolVersion
-                ]
+        requesetBody["parameters"] = [
+            "transcript": [
+                "enable": true,
+                "protocol_version": "v2",
+                "enable_words": true,
             ]
-        }
-        if let graphId = graphId {
-            parameters["graph_id"] = graphId
-        }
+        ]
+        requesetBody["graph_id"] = "0.9.0-166-g4be1977"
         
-        VoiceAgentLogger.info("request start api: \(url) parameters: \(parameters)")
-        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
+        VoiceAgentLogger.info("request start api: \(url) parameters: \(requesetBody)")
+        NetworkManager.shared.postRequest(urlString: url, params: requesetBody) { result in
             VoiceAgentLogger.info("start request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"

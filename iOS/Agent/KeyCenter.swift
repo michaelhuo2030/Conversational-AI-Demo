@@ -43,5 +43,7 @@ struct KeyCenter {
      Agent的服务地址
      用于启动和停止Agent，请填写您的主机地址。demo演示地址：http://104.42.227.71:8083
      */
-    static var BaseHostUrl: String = "https://toolbox-staging.sh3t.agoralab.co/v2"
+    static var BaseHostUrl: String = "https://service.apprtc.cn/toolbox"
+//    static var BaseHostUrl: String = https://service.agora.io/toolbox-global
+
 }

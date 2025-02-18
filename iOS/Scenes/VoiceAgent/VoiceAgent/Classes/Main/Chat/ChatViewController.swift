@@ -26,7 +26,7 @@ class ChatViewController: UIViewController {
     private var remoteAgentId = ""
 
     private lazy var rtcManager: RTCManager = {
-        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self, audioSpectrumDelegate: self)
+        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self, audioFrameDelegate: self)
         addLog("rtc sdk version: \(AgoraRtcEngineKit.getSdkVersion())")
         return manager
     }()
@@ -621,14 +621,19 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
 }
 // MARK: - AgoraRtcAudioSpectrumDelegate
-extension ChatViewController: AgoraAudioSpectrumDelegate {
+extension ChatViewController: AgoraAudioFrameDelegate {
     
-    func onLocalAudioSpectrum(_ audioSpectrumData: [NSNumber]?) -> Bool {
-        
-        return true
+    func getPlaybackAudioParams() -> AgoraAudioParams {
+        let param = AgoraAudioParams()
+        param.sampleRate = 44100
+        param.channel = 1
+        param.mode = .readWrite
+        param.samplesPerCall = 1024
+        return param
     }
     
-    func onRemoteAudioSpectrum(_ AudioSpectrumInfo: [AgoraAudioSpectrumInfo]?) -> Bool {
+    func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
+        print("onPlaybackAudioFrame \(frame) uid: \(uid)")
         return true
     }
 }
