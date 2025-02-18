@@ -30,7 +30,8 @@ public class ResourceManager {
         let resourceBundle = (bundleName != nil) ? getBundle(bundleName: bundleName) : Bundle.main
         
         var localeIdentifier = "en"
-        if AppContext.shared.appArea == .mainland {
+        let area = AppContext.shared.appArea
+        if area == .mainland {
             localeIdentifier = "zh-Hans"
         }
         

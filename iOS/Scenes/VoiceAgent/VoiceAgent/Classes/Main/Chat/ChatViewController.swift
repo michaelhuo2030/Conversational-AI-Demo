@@ -69,10 +69,7 @@ class ChatViewController: UIViewController {
     
     private lazy var toastView: ToastView = {
         let view = ToastView()
-        view.layer.cornerRadius = 20
-        view.layer.masksToBounds = true
-        view.layer.borderWidth = 1.0
-        view.layer.isHidden = true
+        view.isHidden = true
         return view
     }()
     
@@ -265,8 +262,8 @@ class ChatViewController: UIViewController {
         bottomBar.resetState()
         stopRequestTimer()
         stopPingTimer()
-        leaveChannel()
         stopAgentRequest()
+        leaveChannel()
         AppContext.preferenceManager()?.resetAgentInformation()
     }
     
