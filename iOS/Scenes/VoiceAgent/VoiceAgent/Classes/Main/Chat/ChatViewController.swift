@@ -25,6 +25,12 @@ class ChatViewController: UIViewController {
     private var agentUid = 0
     private var remoteAgentId = ""
 
+    private lazy var messageAdapter: MessageAdapter = {
+        let adapter = MessageAdapter()
+        adapter.delegate = self
+        return adapter
+    }()
+    
     private lazy var rtcManager: RTCManager = {
         let manager = RTCManager(appId: AppContext.shared.appId, delegate: self, audioSpectrumDelegate: self)
         addLog("rtc sdk version: \(AgoraRtcEngineKit.getSdkVersion())")
@@ -195,6 +201,7 @@ class ChatViewController: UIViewController {
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
+            startMessageAdapter()
             startAgentRequest()
             joinChannel()
         } catch {
@@ -262,6 +269,7 @@ class ChatViewController: UIViewController {
         bottomBar.resetState()
         stopRequestTimer()
         stopPingTimer()
+        stopMessageAdapter()
         stopAgentRequest()
         leaveChannel()
         AppContext.preferenceManager()?.resetAgentInformation()
@@ -338,6 +346,14 @@ extension ChatViewController {
         stopLoading()
         stopAgent()
         SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+    }
+    
+    private func startMessageAdapter() {
+        messageAdapter.start()
+    }
+    
+    private func stopMessageAdapter() {
+        messageAdapter.stop()
     }
     
     private func startAgentRequest() {
@@ -542,54 +558,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
         
     func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
-        guard let rawString = String(data: data, encoding: .utf8) else {
-            addLog("Failed to convert data to string")
-            return
-        }
-        
-        // Use message parser to process the message
-        addLog("receive raw string \(rawString)")
-        if let message = messageParser.parseMessage(rawString) {
-            addLog("receive msg: \(message)")
-            handleStreamMessage(message)
-        }
-    }
-    
-    private func handleStreamMessage(_ message: [String: Any]) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            let isFinal = message["is_final"] as? Bool ?? false
-            let streamId = message["stream_id"] as? Int ?? 0
-            let text = message["text"] as? String ?? ""
-            let dataType = message["data_type"] as? String ?? ""
-            let textTs = message["text_ts"] as? Int64 ?? 0
-            
-            // Ignore empty messages
-            guard !text.isEmpty else { return }
-            
-            if dataType == "transcribe" {
-                if streamId == 0 {
-                    // AI response message
-                    if self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
-                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: false)
-                    }
-                    self.messageView.updateStreamContent(text)
-                    if isFinal {
-                        self.messageView.completeStreamMessage()
-                    }
-                } else {
-                    // User message
-                    if !self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
-                        self.messageView.startNewStreamMessage(timestamp: textTs, isUser: true)
-                    }
-                    self.messageView.updateStreamContent(text)
-                    if isFinal {
-                        self.messageView.completeStreamMessage()
-                    }
-                }
-            }
-        }
+        messageAdapter.inputStreamMessageData(data: data)
     }
     
     func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
@@ -727,6 +696,30 @@ extension ChatViewController: AnimateViewDelegate {
         
         stopLoading()
         stopAgent()
+    }
+}
+
+extension ChatViewController: MessageAdapterDelegate {
+    func messageFlush(message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
+        if owner == .agent {
+            // AI response message
+            if self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
+                self.messageView.startNewStreamMessage(timestamp: timestamp, isUser: false)
+            }
+            self.messageView.updateStreamContent(message)
+            if isFinished {
+                self.messageView.completeStreamMessage()
+            }
+        } else {
+            // User message
+            if !self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
+                self.messageView.startNewStreamMessage(timestamp: timestamp, isUser: true)
+            }
+            self.messageView.updateStreamContent(message)
+            if isFinished {
+                self.messageView.completeStreamMessage()
+            }
+        }
     }
 }
 
