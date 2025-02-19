@@ -79,103 +79,69 @@
             android:layout_marginStart="12dp"
             android:text="xxx"
             android:textColor="@color/ai_icontext4"
-            android:textSize="16sp"
+            android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_switch_server"
+        android:id="@+id/layout_switch_env"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
         app:layout_constraintTop_toBottomOf="@id/layout_rtc_version">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/mtv_switch_server"
+            android:id="@+id/tv_server_env"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:text="@string/common_debug_switch_server"
             android:textColor="@color/ai_icontext1"
-            android:textSize="16sp"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/tv_server_env_host"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <RadioGroup
-            android:id="@+id/rgSwitchEnv"
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_server_env_host"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/agent_bg_env_mode_radius"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="16dp"
+            android:textColor="@color/ai_icontext4"
+            android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/mtv_switch_server">
-
-           <!-- <RadioButton
-                android:id="@+id/rbEnvProd"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/agent_bg_env_mode_selector"
-                android:button="@null"
-                android:checked="true"
-                android:paddingHorizontal="4dp"
-                android:text="PORD"
-                android:visibility="gone"
-                android:textColor="@color/ai_brand_white10"
-                android:textSize="13sp" />-->
-
-            <RadioButton
-                android:id="@+id/rbEnvStaging"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/agent_bg_env_mode_selector"
-                android:button="@null"
-                android:paddingHorizontal="4dp"
-                android:text="ConvoAI Prod"
-                android:textColor="@color/ai_brand_white10"
-                android:textSize="13sp" />
-
-            <RadioButton
-                android:id="@+id/rbEnvDev"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/agent_bg_env_mode_selector"
-                android:button="@null"
-                android:paddingHorizontal="4dp"
-                android:text="ConvoAI Staging"
-                android:textColor="@color/ai_brand_white10"
-                android:textSize="13sp" />
-        </RadioGroup>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_server_env" />
 
         <TextView
-            android:id="@+id/tv_switch"
-            android:layout_width="60dp"
-            android:layout_height="30dp"
-            android:text="Switch"
-            android:gravity="center"
-            android:textColor="#FDFCFB"
+            android:id="@+id/tv_server_env_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:background="@drawable/btn_bg_blue_radio_enable_selector"
+            android:textDirection="ltr"
+            android:drawablePadding="4dp"
+            android:drawableEnd="@drawable/icon_dropleft"
+            android:textColor="@color/ai_icontext4"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layout_server_host"
+        android:id="@+id/layout_convoai_host"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        app:layout_constraintTop_toBottomOf="@id/layout_switch_server">
+        app:layout_constraintTop_toBottomOf="@id/layout_switch_env">
 
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/common_debug_switch_server"
+            android:text="@string/common_debug_convoai_host"
             android:textColor="@color/ai_icontext1"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -183,7 +149,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/mtv_server_host"
+            android:id="@+id/mtv_convoai_host"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
@@ -199,7 +165,7 @@
         android:id="@+id/layout_audio_dump"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        app:layout_constraintTop_toBottomOf="@id/layout_server_host">
+        app:layout_constraintTop_toBottomOf="@id/layout_convoai_host">
 
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
@@ -263,13 +229,11 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="15dp"
-        android:layout_marginBottom="24dp"
         android:background="@drawable/btn_join_call_selector"
         android:gravity="center_horizontal|center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="36dp"
         android:paddingVertical="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="5.8:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -283,4 +247,36 @@
             android:textColor="@color/ai_icontext1"
             android:textSize="18sp" />
     </LinearLayout>
+    
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginVertical="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/layout_close_debug"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/v_options_mask"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="invisible"
+        tools:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_options"
+            android:layout_width="218dp"
+            android:layout_height="150dp"
+            android:backgroundTint="@color/ai_line1"
+            app:cardCornerRadius="12dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rc_options"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            </androidx.recyclerview.widget.RecyclerView>
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

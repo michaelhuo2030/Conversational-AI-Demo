@@ -7,36 +7,39 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.core.view.isVisible
-import io.agora.scene.common.ui.BaseActivity
-import io.agora.scene.common.util.PermissionHelp
-import io.agora.scene.convoai.rtc.CovRtcManager
-import io.agora.scene.convoai.utils.MessageParser
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
-import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
+import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.debugMode.DebugButton
+import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
-import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.animation.AgentState
 import io.agora.scene.convoai.animation.CovBallAnim
 import io.agora.scene.convoai.animation.CovBallAnimCallback
-import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.api.AgentRequestParams
-import io.agora.scene.convoai.constant.CovAgentManager
-import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.api.CovAgentApiManager
+import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.constant.AgentConnectionState
-import io.agora.scene.convoai.debug.CovDebugDialog
+import io.agora.scene.convoai.constant.CovAgentManager
+import io.agora.scene.convoai.databinding.CovActivityLivingBinding
+import io.agora.scene.common.debugMode.DebugDialog
+import io.agora.scene.common.debugMode.DebugDialogCallback
+import io.agora.scene.convoai.rtc.CovAudioFrameObserver
+import io.agora.scene.convoai.rtc.CovRtcManager
+import io.agora.scene.convoai.utils.MessageParser
 import kotlinx.coroutines.*
+import java.nio.ByteBuffer
 import java.util.UUID
 import kotlin.coroutines.*
 
@@ -59,6 +62,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var networkValue: Int = -1
 
     private var parser = MessageParser()
+
+    @Volatile
+    private var mRtpTimestamp: Int = 0
 
     private var rtcToken: String? = null
 
@@ -186,6 +192,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         if (connectionState == AgentConnectionState.CONNECTED) {
             startRecordingService()
         }
+        // Clear debug callback when activity is paused
+        DebugButton.setDebugCallback(null)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Set debug callback when page is resumed
+        DebugButton.setDebugCallback {
+            showCovAiDebugDialog()
+        }
     }
 
     private fun startRecordingService() {
@@ -212,6 +228,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             enableBHVS = CovAgentManager.enableBHVS,
             presetName = CovAgentManager.getPreset()?.name,
             asrLanguage = CovAgentManager.language?.language_code,
+            // TODO:
+//            protocolVersion = "v2"
         )
     }
 
@@ -332,7 +350,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun createRtcEngine(): RtcEngineEx {
-        return CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
+        val rtcEngine = CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
             override fun onError(err: Int) {
                 super.onError(err)
                 logScope.launch {
@@ -369,7 +387,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         ToastUtil.showByPosition(
                             getString(R.string.cov_detail_join_call_tips),
                             gravity = Gravity.BOTTOM,
-                            offsetY = 100.dp.toInt(),
                             duration = Toast.LENGTH_LONG
                         )
                     }
@@ -511,7 +528,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
                 if (uid == 0) {
                     runOnUiThread {
-                        CovLogger.e(TAG, "onNetworkQuality: txQuality:$txQuality rxQuality:")
                         updateNetworkStatus(rxQuality)
                     }
                 }
@@ -529,6 +545,41 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
         })
+        rtcEngine.registerAudioFrameObserver(object : CovAudioFrameObserver() {
+            override fun onPlaybackAudioFrameBeforeMixing(
+                channelId: String,
+                uid: Int,
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer,
+                renderTimeMs: Long,
+                avsync_type: Int,
+                rtpTimestamp: Int
+            ): Boolean {
+                mRtpTimestamp = rtpTimestamp
+                logScope.launch {
+                    CovLogger.d(TAG, "onPlaybackAudioFrameBeforeMixing: $rtpTimestamp")
+                }
+                return super.onPlaybackAudioFrameBeforeMixing(
+                    channelId,
+                    uid,
+                    type,
+                    samplesPerChannel,
+                    bytesPerSample,
+                    channels,
+                    samplesPerSec,
+                    buffer,
+                    renderTimeMs,
+                    avsync_type,
+                    rtpTimestamp
+                )
+            }
+        })
+        CovRtcManager.onAudioDump(DebugConfigSettings.isDebug && DebugConfigSettings.isAudioDumpEnabled)
+        return rtcEngine
     }
 
     private fun updateUserVolumeAnim(volume: Int) {
@@ -660,39 +711,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setOnApplyWindowInsetsListener(root)
-            btnDebug.isVisible = ServerConfig.isDebug
-            btnDebug.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    CovLogger.d(TAG, "showCovDebugDialog called")
-                    val callback = object : CovDebugDialog.Callback {
-                        override fun onAudioDumpEnable(enable: Boolean) {
-                            CovRtcManager.onAudioDump(enable)
-                        }
 
-                        override fun onDebugEnable(enable: Boolean) {
-                            btnDebug.isVisible = ServerConfig.isDebug
-                        }
-
-                        override fun onSwitchEnv(env: Int) {
-                            coroutineScope.launch {
-                                delay(1000L)
-                                onHandleOnBackPressed()
-                            }
-                        }
-
-                        override fun onClickCopy() {
-                            val messageContents = messageListView.getAllMessages()
-                                .filter { it.isMe }
-                                .map { it.content }
-                                .joinToString("\n")
-                            this@CovLivingActivity.copyToClipboard(messageContents)
-                            ToastUtil.show(getString(R.string.cov_copy_succeed))
-                        }
-                    }
-                    val dialog = CovDebugDialog(callback)
-                    dialog.show(supportFragmentManager, "debugSettings")
-                }
-            })
             btnBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onHandleOnBackPressed()
@@ -767,5 +786,44 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         })
         mCovBallAnim?.setupView()
+    }
+
+    private var mDebugDialog: DebugDialog? = null
+
+    private fun showCovAiDebugDialog() {
+        if (!isFinishing && !isDestroyed) {
+            if (mDebugDialog?.dialog?.isShowing == true) return
+            mDebugDialog = DebugDialog(AgentScenes.ConvoAi)
+            mDebugDialog?.onDebugDialogCallback = object : DebugDialogCallback {
+                override fun onDialogDismiss() {
+                    mDebugDialog = null
+                }
+
+                override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
+
+                override fun onAudioDumpEnable(enable: Boolean) {
+                    CovRtcManager.onAudioDump(enable)
+                }
+
+                override fun onClickCopy() {
+                    mBinding?.apply {
+                        val messageContents = messageListView.getAllMessages()
+                            .filter { it.isMe }
+                            .map { it.content }
+                            .joinToString("\n")
+                        this@CovLivingActivity.copyToClipboard(messageContents)
+                        ToastUtil.show(getString(R.string.cov_copy_succeed))
+                    }
+                }
+
+                override fun onCloseDebug() {
+                    coroutineScope.launch {
+                        delay(1000L)
+                        onHandleOnBackPressed()
+                    }
+                }
+            }
+            mDebugDialog?.show(supportFragmentManager, "covAidebugSettings")
+        }
     }
 }
