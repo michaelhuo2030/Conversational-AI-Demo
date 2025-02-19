@@ -106,8 +106,14 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <io.agora.scene.common.ui.widget.MessageListView
-            android:id="@+id/messageListView"
+        <io.agora.scene.convoai.subRender.v1.SelfMessageListView
+            android:id="@+id/messageListViewV1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
+
+        <io.agora.scene.convoai.subRender.v2.CovMessageListView
+            android:id="@+id/messageListViewV2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="invisible" />

@@ -12,13 +12,15 @@ import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.AgentScenes
+import io.agora.scene.common.debugMode.DebugButton
+import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.debugMode.DebugDialog
+import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.ui.OnFastClickListener
-import io.agora.scene.common.debugMode.DebugButton
-import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.toast.ToastUtil
@@ -33,12 +35,14 @@ import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.constant.AgentConnectionState
 import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
-import io.agora.scene.common.debugMode.DebugDialog
-import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.convoai.rtc.CovAudioFrameObserver
 import io.agora.scene.convoai.rtc.CovRtcManager
-import io.agora.scene.convoai.utils.MessageParser
+import io.agora.scene.convoai.subRender.MessageParser
+import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
+import io.agora.scene.convoai.subRender.v2.CovSubRenderController
+import io.agora.scene.convoai.subRender.v2.SubRenderMode
 import kotlinx.coroutines.*
+import org.json.JSONObject
 import java.nio.ByteBuffer
 import java.util.UUID
 import kotlin.coroutines.*
@@ -62,9 +66,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var networkValue: Int = -1
 
     private var parser = MessageParser()
-
-    @Volatile
-    private var mRtpTimestamp: Int = 0
 
     private var rtcToken: String? = null
 
@@ -96,18 +97,17 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         waitingAgentJob?.cancel()
                         waitingAgentJob = null
 
-                        // 使用协程替代 Timer 进行 ping
                         pingJob = coroutineScope.launch {
                             while (isActive) {
                                 val presetName = CovAgentManager.getPreset()?.name ?: return@launch
                                 CovAgentApiManager.ping(CovAgentManager.channelName, presetName) {}
-                                delay(10000) // 10秒间隔
+                                delay(10000) // 10s
                             }
                         }
                     }
 
                     AgentConnectionState.IDLE -> {
-                        // 取消 ping
+                        // cancel ping
                         pingJob?.cancel()
                         pingJob = null
                         waitingAgentJob?.cancel()
@@ -115,7 +115,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
 
                     AgentConnectionState.ERROR -> {
-                        // 取消 ping
+                        // cancel ping
                         pingJob?.cancel()
                         pingJob = null
                         waitingAgentJob?.cancel()
@@ -136,6 +136,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var isUserEndCall = false
 
     private var mCovBallAnim: CovBallAnim? = null
+
+    private var isSelfSubRender = false
+
+    private val subRenderController = CovSubRenderController()
+
+    private val selfRenderController = SelfSubRenderController()
 
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
@@ -159,6 +165,33 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             )
             deferreds.awaitAll()
         }
+        // v1 Subtitle Rendering Controller
+        selfRenderController.onUpdateStreamContent = { isMe, turnId, text, isFinal ->
+            runOnUiThread {
+                if (isSelfSubRender) {
+                    mBinding?.messageListViewV1?.updateStreamContent(isMe, turnId, text, isFinal)
+                }
+            }
+        }
+
+        // v2 Subtitle Rendering Controller
+        subRenderController.onUpdateStreamContent = { isMe, turnId, text, isFinal ->
+            runOnUiThread {
+                if (!isSelfSubRender) {
+                    mBinding?.messageListViewV2?.updateStreamContent(isMe, turnId, text, isFinal)
+                }
+            }
+
+        }
+        subRenderController.onSubtitleUpdate = { subtitleInfo ->
+            runOnUiThread {
+                if (!isSelfSubRender) {
+                    mBinding?.messageListViewV2?.updateStreamContent(
+                        false, subtitleInfo.turnId, subtitleInfo.text, subtitleInfo.isFinal
+                    )
+                }
+            }
+        }
     }
 
     override fun onHandleOnBackPressed() {
@@ -179,6 +212,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         CovRtcManager.resetData()
         CovAgentManager.resetData()
+        subRenderController.clear()
         super.finish()
     }
 
@@ -228,16 +262,33 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             enableBHVS = CovAgentManager.enableBHVS,
             presetName = CovAgentManager.getPreset()?.name,
             asrLanguage = CovAgentManager.language?.language_code,
-            // TODO:
-//            protocolVersion = "v2"
+            graphId = "0.9.0-166-g4be1977",
+            parameters = JSONObject().apply {
+                put("transcript", JSONObject().apply {
+                    put("enable", true)
+                    put("protocol_version", "v2")
+                    put("enable_words", true)
+                })
+            }
         )
     }
 
     private fun onClickStartAgent() {
+        subRenderController.setRenderMode(SubRenderMode.Idle)
+        subRenderController.startSubtitleTicker()
         // Immediately show the connecting status
         isUserEndCall = false
         connectionState = AgentConnectionState.CONNECTING
         CovAgentManager.channelName = "agent_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8)
+
+        isSelfSubRender = CovAgentManager.getPreset()?.isIndependent() == true
+        mBinding?.apply {
+            if (isSelfSubRender) {
+                messageListViewV1.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
+            } else {
+                messageListViewV2.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
+            }
+        }
 
         coroutineScope.launch(Dispatchers.IO) {
             val needToken = rtcToken == null
@@ -257,9 +308,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                     return@launch
                 }
-            }
-            withContext(Dispatchers.Main) {
-                mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
             }
 
             CovRtcManager.joinChannel(rtcToken ?: "", CovAgentManager.channelName, CovAgentManager.uid)
@@ -323,6 +371,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun stopAgentAndLeaveChannel() {
+        subRenderController.setRenderMode(SubRenderMode.Idle)
         CovRtcManager.leaveChannel()
         if (connectionState == AgentConnectionState.IDLE) {
             return
@@ -501,27 +550,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
 
             override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
-                data?.let { bytes ->
-                    try {
-                        val rawString = String(bytes, Charsets.UTF_8)
-                        val message = parser.parseStreamMessage(rawString)
-                        message?.let { msg ->
-                            CovLogger.d(TAG, "onStreamMessage: $msg")
-                            val isFinal = msg["is_final"] as? Boolean ?: false
-                            val streamId = msg["stream_id"] as? Double ?: 0.0
-                            val turnId = msg["turn_id"] as? Double ?: 0.0
-                            val text = msg["text"] as? String ?: ""
-                            if (text.isNotEmpty()) {
-                                runOnUiThread {
-                                    mBinding?.messageListView?.updateStreamContent(
-                                        (streamId != 0.0), turnId, text, isFinal
-                                    )
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {
-                        CovLogger.e(TAG, "Process stream message error: ${e.message}")
-                    }
+                if (isSelfSubRender) {
+                    selfRenderController.onStreamMessage(uid, streamId, data)
+                } else {
+                    subRenderController.onStreamMessage(uid, streamId, data)
                 }
             }
 
@@ -545,39 +577,29 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
         })
+
         rtcEngine.registerAudioFrameObserver(object : CovAudioFrameObserver() {
             override fun onPlaybackAudioFrameBeforeMixing(
-                channelId: String,
+                channelId: String?,
                 uid: Int,
                 type: Int,
                 samplesPerChannel: Int,
                 bytesPerSample: Int,
                 channels: Int,
                 samplesPerSec: Int,
-                buffer: ByteBuffer,
+                buffer: ByteBuffer?,
                 renderTimeMs: Long,
                 avsync_type: Int,
-                rtpTimestamp: Int
+                rtpTimestamp: Int,
+                presentationMs: Long
             ): Boolean {
-                mRtpTimestamp = rtpTimestamp
-                logScope.launch {
-                    CovLogger.d(TAG, "onPlaybackAudioFrameBeforeMixing: $rtpTimestamp")
-                }
-                return super.onPlaybackAudioFrameBeforeMixing(
-                    channelId,
-                    uid,
-                    type,
-                    samplesPerChannel,
-                    bytesPerSample,
-                    channels,
-                    samplesPerSec,
-                    buffer,
-                    renderTimeMs,
-                    avsync_type,
-                    rtpTimestamp
-                )
+                // Pass render time to subtitle controller
+                subRenderController.onPlaybackAudioFrameBeforeMixing(presentationMs)
+                return false
             }
         })
+        rtcEngine.setPlaybackAudioFrameBeforeMixingParameters(44100, 1);
+
         CovRtcManager.onAudioDump(DebugConfigSettings.isDebug && DebugConfigSettings.isAudioDumpEnabled)
         return rtcEngine
     }
@@ -595,7 +617,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun resetSceneState() {
         mBinding?.apply {
-            messageListView.clearMessages()
+            messageListViewV1.clearMessages()
+            messageListViewV2.clearMessages()
             if (isShowMessageList) {
                 isShowMessageList = false
             }
@@ -648,10 +671,18 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun updateMessageList() {
         mBinding?.apply {
             if (isShowMessageList) {
-                messageListView.visibility = View.VISIBLE
+                if (isSelfSubRender) {
+                    messageListViewV1.visibility = View.VISIBLE
+                } else {
+                    messageListViewV2.visibility = View.VISIBLE
+                }
                 btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_brand_main6), PorterDuff.Mode.SRC_IN)
             } else {
-                messageListView.visibility = View.INVISIBLE
+                if (isSelfSubRender) {
+                    messageListViewV1.visibility = View.INVISIBLE
+                } else {
+                    messageListViewV2.visibility = View.INVISIBLE
+                }
                 btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
             }
         }
@@ -807,10 +838,17 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
                 override fun onClickCopy() {
                     mBinding?.apply {
-                        val messageContents = messageListView.getAllMessages()
-                            .filter { it.isMe }
-                            .map { it.content }
-                            .joinToString("\n")
+                        val messageContents = if (isSelfSubRender) {
+                            messageListViewV1.getAllMessages()
+                                .filter { it.isMe }
+                                .map { it.content }
+                                .joinToString("\n")
+                        } else {
+                            messageListViewV2.getAllMessages()
+                                .filter { it.isMe }
+                                .map { it.content }
+                                .joinToString("\n")
+                        }
                         this@CovLivingActivity.copyToClipboard(messageContents)
                         ToastUtil.show(getString(R.string.cov_copy_succeed))
                     }
