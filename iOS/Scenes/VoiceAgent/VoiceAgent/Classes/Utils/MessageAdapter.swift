@@ -32,7 +32,7 @@ private struct Word: Codable {
 
 enum MessageOwner {
     case agent
-    case user
+    case me
 }
 
 protocol MessageAdapterDelegate: AnyObject {
@@ -68,7 +68,7 @@ class MessageAdapter: NSObject {
             isFirstFrameCallback = false
         }
         
-        let owner: MessageOwner = message.stream_id == 0 ? .agent : .user
+        let owner: MessageOwner = message.stream_id == 0 ? .agent : .me
         if incrementalWords {
             //Message enqueued
             //messageQueue.append(message)

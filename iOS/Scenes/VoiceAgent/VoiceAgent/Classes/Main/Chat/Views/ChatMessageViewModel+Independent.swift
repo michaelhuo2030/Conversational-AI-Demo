@@ -15,8 +15,8 @@ extension ChatMessageViewModel: MessageIndependent {
     func reduceIndependentMessage(message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
         if owner == .agent {
             // AI response message
-            if isLastMessageFromUser() || isEmpty() || lastMessgeIsFinal() {
-                startNewMessage(timestamp: timestamp, isUser: false)
+            if isLastMessageFromMine() || isEmpty() || lastMessgeIsFinal() {
+                startNewMessage(timestamp: timestamp, isMine: false)
             }
             
             updateContent(content: message)
@@ -25,8 +25,8 @@ extension ChatMessageViewModel: MessageIndependent {
             }
         } else {
             // User message
-            if !isLastMessageFromUser() || isEmpty() || lastMessgeIsFinal() {
-                startNewMessage(timestamp: timestamp, isUser: true)
+            if !isLastMessageFromMine() || isEmpty() || lastMessgeIsFinal() {
+                startNewMessage(timestamp: timestamp, isMine: true)
             }
             
             updateContent(content: message)
@@ -40,29 +40,28 @@ extension ChatMessageViewModel: MessageIndependent {
         return messages.isEmpty
     }
     
-    private func isLastMessageFromUser() -> Bool {
-        return messages.last?.isUser == true
+    private func isLastMessageFromMine() -> Bool {
+        return messages.last?.isMine == true
     }
     
     private func lastMessgeIsFinal() -> Bool {
         return messages.last?.isFinal == true
     }
     
-    private func startNewMessage(timestamp: Int64, isUser: Bool) {
-        currentStreamMessage = ""
+    private func startNewMessage(timestamp: Int64, isMine: Bool) {
         messages.append(Message(content: "",
-                              isUser: isUser,
-                              isFinal: false,
-                              timestamp: timestamp))
+                                isMine: isMine,
+                                isFinal: false,
+                                timestamp: timestamp, 
+                                turn_id: ""))
         messages.sort { $0.timestamp < $1.timestamp }
         
         delegate?.startNewMessage()
     }
     
     private func updateContent(content: String) {
-        currentStreamMessage = content
         if var lastMessage = messages.last, !lastMessage.isFinal {
-            lastMessage.content = currentStreamMessage
+            lastMessage.content = content
             messages[messages.count - 1] = lastMessage
             
             delegate?.messageUpdated()
@@ -72,11 +71,9 @@ extension ChatMessageViewModel: MessageIndependent {
     private func messageCompleted() {
         if var lastMessage = messages.last, !lastMessage.isFinal {
             lastMessage.isFinal = true
-            lastMessage.content = currentStreamMessage
             messages[messages.count - 1] = lastMessage
             
             delegate?.messageFinished()
         }
-        currentStreamMessage = ""
     }
 }

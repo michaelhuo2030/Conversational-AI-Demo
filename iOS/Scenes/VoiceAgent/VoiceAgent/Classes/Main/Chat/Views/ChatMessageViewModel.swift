@@ -9,9 +9,10 @@ import Foundation
 
 struct Message {
     var content: String
-    let isUser: Bool
+    let isMine: Bool
     var isFinal: Bool
     let timestamp: Int64
+    var turn_id: String
 }
 
 protocol ChatMessageViewModelDelegate: AnyObject {
@@ -22,12 +23,12 @@ protocol ChatMessageViewModelDelegate: AnyObject {
 
 class ChatMessageViewModel: NSObject {
     var messages: [Message] = []
+    var messageMapTable: [String : Message] = [:]
     weak var delegate: ChatMessageViewModelDelegate?
-    var currentStreamMessage: String = ""
     
     func clearMessage() {
         messages.removeAll()
-        currentStreamMessage = ""
+        messageMapTable.removeAll()
     }
     
     func messageFlush(turnId:String, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {

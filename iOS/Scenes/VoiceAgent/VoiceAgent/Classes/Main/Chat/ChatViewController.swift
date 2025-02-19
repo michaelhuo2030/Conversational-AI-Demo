@@ -661,7 +661,7 @@ private extension ChatViewController {
             self.clickTheBackButton()
         } onCopy: {
             let messageContents = self.messageView.getAllMessages()
-                .filter { $0.isUser }
+                .filter { $0.isMine }
                 .map { $0.content }
                 .joined(separator: "\n")
             let pasteboard = UIPasteboard.general

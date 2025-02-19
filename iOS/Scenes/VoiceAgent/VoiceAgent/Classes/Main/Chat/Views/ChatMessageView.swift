@@ -64,7 +64,7 @@ class ChatMessageCell: UITableViewCell {
     }
     
     func configure(with message: Message) {
-        if message.isUser {
+        if message.isMine {
             setupUserLayout()
             nameLabel.text = ResourceManager.L10n.Conversation.messageYou
             nameLabel.textColor = UIColor.themColor(named: "ai_icontext1")
@@ -239,7 +239,7 @@ class ChatView: UIView {
     }
     
     func getLastMessage(fromUser: Bool) -> Message? {
-        return viewModel.messages.last { $0.isUser == fromUser }
+        return viewModel.messages.last { $0.isMine == fromUser }
     }
 }
 
