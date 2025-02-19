@@ -21,8 +21,8 @@ private struct TranscriptionMessage: Codable {
     let language: String?
     let user_id: String?
     let words: [Word]?
-    let duration_ms: Int?
-    let start_ms: Int?
+    let duration_ms: Int64?
+    let start_ms: Int64?
     let latency_ms: Int?
     let send_ts: Int?
     let module: String?
@@ -32,7 +32,7 @@ private struct TranscriptionMessage: Codable {
 private struct Word: Codable {
     let duration_ms: Int
     let stable: Bool
-    let start_ms: Int
+    let start_ms: Int64
     let word: String
 }
 
@@ -40,16 +40,17 @@ private class MessageBuffer {
     var isFinished: Bool = false
     var turnId = 0
     var text: String = ""
+    var timestamp: Int64 = 0
     var words: [Word] = []
 }
 
 enum MessageOwner {
     case agent
-    case user
+    case me
 }
 
 protocol MessageAdapterDelegate: AnyObject {
-    func messageFlush(message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool)
+    func messageFlush(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool)
 }
 
 protocol MessageAdapterProtocol {
@@ -82,9 +83,10 @@ class MessageAdapter: NSObject {
     
     private func handleMessage(_ message: TranscriptionMessage) {
         if message.object == MessageType.user.rawValue {
-            self.delegate?.messageFlush(message: message.text ?? "",
-                                        timestamp: 0,
-                                        owner: .user,
+            self.delegate?.messageFlush(turnId: message.turn_id ?? 0,
+                                        message: message.text ?? "",
+                                        timestamp: message.start_ms ?? 0,
+                                        owner: .me,
                                         isFinished: (message.final == true))
         } else {
             queue.async(flags: .barrier) {
@@ -103,6 +105,7 @@ class MessageAdapter: NSObject {
                 // update buffer
                 temp?.isFinished = (message.turn_status == 1)
                 temp?.text = message.text ?? ""
+                temp?.timestamp = message.start_ms ?? 0
                 if let words = message.words,
                    words.isEmpty == false {
                     temp?.words.append(contentsOf: words)
@@ -115,7 +118,7 @@ class MessageAdapter: NSObject {
         queue.sync {
             //message dequeue
             for (index, buffer) in self.messageQueue.enumerated().reversed() {
-                self.delegate?.messageFlush(message: buffer.text, timestamp: 0, owner: .agent, isFinished: buffer.isFinished)
+                self.delegate?.messageFlush(turnId: buffer.turnId, message: buffer.text, timestamp: buffer.timestamp, owner: .agent, isFinished: buffer.isFinished)
                 if buffer.isFinished {
                     self.messageQueue.remove(at: index)
                 }
