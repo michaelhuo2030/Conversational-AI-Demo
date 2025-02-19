@@ -63,7 +63,7 @@ class NetworkManager:NSObject {
                       "ts": 0,
                       "types": types.map({NSNumber(value: $0.rawValue)}),
                       "uid": uid] as [String: Any]
-        let url = "\(baseServerUrl)v2/token/generate"
+        let url = "\(baseServerUrl)/v2/token/generate"
         NetworkManager.shared.postRequest(urlString: url,
                                           params: params) { response in
             let data = response["data"] as? [String: String]

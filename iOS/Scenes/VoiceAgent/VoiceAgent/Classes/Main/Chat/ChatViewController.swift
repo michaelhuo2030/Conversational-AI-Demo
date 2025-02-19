@@ -593,7 +593,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
 extension ChatViewController: AgoraAudioFrameDelegate {
     
     func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
-        print("onPlaybackAudioFrame \(frame) uid: \(uid)")
+        messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
         return true
     }
     
