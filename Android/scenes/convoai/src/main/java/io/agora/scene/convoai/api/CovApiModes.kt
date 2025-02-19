@@ -20,6 +20,8 @@ data class AgentRequestParams(
     val enableAiVad: Boolean? = null,
     val enableBHVS: Boolean? = null,
     val presetName: String? = null,
+    val graphId: String? = null,
+    val protocolVersion: String? = null,
 )
 
 data class CovAgentPreset(

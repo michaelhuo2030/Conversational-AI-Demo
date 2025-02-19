@@ -10,6 +10,11 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import io.agora.scene.common.debugMode.DebugButton
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 
 class AgentApp : Application() {
 
@@ -35,6 +40,23 @@ class AgentApp : Application() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init files", e)
         }
+
+        // Use ProcessLifecycleOwner to monitor application-level lifecycle
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : LifecycleEventObserver {
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                when (event) {
+                    Lifecycle.Event.ON_START -> {
+                        // App comes to foreground
+                        DebugButton.getInstance(applicationContext).restoreVisibility()
+                    }
+                    Lifecycle.Event.ON_STOP -> {
+                        // App goes to background
+                        DebugButton.getInstance(applicationContext).temporaryHide()
+                    }
+                    else -> {}
+                }
+            }
+        })
     }
 
     private fun initMMKV() {

@@ -30,20 +30,18 @@ android {
             applicationId "cn.shengwang.convoai"
             resValue "string", "app_name", "对话式 AI 引擎"
             buildConfigField("Boolean", "IS_MAINLAND", "true")
+            buildConfigField("String", "TOOLBOX_SERVER_HOST", "\"${project.getProperty("CN_TOOLBOX_SERVER_HOST")}\"")
             buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("CN_AG_APP_ID")}\"")
             buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("CN_AG_APP_CERTIFICATE")}\"")
-            buildConfigField("String", "AG_APP_ID_DEV", "\"${project.getProperty("CN_AG_APP_ID_DEV")}\"")
-            buildConfigField("String", "AG_APP_CERTIFICATE_DEV", "\"${project.getProperty("CN_AG_APP_CERTIFICATE_DEV")}\"")
         }
         global {
             dimension "region"
             applicationId "io.agora.convoai"
             resValue "string", "app_name", "Convo AI"
             buildConfigField("Boolean", "IS_MAINLAND", "false")
+            buildConfigField("String", "TOOLBOX_SERVER_HOST", "\"${project.getProperty("GLOBAL_TOOLBOX_SERVER_HOST")}\"")
             buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("GLOBAL_AG_APP_ID")}\"")
             buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("GLOBAL_AG_APP_CERTIFICATE")}\"")
-            buildConfigField("String", "AG_APP_ID_DEV", "\"${project.getProperty("CN_AG_APP_ID_DEV")}\"")
-            buildConfigField("String", "AG_APP_CERTIFICATE_DEV", "\"${project.getProperty("CN_AG_APP_CERTIFICATE_DEV")}\"")
         }
     }
 
