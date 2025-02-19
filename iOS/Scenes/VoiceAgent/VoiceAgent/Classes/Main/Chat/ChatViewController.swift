@@ -706,25 +706,7 @@ extension ChatViewController: AnimateViewDelegate {
 
 extension ChatViewController: MessageAdapterDelegate {
     func messageFlush(message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
-        if owner == .agent {
-            // AI response message
-            if self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
-                self.messageView.startNewStreamMessage(timestamp: timestamp, isUser: false)
-            }
-            self.messageView.updateStreamContent(message)
-            if isFinished {
-                self.messageView.completeStreamMessage()
-            }
-        } else {
-            // User message
-            if !self.messageView.isLastMessageFromUser || self.messageView.isEmpty || self.messageView.lastMessgeIsFinal {
-                self.messageView.startNewStreamMessage(timestamp: timestamp, isUser: true)
-            }
-            self.messageView.updateStreamContent(message)
-            if isFinished {
-                self.messageView.completeStreamMessage()
-            }
-        }
+        messageView.viewModel.messageFlush(turnId: "", message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
     }
 }
 

@@ -1,12 +1,7 @@
 // MARK: - Message Model
 
 import Common
-struct Message {
-    var content: String
-    let isUser: Bool
-    var isFinal: Bool
-    let timestamp: Int64
-}
+
 
 // MARK: - ChatMessageCell
 class ChatMessageCell: UITableViewCell {
@@ -160,8 +155,12 @@ class ChatMessageCell: UITableViewCell {
 // MARK: - ChatView
 class ChatView: UIView {
     // MARK: - Properties
-    private var messages: [Message] = []
-    private var currentStreamMessage: String = ""
+    lazy var viewModel: ChatMessageViewModel = {
+        let vm = ChatMessageViewModel()
+        vm.delegate = self
+        return vm
+    }()
+    
     private var shouldAutoScroll = true
     private lazy var arrowButton: UIButton = {
         let button = UIButton()
@@ -173,18 +172,6 @@ class ChatView: UIView {
         button.isHidden = true
         return button
     }()
-    
-    var isEmpty: Bool {
-        return messages.isEmpty
-    }
-    
-    var isLastMessageFromUser: Bool {
-        return messages.last?.isUser == true
-    }
-    
-    var lastMessgeIsFinal: Bool {
-        return messages.last?.isFinal == true
-    }
     
     // MARK: - UI Components
     private lazy var tableView: UITableView = {
@@ -198,7 +185,6 @@ class ChatView: UIView {
         return table
     }()
     
-    // MARK: - Initialization
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -231,59 +217,18 @@ class ChatView: UIView {
     
     // MARK: - Public Methods
     func getAllMessages() -> [Message] {
-        return messages
-    }
-    
-    func addMessage(_ message: String, isUser: Bool) {
-        messages.append(Message(content: message, isUser: isUser, isFinal: true, timestamp: 0))
-        tableView.reloadData()
-        scrollToBottom()
-    }
-    
-    func startNewStreamMessage(timestamp: Int64, isUser: Bool) {
-        currentStreamMessage = ""
-        messages.append(Message(content: "", 
-                              isUser: isUser, 
-                              isFinal: false, 
-                              timestamp: timestamp))
-        messages.sort { $0.timestamp < $1.timestamp }
-        tableView.reloadData()
-        scrollToBottom()
-    }
-    
-    func updateStreamContent(_ text: String) {
-        currentStreamMessage = text
-        if var lastMessage = messages.last, !lastMessage.isFinal {
-            lastMessage.content = currentStreamMessage
-            messages[messages.count - 1] = lastMessage
-            tableView.reloadData()
-            if shouldAutoScroll {
-                scrollToBottom(animated: true)
-            }
-        }
-    }
-    
-    func completeStreamMessage() {
-        if var lastMessage = messages.last, !lastMessage.isFinal {
-            lastMessage.isFinal = true
-            lastMessage.content = currentStreamMessage
-            messages[messages.count - 1] = lastMessage
-            tableView.reloadData()
-            scrollToBottom()
-        }
-        currentStreamMessage = ""
+        return viewModel.messages
     }
     
     func clearMessages() {
-        messages.removeAll()
-        currentStreamMessage = ""
+        viewModel.clearMessage()
         tableView.reloadData()
     }
     
     private func scrollToBottom(animated: Bool = true) {
-        guard messages.count > 0 else { return }
+        guard viewModel.messages.count > 0 else { return }
         guard shouldAutoScroll else { return }
-        let indexPath = IndexPath(row: messages.count - 1, section: 0)
+        let indexPath = IndexPath(row: viewModel.messages.count - 1, section: 0)
         self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
     }
     
@@ -294,19 +239,19 @@ class ChatView: UIView {
     }
     
     func getLastMessage(fromUser: Bool) -> Message? {
-        return messages.last { $0.isUser == fromUser }
+        return viewModel.messages.last { $0.isUser == fromUser }
     }
 }
 
 // MARK: - UITableViewDelegate & UITableViewDataSource
 extension ChatView: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return messages.count
+        return viewModel.messages.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ChatMessageCell.identifier, for: indexPath) as! ChatMessageCell
-        cell.configure(with: messages[indexPath.row])
+        cell.configure(with: viewModel.messages[indexPath.row])
         return cell
     }
     
@@ -322,6 +267,23 @@ extension ChatView: UITableViewDelegate, UITableViewDataSource {
             arrowButton.isHidden = true
         }
     }
-    
 }
 
+extension ChatView: ChatMessageViewModelDelegate {
+    func startNewMessage() {
+        tableView.reloadData()
+        scrollToBottom()
+    }
+    
+    func messageUpdated() {
+        tableView.reloadData()
+        if shouldAutoScroll {
+            scrollToBottom(animated: true)
+        }
+    }
+    
+    func messageFinished() {
+        tableView.reloadData()
+        scrollToBottom()
+    }
+}
