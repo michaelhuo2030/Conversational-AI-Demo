@@ -1,10 +1,13 @@
 package io.agora.scene.convoai.rtc
 
+import io.agora.rtc2.Constants
 import io.agora.rtc2.IAudioFrameObserver
 import io.agora.rtc2.audio.AudioParams
 import java.nio.ByteBuffer
 
-open class CovAudioFrameObserver:IAudioFrameObserver {
+open class CovAudioFrameObserver : IAudioFrameObserver {
+
+    private val TAG = "CovAudioFrameObserver"
     override fun onRecordAudioFrame(
         channel: String, audioFrameType: Int,
         samples: Int, bytesPerSample: Int,
@@ -43,23 +46,24 @@ open class CovAudioFrameObserver:IAudioFrameObserver {
     }
 
     override fun onPlaybackAudioFrameBeforeMixing(
-        channelId: String,
+        channelId: String?,
         uid: Int,
         type: Int,
         samplesPerChannel: Int,
         bytesPerSample: Int,
         channels: Int,
         samplesPerSec: Int,
-        buffer: ByteBuffer,
+        buffer: ByteBuffer?,
         renderTimeMs: Long,
         avsync_type: Int,
-        rtpTimestamp: Int
+        rtpTimestamp: Int,
+        presentationMs: Long
     ): Boolean {
-        return true
+        return false
     }
 
     override fun getObservedAudioFramePosition(): Int {
-        return 0
+        return Constants.POSITION_BEFORE_MIXING
     }
 
     override fun getRecordAudioParams(): AudioParams? {

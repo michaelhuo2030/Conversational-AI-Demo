@@ -20,6 +20,7 @@ import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import kotlin.time.Duration.Companion.seconds
 
 object CovAgentApiManager {
 
@@ -28,7 +29,11 @@ object CovAgentApiManager {
     private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val okHttpClient by lazy {
-        SecureOkHttpClient.create()
+        SecureOkHttpClient.create(
+            readTimeout = 120.seconds,
+            writeTimeout = 120.seconds,
+            connectTimeout = 120.seconds
+        )
             .addInterceptor(HttpLogger())
             .build()
     }
@@ -91,12 +96,8 @@ object CovAgentApiManager {
             if (tts.length() > 0) {
                 postBody.put("tts", tts)
             }
-            params.graphId?.let { postBody.put("graph_id", it) }
-            params.protocolVersion?.let {
-                val transcript = JSONObject()
-                transcript.put("protocol_version", it)
-                postBody.put("transcript",transcript)
-            }
+            params.graphId?.let { postBody.put("graph_id", it)  }
+            params.parameters?.let { postBody.put("parameters", it) }
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }
