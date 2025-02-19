@@ -86,6 +86,7 @@ extension RTCManager: RTCManagerProtocol {
         
         rtcEngine.setAudioScenario(.aiClient)
         rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
+        rtcEngine.setPlaybackAudioFrameBeforeMixingParametersWithSampleRate(44100, channel: 1)
         
         let options = AgoraRtcChannelMediaOptions()
         options.clientRoleType = .broadcaster

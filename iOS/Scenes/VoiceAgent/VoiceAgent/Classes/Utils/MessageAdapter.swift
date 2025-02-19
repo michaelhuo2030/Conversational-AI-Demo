@@ -35,19 +35,11 @@ class MessageAdapter: NSObject {
         VoiceAgentLogger.info(txt)
     }
     
-    private func parserRawMessage(rawMessage: String) {
-        guard let message = messageParser.parseMessage(rawMessage) else {
-            return
-        }
-        
-        let isFinal = message["is_final"] as? Bool ?? false
-        let streamId = message["stream_id"] as? Int ?? 0
-        let text = message["text"] as? String ?? ""
-        let textTs = message["text_ts"] as? Int64 ?? 0
-        let words = message["text_words"] as? String ?? ""
+    private func handleMessage(_ message: TranscriptionMessage) {
+//        message.stream_id
         
         var incrementalWords = false
-        if isFirstFrameCallback, !words.isEmpty{
+        if isFirstFrameCallback, !message.words!.isEmpty{
             incrementalWords = true
             isFirstFrameCallback = false
         }
@@ -55,8 +47,8 @@ class MessageAdapter: NSObject {
         if incrementalWords {
             //Message enqueued
         } else {
-            let owner: MessageOwner = streamId == 0 ? .agent : .user
-            delegate?.messageFlush(message: text, timestamp: textTs, owner: owner, isFinished: isFinal)
+            let owner: MessageOwner = message.stream_id == 0 ? .agent : .user
+            delegate?.messageFlush(message: message.text, timestamp: 0, owner: owner, isFinished: message.is_final)
         }
     }
     
@@ -82,8 +74,9 @@ extension MessageAdapter: MessageAdapterProtocol {
             addLog("Failed to convert data to string")
             return
         }
-
-        parserRawMessage(rawMessage: rawString)
+        if let message = messageParser.parse(data) {
+            handleMessage(message)
+        }
     }
     
     func stop() {
