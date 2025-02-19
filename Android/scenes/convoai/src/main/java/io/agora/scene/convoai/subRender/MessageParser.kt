@@ -1,11 +1,32 @@
-package io.agora.scene.convoai.utils
+package io.agora.scene.convoai.subRender
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.ToNumberPolicy
+import com.google.gson.TypeAdapter
+import com.google.gson.reflect.TypeToken
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import org.json.JSONObject
+import java.io.IOException
 
 class MessageParser {
     // Change message storage structure to Map<Int, String> for more intuitive partIndex and content storage
     private val messageMap = mutableMapOf<String, MutableMap<Int, String>>()
-    private val gson = Gson()
+    private val gson =
+        GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .registerTypeAdapter(TypeToken.get(JSONObject::class.java).type, object : TypeAdapter<JSONObject>() {
+                @Throws(IOException::class)
+                override fun write(jsonWriter: JsonWriter, value: JSONObject) {
+                    jsonWriter.jsonValue(value.toString())
+                }
+
+                @Throws(IOException::class)
+                override fun read(jsonReader: JsonReader): JSONObject? {
+                    return null
+                }
+            })
+            .enableComplexMapKeySerialization()
+            .create()
     private val maxMessageAge = 5 * 60 * 1000 // 5 minutes
     private val lastAccessMap = mutableMapOf<String, Long>()
 

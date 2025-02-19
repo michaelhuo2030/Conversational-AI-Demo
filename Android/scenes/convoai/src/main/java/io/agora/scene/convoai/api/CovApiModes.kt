@@ -1,5 +1,7 @@
 package io.agora.scene.convoai.api
 
+import org.json.JSONObject
+
 data class AgentRequestParams(
     val channelName: String,
     val agentRtcUid: String,
@@ -20,6 +22,8 @@ data class AgentRequestParams(
     val enableAiVad: Boolean? = null,
     val enableBHVS: Boolean? = null,
     val presetName: String? = null,
+    val graphId: String? = null,
+    val parameters: JSONObject? = null,
 )
 
 data class CovAgentPreset(
@@ -30,7 +34,7 @@ data class CovAgentPreset(
     val default_language_code: String,
     val default_language_name: String,
     val support_languages: List<CovAgentLanguage>
-){
+) {
     fun isIndependent(): Boolean {
         return preset_type == "independent"
     }

@@ -729,7 +729,7 @@ private extension DigitalHumanViewController {
         joinCallButton.setTitle(ResourceManager.L10n.Join.buttonTitle, for: .normal)
         joinCallButton.titleLabel?.font = .systemFont(ofSize: 18)
         joinCallButton.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
-        joinCallButton.backgroundColor = UIColor(named: "#0097d4")
+        joinCallButton.backgroundColor = UIColor(hex: "#0097D4")
         joinCallButton.layer.cornerRadius = 32
         joinCallButton.addTarget(self, action: #selector(onClickStartAgent), for: .touchUpInside)
         joinCallButton.setImage(UIImage.dh_named("ic_agent_join_button_icon"), for: .normal)

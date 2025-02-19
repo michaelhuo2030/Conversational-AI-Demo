@@ -589,21 +589,16 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
 }
-// MARK: - AgoraRtcAudioSpectrumDelegate
+// MARK: - AgoraAudioFrameDelegate
 extension ChatViewController: AgoraAudioFrameDelegate {
     
-    func getPlaybackAudioParams() -> AgoraAudioParams {
-        let param = AgoraAudioParams()
-        param.sampleRate = 44100
-        param.channel = 1
-        param.mode = .readWrite
-        param.samplesPerCall = 1024
-        return param
+    func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
+        messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
+        return true
     }
     
-    func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
-        print("onPlaybackAudioFrame \(frame) uid: \(uid)")
-        return true
+    func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
+        return .beforeMixing
     }
 }
 

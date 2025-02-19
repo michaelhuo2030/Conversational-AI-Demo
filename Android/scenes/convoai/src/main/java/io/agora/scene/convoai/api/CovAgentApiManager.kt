@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.net.HttpLogger
 import io.agora.scene.common.net.SecureOkHttpClient
 import io.agora.scene.convoai.CovLogger
@@ -19,6 +20,7 @@ import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import kotlin.time.Duration.Companion.seconds
 
 object CovAgentApiManager {
 
@@ -27,7 +29,11 @@ object CovAgentApiManager {
     private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val okHttpClient by lazy {
-        SecureOkHttpClient.create()
+        SecureOkHttpClient.create(
+            readTimeout = 120.seconds,
+            writeTimeout = 120.seconds,
+            connectTimeout = 120.seconds
+        )
             .addInterceptor(HttpLogger())
             .build()
     }
@@ -90,6 +96,8 @@ object CovAgentApiManager {
             if (tts.length() > 0) {
                 postBody.put("tts", tts)
             }
+            params.graphId?.let { postBody.put("graph_id", it)  }
+            params.parameters?.let { postBody.put("parameters", it) }
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }
@@ -113,6 +121,7 @@ object CovAgentApiManager {
                         val jsonObj = JSONObject(json)
                         val code = jsonObj.optInt("code")
                         val aid = jsonObj.optJSONObject("data")?.optString("agent_id")
+
                         currentHost = jsonObj.optJSONObject("data")?.optString("agent_url")
                         if (code == 0 && !aid.isNullOrEmpty()) {
                             agentId = aid

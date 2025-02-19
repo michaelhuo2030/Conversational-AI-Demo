@@ -106,8 +106,14 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <io.agora.scene.common.ui.widget.MessageListView
-            android:id="@+id/messageListView"
+        <io.agora.scene.convoai.subRender.v1.SelfMessageListView
+            android:id="@+id/messageListViewV1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible" />
+
+        <io.agora.scene.convoai.subRender.v2.CovMessageListView
+            android:id="@+id/messageListViewV2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="invisible" />
@@ -148,16 +154,6 @@
                 tools:text="Connecting..."
                 android:visibility="invisible"/>
         </FrameLayout>
-
-        <ImageButton
-            android:id="@+id/btn_debug"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginBottom="16dp"
-            android:layout_marginEnd="40dp"
-            android:layout_gravity="bottom|end"
-            android:background="@android:color/transparent"
-            android:src="@drawable/btn_debug_selector" />
     </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

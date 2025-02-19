@@ -7,6 +7,29 @@
 
 import Foundation
 
+private struct TranscriptionMessage: Codable {
+    let data_type: String
+    let stream_id: Int
+    let text: String
+    let message_id: String
+    let quiet: Bool
+    let object: String
+    let turn_id: Int
+    let turn_seq_id: Int
+    let turn_status: Int
+    let language: String?
+    let user_id: String?
+    let words: [Word]?
+    let duration_ms: Int
+}
+
+private struct Word: Codable {
+    let duration_ms: Int
+    let stable: Bool
+    let start_ms: Int
+    let word: String
+}
+
 enum MessageOwner {
     case agent
     case user
@@ -30,33 +53,27 @@ class MessageAdapter: NSObject {
     private var messageParser = MessageParser()
     
     weak var delegate: MessageAdapterDelegate?
+    private var messageQueue: [TranscriptionMessage] = []
     
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
     }
     
-    private func parserRawMessage(rawMessage: String) {
-        guard let message = messageParser.parseMessage(rawMessage) else {
-            return
-        }
-        
-        let isFinal = message["is_final"] as? Bool ?? false
-        let streamId = message["stream_id"] as? Int ?? 0
-        let text = message["text"] as? String ?? ""
-        let textTs = message["text_ts"] as? Int64 ?? 0
-        let words = message["text_words"] as? String ?? ""
+    private func handleMessage(_ message: TranscriptionMessage) {
+//        message.stream_id
         
         var incrementalWords = false
-        if isFirstFrameCallback, !words.isEmpty{
+        if isFirstFrameCallback, !message.words!.isEmpty{
             incrementalWords = true
             isFirstFrameCallback = false
         }
         
+        let owner: MessageOwner = message.stream_id == 0 ? .agent : .user
         if incrementalWords {
             //Message enqueued
+            //messageQueue.append(message)
         } else {
-            let owner: MessageOwner = streamId == 0 ? .agent : .user
-            delegate?.messageFlush(message: text, timestamp: textTs, owner: owner, isFinished: isFinal)
+            delegate?.messageFlush(message: message.text, timestamp: 0, owner: owner, isFinished: message.turn_status == 1)
         }
     }
     
@@ -78,12 +95,17 @@ extension MessageAdapter: MessageAdapterProtocol {
     }
     
     func inputStreamMessageData(data: Data) {
-        guard let rawString = String(data: data, encoding: .utf8) else {
-            addLog("Failed to convert data to string")
+        guard let jsonData = messageParser.parseToJsonData(data) else {
             return
         }
-
-        parserRawMessage(rawMessage: rawString)
+        do {
+            let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
+            handleMessage(transcription)
+        } catch {
+            let string = String(data: jsonData, encoding: .utf8) ?? ""
+            print("[MessageAdapter] Failed to parse JSON content \(string) \n error: \(error.localizedDescription)")
+            return
+        }
     }
     
     func stop() {
