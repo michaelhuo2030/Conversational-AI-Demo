@@ -8,19 +8,25 @@
 import Foundation
 
 private struct TranscriptionMessage: Codable {
-    let data_type: String
-    let stream_id: Int
-    let text: String
-    let message_id: String
-    let quiet: Bool
-    let object: String
-    let turn_id: Int
-    let turn_seq_id: Int
-    let turn_status: Int
+    let data_type: String?
+    let stream_id: Int?
+    let text: String?
+    let message_id: String?
+    let quiet: Bool?
+    let final: Bool?
+    let object: String?
+    let turn_id: Int?
+    let turn_seq_id: Int?
+    let turn_status: Int?
     let language: String?
     let user_id: String?
     let words: [Word]?
-    let duration_ms: Int
+    let duration_ms: Int?
+    let start_ms: Int?
+    let latency_ms: Int?
+    let send_ts: Int?
+    let module: String?
+    let metric_name: String?
 }
 
 private struct Word: Codable {
@@ -28,6 +34,13 @@ private struct Word: Codable {
     let stable: Bool
     let start_ms: Int
     let word: String
+}
+
+private class MessageBuffer {
+    var isFinished: Bool = false
+    var turnId = 0
+    var text: String = ""
+    var words: [Word] = []
 }
 
 enum MessageOwner {
@@ -47,38 +60,67 @@ protocol MessageAdapterProtocol {
 }
 
 class MessageAdapter: NSObject {
+    
+    enum MessageType: String {
+        case assistant = "assistant.transcription"
+        case user = "user.transcription"
+    }
+    
     private var timer: Timer?
     private var audioTimestamp: Int64 = 0
     private var isFirstFrameCallback = true
     private var messageParser = MessageParser()
     
     weak var delegate: MessageAdapterDelegate?
-    private var messageQueue: [TranscriptionMessage] = []
+    private var messageQueue: [MessageBuffer] = []
     
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
     }
     
+    private let queue = DispatchQueue(label: "com.voiceagent.messagequeue", attributes: .concurrent)
+    
     private func handleMessage(_ message: TranscriptionMessage) {
-//        message.stream_id
-        
-        var incrementalWords = false
-        if isFirstFrameCallback, !message.words!.isEmpty{
-            incrementalWords = true
-            isFirstFrameCallback = false
-        }
-        
-        let owner: MessageOwner = message.stream_id == 0 ? .agent : .user
-        if incrementalWords {
-            //Message enqueued
-            //messageQueue.append(message)
+        if message.object == MessageType.user.rawValue {
+            self.delegate?.messageFlush(message: message.text ?? "",
+                                        timestamp: 0,
+                                        owner: .user,
+                                        isFinished: (message.final == true))
         } else {
-            delegate?.messageFlush(message: message.text, timestamp: 0, owner: owner, isFinished: message.turn_status == 1)
+            queue.async(flags: .barrier) {
+                var temp: MessageBuffer?
+                for buffer in self.messageQueue {
+                    if buffer.turnId == message.turn_id {
+                        temp = buffer
+                        break
+                    }
+                }
+                if temp == nil {
+                    temp = MessageBuffer()
+                    temp?.turnId = message.turn_id ?? 0
+                    self.messageQueue.append(temp!)
+                }
+                // update buffer
+                temp?.isFinished = (message.turn_status == 1)
+                temp?.text = message.text ?? ""
+                if let words = message.words,
+                   words.isEmpty == false {
+                    temp?.words.append(contentsOf: words)
+                }
+            }
         }
     }
     
     @objc func eventLoop() {
-        //message dequeue
+        queue.sync {
+            //message dequeue
+            for (index, buffer) in self.messageQueue.enumerated().reversed() {
+                self.delegate?.messageFlush(message: buffer.text, timestamp: 0, owner: .agent, isFinished: buffer.isFinished)
+                if buffer.isFinished {
+                    self.messageQueue.remove(at: index)
+                }
+            }
+        }
     }
 }
 
@@ -98,12 +140,13 @@ extension MessageAdapter: MessageAdapterProtocol {
         guard let jsonData = messageParser.parseToJsonData(data) else {
             return
         }
+        let string = String(data: jsonData, encoding: .utf8) ?? ""
+        print("✅[MessageAdapter] json: \(string)")
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
         } catch {
-            let string = String(data: jsonData, encoding: .utf8) ?? ""
-            print("[MessageAdapter] Failed to parse JSON content \(string) \n error: \(error.localizedDescription)")
+            print("⚠️[MessageAdapter] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
             return
         }
     }
