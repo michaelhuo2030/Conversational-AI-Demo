@@ -593,7 +593,9 @@ extension ChatViewController: AgoraRtcEngineDelegate {
 extension ChatViewController: AgoraAudioFrameDelegate {
     
     func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
-        messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
+        if uid == agentUid {
+            messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
+        }
         return true
     }
     
