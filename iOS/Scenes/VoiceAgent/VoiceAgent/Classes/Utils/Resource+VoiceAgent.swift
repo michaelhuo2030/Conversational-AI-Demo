@@ -106,6 +106,7 @@ extension ResourceManager {
         
         public enum DevMode {
             public static let title = ResourceManager.localizedString("devmode.title")
+            public static let graph = ResourceManager.localizedString("devmode.graph")
             public static let rtc = ResourceManager.localizedString("devmode.rtc")
             public static let host = ResourceManager.localizedString("devmode.host")
             public static let dump = ResourceManager.localizedString("devmode.dump")

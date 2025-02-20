@@ -20,6 +20,7 @@ import Foundation
     private var _termsOfServiceUrl: String = ""
     private var _appArea: AppArea = .overseas
     private var _developerMode: Bool = false
+    private var _graphId: String = ""
     private var _environments: [[String : String]] = [[String : String]]()
     
     override init() {
@@ -86,6 +87,16 @@ import Foundation
         }
         set {
             _environments = newValue
+        }
+    }
+    
+    @objc public var graphId: String {
+        get {
+            return _graphId
+        }
+        
+        set {
+            _graphId = newValue
         }
     }
 }

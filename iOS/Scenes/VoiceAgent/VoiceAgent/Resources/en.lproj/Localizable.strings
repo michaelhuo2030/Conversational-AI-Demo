@@ -66,3 +66,4 @@
 "devmode.dump" = "Audio Dump";
 "devmode.copy" = "Copy Mine Messages";
 "devmode.close" = "Close Developer Mode";
+"devmode.graph" = "graph id";

@@ -86,20 +86,41 @@ class AgentManager: AgentAPI {
     
     func startAgent(appId:String, uid: String, agentUid: String, channelName: String, aiVad: Bool, bhvs: Bool, presetName: String, language: String, completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("convoai/start").toHttpUrlSting()
-        let parameters: [String: Any] = [
-            "app_id": appId,
-            "preset_name": presetName,
-            "channel_name": channelName,
-            "agent_rtc_uid": agentUid,
-            "remote_rtc_uid": uid,
-            "advanced_features": [
-                "enable_aivad": aiVad,
-                "enable_bhvs": bhvs
-            ],
-            "asr": [
-                "language": language
+        let graphId = AppContext.shared.graphId
+        var parameters:[String: Any] = [:]
+        if graphId.isEmpty {
+            parameters = [
+                "app_id": appId,
+                "preset_name": presetName,
+                "channel_name": channelName,
+                "agent_rtc_uid": agentUid,
+                "remote_rtc_uid": uid,
+                "advanced_features": [
+                    "enable_aivad": aiVad,
+                    "enable_bhvs": bhvs
+                ],
+                "asr": [
+                    "language": language
+                ]
             ]
-        ]
+        } else {
+            parameters = [
+                "app_id": appId,
+                "preset_name": presetName,
+                "channel_name": channelName,
+                "agent_rtc_uid": agentUid,
+                "remote_rtc_uid": uid,
+                "graph_id": graphId,
+                "advanced_features": [
+                    "enable_aivad": aiVad,
+                    "enable_bhvs": bhvs
+                ],
+                "asr": [
+                    "language": language
+                ]
+            ]
+        }
+        
                 
         VoiceAgentLogger.info("request start api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in

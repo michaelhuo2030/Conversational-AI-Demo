@@ -63,3 +63,4 @@
 "devmode.dump" = "音频 Dump";
 "devmode.copy" = "复制用户当前通话问题";
 "devmode.close" = "关闭开发者模式";
+"devmode.graph" = "图表 id";
