@@ -49,18 +49,17 @@ extension ChatMessageViewModel: MessageIndependent {
     }
     
     private func startNewMessage(timestamp: Int64, isMine: Bool) {
-//        messages.append(Message(content: "",
-//                                isMine: isMine,
-//                                isFinal: false,
-//                                timestamp: timestamp, 
-//                                turn_id: ""))
-//        messages.sort { $0.timestamp < $1.timestamp }
+        let message = Message()
+        message.isMine = isMine
+        message.timestamp = timestamp
+        messages.append(message)
+        messages.sort { $0.timestamp < $1.timestamp }
         
         delegate?.startNewMessage()
     }
     
     private func updateContent(content: String) {
-        if var lastMessage = messages.last, !lastMessage.isFinal {
+        if let lastMessage = messages.last, !lastMessage.isFinal {
             lastMessage.content = content
             messages[messages.count - 1] = lastMessage
             
@@ -69,7 +68,7 @@ extension ChatMessageViewModel: MessageIndependent {
     }
     
     private func messageCompleted() {
-        if var lastMessage = messages.last, !lastMessage.isFinal {
+        if let lastMessage = messages.last, !lastMessage.isFinal {
             lastMessage.isFinal = true
             messages[messages.count - 1] = lastMessage
             

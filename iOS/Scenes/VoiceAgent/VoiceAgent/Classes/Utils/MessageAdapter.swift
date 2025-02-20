@@ -126,7 +126,7 @@ class MessageAdapter: NSObject {
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
                                         timestamp: message.start_ms ?? 0,
-                                        owner: .me,
+                                        owner: .agent,
                                         isFinished: isFinal)
             print("🌍[MessageAdapter] send agent text: \(text), final: \(isFinal)")
         } else {
@@ -134,7 +134,7 @@ class MessageAdapter: NSObject {
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
                                         timestamp: message.start_ms ?? 0,
-                                        owner: .agent,
+                                        owner: .me,
                                         isFinished: isFinal)
             print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(isFinal)")
         }
@@ -251,8 +251,15 @@ extension MessageAdapter: MessageAdapterProtocol {
         guard let jsonData = messageParser.parseToJsonData(data) else {
             return
         }
-        let string = String(data: jsonData, encoding: .utf8) ?? ""
-        print("✅[MessageAdapter] json: \(string)")
+        
+        if let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
+           let jsonDataPretty = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
+           let jsonString = String(data: jsonDataPretty, encoding: .utf8) {
+            print("✅[MessageAdapter] json: \(jsonString)")
+        } else {
+            print("❌[MessageAdapter] 无法解析 JSON 数据")
+        }
+        
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
