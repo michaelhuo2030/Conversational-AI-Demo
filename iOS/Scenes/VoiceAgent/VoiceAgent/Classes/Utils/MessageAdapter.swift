@@ -36,22 +36,28 @@ private struct Word: Codable {
     let word: String?
 }
 
-private class MessageBuffer {
+private class TurnObj {
     var turnId = 0
     var text: String = ""
-    var timestamp: Int64 = 0
-    var words: [WordBuffer] = []
+    var words: [WordObj] = []
+    var status: TurnStatus = .inprogress
 }
 
-private struct WordBuffer {
+private struct WordObj {
     var isFinished: Bool = false
     var text: String = ""
-    var timestamp: Int64 = 0
+    var start_ns: Int64 = 0
 }
 
 enum MessageOwner {
     case agent
     case me
+}
+
+enum MessageMode {
+    case idle
+    case words
+    case text
 }
 
 private enum TurnStatus: Int {
@@ -80,11 +86,11 @@ class MessageAdapter: NSObject {
     
     private var timer: Timer?
     private var audioTimestamp: Int64 = 0
-    private var isFirstFrameCallback = true
     private var messageParser = MessageParser()
     
     weak var delegate: MessageAdapterDelegate?
-    private var messageQueue: [MessageBuffer] = []
+    private var messageQueue: [TurnObj] = []
+    private var messageMode: MessageMode = .idle
     
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
@@ -93,6 +99,43 @@ class MessageAdapter: NSObject {
     private let queue = DispatchQueue(label: "com.voiceagent.messagequeue", attributes: .concurrent)
     
     private func handleMessage(_ message: TranscriptionMessage) {
+        if messageMode == .idle {
+            if message.object != nil {
+                messageMode = .words
+            } else {
+                messageMode = .text
+                timer?.invalidate()
+                timer = nil
+            }
+        }
+        if messageMode == .words {
+            handleWordsMessage(message)
+        } else {
+            handleTextMessage(message)
+        }
+    }
+    
+    private func handleTextMessage(_ message: TranscriptionMessage) {
+        guard let text = message.text else {
+            return
+        }
+        if message.stream_id == 0 {
+            self.delegate?.messageFlush(turnId: -1,
+                                        message: text,
+                                        timestamp: message.start_ms ?? 0,
+                                        owner: .me,
+                                        isFinished: (message.final == true))
+        } else {
+            let text = message.text ?? ""
+            self.delegate?.messageFlush(turnId: -1,
+                                        message: text,
+                                        timestamp: message.start_ms ?? 0,
+                                        owner: .agent,
+                                        isFinished: (message.final == true))
+        }
+    }
+    
+    private func handleWordsMessage(_ message: TranscriptionMessage) {
         if message.object == MessageType.user.rawValue {
             let text = message.text ?? ""
             self.delegate?.messageFlush(turnId: message.turn_id ?? 0,
@@ -103,7 +146,14 @@ class MessageAdapter: NSObject {
 //            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(message.final == true)")
         } else {
             queue.async(flags: .barrier) {
-                var temp: MessageBuffer?
+                if let lastTurnId = self.messageQueue.last?.turnId,
+                   lastTurnId > (message.turn_id ?? 0) {
+                    return
+                }
+                guard let status = TurnStatus(rawValue: message.turn_status ?? 0) else {
+                    return
+                }
+                var temp: TurnObj?
                 for buffer in self.messageQueue {
                     if buffer.turnId == message.turn_id {
                         temp = buffer
@@ -111,35 +161,23 @@ class MessageAdapter: NSObject {
                     }
                 }
                 if temp == nil {
-                    temp = MessageBuffer()
-                    temp?.turnId = message.turn_id ?? 0
-                    // insert buffer by turn id
-                    if let turnId = message.turn_id {
-                        var insertIndex = 0
-                        for (index, buffer) in self.messageQueue.enumerated() {
-                            if buffer.turnId < turnId {
-                                insertIndex = index + 1
-                            } else {
-                                break
-                            }
-                        }
-                        self.messageQueue.insert(temp!, at: insertIndex)
-                    } else {
-                        self.messageQueue.append(temp!)
-                    }
+                    let newTurn = TurnObj()
+                    newTurn.turnId = message.turn_id ?? 0
+                    self.messageQueue.append(newTurn)
+                    temp = newTurn
                 }
                 // update buffer
                 let isLastOne = (message.turn_status != TurnStatus.inprogress.rawValue)
                 temp?.text = message.text ?? ""
-                temp?.timestamp = message.start_ms ?? 0
+                temp?.status = status
                 if let words = message.words, !words.isEmpty {
-                    let wordBufferList = words.compactMap { word -> WordBuffer? in
+                    let wordBufferList = words.compactMap { word -> WordObj? in
                         guard let wordText = word.word, let startTime = word.start_ms else {
                             return nil
                         }
-                        return WordBuffer(isFinished: false,
-                                          text: wordText,
-                                          timestamp: startTime)
+                        return WordObj(isFinished: false,
+                                       text: wordText,
+                                       start_ns: startTime)
                     }
                     // if the message state is end, sign last word finished
                     if isLastOne,
@@ -149,7 +187,7 @@ class MessageAdapter: NSObject {
                         updatedList[updatedList.count - 1] = lastWord
                         temp?.words.append(contentsOf: updatedList)
                         // sort words by timestamp
-                        temp?.words.sort { $0.timestamp < $1.timestamp }
+                        temp?.words.sort { $0.start_ns < $1.start_ns }
                     } else {
                         temp?.words.append(contentsOf: wordBufferList)
                     }
@@ -160,21 +198,32 @@ class MessageAdapter: NSObject {
     
     @objc func eventLoop() {
         queue.sync {
+            guard self.messageQueue.isEmpty == false else {
+                return
+            }
             //message dequeue
+            var isSended = false
             for (index, buffer) in self.messageQueue.enumerated().reversed() {
-                let currentWords = buffer.words.filter { $0.timestamp < audioTimestamp }
-                let isFinished = currentWords.last?.isFinished ?? false
-                let text = currentWords.map { $0.text }.joined()
-                if !text.isEmpty {
-//                    print("🌍[MessageAdapter] send current words: \(text) isFinished: \(isFinished)")
-                    self.delegate?.messageFlush(turnId: buffer.turnId, message: text, timestamp: buffer.timestamp, owner: .agent, isFinished: isFinished)
-                }
-                if (isFinished) {
+                if isSended {
+                    // message intterupted by before message
+//                    self.delegate?.messageFlush(turnId: buffer.turnId, message: "", timestamp: 0, owner: .agent, isFinished: true)
                     self.messageQueue.remove(at: index)
+                    continue
                 }
-                if index > 0, !text.isEmpty {
-                    self.messageQueue.removeSubrange(0..<index)
-                    break
+                let currentWords = buffer.words.filter { $0.start_ns < audioTimestamp }
+                let isFinished = currentWords.last?.isFinished ?? false
+                var text: String
+                if isFinished {
+                    text = buffer.text
+                    self.messageQueue.remove(at: index)
+                    print("🌍[MessageAdapter] send current words: \(text)")
+                } else {
+                    text = currentWords.map { $0.text }.joined()
+                    print("🌍[MessageAdapter] unfinish words: \(text)")
+                }
+                if !text.isEmpty {
+                    isSended = true
+                    self.delegate?.messageFlush(turnId: buffer.turnId, message: text, timestamp: 0, owner: .agent, isFinished: isFinished)
                 }
             }
         }
@@ -198,7 +247,7 @@ extension MessageAdapter: MessageAdapterProtocol {
             return
         }
         let string = String(data: jsonData, encoding: .utf8) ?? ""
-//        print("✅[MessageAdapter] json: \(string)")
+        print("✅[MessageAdapter] json: \(string)")
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
@@ -211,9 +260,8 @@ extension MessageAdapter: MessageAdapterProtocol {
     func stop() {
         timer?.invalidate()
         timer = nil
-        
+        messageMode = .idle
         audioTimestamp = 0
-        isFirstFrameCallback = true
         messageQueue.removeAll()
     }
 }
