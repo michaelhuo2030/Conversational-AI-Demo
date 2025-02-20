@@ -100,7 +100,7 @@ class MessageAdapter: NSObject {
                                         timestamp: message.start_ms ?? 0,
                                         owner: .me,
                                         isFinished: (message.final == true))
-            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(message.final == true)")
+//            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(message.final == true)")
         } else {
             queue.async(flags: .barrier) {
                 var temp: MessageBuffer?
@@ -166,7 +166,7 @@ class MessageAdapter: NSObject {
                 let isFinished = currentWords.last?.isFinished ?? false
                 let text = currentWords.map { $0.text }.joined()
                 if !text.isEmpty {
-                    print("🌍[MessageAdapter] send current words: \(text) isFinished: \(isFinished)")
+//                    print("🌍[MessageAdapter] send current words: \(text) isFinished: \(isFinished)")
                     self.delegate?.messageFlush(turnId: buffer.turnId, message: text, timestamp: buffer.timestamp, owner: .agent, isFinished: isFinished)
                 }
                 if (isFinished) {
@@ -198,12 +198,12 @@ extension MessageAdapter: MessageAdapterProtocol {
             return
         }
         let string = String(data: jsonData, encoding: .utf8) ?? ""
-        print("✅[MessageAdapter] json: \(string)")
+//        print("✅[MessageAdapter] json: \(string)")
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
         } catch {
-            print("⚠️[MessageAdapter] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
+//            print("⚠️[MessageAdapter] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
             return
         }
     }
