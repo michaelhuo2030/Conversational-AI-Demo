@@ -12,34 +12,45 @@ protocol MessageStandard {
 }
 
 extension ChatMessageViewModel: MessageStandard {
+    private func generateMessageKey(turnId: String, isMine: Bool) -> String {
+        let key = isMine ? "agent_\(turnId)" : "mine_\(turnId)"
+        return key
+    }
+    
     func reduceStandardMessage(turnId: String, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
-        let messageObj = messageMapTable[turnId]
+        let isMine = owner == .me
+        let key = generateMessageKey(turnId: turnId, isMine: isMine)
+        let messageObj = messageMapTable[key]
+
         if messageObj != nil {
-            updateContent(content: message, turnId: turnId, isFinished: isFinished)
+            updateContent(content: message, turnId: turnId, isFinished: isFinished, isMine: isMine)
         } else {
-            let isMine = owner == .me
-            startNewMessage(timestamp: timestamp, isMine: isMine, turnId: turnId)
+            startNewMessage(content: message, timestamp: timestamp, isMine: isMine, turnId: turnId)
         }
     }
     
-    private func startNewMessage(timestamp: Int64, isMine: Bool, turnId: String) {
-        let message = Message(
-            content: "",
-            isMine: isMine,
-            isFinal: false,
-            timestamp: timestamp,
-            turn_id: turnId)
-        messageMapTable[turnId] = message
+    private func startNewMessage(content: String, timestamp: Int64, isMine: Bool, turnId: String) {
+        let message = Message()
+        message.content = content
+        message.isMine = isMine
+        message.isFinal = false
+        message.turn_id = turnId
+        
+        let key = generateMessageKey(turnId: turnId, isMine: isMine)
+        messageMapTable[key] = message
         messages.append(message)
-        messages.sort { $0.timestamp < $1.timestamp }
+//        messages.sort { $0.timestamp < $1.timestamp }
         
         delegate?.startNewMessage()
     }
     
-    private func updateContent(content: String, turnId: String, isFinished: Bool) {
-        var message = messageMapTable[turnId]
+    private func updateContent(content: String, turnId: String, isFinished: Bool, isMine: Bool) {
+        let key = generateMessageKey(turnId: turnId, isMine: isMine)
+        let message = messageMapTable[key]
         message?.content = content
         message?.isFinal = isFinished
+        message?.turn_id = key
+        
         delegate?.messageUpdated()
     }
 }

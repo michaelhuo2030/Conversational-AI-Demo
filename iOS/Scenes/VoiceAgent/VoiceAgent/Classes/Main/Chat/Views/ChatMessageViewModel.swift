@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct Message {
-    var content: String
-    let isMine: Bool
-    var isFinal: Bool
-    let timestamp: Int64
-    var turn_id: String
+class Message {
+    var content: String = ""
+    var isMine: Bool = false
+    var isFinal: Bool = false
+    let timestamp: Int64 = 0
+    var turn_id: String = ""
 }
 
 protocol ChatMessageViewModelDelegate: AnyObject {
@@ -33,7 +33,7 @@ class ChatMessageViewModel: NSObject {
     
     func messageFlush(turnId:String, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
         if turnId.isEmpty {
-           reduceIndependentMessage(message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
+            reduceIndependentMessage(message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
         } else {
             reduceStandardMessage(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
         }

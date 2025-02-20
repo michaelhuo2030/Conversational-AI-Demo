@@ -49,12 +49,12 @@ extension ChatMessageViewModel: MessageIndependent {
     }
     
     private func startNewMessage(timestamp: Int64, isMine: Bool) {
-        messages.append(Message(content: "",
-                                isMine: isMine,
-                                isFinal: false,
-                                timestamp: timestamp, 
-                                turn_id: ""))
-        messages.sort { $0.timestamp < $1.timestamp }
+//        messages.append(Message(content: "",
+//                                isMine: isMine,
+//                                isFinal: false,
+//                                timestamp: timestamp, 
+//                                turn_id: ""))
+//        messages.sort { $0.timestamp < $1.timestamp }
         
         delegate?.startNewMessage()
     }
