@@ -41,6 +41,7 @@ class CovMessageListView @JvmOverloads constructor(
                     RecyclerView.SCROLL_STATE_IDLE -> {
                         checkShowToBottomButton()
                     }
+
                     RecyclerView.SCROLL_STATE_DRAGGING -> {
                         autoScrollToBottom = false
                     }
@@ -73,102 +74,48 @@ class CovMessageListView @JvmOverloads constructor(
         messageAdapter.updateFromTitle(str)
     }
 
-    fun updateStreamContent(isMe: Boolean, turnId: Int, text: String, isFinal: Boolean = false) {
-        if (isMe) {
-            handleUserMessage(turnId, text, isFinal)
-        } else {
-            handleAgentMessage(turnId, text, isFinal)
-        }
+    fun updateStreamContent(subtitleMessage: SubtitleMessage) {
+        handleMessage(subtitleMessage)
     }
 
-    private fun handleUserMessage(turnId: Int, text: String, isFinal: Boolean) {
-        val isNewMessage = currentUserMessage == null
-        if (isNewMessage) {
-            startNewUserMessage(turnId, text)
-        } else {
-            updateCurrentUserMessage(text)
-        }
-
-        if (isFinal) {
-            completeCurrentUserMessage()
-        } else {
-            autoScrollIfNeeded()
-        }
-    }
-
-    private fun startNewUserMessage(turnId: Int, content: String) {
-        currentUserMessage?.let {
-            completeCurrentUserMessage()
-        }
-
-        val message = Message(true, turnId, content, false)
-        messageAdapter.addMessage(message)
-        currentUserMessage = message
-    }
-
-    private fun updateCurrentUserMessage(content: String) {
-        currentUserMessage?.let {
-            it.content = content
-            messageAdapter.updateMessage(it)
-        }
-    }
-
-    private fun completeCurrentUserMessage() {
-        currentUserMessage?.let {
-            if (!messageAdapter.containsMessage(it)) {
-                messageAdapter.addMessage(it)
+    private fun handleMessage(subtitleMessage: SubtitleMessage) {
+        // Try to find existing message with same turnId
+        messageAdapter.getMessageByTurnId(subtitleMessage.turnId, subtitleMessage.isMe)?.let { existingMessage ->
+            // Update existing message
+            existingMessage.apply {
+                content = subtitleMessage.text
+                status = subtitleMessage.turnStatus
             }
-            currentUserMessage = null
+            messageAdapter.updateMessage(existingMessage)
+        } ?: run {
+            // Create new message
+            val newMessage = Message(
+                isMe = subtitleMessage.isMe,
+                turnId = subtitleMessage.turnId,
+                content = subtitleMessage.text,
+                status = subtitleMessage.turnStatus
+            )
+
+            if (subtitleMessage.isMe) {
+                // Try to insert before agent message with same turnId
+                messageAdapter.getMessageByTurnId(subtitleMessage.turnId, false)?.let { agentMessage ->
+                    val agentIndex = messageAdapter.getMessageIndex(agentMessage)
+                    if (agentIndex != -1) {
+                        messageAdapter.insertMessage(agentIndex, newMessage)
+                    } else {
+                        messageAdapter.addMessage(newMessage)
+                    }
+                } ?: messageAdapter.addMessage(newMessage)
+            } else {
+                messageAdapter.addMessage(newMessage)
+            }
         }
         autoScrollIfNeeded()
-    }
-
-
-    private fun handleAgentMessage(turnId: Int, text: String, isFinal: Boolean) {
-        val isNewMessage = currentAgentMessage == null || currentAgentMessage?.turnId != turnId
-        if (isNewMessage) {
-            startNewAgentMessage(turnId, text)
-        } else {
-            updateCurrentAgentMessage(text)
-        }
-        
-        if (isFinal) {
-            completeCurrentAgentMessage()
-        } else {
-            autoScrollIfNeeded()
-        }
     }
 
     private fun autoScrollIfNeeded() {
         if (autoScrollToBottom) {
             checkAndScrollToBottom()
-        }
-    }
-
-    private fun startNewAgentMessage(turnId: Int, content: String) {
-        currentAgentMessage?.let {
-            completeCurrentAgentMessage()
-        }
-        
-        val message = Message(false, turnId, content, false)
-        messageAdapter.addMessage(message)
-        currentAgentMessage = message
-    }
-
-    private fun completeCurrentAgentMessage() {
-        currentAgentMessage?.let {
-            if (!messageAdapter.containsMessage(it)) {
-                messageAdapter.addMessage(it)
-            }
-            currentAgentMessage = null
-        }
-        autoScrollIfNeeded()
-    }
-
-    private fun updateCurrentAgentMessage(content: String) {
-        currentAgentMessage?.let {
-            it.content = content
-            messageAdapter.updateMessage(it)
         }
     }
 
@@ -214,9 +161,9 @@ class CovMessageListView @JvmOverloads constructor(
 
     data class Message constructor(
         val isMe: Boolean,
-        val turnId: Int,
+        val turnId: Long,
         var content: String,
-        var isFinal: Boolean = false
+        var status: SubStatus,
     )
 
     class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
@@ -277,6 +224,11 @@ class CovMessageListView @JvmOverloads constructor(
             notifyItemInserted(messages.size - 1)
         }
 
+        fun insertMessage(index: Int, message: Message) {
+            messages.add(index, message)
+            notifyItemInserted(index)
+        }
+
         fun clearMessages() {
             val size = messages.size
             messages.clear()
@@ -287,20 +239,18 @@ class CovMessageListView @JvmOverloads constructor(
             return messages
         }
 
-        fun containsMessage(message: Message): Boolean {
-            return messages.any {
+        fun getMessageByTurnId(turnId: Long, isMe: Boolean): Message? {
+            return messages.lastOrNull { it.turnId == turnId && it.isMe == isMe }
+        }
+
+        fun getMessageIndex(message: Message): Int {
+            return messages.indexOfFirst {
                 it.turnId == message.turnId && it.isMe == message.isMe
             }
         }
 
-        fun notifyLastItemChanged() {
-            notifyItemChanged(messages.size - 1)
-        }
-
         fun updateMessage(message: Message) {
-            val index = messages.indexOfLast { 
-                it.turnId == message.turnId && it.isMe == message.isMe 
-            }
+            val index = getMessageIndex(message)
             if (index != -1) {
                 messages[index] = message
                 notifyItemChanged(index)
