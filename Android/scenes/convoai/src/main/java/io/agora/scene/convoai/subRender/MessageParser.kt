@@ -12,21 +12,22 @@ import java.io.IOException
 class MessageParser {
     // Change message storage structure to Map<Int, String> for more intuitive partIndex and content storage
     private val messageMap = mutableMapOf<String, MutableMap<Int, String>>()
-    private val gson =
-        GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
-            .registerTypeAdapter(TypeToken.get(JSONObject::class.java).type, object : TypeAdapter<JSONObject>() {
-                @Throws(IOException::class)
-                override fun write(jsonWriter: JsonWriter, value: JSONObject) {
-                    jsonWriter.jsonValue(value.toString())
-                }
+    private val gson = GsonBuilder()
+        .setDateFormat("yyyy-MM-dd HH:mm:ss")
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+        .registerTypeAdapter(TypeToken.get(JSONObject::class.java).type, object : TypeAdapter<JSONObject>() {
+            @Throws(IOException::class)
+            override fun write(jsonWriter: JsonWriter, value: JSONObject) {
+                jsonWriter.jsonValue(value.toString())
+            }
 
-                @Throws(IOException::class)
-                override fun read(jsonReader: JsonReader): JSONObject? {
-                    return null
-                }
-            })
-            .enableComplexMapKeySerialization()
-            .create()
+            @Throws(IOException::class)
+            override fun read(jsonReader: JsonReader): JSONObject? {
+                return null
+            }
+        })
+        .enableComplexMapKeySerialization()
+        .create()
     private val maxMessageAge = 5 * 60 * 1000 // 5 minutes
     private val lastAccessMap = mutableMapOf<String, Long>()
 
@@ -60,7 +61,7 @@ class MessageParser {
             // Check if all parts are received
             if (messageParts.size == totalParts) {
                 // All parts received, merge in order and decode
-                val completeMessage = (1..totalParts).joinToString("") { 
+                val completeMessage = (1..totalParts).joinToString("") {
                     messageParts[it] ?: throw IllegalStateException("Missing part $it")
                 }
                 val decodedBytes = try {
