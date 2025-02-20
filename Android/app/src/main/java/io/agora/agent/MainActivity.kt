@@ -13,17 +13,25 @@ import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseActivity
 import java.util.Locale
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.util.Log
 import android.view.View
+import android.webkit.CookieManager
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.AgentScenes
+import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.common.debugMode.DebugDialog
 import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.debugMode.DebugDialogCallback
+import io.agora.scene.common.net.TokenGenerator
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -34,6 +42,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val debugModeOpenTime: Long = 2000
     private var beginTime: Long = 0
     private var mDebugDialog: DebugDialog? = null
+
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
+
+    private val mLoginViewModel: LoginViewModel by viewModels()
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -59,6 +71,37 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE),
             REQUEST_CODE
         )
+        activityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data: Intent? = result.data
+                    val token = data?.getStringExtra("token")
+                    if (token != null) {
+                        mLoginViewModel.getUserInfoByToken(SSOUserManager.getToken())
+                    } else {
+                        ToastUtil.show("Login error")
+                    }
+                }
+            }
+
+        mLoginViewModel.getUserInfoByToken(SSOUserManager.getToken())
+        mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
+            if (userInfo != null) {
+                val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
+                fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
+                fragmentTransaction.commit()
+            } else {
+                
+            }
+        }
+
+        TokenGenerator.tokenErrorCompletion = {
+            if (it!=null){
+                SSOUserManager.logout()
+                // TODO:
+            }
+        }
+
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -105,6 +148,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             tvGetStarted.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickGetStarted()
+                }
+            })
+            tvSsoLogin.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    onClickLoginSSO()
                 }
             })
 
@@ -158,6 +206,29 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
             fragmentTransaction.commit()
         }
+    }
+
+    private fun onClickLoginSSO() {
+        if (mBinding?.cbTerms?.isChecked == false) {
+            return
+        }
+        clearCookies()
+        val intent = Intent(this, SSOWebViewActivity::class.java).apply {
+            putExtra(SSOWebViewActivity.EXTRA_URL, ServerConfig.toolBoxUrl + "/v1/sso/login")
+        }
+        activityResultLauncher.launch(intent)
+    }
+
+    private fun clearCookies() {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies { success ->
+            if (success) {
+                Log.d("clearCookies", "Cookies successfully removed")
+            } else {
+                Log.d("clearCookies", "Failed to remove cookies")
+            }
+        }
+        cookieManager.flush()
     }
 
     private fun setupLocale() {

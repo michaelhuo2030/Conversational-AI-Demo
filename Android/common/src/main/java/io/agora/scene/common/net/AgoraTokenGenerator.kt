@@ -27,6 +27,8 @@ object TokenGenerator {
             .build()
     }
 
+    var tokenErrorCompletion: ((Exception?) -> Unit)? = null
+
     var expireSecond: Long = -1
         private set
 
@@ -45,6 +47,7 @@ object TokenGenerator {
                 success(token)
             } catch (e: Exception) {
                 failure?.invoke(e)
+                tokenErrorCompletion?.invoke(e)
             }
         }
     }
@@ -79,6 +82,7 @@ object TokenGenerator {
         try {
             Result.success(fetchToken(channelName, uid, genType, tokenTypes, specialAppId))
         } catch (e: Exception) {
+            tokenErrorCompletion?.invoke(e)
             Result.failure(e)
         }
     }
