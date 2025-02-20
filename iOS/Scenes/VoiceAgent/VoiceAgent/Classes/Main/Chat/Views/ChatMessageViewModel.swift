@@ -31,11 +31,11 @@ class ChatMessageViewModel: NSObject {
         messageMapTable.removeAll()
     }
     
-    func messageFlush(turnId:String, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
-        if turnId.isEmpty {
+    func messageFlush(turnId:Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
+        if turnId == -1 {
             reduceIndependentMessage(message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
         } else {
-            reduceStandardMessage(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
+            reduceStandardMessage(turnId: "\(turnId)", message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
         }
     }
 }
