@@ -49,7 +49,7 @@ import kotlin.coroutines.*
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
-    private val TAG = "LivingActivity"
+    private val TAG = "CovLivingActivity"
 
     private var infoDialog: CovAgentInfoDialog? = null
     private var settingDialog: CovSettingsDialog? = null
@@ -175,20 +175,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
 
         // v2 Subtitle Rendering Controller
-        subRenderController.onUpdateStreamContent = { isMe, turnId, text, isFinal ->
+        subRenderController.onUpdateStreamContent = { subtitleMessage ->
             runOnUiThread {
                 if (!isSelfSubRender) {
-                    mBinding?.messageListViewV2?.updateStreamContent(isMe, turnId, text, isFinal)
-                }
-            }
-
-        }
-        subRenderController.onSubtitleUpdate = { subtitleInfo ->
-            runOnUiThread {
-                if (!isSelfSubRender) {
-                    mBinding?.messageListViewV2?.updateStreamContent(
-                        false, subtitleInfo.turnId, subtitleInfo.text, subtitleInfo.isFinal
-                    )
+                    mBinding?.messageListViewV2?.updateStreamContent(subtitleMessage)
                 }
             }
         }
@@ -212,7 +202,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         CovRtcManager.resetData()
         CovAgentManager.resetData()
-        subRenderController.clear()
+        subRenderController.resetClear()
         super.finish()
     }
 
@@ -275,7 +265,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun onClickStartAgent() {
         subRenderController.setRenderMode(SubRenderMode.Idle)
-        subRenderController.startSubtitleTicker()
         // Immediately show the connecting status
         isUserEndCall = false
         connectionState = AgentConnectionState.CONNECTING
