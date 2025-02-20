@@ -14,6 +14,7 @@ private struct TranscriptionMessage: Codable {
     let message_id: String?
     let quiet: Bool?
     let final: Bool?
+    let is_final: Bool?
     let object: String?
     let turn_id: Int?
     let turn_seq_id: Int?
@@ -116,7 +117,9 @@ class MessageAdapter: NSObject {
     }
     
     private func handleTextMessage(_ message: TranscriptionMessage) {
-        guard let text = message.text else {
+        guard let text = message.text,
+              let isFinal = message.is_final
+        else {
             return
         }
         if message.stream_id == 0 {
@@ -124,14 +127,16 @@ class MessageAdapter: NSObject {
                                         message: text,
                                         timestamp: message.start_ms ?? 0,
                                         owner: .me,
-                                        isFinished: (message.final == true))
+                                        isFinished: isFinal)
+            print("🌍[MessageAdapter] send agent text: \(text), final: \(isFinal)")
         } else {
             let text = message.text ?? ""
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
                                         timestamp: message.start_ms ?? 0,
                                         owner: .agent,
-                                        isFinished: (message.final == true))
+                                        isFinished: isFinal)
+            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(isFinal)")
         }
     }
     
@@ -219,7 +224,7 @@ class MessageAdapter: NSObject {
                     print("🌍[MessageAdapter] send current words: \(text)")
                 } else {
                     text = currentWords.map { $0.text }.joined()
-                    print("🌍[MessageAdapter] unfinish words: \(text)")
+//                    print("🌍[MessageAdapter] unfinish words: \(text)")
                 }
                 if !text.isEmpty {
                     isSended = true
