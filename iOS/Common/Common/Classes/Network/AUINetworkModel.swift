@@ -75,11 +75,11 @@ open class AUINetworkModel: NSObject {
     }
     
     open func tokenExpired() {
-        // TODO: Login/Logout
-//        DispatchQueue.main.async {
-//            VLUserCenter.shared().logout()
+        DispatchQueue.main.async {
+            UserCenter.shared.logout()
+            // TODO: token expired
 //            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "AGORAENTTOKENEXPIRED") , object: nil)
-//        }
+        }
     }
     
     public func createBasicAuth(key: String, password: String) -> String {
@@ -108,8 +108,7 @@ open class AUIUploadNetworkModel: AUINetworkModel {
         var headers = super.getHeaders()
         let contentType = "multipart/form-data; boundary=\(boundary)"
         headers["Content-Type"] = contentType
-        // TODO: Login/Logout
-//        headers["Authorization"] = VLUserCenter.user.token
+        headers["Authorization"] = UserCenter.user?.token ?? ""
         return headers
     }
     
