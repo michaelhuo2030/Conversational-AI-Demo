@@ -580,7 +580,7 @@ private extension DigitalHumanViewController {
         miniView.snp.makeConstraints { make in
             make.width.equalTo(192)
             make.height.equalTo(100)
-            make.top.equalToSuperview().offset(16)
+            make.bottom.equalToSuperview().offset(16)
             make.right.equalToSuperview().offset(-16)
         }
         
