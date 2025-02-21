@@ -138,18 +138,18 @@ class DigitalHumanSettingBar: UIView {
             make.left.equalTo(backButton.snp.right).offset(4)
             make.centerY.equalToSuperview()
         }
-        settingButton.setImage(UIImage.dh_named("ic_agent_setting"), for: .normal)
-        addSubview(settingButton)
-        settingButton.snp.makeConstraints { make in
+//        settingButton.setImage(UIImage.dh_named("ic_agent_setting"), for: .normal)
+//        addSubview(settingButton)
+//        settingButton.snp.makeConstraints { make in
+//            make.right.equalToSuperview()
+//            make.centerY.equalToSuperview()
+//            make.width.height.equalTo(48)
+//        }
+        addSubview(networkSignalView)
+        networkSignalView.snp.makeConstraints { make in
             make.right.equalToSuperview()
             make.centerY.equalToSuperview()
             make.width.height.equalTo(48)
-        }
-        addSubview(networkSignalView)
-        networkSignalView.snp.makeConstraints { make in
-            make.right.equalTo(settingButton.snp.left)
-            make.width.height.equalTo(48)
-            make.centerY.equalToSuperview()
         }
         tipsButton.setImage(UIImage.dh_named("ic_agent_tips_icon"), for: .normal)
         addSubview(tipsButton)

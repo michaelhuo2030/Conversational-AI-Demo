@@ -46,6 +46,4 @@ TODO: Add long description of the pod here.
   s.dependency 'SSZipArchive'
   # s.public_header_files = 'Pod/Classes/**/*.h'
   
-  s.dependency 'Zip'
-  s.dependency 'YYModel'
 end

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import YYModel
 
 public enum AUINetworkMethod: Int {
     case get = 0
@@ -29,29 +28,36 @@ open class AUINetworkModel: NSObject {
     public var interfaceName: String?
     public var method: AUINetworkMethod = .post
     
-    static func modelPropertyBlacklist() -> [Any] {
-        return ["uniqueId", "host", "interfaceName", "method"]
+    open func requestParameters() -> [String: Any]? {
+        return nil
     }
     
-    public func getHeaders() -> [String: String] {
+    open func getHeaders() -> [String: String] {
         return ["Content-Type": "application/json"]
     }
     
     public func getParameters() -> [String: Any]? {
-        let param = self.yy_modelToJSONObject() as? [String: Any]
-        return param
+        return self.requestParameters()
     }
     
     public func getHttpBody() -> Data? {
-        return self.yy_modelToJSONData()
+        guard let parameters = self.requestParameters() else {
+            return nil
+        }
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
+            return jsonData
+        } catch {
+            print("Failed to serialize HTTP body: \(error)")
+            return nil
+        }
     }
     
     public func request(completion: ((Error?, Any?)->())?) {
         AUINetworking.shared.request(model: self, completion: completion)
     }
     
-    
-    public func parse(data: Data?) throws -> Any?  {
+    open func parse(data: Data?) throws -> Any?  {
         guard let data = data,
               let dic = try? JSONSerialization.jsonObject(with: data) else {
             throw AUICommonError.networkParseFail.toNSError()
@@ -68,7 +74,7 @@ open class AUINetworkModel: NSObject {
         return dic
     }
     
-    func tokenExpired() {
+    open func tokenExpired() {
         // TODO: Login/Logout
 //        DispatchQueue.main.async {
 //            VLUserCenter.shared().logout()
@@ -89,11 +95,10 @@ open class AUINetworkModel: NSObject {
 
 @objcMembers
 open class AUIUploadNetworkModel: AUINetworkModel {
-    public var fileData: Data!
-    public var name: String!
+    public var fileData: Data?
+    public var name: String?
     public var fileName: String?
     public var mimeType: String?
-    
     
     public lazy var  boundary: String = {
         UUID().uuidString
@@ -111,13 +116,13 @@ open class AUIUploadNetworkModel: AUINetworkModel {
     public func multipartData() -> Data {
         // 创建HTTP请求体
         var data = Data()
-        guard let name = name, let fileName = fileName, let fileData = fileData else {
+        guard let name = name, let fileName = fileName, let fileData = fileData, let mimeType = mimeType else {
             return data
         }
         // 添加数据
         data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: \(mimeType!)\r\n\r\n".data(using: .utf8)!)
+        data.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
         data.append(fileData)
         // Multipart结束标记
         data.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)

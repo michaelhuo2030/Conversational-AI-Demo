@@ -11,7 +11,7 @@ class Message {
     var content: String = ""
     var isMine: Bool = false
     var isFinal: Bool = false
-    let timestamp: Int64 = 0
+    var timestamp: Int64 = 0
     var turn_id: String = ""
 }
 
