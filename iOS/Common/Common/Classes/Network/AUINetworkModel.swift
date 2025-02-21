@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import YYModel
 
 public enum AUINetworkMethod: Int {
     case get = 0
@@ -33,17 +32,20 @@ open class AUINetworkModel: NSObject {
         return ["uniqueId", "host", "interfaceName", "method"]
     }
     
-    public func getHeaders() -> [String: String] {
+    open func getHeaders() -> [String: String] {
         return ["Content-Type": "application/json"]
     }
     
     public func getParameters() -> [String: Any]? {
-        let param = self.yy_modelToJSONObject() as? [String: Any]
-        return param
+        // TODO: YYModel
+        return nil
+//        let param = self.yy_modelToJSONObject() as? [String: Any]
     }
     
     public func getHttpBody() -> Data? {
-        return self.yy_modelToJSONData()
+        // TODO: YYModel
+        return nil
+//        return self.yy_modelToJSONData()
     }
     
     public func request(completion: ((Error?, Any?)->())?) {
@@ -51,7 +53,7 @@ open class AUINetworkModel: NSObject {
     }
     
     
-    public func parse(data: Data?) throws -> Any?  {
+    open func parse(data: Data?) throws -> Any?  {
         guard let data = data,
               let dic = try? JSONSerialization.jsonObject(with: data) else {
             throw AUICommonError.networkParseFail.toNSError()
@@ -68,7 +70,7 @@ open class AUINetworkModel: NSObject {
         return dic
     }
     
-    func tokenExpired() {
+    open func tokenExpired() {
         // TODO: Login/Logout
 //        DispatchQueue.main.async {
 //            VLUserCenter.shared().logout()

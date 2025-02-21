@@ -15,15 +15,19 @@ import Common
 class ChatViewController: UIViewController {
     private var isDenoise = true
     private let messageParser = MessageParser()
-    private var pingTimer: Timer?
-    private var requestTimer: Timer?
     private let uid = "\(RtcEnum.getUid())"
-    private let pingTimeInterval = 10.0
     private var remoteIsJoined = false
     private var channelName = ""
     private var token = ""
     private var agentUid = 0
     private var remoteAgentId = ""
+    
+    private lazy var timerCoordinator: AgentTimerCoordinator = {
+        let coordinator = AgentTimerCoordinator()
+        coordinator.delegate = self
+        
+        return coordinator
+    }()
 
     private lazy var messageAdapter: MessageAdapter = {
         let adapter = MessageAdapter()
@@ -267,24 +271,13 @@ class ChatViewController: UIViewController {
         messageView.clearMessages()
         messageView.isHidden = true
         bottomBar.resetState()
-        stopRequestTimer()
-        stopPingTimer()
+        timerCoordinator.stopAllTimer()
         stopMessageAdapter()
         stopAgentRequest()
         leaveChannel()
         AppContext.preferenceManager()?.resetAgentInformation()
     }
-    
-    private func stopPingTimer() {
-        pingTimer?.invalidate()
-        pingTimer = nil
-    }
-    
-    private func stopRequestTimer() {
-        requestTimer?.invalidate()
-        requestTimer = nil
-    }
-    
+        
     private func setupMuteState(state: Bool) {
         addLog("setupMuteState: \(state)")
         rtcManager.muteVoice(state: state)
@@ -393,8 +386,8 @@ extension ChatViewController {
                     AppContext.preferenceManager()?.updateTargetServer(targetServer)
                 }
                 addLog("start agent success, agent id is: \(self.remoteAgentId)")
-                prepareToPing()
-                agentCheck()
+                self.timerCoordinator.startPingTimer()
+                self.timerCoordinator.startJoinChannelTimer()
                 return
             }
 
@@ -403,31 +396,6 @@ extension ChatViewController {
             self.stopAgent()
             addLog("start agent failed : \(error.message)")
         }
-    }
-    
-    private func agentCheck() {
-        addLog("[Call] agentCheck()")
-        self.requestTimer?.invalidate()
-        self.requestTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] _ in
-            guard let self = self, let manager = AppContext.preferenceManager() else {
-                self?.addLog("view controller or manager is release, will stop request timer")
-                self?.stopRequestTimer()
-                return
-            }
-            
-            if self.remoteIsJoined {
-                self.stopRequestTimer()
-                self.addLog("agent is joined in 10 seconds")
-                return
-            }
-            
-            if manager.information.agentState != .connected {
-                addLog("agent is not joined in 10 seconds")
-                self.stopLoading()
-                self.stopAgent()
-            }
-            self.stopRequestTimer()
-        })
     }
     
     private func startPingRequest() {
@@ -441,15 +409,6 @@ extension ChatViewController {
             }
             
             self.addLog("ping error : \(error.message)")
-        }
-    }
-    
-    private func prepareToPing() {
-        addLog("[Call] prepareToPing()")
-        self.pingTimer?.invalidate()
-        self.pingTimer = Timer.scheduledTimer(withTimeInterval: pingTimeInterval, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            self.startPingRequest()
         }
     }
     
@@ -515,6 +474,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         toastView.dismiss()
         remoteIsJoined = true
+        timerCoordinator.startUsageDurationLimitTimer()
         addLog("[RTC Call Back] didJoinedOfUid uid: \(uid)")
         AppContext.preferenceManager()?.updateAgentState(.connected)
         SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.agentJoined)
@@ -704,6 +664,40 @@ extension ChatViewController: AnimateViewDelegate {
 extension ChatViewController: MessageAdapterDelegate {
     func messageFlush(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
         messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
+    }
+}
+
+extension ChatViewController: AgentTimerCoordinatorDelegate {
+    func agentStartPing() {
+        addLog("[Call] agentStartPing()")
+        self.startPingRequest()
+    }
+    
+    func agentNotJoinedWithinTheScheduledTime() {
+        addLog("[Call] agentNotJoinedWithinTheScheduledTime")
+        guard let manager = AppContext.preferenceManager() else {
+            addLog("view controller or manager is release, will stop join channel scheduled timer")
+            timerCoordinator.stopJoinChannelTimer()
+            return
+        }
+        
+        if self.remoteIsJoined {
+            timerCoordinator.stopJoinChannelTimer()
+            self.addLog("agent is joined in 10 seconds")
+            return
+        }
+        
+        if manager.information.agentState != .connected {
+            addLog("agent is not joined in 10 seconds")
+            self.stopLoading()
+            self.stopAgent()
+        }
+        
+        timerCoordinator.stopJoinChannelTimer()
+    }
+    
+    func agentTimeLimited() {
+        addLog("[Call] agentTimeLimited")
     }
 }
 
