@@ -28,7 +28,7 @@ public class NetworkManager:NSObject {
         let token = UserCenter.user?.token ?? ""
         config.httpAdditionalHeaders = [
             "Content-Type": "application/json",
-            "Authorization": token
+            "Authorization": "Bearer \(token)"
         ]
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 30

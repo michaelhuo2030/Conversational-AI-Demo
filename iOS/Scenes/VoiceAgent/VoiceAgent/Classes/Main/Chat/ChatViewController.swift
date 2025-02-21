@@ -20,10 +20,7 @@ class ChatViewController: UIViewController {
     private var token = ""
     private var agentUid = 0
     private var remoteAgentId = ""
-    
-    private lazy var uid: String = {
-        return UserCenter.user?.uid ?? ""
-    }()
+    private let uid = "\(RtcEnum.getUid())"
     
     private lazy var timerCoordinator: AgentTimerCoordinator = {
         let coordinator = AgentTimerCoordinator()
