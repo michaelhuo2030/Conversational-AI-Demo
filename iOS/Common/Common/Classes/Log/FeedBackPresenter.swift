@@ -6,7 +6,7 @@
 //
 
 import UIKit
-import Zip
+import SSZipArchive
 
 public struct FeedbackError: Error {
     var code: Int
@@ -55,8 +55,14 @@ public class FeedBackPresenter {
                 try FileManager.default.copyItem(at: fileURL, to: destinationFileURL)
             }
             try? FileManager.default.removeItem(at: destinationURL)
-            try Zip.zipFiles(paths: [tempDirectory], zipFilePath: destinationURL, password: nil, progress: nil)
-            completion(nil, destinationURL)
+            
+            let success = SSZipArchive.createZipFile(atPath: destinationURL.path,
+                                                     withContentsOfDirectory: tempDirectory.path)
+            if success {
+                completion(nil, destinationURL)
+            } else {
+                completion(FeedbackError(code: -1, message: "zip log error"), nil)
+            }
         } catch {
             completion(FeedbackError(code: -1, message: "zip log error"), nil)
         }

@@ -32,10 +32,6 @@ open class AUINetworkModel: NSObject {
         return nil
     }
     
-    static func modelPropertyBlacklist() -> [Any] {
-        return ["uniqueId", "host", "interfaceName", "method"]
-    }
-    
     public func getHeaders() -> [String: String] {
         return ["Content-Type": "application/json"]
     }
