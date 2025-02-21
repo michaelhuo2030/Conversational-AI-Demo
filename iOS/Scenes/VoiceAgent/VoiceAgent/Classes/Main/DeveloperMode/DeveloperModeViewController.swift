@@ -37,6 +37,8 @@ public class DeveloperModeViewController: UIViewController {
     private let segmentCtrl = UISegmentedControl(items: AppContext.shared.environments.map { ($0["name"]) ?? "" })
     private let audioDumpSwitch = UISwitch()
     
+    private let feedbackPresenter = FeedBackPresenter()
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black.withAlphaComponent(0.7)
@@ -74,6 +76,15 @@ extension DeveloperModeViewController {
     
     @objc private func onClickCopy(_ sender: UIButton) {
         copyCallback?()
+        
+        
+        feedbackPresenter.feedback(isSendLog: true, feedback: "copy user question") { error, result in
+            if let error = error {
+                SVProgressHUD.showError(withStatus: error.message)
+            } else {
+                SVProgressHUD.showSuccess(withStatus: "copy user question success")
+            }
+        }
     }
     
     @objc private func onSwitchButtonClicked(_ sender: UIButton) {

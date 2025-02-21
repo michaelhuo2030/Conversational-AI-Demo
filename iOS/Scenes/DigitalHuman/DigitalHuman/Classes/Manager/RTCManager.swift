@@ -56,7 +56,6 @@ class RTCManager: NSObject {
         config.appId = appId
         config.channelProfile = .liveBroadcasting
         rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self.delegate)
-        VoiceAgentLogger.info("rtc version: \(AgoraRtcEngineKit.getSdkVersion())")
     }
     
     private func setAudioParameter() {
@@ -87,7 +86,6 @@ extension RTCManager: RTCManagerProtocol {
         rtcEngine.setAudioScenario(.aiClient)
         rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
         rtcEngine.setPlaybackAudioFrameBeforeMixingParametersWithSampleRate(44100, channel: 1)
-        rtcEngine.setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
         
         let options = AgoraRtcChannelMediaOptions()
         options.clientRoleType = .broadcaster

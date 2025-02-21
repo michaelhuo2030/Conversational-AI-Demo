@@ -571,6 +571,7 @@ private extension ChatViewController {
         stopAgent()
         animateView.releaseView()
         AppContext.destory()
+        destoryRtc()
         UIApplication.shared.isIdleTimerDisabled = false
         self.navigationController?.popViewController(animated: true)
     }
