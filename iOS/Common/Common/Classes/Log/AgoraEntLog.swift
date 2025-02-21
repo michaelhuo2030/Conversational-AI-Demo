@@ -145,11 +145,11 @@ public func agoraDoMainThreadTask(_ task: (()->())?) {
             return
         }
         let zipFile = NSTemporaryDirectory() + "/log_\(UUID().uuidString).zip"
-        do {
-            SSZipArchive.createZipFile(atPath: zipFile, withFilesAtPaths: logFiles)
+        let ret = SSZipArchive.createZipFile(atPath: zipFile, withFilesAtPaths: logFiles)
+        if ret {
             completion(zipFile, nil)
-        } catch {
-            completion(nil, error)
+        } else {
+            completion(nil, NSError(domain: "zip", code: -1, userInfo: nil))
         }
     }
 }

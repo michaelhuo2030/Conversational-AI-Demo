@@ -9,7 +9,7 @@ import UIKit
 import Common
 
 class AgentInformationViewController: UIViewController {
-    private let backgroundViewHeight: CGFloat = 492
+    private let backgroundViewWidth: CGFloat = 315
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
     private var networkItems: [UIView] = []
@@ -151,7 +151,7 @@ class AgentInformationViewController: UIViewController {
     }
     
     private func animateBackgroundViewIn() {
-        backgroundView.transform = CGAffineTransform(translationX: 0, y: backgroundViewHeight)
+        backgroundView.transform = CGAffineTransform(translationX: -self.backgroundViewWidth, y: 0)
         UIView.animate(withDuration: 0.3) {
             self.backgroundView.transform = .identity
         }
@@ -159,7 +159,7 @@ class AgentInformationViewController: UIViewController {
     
     private func animateBackgroundViewOut() {
         UIView.animate(withDuration: 0.3, animations: {
-            self.backgroundView.transform = CGAffineTransform(translationX:0, y: self.backgroundViewHeight)
+            self.backgroundView.transform = CGAffineTransform(translationX: -self.backgroundViewWidth, y: 0)
         }) { _ in
             self.dismiss(animated: false)
         }
@@ -172,11 +172,11 @@ class AgentInformationViewController: UIViewController {
         case .began:
             initialCenter = backgroundView.center
         case .changed:
-            let newY = max(translation.y, 0)
-            backgroundView.transform = CGAffineTransform(translationX:0, y: newY)
+            let newX = max(translation.x, 0)
+            backgroundView.transform = CGAffineTransform(translationX:newX, y: 0)
         case .ended:
             let velocity = gesture.velocity(in: view)
-            let shouldDismiss = translation.y > backgroundViewHeight / 2 || velocity.y > 500
+            let shouldDismiss = translation.x > backgroundViewWidth / 2 || velocity.x > 500
             
             if shouldDismiss {
                 animateBackgroundViewOut()
@@ -216,8 +216,8 @@ extension AgentInformationViewController {
     
     private func createConstrains() {
         backgroundView.snp.makeConstraints { make in
-            make.left.right.bottom.equalToSuperview()
-            make.height.equalTo(backgroundViewHeight)
+            make.left.top.bottom.equalToSuperview()
+            make.width.equalTo(backgroundViewWidth)
         }
         
         topView.snp.makeConstraints { make in
