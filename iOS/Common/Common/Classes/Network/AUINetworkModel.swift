@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import YYModel
 
 public enum AUINetworkMethod: Int {
     case get = 0
@@ -29,6 +28,10 @@ open class AUINetworkModel: NSObject {
     public var interfaceName: String?
     public var method: AUINetworkMethod = .post
     
+    open func requestParameters() -> [String: Any]? {
+        return nil
+    }
+    
     static func modelPropertyBlacklist() -> [Any] {
         return ["uniqueId", "host", "interfaceName", "method"]
     }
@@ -38,18 +41,21 @@ open class AUINetworkModel: NSObject {
     }
     
     public func getParameters() -> [String: Any]? {
-        let param = self.yy_modelToJSONObject() as? [String: Any]
-        return param
+        return self.requestParameters()
     }
     
     public func getHttpBody() -> Data? {
-        return self.yy_modelToJSONData()
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: self.requestParameters() as Any, options: [])
+            return jsonData
+        } catch {
+            return nil
+        }
     }
     
     public func request(completion: ((Error?, Any?)->())?) {
         AUINetworking.shared.request(model: self, completion: completion)
     }
-    
     
     public func parse(data: Data?) throws -> Any?  {
         guard let data = data,
