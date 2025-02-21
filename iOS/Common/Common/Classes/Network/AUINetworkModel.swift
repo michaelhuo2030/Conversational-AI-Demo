@@ -32,7 +32,7 @@ open class AUINetworkModel: NSObject {
         return nil
     }
     
-    public func getHeaders() -> [String: String] {
+    open func getHeaders() -> [String: String] {
         return ["Content-Type": "application/json"]
     }
     
@@ -57,7 +57,7 @@ open class AUINetworkModel: NSObject {
         AUINetworking.shared.request(model: self, completion: completion)
     }
     
-    public func parse(data: Data?) throws -> Any?  {
+    open func parse(data: Data?) throws -> Any?  {
         guard let data = data,
               let dic = try? JSONSerialization.jsonObject(with: data) else {
             throw AUICommonError.networkParseFail.toNSError()
@@ -74,12 +74,12 @@ open class AUINetworkModel: NSObject {
         return dic
     }
     
-    func tokenExpired() {
-        // TODO: Login/Logout
-//        DispatchQueue.main.async {
-//            VLUserCenter.shared().logout()
+    open func tokenExpired() {
+        DispatchQueue.main.async {
+            UserCenter.shared.logout()
+            // TODO: token expired
 //            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "AGORAENTTOKENEXPIRED") , object: nil)
-//        }
+        }
     }
     
     public func createBasicAuth(key: String, password: String) -> String {
@@ -108,8 +108,7 @@ open class AUIUploadNetworkModel: AUINetworkModel {
         var headers = super.getHeaders()
         let contentType = "multipart/form-data; boundary=\(boundary)"
         headers["Content-Type"] = contentType
-        // TODO: Login/Logout
-//        headers["Authorization"] = VLUserCenter.user.token
+        headers["Authorization"] = UserCenter.user?.token ?? ""
         return headers
     }
     

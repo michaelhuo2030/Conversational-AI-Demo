@@ -12,6 +12,7 @@ import SwifterSwift
 import Common
 import DigitalHuman
 import VoiceAgent
+import SVProgressHUD
 
 class AgentHomeViewController: UIViewController {
     private lazy var nextStepButton: UIButton = {
@@ -224,6 +225,33 @@ class AgentHomeViewController: UIViewController {
     @objc private func onTermsClicked() {
         let webVC = TermsServiceWebViewController()
         self.navigationController?.pushViewController(webVC)
+    }
+    
+    func ssoLogin() {
+        let ssoWebVC = SSOWebViewController()
+        let baseUrl = AppContext.shared.baseServerUrl
+        ssoWebVC.urlString = "\(baseUrl)/sso/login"
+        ssoWebVC.completionHandler = { [weak self] token in
+            if let token = token {
+                print("Received token: \(token)")
+                let model = LoginModel()
+                model.token = token
+                UserCenter.shared.storeUserInfo(model)
+                LoginApiService.getUserInfo { [weak self] error in
+                    guard let self = self else { return }
+                    
+                    if let err = error {
+                        UserCenter.shared.logout()
+                        SVProgressHUD.showInfo(withStatus: err.localizedDescription)
+                    } else {
+                        self.navigationController?.popViewController(animated: true)
+                    }
+                }
+            } else {
+                print("Failed to get token")
+            }
+        }
+        navigationController?.pushViewController(ssoWebVC, animated: true)
     }
 }
 
