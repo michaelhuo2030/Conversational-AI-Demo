@@ -41,10 +41,14 @@ open class AUINetworkModel: NSObject {
     }
     
     public func getHttpBody() -> Data? {
+        guard let parameters = self.requestParameters() else {
+            return nil
+        }
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: self.requestParameters() as Any, options: [])
+            let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
             return jsonData
         } catch {
+            print("Failed to serialize HTTP body: \(error)")
             return nil
         }
     }
@@ -91,11 +95,10 @@ open class AUINetworkModel: NSObject {
 
 @objcMembers
 open class AUIUploadNetworkModel: AUINetworkModel {
-    public var fileData: Data!
-    public var name: String!
+    public var fileData: Data?
+    public var name: String?
     public var fileName: String?
     public var mimeType: String?
-    
     
     public lazy var  boundary: String = {
         UUID().uuidString
@@ -113,13 +116,13 @@ open class AUIUploadNetworkModel: AUINetworkModel {
     public func multipartData() -> Data {
         // 创建HTTP请求体
         var data = Data()
-        guard let name = name, let fileName = fileName, let fileData = fileData else {
+        guard let name = name, let fileName = fileName, let fileData = fileData, let mimeType = mimeType else {
             return data
         }
         // 添加数据
         data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
         data.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: \(mimeType!)\r\n\r\n".data(using: .utf8)!)
+        data.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
         data.append(fileData)
         // Multipart结束标记
         data.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)

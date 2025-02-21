@@ -9,8 +9,8 @@ import UIKit
 import SSZipArchive
 
 public struct FeedbackError: Error {
-    var code: Int
-    var message: String
+    public var code: Int
+    public var message: String
 }
 
 public typealias FeedbackCompletion = (FeedbackError?, [String : Any]?) -> Void
@@ -23,6 +23,9 @@ public class FeedBackPresenter {
     
     private var images = [UIImage]()
     private var imageUrls: [String]?
+    
+    public init() {
+    }
     
     public func feedback(isSendLog: Bool, feedback: String = "", completion: @escaping FeedbackCompletion) {
         var logUrl: String? = nil
