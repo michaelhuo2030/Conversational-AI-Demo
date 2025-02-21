@@ -5,15 +5,14 @@
 //  Created by zhaoyongqiang on 2021/11/19.
 //
 import UIKit
-import Common
 
-enum AgoraTokenType: Int {
+public enum AgoraTokenType: Int {
     case rtc = 1
     case rtm = 2
     case chat = 3
 }
 
-class NetworkManager:NSObject {
+public class NetworkManager:NSObject {
     enum HTTPMethods: String {
         case GET
         case POST
@@ -21,8 +20,8 @@ class NetworkManager:NSObject {
     
     var gameToken: String = ""
 
-    typealias SuccessClosure = ([String: Any]) -> Void
-    typealias FailClosure = (String) -> Void
+    public typealias SuccessClosure = ([String: Any]) -> Void
+    public typealias FailClosure = (String) -> Void
 
     private var sessionConfig: URLSessionConfiguration = {
         let config = URLSessionConfiguration.default
@@ -32,7 +31,7 @@ class NetworkManager:NSObject {
         return config
     }()
 
-    static let shared = NetworkManager()
+    public static let shared = NetworkManager()
     private let baseServerUrl: String = AppContext.shared.baseServerUrl
     
     private func basicAuth(key: String, password: String) -> String {
@@ -49,7 +48,7 @@ class NetworkManager:NSObject {
     ///   - channelName: the name of channel
     ///   - uid: user uid
     ///   - types: [token type :  token string]
-    func generateToken(channelName: String,
+    public func generateToken(channelName: String,
                        uid: String,
                        expire: Int = 86400,
                        types: [AgoraTokenType],
@@ -77,13 +76,13 @@ class NetworkManager:NSObject {
         }
     }
     
-    func getRequest(urlString: String, success: SuccessClosure?, failure: FailClosure?) {
+    public func getRequest(urlString: String, success: SuccessClosure?, failure: FailClosure?) {
         DispatchQueue.global().async {
             self.request(urlString: urlString, params: nil, method: .GET, success: success, failure: failure)
         }
     }
 
-    func postRequest(urlString: String, params: [String: Any]?, success: SuccessClosure?, failure: FailClosure?) {
+    public func postRequest(urlString: String, params: [String: Any]?, success: SuccessClosure?, failure: FailClosure?) {
         DispatchQueue.global().async {
             self.request(urlString: urlString, params: params, method: .POST, success: success, failure: failure)
         }
