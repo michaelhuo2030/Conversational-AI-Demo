@@ -38,7 +38,7 @@ class SSOUserInfoModel: LoginCommonModel {
     override init() {
         super.init()
         method = .get
-        interfaceName = "sso/userInfo"
+        interfaceName = "/v1/convoai/sso/userInfo"
     }
     
     func getToken() -> String {

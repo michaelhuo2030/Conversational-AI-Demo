@@ -14,6 +14,7 @@ public class VoiceAgentEntrance: NSObject {
     public static let kSceneName = "VoiceAgent"
     
     public static func voiceAgentScene(viewController: UIViewController) {
+        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180))
         let vc = ChatViewController()
         viewController.navigationController?.pushViewController(vc, animated: true)
     }

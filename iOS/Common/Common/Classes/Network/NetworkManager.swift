@@ -25,7 +25,11 @@ public class NetworkManager:NSObject {
 
     private var sessionConfig: URLSessionConfiguration = {
         let config = URLSessionConfiguration.default
-        config.httpAdditionalHeaders = ["Content-Type": "application/json"]
+        let token = UserCenter.user?.token ?? ""
+        config.httpAdditionalHeaders = [
+            "Content-Type": "application/json",
+            "Authorization": token
+        ]
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 30
         return config
@@ -62,7 +66,7 @@ public class NetworkManager:NSObject {
                       "ts": 0,
                       "types": types.map({NSNumber(value: $0.rawValue)}),
                       "uid": uid] as [String: Any]
-        let url = "\(baseServerUrl)/token/generate"
+        let url = "\(baseServerUrl)/v2/convoai/token/generate"
         NetworkManager.shared.postRequest(urlString: url,
                                           params: params) { response in
             let data = response["data"] as? [String: String]

@@ -59,7 +59,7 @@ class AgentManager: AgentAPI {
     }
     
     func fetchAgentPresets(completion: @escaping ((AgentError?, [AgentPreset]?) -> Void)) {
-        let url = AgentServiceUrl.stopAgentPath("convoai/presetAgents").toHttpUrlSting()
+        let url = AgentServiceUrl.stopAgentPath("v3/convoai/presetAgents").toHttpUrlSting()
         VoiceAgentLogger.info("request agent preset api: \(url)")
         NetworkManager.shared.getRequest(urlString: url) { result in
             VoiceAgentLogger.info("presets request response: \(result)")
@@ -101,7 +101,7 @@ class AgentManager: AgentAPI {
                     presetName: String,
                     language: String,
                     completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
-        let url = AgentServiceUrl.startAgentPath("convoai/start").toHttpUrlSting()
+        let url = AgentServiceUrl.startAgentPath("v3/convoai/start").toHttpUrlSting()
         var requesetBody: [String: Any] = [
             "app_id": appId,
             "preset_name": presetName,
@@ -153,7 +153,7 @@ class AgentManager: AgentAPI {
     }
     
     func stopAgent(appId:String, agentId: String, channelName: String, presetName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
-        let url = AgentServiceUrl.stopAgentPath("convoai/stop").toHttpUrlSting()
+        let url = AgentServiceUrl.stopAgentPath("v3/convoai/stop").toHttpUrlSting()
         let parameters: [String: Any] = [
             "app_id": appId,
             "agent_id": agentId,
@@ -177,7 +177,7 @@ class AgentManager: AgentAPI {
     }
     
     func ping(appId: String, channelName: String, presetName: String, completion: @escaping ((AgentError?, [String : Any]?) -> Void)) {
-        let url = AgentServiceUrl.stopAgentPath("convoai/ping").toHttpUrlSting()
+        let url = AgentServiceUrl.stopAgentPath("v3/convoai/ping").toHttpUrlSting()
         let parameters: [String: Any] = [
             "app_id": appId,
             "channel_name": channelName,
