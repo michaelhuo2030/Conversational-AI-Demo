@@ -57,7 +57,7 @@ object LogUploader {
         }
     }
 
-    // 获取所有日志文件路径
+    // Get all log file paths
     private fun getAllLogFiles(): List<String> {
         val filesDir = AgentApp.instance().getExternalFilesDir("") ?: return emptyList()
         val logPaths = mutableListOf<String>()
@@ -65,7 +65,7 @@ object LogUploader {
         return logPaths
     }
 
-    // 递归收集文件
+    // Recursively collect files
     private fun collectFiles(directory: File, paths: MutableList<String>) {
         try {
             directory.listFiles()?.forEach { file ->
@@ -82,15 +82,22 @@ object LogUploader {
     @Volatile
     private var isUploading = false
 
-    fun uploadLog() {
+    fun uploadLog(zipName: String) {
         if (isUploading) return
         isUploading = true
-
-        // 使用 File 对象来处理路径
-        val filesDir = AgentApp.instance().getExternalFilesDir("") ?: return
-        val allLogZipFile = File(filesDir, "allLogs.zip")
         
-        // 获取所有日志文件路径
+        val filesDir = AgentApp.instance().getExternalFilesDir("") ?: return
+        
+        // Delete all existing zip files in the directory
+        filesDir.listFiles()?.forEach { file ->
+            if (file.name.endsWith(".zip")) {
+                FileUtils.deleteFile(file.absolutePath)
+            }
+        }
+        
+        val allLogZipFile = File(filesDir, "${zipName}.zip")
+        
+        // Get all log file paths
         val logPaths = getAllLogFiles()
         if (logPaths.isEmpty()) {
             isUploading = false
@@ -98,7 +105,7 @@ object LogUploader {
             return
         }
 
-        // 压缩所有文件
+        // Compress all files
         FileUtils.compressFiles(logPaths, allLogZipFile.absolutePath, object : FileUtils.ZipCallback {
             override fun onSuccess(path: String) {
                 requestUploadLog(File(path),

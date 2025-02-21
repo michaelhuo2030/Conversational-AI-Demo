@@ -3,6 +3,7 @@ package io.agora.agent;
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
@@ -12,6 +13,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
 import io.agora.agent.databinding.AppActivitySsoBinding
+import io.agora.scene.common.constant.ServerConfig.toolBoxUrl
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.CommonLogger
 
@@ -23,7 +25,10 @@ class SSOWebViewActivity : BaseActivity<AppActivitySsoBinding>() {
 
     companion object {
         private const val TAG = "SSOWebViewActivity"
-        const val EXTRA_URL: String = "url"
+
+        private val ssoUrl: String get() = "$toolBoxUrl/v1/convoai/sso/login"
+
+        private const val ssoCallbackPath = "v1/convoai/sso/callback"
     }
 
     override fun initView() {
@@ -61,8 +66,10 @@ class SSOWebViewActivity : BaseActivity<AppActivitySsoBinding>() {
             webView.webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                     val url = request?.url.toString()
+                    CommonLogger.d(TAG, "shouldOverrideUrlLoading url = $url")
 
-                    if (url.contains("v1/sso/callback") && !url.contains("redirect_uri")) {
+                    // Only handle callback URL without redirect_uri parameter
+                    if (url.contains(ssoCallbackPath) && !url.contains("redirect_uri=")) {
                         CommonLogger.d(TAG, "start login url = $url")
                         viewEmpty.isVisible = true
                         return false
@@ -72,8 +79,10 @@ class SSOWebViewActivity : BaseActivity<AppActivitySsoBinding>() {
 
                 override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
-                    if (url.contains("v1/sso/callback") && !url.contains("redirect_uri")) {
-                        CommonLogger.d(TAG, "onPageFinished url = $url")
+                    CommonLogger.d(TAG, "onPageFinished url = $url")
+                    // Only inject JavaScript for callback URL without redirect_uri parameter
+                    if (url.contains(ssoCallbackPath) && !url.contains("redirect_uri=")) {
+                        CommonLogger.d(TAG, "inject JavaScript for url = $url")
                         injectJavaScript()
                     }
                 }
@@ -86,10 +95,7 @@ class SSOWebViewActivity : BaseActivity<AppActivitySsoBinding>() {
             }
 
             webView.addJavascriptInterface(WebAppInterface(this@SSOWebViewActivity), "Android")
-
-            intent.getStringExtra(EXTRA_URL)?.let {
-                mBinding?.webView?.loadUrl(it)
-            }
+            webView.loadUrl(ssoUrl)
         }
     }
 
@@ -139,12 +145,13 @@ class SSOWebViewActivity : BaseActivity<AppActivitySsoBinding>() {
     }
 
     override fun onHandleOnBackPressed() {
-        mBinding?.let {
-            if (it.webView.canGoBack()) {
-                it.webView.goBack()
-            } else {
-                super.onHandleOnBackPressed()
-            }
-        }
+//        mBinding?.let {
+//            if (it.webView.canGoBack()) {
+//                it.webView.goBack()
+//            } else {
+//                super.onHandleOnBackPressed()
+//            }
+//        }
+        super.onHandleOnBackPressed()
     }
 }

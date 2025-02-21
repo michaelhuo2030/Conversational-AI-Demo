@@ -23,15 +23,8 @@ class LoginViewModel : ViewModel() {
         ApiManager.getService(ApiManagerService::class.java)
     }
 
-    private val _tokenLiveData: MutableLiveData<String?> = MutableLiveData()
-    val tokenLiveData: LiveData<String?> get() = _tokenLiveData
-
     private val _userInfoLiveData: MutableLiveData<SSOUserInfo?> = MutableLiveData()
     val userInfoLiveData: LiveData<SSOUserInfo?> get() = _userInfoLiveData
-
-    fun checkLogin() {
-        _tokenLiveData.postValue(SSOUserManager.getToken())
-    }
 
     fun getUserInfoByToken(token: String) {
         viewModelScope.launch {

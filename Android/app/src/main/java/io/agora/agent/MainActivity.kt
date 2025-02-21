@@ -32,6 +32,7 @@ import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.TokenGenerator
+import io.agora.scene.convoai.ui.CovLivingActivity
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -68,7 +69,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupView()
         ActivityCompat.requestPermissions(
             this,
-            arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            arrayOf(Manifest.permission.RECORD_AUDIO),
             REQUEST_CODE
         )
         activityResultLauncher =
@@ -77,31 +78,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     val data: Intent? = result.data
                     val token = data?.getStringExtra("token")
                     if (token != null) {
-                        mLoginViewModel.getUserInfoByToken(SSOUserManager.getToken())
+                        SSOUserManager.saveToken(token)
+                        mLoginViewModel.getUserInfoByToken(token)
                     } else {
                         ToastUtil.show("Login error")
                     }
                 }
             }
 
-        mLoginViewModel.getUserInfoByToken(SSOUserManager.getToken())
+        val tempToken = SSOUserManager.getToken()
+        if (tempToken.isNotEmpty()) {
+            mLoginViewModel.getUserInfoByToken(tempToken)
+        }
+
         mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
             if (userInfo != null) {
-                val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
-                fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
-                fragmentTransaction.commit()
+                goScene(AgentScenes.ConvoAi)
             } else {
-                
+                ToastUtil.show("获取用户信息失败")
             }
         }
 
         TokenGenerator.tokenErrorCompletion = {
-            if (it!=null){
+            if (it != null) {
                 SSOUserManager.logout()
                 // TODO:
             }
         }
+    }
 
+    private fun goScene(scene: AgentScenes) {
+        try {
+            val intent = when (scene) {
+                AgentScenes.ConvoAi -> Intent(this, CovLivingActivity::class.java)
+                else -> Intent()
+            }
+            startActivity(intent)
+            finish()
+        } catch (e: Exception) {
+            ToastUtil.show(getString(R.string.scenes_coming_soon))
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -213,10 +229,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
         clearCookies()
-        val intent = Intent(this, SSOWebViewActivity::class.java).apply {
-            putExtra(SSOWebViewActivity.EXTRA_URL, ServerConfig.toolBoxUrl + "/v1/sso/login")
-        }
-        activityResultLauncher.launch(intent)
+        activityResultLauncher.launch(Intent(this, SSOWebViewActivity::class.java))
     }
 
     private fun clearCookies() {

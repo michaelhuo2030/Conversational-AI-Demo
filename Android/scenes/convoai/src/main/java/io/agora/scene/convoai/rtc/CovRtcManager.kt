@@ -32,10 +32,7 @@ object CovRtcManager {
                 loadExtensionProvider("ai_echo_cancellation_ll_extension")
                 loadExtensionProvider("ai_noise_suppression_extension")
                 loadExtensionProvider("ai_noise_suppression_ll_extension")
-
-
             }
-            rtcEngine?.
         } catch (e: Exception) {
             CovLogger.e(TAG, "createRtcEngine error: $e")
         }

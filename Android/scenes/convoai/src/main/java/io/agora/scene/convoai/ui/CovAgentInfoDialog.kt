@@ -21,7 +21,7 @@ import io.agora.scene.convoai.rtc.CovRtcManager
 
 class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
     private var onDismissCallback: (() -> Unit)? = null
-    
+
     companion object {
         fun newInstance(onDismissCallback: () -> Unit): CovAgentInfoDialog {
             return CovAgentInfoDialog().apply {
@@ -29,7 +29,7 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
             }
         }
     }
-    
+
     private var value: Int = -1
     private var connectionState: AgentConnectionState = AgentConnectionState.IDLE
 
@@ -69,11 +69,12 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
             tvUploader.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     CovRtcManager.generatePredumpFile()
-                    tvUploader.postDelayed(object :Runnable{
-                        override fun run() {
-                            LogUploader.uploadLog()
-                        }
-                    },2000L)
+                    tvUploader.postDelayed({
+                        // 处理 agentId，如果包含冒号则只取冒号前的内容
+                        val processedAgentId = CovAgentApiManager.agentId?.split(":")?.first()?:""
+                        val zipFileName = "${processedAgentId}_${CovAgentManager.channelName}"
+                        LogUploader.uploadLog(zipFileName,)
+                    }, 2000L)
 
                 }
             })
