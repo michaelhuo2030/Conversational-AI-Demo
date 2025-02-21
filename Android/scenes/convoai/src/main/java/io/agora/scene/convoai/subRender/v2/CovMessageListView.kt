@@ -84,7 +84,7 @@ class CovMessageListView @JvmOverloads constructor(
             // Update existing message
             existingMessage.apply {
                 content = subtitleMessage.text
-                status = subtitleMessage.turnStatus
+                status = subtitleMessage.status
             }
             messageAdapter.updateMessage(existingMessage)
         } ?: run {
@@ -93,7 +93,7 @@ class CovMessageListView @JvmOverloads constructor(
                 isMe = subtitleMessage.isMe,
                 turnId = subtitleMessage.turnId,
                 content = subtitleMessage.text,
-                status = subtitleMessage.turnStatus
+                status = subtitleMessage.status
             )
 
             if (subtitleMessage.isMe) {
@@ -163,7 +163,7 @@ class CovMessageListView @JvmOverloads constructor(
         val isMe: Boolean,
         val turnId: Long,
         var content: String,
-        var status: SubStatus,
+        var status: SubtitleStatus,
     )
 
     class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
