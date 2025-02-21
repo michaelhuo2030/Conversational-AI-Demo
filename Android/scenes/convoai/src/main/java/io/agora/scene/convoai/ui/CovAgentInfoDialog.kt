@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import io.agora.rtc2.Constants
+import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.LogUploader
@@ -16,6 +17,7 @@ import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.api.CovAgentApiManager
 import io.agora.scene.convoai.constant.AgentConnectionState
+import io.agora.scene.convoai.rtc.CovRtcManager
 
 class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
     private var onDismissCallback: (() -> Unit)? = null
@@ -66,7 +68,13 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
             })
             tvUploader.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    LogUploader.uploadLog()
+                    CovRtcManager.generatePredumpFile()
+                    tvUploader.postDelayed(object :Runnable{
+                        override fun run() {
+                            LogUploader.uploadLog()
+                        }
+                    },2000L)
+
                 }
             })
             updateView()

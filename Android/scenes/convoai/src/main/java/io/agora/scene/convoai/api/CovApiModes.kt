@@ -33,7 +33,8 @@ data class CovAgentPreset(
     val preset_type: String,
     val default_language_code: String,
     val default_language_name: String,
-    val support_languages: List<CovAgentLanguage>
+    val support_languages: List<CovAgentLanguage>,
+    val call_time_limit_second: Long,
 ) {
     fun isIndependent(): Boolean {
         return preset_type == "independent"

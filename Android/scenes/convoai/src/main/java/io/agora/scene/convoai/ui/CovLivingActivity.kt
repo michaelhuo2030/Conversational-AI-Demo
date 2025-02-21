@@ -13,13 +13,13 @@ import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.debugMode.DebugButton
-import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugDialog
 import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.ui.CommonDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
@@ -64,8 +64,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private val logScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var networkValue: Int = -1
-
-    private var parser = MessageParser()
 
     private var rtcToken: String? = null
 
@@ -143,6 +141,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private val selfRenderController = SelfSubRenderController()
 
+    private var countDownJob: Job? = null
+
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
     }
@@ -190,6 +190,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun finish() {
         logScope.cancel()
+        stopRoomCountDownTask()
         coroutineScope.cancel()
 
         // if agent is connected, leave channel
@@ -264,6 +265,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
+        showRoomEndDialog()
         subRenderController.setRenderMode(SubRenderMode.Idle)
         // Immediately show the connecting status
         isUserEndCall = false
@@ -360,6 +362,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun stopAgentAndLeaveChannel() {
+        stopRoomCountDownTask()
         subRenderController.setRenderMode(SubRenderMode.Idle)
         CovRtcManager.leaveChannel()
         if (connectionState == AgentConnectionState.IDLE) {
@@ -427,6 +430,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             gravity = Gravity.BOTTOM,
                             duration = Toast.LENGTH_LONG
                         )
+                        startRoomCountDownTask()
                     }
                 }
             }
@@ -588,9 +592,43 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         })
         rtcEngine.setPlaybackAudioFrameBeforeMixingParameters(44100, 1);
-
-        CovRtcManager.onAudioDump(DebugConfigSettings.isDebug && DebugConfigSettings.isAudioDumpEnabled)
         return rtcEngine
+    }
+
+    private fun startRoomCountDownTask() {
+        countDownJob?.cancel()
+        countDownJob = coroutineScope.launch {
+            try {
+                var remainingTime = CovAgentManager.roomExpireTime * 1000L
+                while (remainingTime > 0 && isActive) {
+                    delay(1000)
+                    remainingTime -= 1000
+                    onTimerTick(remainingTime)
+                }
+
+                if (remainingTime <= 0) {
+                    // 倒计时结束，退出房间
+                    onClickEndCall()
+                    showRoomEndDialog()
+                }
+            } catch (e: Exception) {
+                CovLogger.e(TAG, "Timer error: ${e.message}")
+            } finally {
+                countDownJob = null
+            }
+        }
+    }
+
+    private fun stopRoomCountDownTask() {
+        countDownJob?.cancel()
+        countDownJob = null
+    }
+
+    private fun onTimerTick(remainingTimeMs: Long) {
+        // 可以在这里更新UI显示剩余时间
+        val minutes = (remainingTimeMs / 1000 / 60).toInt()
+        val seconds = (remainingTimeMs / 1000 % 60).toInt()
+        CovLogger.d(TAG, "Timer: ${String.format("%02d:%02d", minutes, seconds)}")
     }
 
     private fun updateUserVolumeAnim(volume: Int) {
@@ -822,7 +860,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
 
                 override fun onAudioDumpEnable(enable: Boolean) {
-                    CovRtcManager.onAudioDump(enable)
+//                    CovRtcManager.onAudioDump(enable)
                 }
 
                 override fun onClickCopy() {
@@ -852,5 +890,17 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             mDebugDialog?.show(supportFragmentManager, "covAidebugSettings")
         }
+    }
+
+    private fun showRoomEndDialog() {
+        val mins: String = (CovAgentManager.roomExpireTime / 60).toInt().toString()
+        CommonDialog.Builder()
+            .setTitle(getString(io.agora.scene.common.R.string.common_call_time_is_up))
+            .setContent(getString(io.agora.scene.common.R.string.common_call_time_is_up_tips, mins))
+            .setPositiveButton(getString(io.agora.scene.common.R.string.common_i_known))
+            .hideNegativeButton()
+            .build()
+            .show(supportFragmentManager, "dialog_tag")
+
     }
 }

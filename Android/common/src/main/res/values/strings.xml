@@ -11,4 +11,7 @@
     <string name="common_debug_audio_dump">Audio Dump</string>
     <string name="common_debug_close">Close Debug Mode</string>
     <string name="common_debug_copy_user_question">Copy current user’s conversation question</string>
+    <string name="common_call_time_is_up">The local conversation time is up.</string>
+    <string name="common_call_time_is_up_tips">Each conversation is limited to %1s minutes. The time for this conversation has ended. You can close the popup and start a new conversation experience.</string>
+    <string name="common_i_known">Got it</string>
 </resources>

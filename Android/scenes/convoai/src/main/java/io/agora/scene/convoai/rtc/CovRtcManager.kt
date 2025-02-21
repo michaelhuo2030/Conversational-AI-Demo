@@ -32,7 +32,10 @@ object CovRtcManager {
                 loadExtensionProvider("ai_echo_cancellation_ll_extension")
                 loadExtensionProvider("ai_noise_suppression_extension")
                 loadExtensionProvider("ai_noise_suppression_ll_extension")
+
+
             }
+            rtcEngine?.
         } catch (e: Exception) {
             CovLogger.e(TAG, "createRtcEngine error: $e")
         }
@@ -87,6 +90,9 @@ object CovRtcManager {
             setParameters("{\"che.audio.sf.ainsModelPref\":10}")
             setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
             setParameters("{\"che.audio.agc.enable\":false}")
+
+            // audio predump default enable
+            setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
         }
     }
 
@@ -103,18 +109,16 @@ object CovRtcManager {
         rtcEngine?.adjustRecordingSignalVolume(if (mute) 0 else 100)
     }
 
-    fun onAudioDump(enable:Boolean){
+    fun onAudioDump(enable: Boolean) {
         if (enable) {
-            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
-//            rtcEngine?.setParameters("{\"rtc.debug.enable\": true}")
-//            rtcEngine?.setParameters(
-//                "{\"che.audio.frame_dump\":{\"location\":\"all\",\"action\":\"start\"," +
-//                        "\"max_size_bytes\":\"120000000\",\"uuid\":\"123456789\",\"duration\":\"1200000\"}}"
-//            )
+//            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
         } else {
-//            rtcEngine?.setParameters("{\"rtc.debug.enable\": false}")
-            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
+//            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
         }
+    }
+
+    fun generatePredumpFile() {
+        rtcEngine?.setParameters("{\"che.audio.start.predump\": true}")
     }
 
     fun resetData() {

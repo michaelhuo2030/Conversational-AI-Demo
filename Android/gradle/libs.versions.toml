@@ -14,8 +14,7 @@ viewbinding = "8.7.3"
 navigation = "2.6.0"
 
 commons-codec = "1.17.0"
-agora-authentication = "2.0.0"
-agora-voice = "4.4.0"
+agora-voice = "4.5.1"
 
 okhttp = "5.0.0-alpha.14"
 retrofit = "2.11.0"
@@ -23,7 +22,6 @@ converterGson = "2.11.0"
 gson = "2.11.0"
 mmkv = "1.3.12"
 xlog = "1.11.1"
-kotlinBom = "1.8.0"
 
 [libraries]
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -49,9 +47,7 @@ xlog = { module = "com.elvishew:xlog", version.ref = "xlog" }
 
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
 # rtc
-agora-authentication = { module = "io.agora:authentication", version.ref = "agora-authentication" }
 agora-rtc-voice = { module = "io.agora.rtc:voice-sdk", version.ref = "agora-voice" }
-kotlin-bom = { group = "org.jetbrains.kotlin", name = "kotlin-bom", version.ref = "kotlinBom" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

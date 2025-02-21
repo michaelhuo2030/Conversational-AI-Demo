@@ -23,7 +23,7 @@ object DebugConfigSettings {
         this.isDebug = isDebug
     }
 
-    var isAudioDumpEnabled: Boolean = false
+    var isAudioDumpEnabled: Boolean = true
         private set
 
     fun enableAudioDump(isAudioDumpEnabled: Boolean) {
