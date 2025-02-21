@@ -14,28 +14,34 @@ data class TurnWordInfo constructor(
     var isEnd: Boolean = false
 )
 
+enum class TurnStatus {
+    IN_PROGRESS,
+    END,
+    INTERRUPTED,
+    UNKNOWN,
+}
+
 // Producer: Single sentence information
 data class TurnMessageInfo(
     val turnId: Long,
     val text: String,
-    val turnStatus: SubStatus,
+    val isFinal: Boolean,
     val words: List<TurnWordInfo>
 )
+
+enum class SubtitleStatus {
+    Progress,
+    End,
+    Interrupted
+}
 
 // Consumer: Single sentence information for rendering
 data class SubtitleMessage(
     val turnId: Long,
     val isMe: Boolean,
     val text: String,
-    var turnStatus: SubStatus
+    var status: SubtitleStatus
 )
-
-enum class SubStatus {
-    Progress,
-    End,
-    Interrupted,
-    Unknown,
-}
 
 enum class SubRenderMode {
     Idle,
@@ -76,7 +82,6 @@ class CovSubRenderController : ISubRenderController {
                     val turnId = (msg["turn_id"] as? Number)?.toLong() ?: 0L
                     val text = msg["text"] as? String ?: ""
 
-//                    val startMs = (msg["start_ms"] as? Number)?.toLong() ?: 0L
                     if (text.isNotEmpty()) {
                         if (isMe) {
                             val isFinal = msg["final"] as? Boolean ?: false
@@ -84,29 +89,29 @@ class CovSubRenderController : ISubRenderController {
                                 turnId = turnId,
                                 isMe = true,
                                 text = text,
-                                turnStatus = if (isFinal) SubStatus.End else SubStatus.Progress
+                                status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
                             )
                             // Local user messages are directly callbacked out
                             onUpdateStreamContent?.invoke(subtitleMessage)
                         } else {
 
                             // 0: in-progress, 1: end gracefully, 2: interrupted, otherwise undefined
-                            val turnStatus = (msg["turn_status"] as? Number)?.toLong() ?: 0L
-                            val status: SubStatus = when (turnStatus) {
-                                0L -> SubStatus.Progress
-                                1L -> SubStatus.End
-                                2L -> SubStatus.Interrupted
-                                else -> SubStatus.Unknown
+                            val turnStatusInt = (msg["turn_status"] as? Number)?.toLong() ?: 0L
+                            val status: TurnStatus = when ((msg["turn_status"] as? Number)?.toLong() ?: 0L) {
+                                0L -> TurnStatus.IN_PROGRESS
+                                1L -> TurnStatus.END
+                                2L -> TurnStatus.END
+                                else -> TurnStatus.UNKNOWN
                             }
                             // Discarding and not processing the message with Unknown status.
-                            if (status == SubStatus.Unknown) {
-                                CovLogger.e(TAG, "unknown turn_status:$turnStatus")
+                            if (status == TurnStatus.UNKNOWN) {
+                                CovLogger.e(TAG, "unknown turn_status:$turnStatusInt")
                                 return
                             }
                             // Parse words array
                             val wordsArray = msg["words"] as? List<Map<String, Any>>
                             val words = parseWords(status, wordsArray)
-                            onAgentMessageReceived(turnId, text, words, status)
+                            onAgentMessageReceived(turnId, text, words, status == TurnStatus.END)
                         }
                     }
                 }
@@ -116,7 +121,7 @@ class CovSubRenderController : ISubRenderController {
         }
     }
 
-    private fun parseWords(turnStatus: SubStatus, wordsArray: List<Map<String, Any>>?): List<TurnWordInfo>? {
+    private fun parseWords(turnStatus: TurnStatus, wordsArray: List<Map<String, Any>>?): List<TurnWordInfo>? {
         if (wordsArray.isNullOrEmpty()) return null
 
         // Convert words array to WordInfo list and sort by startMs in ascending order
@@ -128,7 +133,7 @@ class CovSubRenderController : ISubRenderController {
         }.sortedBy { it.startMs }.toMutableList()
 
         // If turnStatus is not progress and list is not empty, set the last word's isEnd to true
-        if (turnStatus != SubStatus.Progress && wordsList.isNotEmpty()) {
+        if (turnStatus != TurnStatus.IN_PROGRESS && wordsList.isNotEmpty()) {
             wordsList.last().isEnd = true
         }
 
@@ -183,14 +188,13 @@ class CovSubRenderController : ISubRenderController {
 
     fun onPlaybackAudioFrameBeforeMixing(presentationMs: Long) {
         mPresentationMs = presentationMs
-//        CovLogger.d(TAG, "mPresentationMs:$mPresentationMs")
     }
 
     private fun onAgentMessageReceived(
         turnId: Long,
         text: String,
         words: List<TurnWordInfo>?,
-        turnStatus: SubStatus,
+        isFinal: Boolean,
     ) {
         // Auto detect mode
         if (mRenderMode == SubRenderMode.Idle) {
@@ -199,6 +203,7 @@ class CovSubRenderController : ISubRenderController {
             } else {
                 SubRenderMode.Text
             }
+            CovLogger.d(TAG, "Mode auto detected: $mRenderMode")
         }
 
         if (mRenderMode == SubRenderMode.Text) {
@@ -206,41 +211,51 @@ class CovSubRenderController : ISubRenderController {
                 turnId = turnId,
                 isMe = false,
                 text = text,
-                turnStatus = turnStatus
+                status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
             )
             // Agent text mode messages are directly callbacked out
             onUpdateStreamContent?.invoke(subtitleMessage)
             return
         }
 
-        // Word mode: accumulate words in queue
-        // Create new info with immutable list
+        // Word mode processing
         val newWords = words?.toList() ?: emptyList()
 
-        // Find and remove existing info with same turnId
-        val existingInfo = agentTurnQueue.find { it.turnId == turnId }
-        if (existingInfo != null) {
-            agentTurnQueue.remove(existingInfo)
-        }
+        synchronized(agentTurnQueue) {
+            // Check if this turn is older than the latest turn in queue
+            val lastTurn = agentTurnQueue.lastOrNull()
+            if (lastTurn != null && turnId < lastTurn.turnId) {
+                CovLogger.w(TAG, "Discarding old turn: received=$turnId, latest=${lastTurn.turnId}")
+                return
+            }
 
-        // Create new info
-        val newInfo = TurnMessageInfo(
-            turnId = turnId,
-            text = text,
-            turnStatus = turnStatus,
-            words = if (existingInfo != null) {
-                (existingInfo.words + newWords).sortedBy { it.startMs }.toList()
+            // Remove and get existing info in one operation
+            val existingInfo = agentTurnQueue.find { it.turnId == turnId }?.also {
+                agentTurnQueue.remove(it)
+            }
+
+            // Merge words while preserving order
+            val mergedWords = if (existingInfo != null && existingInfo.words.isNotEmpty()) {
+                existingInfo.words + newWords
             } else {
                 newWords
             }
-        )
 
-        // Add new info to queue
-        agentTurnQueue.offer(newInfo)
+            val newInfo = TurnMessageInfo(
+                turnId = turnId,
+                text = text,
+                isFinal = isFinal,
+                words = mergedWords
+            )
 
-        // Keep only latest 5 turns if queue size exceeds limit
-        while (agentTurnQueue.size > 5) {
-            agentTurnQueue.poll()  // Remove oldest item
+            agentTurnQueue.offer(newInfo)
+
+            // Cleanup old turns
+            while (agentTurnQueue.size > 5) {
+                agentTurnQueue.poll()?.let { removed ->
+                    CovLogger.d(TAG, "Removed old turn: ${removed.turnId}")
+                }
+            }
         }
     }
 
@@ -253,54 +268,56 @@ class CovSubRenderController : ISubRenderController {
         if (mPresentationMs <= 0) return
         if (mRenderMode != SubRenderMode.Word) return
 
-        // Get all turns that meet display conditions
-        val availableTurns = agentTurnQueue.asSequence()
-            .map { turn ->
-                val words = turn.words.filter { it.startMs <= mPresentationMs }
-                turn to words
-            }
-            .filter { (_, words) -> words.isNotEmpty() }
-            .toList()
-
-        if (availableTurns.isEmpty()) return
-
-        // Find the latest turn to display
-        val latestValidTurn = availableTurns.last()
-        val (targetTurn, targetWords) = latestValidTurn
-        val targetIsEnd = targetWords.last().isEnd
-
-        // Interrupt all previous turns
-        if (availableTurns.size > 1) {
-            // Iterate through all turns except the last one
-            for (i in 0 until availableTurns.size - 1) {
-                val (turn, _) = availableTurns[i]
-                mCurSubtitleMessage?.let { current ->
-                    if (current.turnId == turn.turnId) {
-                        val interruptedMessage = current.copy(turnStatus = SubStatus.Interrupted)
-                        onUpdateStreamContent?.invoke(interruptedMessage)
-                    }
+        synchronized(agentTurnQueue) {
+            // Get all turns that meet display conditions
+            val availableTurns = agentTurnQueue.asSequence()
+                .map { turn ->
+                    val words = turn.words.filter { it.startMs <= mPresentationMs }
+                    turn to words
                 }
-                // Remove the interrupted turn from queue
-                agentTurnQueue.remove(turn)
+                .filter { (_, words) -> words.isNotEmpty() }
+                .toList()
+
+            if (availableTurns.isEmpty()) return
+
+            // Find the latest turn to display
+            val latestValidTurn = availableTurns.last()
+            val (targetTurn, targetWords) = latestValidTurn
+            val targetIsEnd = targetWords.last().isEnd
+
+            // Interrupt all previous turns
+            if (availableTurns.size > 1) {
+                // Iterate through all turns except the last one
+                for (i in 0 until availableTurns.size - 1) {
+                    val (turn, _) = availableTurns[i]
+                    mCurSubtitleMessage?.let { current ->
+                        if (current.turnId == turn.turnId) {
+                            val interruptedMessage = current.copy(status = SubtitleStatus.Interrupted)
+                            onUpdateStreamContent?.invoke(interruptedMessage)
+                        }
+                    }
+                    // Remove the interrupted turn from queue
+                    agentTurnQueue.remove(turn)
+                }
+                mCurSubtitleMessage = null
             }
-            mCurSubtitleMessage = null
-        }
 
-        // Display the latest turn
-        val newSubtitleMessage = SubtitleMessage(
-            turnId = targetTurn.turnId,
-            isMe = false,
-            text = if (targetIsEnd) targetTurn.text
-            else targetWords.joinToString("") { it.word },
-            turnStatus = if (targetIsEnd) SubStatus.End else SubStatus.Progress
-        )
-        onUpdateStreamContent?.invoke(newSubtitleMessage)
+            // Display the latest turn
+            val newSubtitleMessage = SubtitleMessage(
+                turnId = targetTurn.turnId,
+                isMe = false,
+                text = if (targetIsEnd) targetTurn.text
+                else targetWords.joinToString("") { it.word },
+                status = if (targetIsEnd) SubtitleStatus.End else SubtitleStatus.Progress
+            )
+            onUpdateStreamContent?.invoke(newSubtitleMessage)
 
-        if (targetIsEnd) {
-            agentTurnQueue.remove(targetTurn)
-            mCurSubtitleMessage = null
-        } else {
-            mCurSubtitleMessage = newSubtitleMessage
+            if (targetIsEnd) {
+                agentTurnQueue.remove(targetTurn)
+                mCurSubtitleMessage = null
+            } else {
+                mCurSubtitleMessage = newSubtitleMessage
+            }
         }
     }
 

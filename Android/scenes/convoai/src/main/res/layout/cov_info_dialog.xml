@@ -290,6 +290,16 @@ android:background="@drawable/bottom_dialog_bg">
                 tools:text="xxx" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/tv_uploader"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="一键上报"
+            android:gravity="center_horizontal|center_vertical"
+            android:textColor="#FDFCFB"
+            android:textSize="18sp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/btn_bg_blue_radio_enable_selector" />
     </LinearLayout>
 
     <View
