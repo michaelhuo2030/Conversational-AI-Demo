@@ -27,12 +27,12 @@ public class FeedBackPresenter {
     public init() {
     }
     
-    public func feedback(isSendLog: Bool, feedback: String = "", completion: @escaping FeedbackCompletion) {
+    public func feedback(isSendLog: Bool, title: String, feedback: String = "", completion: @escaping FeedbackCompletion) {
         var logUrl: String? = nil
         let group = DispatchGroup()
         if isSendLog {
             group.enter()
-            zipAndSendLog(completion: { error, url in
+            zipAndSendLog(fileName: title, completion: { error, url in
                 logUrl = url
                 group.leave()
             })
@@ -49,7 +49,7 @@ public class FeedBackPresenter {
     }
     
     private func zipFiles(fileURLs: [URL], destinationURL: URL, completion: @escaping (FeedbackError?, URL?) -> Void) {
-        let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+        let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("AgentLogs")
         do {
             try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true, attributes: nil)
             
@@ -96,11 +96,13 @@ public class FeedBackPresenter {
         }
     }
     
-    private func zipAndSendLog(completion: @escaping (FeedbackError?, String?) -> Void) {
-        let paths = AgoraEntLog.allLogsUrls()
-        let fileName = "/log_\(UUID().uuidString).zip"
+    private func zipAndSendLog(fileName: String, completion: @escaping (FeedbackError?, String?) -> Void) {
+        var fileURLs = [URL]()
+        fileURLs.append(contentsOf: AgoraEntLog.allLogsUrls())
+        fileURLs.append(contentsOf: getAgoraFiles())
+        let fileName = "/\(fileName).zip"
         let tempFile = NSTemporaryDirectory() + fileName
-        zipFiles(fileURLs: paths, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
+        zipFiles(fileURLs: fileURLs, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
             if let err = err {
                 completion(err, nil)
                 return
@@ -123,6 +125,27 @@ public class FeedBackPresenter {
                 }
                 completion(FeedbackError(code: -1, message: "upload log error"), logUrl)
             }
+        }
+    }
+    
+    private func getAgoraFiles() -> [URL] {
+        let fileManager = FileManager.default
+        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return []
+        }
+        do {
+            let files = try fileManager.contentsOfDirectory(at: documentsDirectory, includingPropertiesForKeys: nil)
+            let agoraFiles = files.filter {
+                ($0.lastPathComponent.hasPrefix("agora")) ||
+                ($0.lastPathComponent.hasPrefix("aec_farin")) ||
+                ($0.lastPathComponent.hasPrefix("aec_linear")) ||
+                ($0.lastPathComponent.hasPrefix("aec_nearin")) ||
+                ($0.lastPathComponent.hasPrefix("af_ns")) ||
+                ($0.lastPathComponent.hasPrefix("af_sfnlp"))
+            }
+            return agoraFiles
+        } catch {
+            return []
         }
     }
 }

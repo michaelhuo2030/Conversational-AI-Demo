@@ -84,7 +84,7 @@ class AgentHomeViewController: UIViewController {
     private lazy var devModeButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
-        button.isHidden = true
+        button.isHidden = !DeveloperModeViewController.getDeveloperMode()
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onLongPressDevMode(_:)))
         button.addGestureRecognizer(longPressGesture)
@@ -123,7 +123,7 @@ class AgentHomeViewController: UIViewController {
     
     @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
         devModeButton.isHidden = true
-        AppContext.shared.enableDeveloperMode = false
+        DeveloperModeViewController.setDeveloperMode(false)
     }
     
     @objc func onClickDevMode() {
@@ -137,7 +137,7 @@ class AgentHomeViewController: UIViewController {
     
     func onThresholdReached() {
         devModeButton.isHidden = false
-        AppContext.shared.enableDeveloperMode = true
+        DeveloperModeViewController.setDeveloperMode(true)
     }
     
     private func isValidURL(_ urlString: String) -> Bool {

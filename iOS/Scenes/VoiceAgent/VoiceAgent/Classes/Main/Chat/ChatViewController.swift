@@ -141,7 +141,7 @@ class ChatViewController: UIViewController {
         view.backgroundColor = .black
         
         [topBar, contentView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
-        devModeButton.isHidden = !AppContext.shared.enableDeveloperMode
+        devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
         
         contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
