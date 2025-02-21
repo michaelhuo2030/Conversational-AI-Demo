@@ -101,9 +101,26 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <TextView
+        android:id="@+id/tv_sso_login"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="SSO Login"
+        android:gravity="center_horizontal|center_vertical"
+        android:textColor="#FDFCFB"
+        android:textSize="18sp"
+        android:layout_marginBottom="200dp"
+        app:layout_constraintWidth_percent="0.3"
+        android:background="@drawable/btn_bg_blue_radio_enable_selector"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintDimensionRatio="2:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        tools:visibility="gone"
         android:paddingHorizontal="16dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

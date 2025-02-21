@@ -63,6 +63,8 @@ dependencies {
 
     api libs.okhttp.core
     api libs.okhttp.logging.interceptor
+    api libs.retrofit
+    api libs.converter.gson
     api libs.gson
     api libs.mmkv
     api libs.xlog
