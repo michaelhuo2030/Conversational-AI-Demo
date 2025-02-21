@@ -34,19 +34,27 @@ object ApiManager {
             .enableComplexMapKeySerialization()
             .create()
 
-    private val okHttpClient by lazy {
-        val builder = SecureOkHttpClient.create()
-            .addInterceptor(DynamicConnectTimeout())
-            .addInterceptor(HttpLogger())
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(10, TimeUnit.SECONDS)
-        builder.build()
-    }
-
     private var baseUrl = ""
     private const val version = "v2"
     private var retrofit: Retrofit? = null
+
+    // 全局未授权回调
+    private var onUnauthorizedCallback: (() -> Unit)? = null
+
+    // 设置未授权回调
+    fun setOnUnauthorizedCallback(callback: () -> Unit) {
+        onUnauthorizedCallback = callback
+    }
+
+    // 清除未授权回调
+    fun clearOnUnauthorizedCallback() {
+        onUnauthorizedCallback = null
+    }
+
+    // 内部触发未授权回调
+    internal fun notifyUnauthorized() {
+        onUnauthorizedCallback?.invoke()
+    }
 
     fun <T> getService(clazz: Class<T>): T {
         return retrofit!!.create(clazz)
@@ -61,17 +69,13 @@ object ApiManager {
             .client(
                 SecureOkHttpClient.create()
                     .addInterceptor(HttpLogger())
+                    .addInterceptor(DynamicConnectTimeout())
+                    .addInterceptor(AuthorizationInterceptor())
                     .build()
             )
             .baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
-    }
-
-
-    private fun extractBaseUrl(url: String): String {
-        val uri = URI(url)
-        return "${uri.scheme}://${uri.host}/"
     }
 }
 
@@ -89,3 +93,21 @@ class DynamicConnectTimeout : Interceptor {
         return chain.proceed(request)
     }
 }
+
+class AuthorizationInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        val response = chain.proceed(request)
+        
+        // Check for 401 response
+        if (response.code == 401) {
+            // 触发全局回调
+            ApiManager.notifyUnauthorized()
+            throw UnauthorizedException("Unauthorized access. Please login again.")
+        }
+        
+        return response
+    }
+}
+
+class UnauthorizedException(message: String) : IOException(message)

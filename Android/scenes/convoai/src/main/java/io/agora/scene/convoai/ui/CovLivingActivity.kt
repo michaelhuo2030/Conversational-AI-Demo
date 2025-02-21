@@ -98,7 +98,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         pingJob = coroutineScope.launch {
                             while (isActive) {
                                 val presetName = CovAgentManager.getPreset()?.name ?: return@launch
-                                CovAgentApiManager.ping(CovAgentManager.channelName, presetName) {}
+                                CovAgentApiManager.ping(CovAgentManager.channelName, presetName)
                                 delay(10000) // 10s
                             }
                         }

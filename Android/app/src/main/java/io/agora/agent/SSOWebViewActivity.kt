@@ -135,23 +135,27 @@ class SSOWebViewActivity : BaseActivity<AppActivitySsoBinding>() {
             if (!response.startsWith("Error")) {
                 // Process the token, e.g., save it to SharedPreferences
                 // Here you can save the token or perform other actions
-                setResult(Activity.RESULT_OK, Intent().putExtra("token", response))
-                finish()
+                runOnUiThread {
+                    setResult(Activity.RESULT_OK, Intent().putExtra("token", response))
+                    finish()
+                }
             } else {
                 // Handle error messages
-                mBinding?.viewEmpty?.isVisible = false
+                runOnUiThread {
+                    mBinding?.viewEmpty?.isVisible = false
+                }
             }
         }
     }
 
     override fun onHandleOnBackPressed() {
-//        mBinding?.let {
-//            if (it.webView.canGoBack()) {
-//                it.webView.goBack()
-//            } else {
-//                super.onHandleOnBackPressed()
-//            }
-//        }
+        mBinding?.let {
+            if (it.webView.canGoBack()) {
+                it.webView.goBack()
+            } else {
+                super.onHandleOnBackPressed()
+            }
+        }
         super.onHandleOnBackPressed()
     }
 }

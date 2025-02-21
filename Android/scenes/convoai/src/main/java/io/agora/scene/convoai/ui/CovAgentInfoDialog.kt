@@ -70,10 +70,8 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
                 override fun onClickJacking(view: View) {
                     CovRtcManager.generatePredumpFile()
                     tvUploader.postDelayed({
-                        // 处理 agentId，如果包含冒号则只取冒号前的内容
-                        val processedAgentId = CovAgentApiManager.agentId?.split(":")?.first()?:""
-                        val zipFileName = "${processedAgentId}_${CovAgentManager.channelName}"
-                        LogUploader.uploadLog(zipFileName,)
+
+                        LogUploader.uploadLog(CovAgentApiManager.agentId?:"",CovAgentManager.channelName?:"")
                     }, 2000L)
 
                 }
