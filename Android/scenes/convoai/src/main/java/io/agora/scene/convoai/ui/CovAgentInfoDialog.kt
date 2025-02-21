@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import io.agora.rtc2.Constants
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.LogUploader
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
@@ -61,6 +62,11 @@ class CovAgentInfoDialog : BaseSheetDialog<CovInfoDialogBinding>() {
             btnClose.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     dismiss()
+                }
+            })
+            tvUploader.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    LogUploader.uploadLog()
                 }
             })
             updateView()
