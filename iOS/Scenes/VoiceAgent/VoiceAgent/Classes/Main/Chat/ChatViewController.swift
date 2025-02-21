@@ -15,12 +15,12 @@ import Common
 class ChatViewController: UIViewController {
     private var isDenoise = true
     private let messageParser = MessageParser()
-    private let uid = "\(RtcEnum.getUid())"
     private var remoteIsJoined = false
     private var channelName = ""
     private var token = ""
     private var agentUid = 0
     private var remoteAgentId = ""
+    private let uid = "\(RtcEnum.getUid())"
     
     private lazy var timerCoordinator: AgentTimerCoordinator = {
         let coordinator = AgentTimerCoordinator()

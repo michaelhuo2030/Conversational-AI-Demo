@@ -223,6 +223,7 @@ extension CustomNavigationBar {
         let jsCode = """
         (function() {
             var jsonResponse = document.body.innerText;
+            console.log('Raw Response:', jsonResponse);
             try {
                 var jsonData = JSON.parse(jsonResponse);
                 if (jsonData.code === 0) {
@@ -273,7 +274,7 @@ extension SSOWebViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if let url = navigationAction.request.url {
-            if url.absoluteString.contains("v1/sso/callback") && !url.absoluteString.contains("redirect_uri") {
+            if url.absoluteString.contains("v1/convoai/sso/callback") && !url.absoluteString.contains("redirect_uri") {
                 emptyView.isHidden = false
             }
         }

@@ -28,6 +28,15 @@ class AgentHomeViewController: UIViewController {
         button.alpha = 0.5
         return button
     }()
+    
+    private lazy var testSSOButton: UIButton = {
+        let button = UIButton()
+        button.addTarget(self, action: #selector(ssoLogin), for: .touchUpInside)
+        button.backgroundColor = .white
+        button.setTitle("SSO", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        return button
+    }()
 
     private lazy var titleImageView: UIImageView = {
         let imageView = UIImageView()
@@ -158,10 +167,17 @@ class AgentHomeViewController: UIViewController {
         view.addSubview(privacyCheckBox)
         view.addSubview(privacyLabel)
         view.addSubview(termsButton)
+        view.addSubview(testSSOButton)
     }
 
     private func setupConstraints() {
         view.backgroundColor = UIColor(hex: 0x111111)
+        testSSOButton.snp.makeConstraints { make in
+            make.top.equalTo(200)
+            make.left.equalTo(0)
+            make.width.equalTo(100)
+            make.height.equalTo(45)
+        }
         titleImageView.snp.makeConstraints { make in
             make.top.equalTo(80)
             make.width.equalTo(100)
@@ -227,10 +243,10 @@ class AgentHomeViewController: UIViewController {
         self.navigationController?.pushViewController(webVC)
     }
     
-    func ssoLogin() {
+    @objc func ssoLogin() {
         let ssoWebVC = SSOWebViewController()
         let baseUrl = AppContext.shared.baseServerUrl
-        ssoWebVC.urlString = "\(baseUrl)/sso/login"
+        ssoWebVC.urlString = "\(baseUrl)/v1/convoai/sso/login"
         ssoWebVC.completionHandler = { [weak self] token in
             if let token = token {
                 print("Received token: \(token)")

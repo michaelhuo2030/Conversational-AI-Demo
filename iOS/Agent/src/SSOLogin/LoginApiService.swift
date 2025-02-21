@@ -17,7 +17,6 @@ struct SSOUserInfoResponse: Codable {
     let displayName: String
     let companyName: String
     let companyCountry: String
-    let invitationCode: String
 }
 
 class LoginApiService: NSObject {
