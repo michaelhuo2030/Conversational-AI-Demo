@@ -2,6 +2,7 @@ package io.agora.scene.common.util
 
 import android.util.Log
 import io.agora.scene.common.AgentApp
+import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.ApiManager
 import io.agora.scene.common.net.ApiManagerService
@@ -13,9 +14,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-import java.util.UUID
+import org.json.JSONObject
 
 object LogUploader {
 
@@ -57,7 +59,7 @@ object LogUploader {
         }
     }
 
-    // 获取所有日志文件路径
+    // Get all log file paths
     private fun getAllLogFiles(): List<String> {
         val filesDir = AgentApp.instance().getExternalFilesDir("") ?: return emptyList()
         val logPaths = mutableListOf<String>()
@@ -65,7 +67,7 @@ object LogUploader {
         return logPaths
     }
 
-    // 递归收集文件
+    // Recursively collect files
     private fun collectFiles(directory: File, paths: MutableList<String>) {
         try {
             directory.listFiles()?.forEach { file ->
@@ -82,15 +84,25 @@ object LogUploader {
     @Volatile
     private var isUploading = false
 
-    fun uploadLog() {
+    fun uploadLog(agentId: String, channelName: String, completion: ((error: Exception?) -> Unit)? = null) {
         if (isUploading) return
         isUploading = true
 
-        // 使用 File 对象来处理路径
         val filesDir = AgentApp.instance().getExternalFilesDir("") ?: return
-        val allLogZipFile = File(filesDir, "allLogs.zip")
-        
-        // 获取所有日志文件路径
+
+        // Delete all existing zip files in the directory
+        filesDir.listFiles()?.forEach { file ->
+            if (file.name.endsWith(".zip")) {
+                FileUtils.deleteFile(file.absolutePath)
+            }
+        }
+
+        // 处理 agentId，如果包含冒号则只取冒号前的内容
+        val processedAgentId = agentId.split(":").first()
+        val zipFileName = "${processedAgentId}_${channelName}"
+        val allLogZipFile = File(filesDir, "${zipFileName}.zip")
+
+        // Get all log file paths
         val logPaths = getAllLogFiles()
         if (logPaths.isEmpty()) {
             isUploading = false
@@ -98,43 +110,71 @@ object LogUploader {
             return
         }
 
-        // 压缩所有文件
+        // Compress all files
         FileUtils.compressFiles(logPaths, allLogZipFile.absolutePath, object : FileUtils.ZipCallback {
             override fun onSuccess(path: String) {
-                requestUploadLog(File(path),
+                requestUploadLog(agentId, channelName, File(path),
                     onSuccess = {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
+                        completion?.invoke(null)
                         isUploading = false
                         Log.d(TAG, "Upload log success: ${it.logId}")
                     },
                     onError = {
-//                        FileUtils.deleteFile(allLogZipFile.absolutePath)
+                        FileUtils.deleteFile(allLogZipFile.absolutePath)
                         isUploading = false
+                        completion?.invoke(it)
                         Log.e(TAG, "Upload log failed: ${it.message}")
                     })
             }
 
             override fun onError(error: Exception) {
+                FileUtils.deleteFile(allLogZipFile.absolutePath)
+                completion?.invoke(error)
                 isUploading = false
                 Log.e(TAG, "Upload log compression failed: ${error.message}")
             }
         })
     }
 
-    fun requestUploadLog(file: File, onSuccess: (UploadLogResponse) -> Unit, onError: (Exception) -> Unit) {
+    fun requestUploadLog(
+        agentId: String,
+        channelName: String,
+        file: File,
+        onSuccess: (UploadLogResponse) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
         if (!file.exists()) {
             onError(Exception("Log file not found"))
             return
         }
 
         try {
-            val fileBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
-            val partFile = MultipartBody.Part.createFormData("file", file.name, fileBody)
-            val traceId = UUID.randomUUID().toString().replace("-", "")
-            
+            // Create content part
+            val contentJson = JSONObject().apply {
+                put("appId", ServerConfig.rtcAppId)
+                put("channelName", channelName)
+                put("agentId", agentId)
+                put("payload", JSONObject().apply {
+                    put("name", file.name)
+                })
+            }
+
+            val contentBody = RequestBody.create(
+                "text/plain".toMediaTypeOrNull(),
+                contentJson.toString()
+            )
+
+            // Create file part
+            val fileBody = file.asRequestBody("application/octet-stream".toMediaTypeOrNull())
+            val filePart = MultipartBody.Part.createFormData("file", file.name, fileBody)
+
+            // Get token for authorization
+            val token = "Bearer ${SSOUserManager.getToken()}"
+
             request(
                 block = {
-                    apiService.requestUploadLog(ServerConfig.rtcAppId, traceId, partFile)
+                    apiService.requestUploadLog(token, contentBody, filePart)
                 },
                 onSuccess = onSuccess,
                 onError = onError

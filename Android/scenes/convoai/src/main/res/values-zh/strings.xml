@@ -34,8 +34,12 @@
     <string name="cov_info_your_network_medium">一般</string>
     <string name="cov_info_your_network_poor">较差</string>
     <string name="cov_netwotk_info_title">网络信息</string>
+    <string name="cov_info_logout">退出登录</string>
+    <string name="cov_info_more">更多操作</string>
+    <string name="cov_info_uploader">一键上报</string>
 
     <string name="cov_setting_title">设置</string>
+    <string name="cov_setting_title_connected">(连接中不可修改)</string>
     <string name="cov_setting_agent">智能体</string>
     <string name="cov_setting_preset">预设</string>
     <string name="cov_setting_voice">语音</string>
@@ -46,7 +50,8 @@
     <string name="cov_setting_microphone">麦克风</string>
     <string name="cov_setting_speaker">扬声器</string>
     <string name="cov_setting_bhvs">启用 对话人声锁定</string>
-    <string name="cov_setting_ai_vad">启用 优雅打断</string>
+    <string name="cov_setting_ai_vad">启用</string>
+    <string name="cov_setting_ai_vad_high">优雅打断</string>
     <string name="cov_setting_network_error">请求失败：</string>
     <string name="cov_agent_connecting">连接中...</string>
     <string name="cov_copy_succeed">已复制</string>

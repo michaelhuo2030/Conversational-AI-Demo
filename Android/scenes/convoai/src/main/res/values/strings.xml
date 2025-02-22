@@ -34,8 +34,12 @@
     <string name="cov_info_your_network_medium">Fair</string>
     <string name="cov_info_your_network_poor">Poor</string>
     <string name="cov_netwotk_info_title">NETWORK INFO</string>
+    <string name="cov_info_logout">Logout</string>
+    <string name="cov_info_more">More Actions</string>
+    <string name="cov_info_uploader">Data Uploader</string>
 
     <string name="cov_setting_title">Settings</string>
+    <string name="cov_setting_title_connected">(连接中不可修改)</string>
     <string name="cov_setting_agent">AGENT</string>
     <string name="cov_setting_preset">Preset</string>
     <string name="cov_setting_voice">Voice</string>
@@ -47,6 +51,7 @@
     <string name="cov_setting_speaker">Speaker</string>
     <string name="cov_setting_bhvs">Enable BHVS</string>
     <string name="cov_setting_ai_vad">Intelligent Interruption Handling</string>
+    <string name="cov_setting_ai_vad_high">ToDo</string>
     <string name="cov_setting_network_error">Network Error!</string>
     <string name="cov_agent_connecting">Connecting…</string>
     <string name="cov_copy_succeed">Copied</string>

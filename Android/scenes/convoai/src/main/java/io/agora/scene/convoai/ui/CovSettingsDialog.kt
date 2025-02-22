@@ -3,16 +3,21 @@ package io.agora.scene.convoai.ui
 import android.content.DialogInterface
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getDistanceFromScreenEdges
+import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.constant.CovAgentManager
@@ -58,8 +63,12 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         
         binding?.apply {
             setOnApplyWindowInsets(root)
+            tvAiVad.text = Html.fromHtml(getString(R.string.cov_setting_ai_vad))
             rcOptions.adapter = optionsAdapter
             rcOptions.layoutManager = LinearLayoutManager(context)
+            val divider = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+            divider.setDrawable(resources.getDrawable(io.agora.scene.common.R.drawable.shape_divider_line, null))
+            rcOptions.addItemDecoration(divider)
             clPreset.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickPreset()
@@ -140,6 +149,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clPreset.isEnabled = true
                 clLanguage.isEnabled = true
                 cbAiVad.isEnabled = true
+                tvTitleConnectedTips.isVisible = false
             }
         } else {
             binding?.apply {
@@ -150,6 +160,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clPreset.isEnabled = false
                 clLanguage.isEnabled = false
                 cbAiVad.isEnabled = false
+                tvTitleConnectedTips.isVisible = true
             }
         }
     }
@@ -205,7 +216,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             
             // Calculate height with constraints
             val params = cvOptions.layoutParams
-            val itemHeight = 44.dp.toInt()
+            val itemHeight = 56.dp.toInt()
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * languages.size).coerceIn(itemHeight, finalMaxHeight)

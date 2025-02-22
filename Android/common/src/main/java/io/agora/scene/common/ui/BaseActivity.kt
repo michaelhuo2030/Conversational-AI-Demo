@@ -90,18 +90,22 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 // For Android 11+ use WindowInsetsController
                 decorView.windowInsetsController?.apply {
-                    hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                    // 只隐藏导航栏，不隐藏状态栏
+                    hide(WindowInsets.Type.navigationBars())
+                    // 显示状态栏
+                    show(WindowInsets.Type.statusBars())
                     systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 }
             } else {
-                // For Android 10 and below, use the deprecated systemUiVisibility
+                // For Android 10 and below
                 @Suppress("DEPRECATION")
-                decorView.systemUiVisibility =
-                    (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                decorView.systemUiVisibility = (
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        )
             }
         }
     }

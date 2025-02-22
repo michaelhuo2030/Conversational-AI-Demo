@@ -12,7 +12,7 @@ class SelfSubRenderController : ISubRenderController {
 
     private var mMessageParser = MessageParser()
 
-    var onUpdateStreamContent: ((isMe: Boolean, turnId: Int, text: String, isFinal: Boolean) -> Unit)? = null
+    var onUpdateStreamContent: ((isMe: Boolean, turnId: Long, text: String, isFinal: Boolean) -> Unit)? = null
 
     override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
         data?.let { bytes ->
@@ -22,11 +22,11 @@ class SelfSubRenderController : ISubRenderController {
                 message?.let { msg ->
                     CovLogger.d(TAG, "onStreamMessage: $msg")
                     val isFinal = msg["is_final"] as? Boolean ?: msg["final"] as? Boolean ?: false
-                    val streamId = msg["stream_id"] as? Int ?: 0
-                    val turnId = msg["turn_id"] as? Int ?: 0
+                    val streamId =(msg["stream_id"] as? Number)?.toLong() ?: 0L
+                    val turnId = (msg["turn_id"] as? Number)?.toLong() ?: 0L
                     val text = msg["text"] as? String ?: ""
                     if (text.isNotEmpty()) {
-                        onUpdateStreamContent?.invoke((streamId != 0), turnId, text, isFinal)
+                        onUpdateStreamContent?.invoke((streamId != 0L), turnId, text, isFinal)
                     }
                 }
             } catch (e: Exception) {

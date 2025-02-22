@@ -11,4 +11,22 @@
     <string name="common_debug_audio_dump">Audio Dump</string>
     <string name="common_debug_close">Close Debug Mode</string>
     <string name="common_debug_copy_user_question">Copy current user’s conversation question</string>
+    <string name="common_call_time_is_up">The local conversation time is up.</string>
+    <string name="common_call_time_is_up_tips">Each conversation is limited to %1s minutes. The time for this conversation has ended. You can close the popup and start a new conversation experience.</string>
+    <string name="common_i_known">Got it</string>
+
+    <string name="common_login_chat">Login for Chat free</string>
+    <string name="common_login_chat_tips">Power your business future\n at once</string>
+    <string name="common_login_with_agora_sso">Login With Agora SSO</string>
+    <string name="common_terms_info">I agree to the</string>
+    <string name="common_terms_selection"><u>Agora Terms of Service</u></string>
+    <string name="common_terms_tips">Read me first</string>
+
+    <string name="common_logout_confirm_title">您是否要退出</string>
+    <string name="common_logout_confirm_text">您将退出当前账号，退出后需要重新登录才能使用完整功能。是否继续?</string>
+    <string name="common_logout_confirm_known">退出</string>
+    <string name="common_logout_confirm_cancel">取消</string>
+    <string name="common_limit_time">每次对话限制%d分钟</string>
+    <string name="common_upload_time_success">上报成功</string>
+    <string name="common_upload_time_failed">上报失败，请再试一下</string>
 </resources>

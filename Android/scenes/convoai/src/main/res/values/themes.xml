@@ -1,0 +1,14 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="LeftSideSheetDialog" parent="Theme.Material3.Light.Dialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@style/LeftSideSheetAnimation</item>
+        <item name="android:windowSwipeToDismiss">true</item>
+    </style>
+
+    <style name="LeftSideSheetAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_in_left</item>
+        <item name="android:windowExitAnimation">@anim/slide_out_left</item>
+    </style>
+</resources>

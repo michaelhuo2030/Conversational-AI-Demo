@@ -7,23 +7,23 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Query
+import okhttp3.RequestBody
 
 interface ApiManagerService {
 
     companion object{
-        const val requestUploadLog = "/toolbox-overseas/v1/upload/log"
-        const val ssoUserInfo = "/toolbox-overseas/v1/sso/userInfo"
+        const val requestUploadLog = "/v1/convoai/upload/log"
+        const val ssoUserInfo = "/v1/convoai/sso/userInfo"
     }
 
     @GET(ssoUserInfo)
     suspend fun ssoUserInfo(@Header("Authorization") token: String): BaseResponse<SSOUserInfo>
 
     @Multipart
-    @POST(requestUploadLog)
+    @POST("/v1/convoai/upload/log")
     suspend fun requestUploadLog(
-        @Query("appId") appId: String,
-        @Query("traceId") traceId: String,
-        @Part body: MultipartBody.Part
+        @Header("Authorization") token: String,
+        @Part("content") content: RequestBody,
+        @Part file: MultipartBody.Part
     ): BaseResponse<UploadLogResponse>
-
 }

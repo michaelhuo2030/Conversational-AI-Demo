@@ -10,4 +10,10 @@
         <item name="android:dropDownWidth">180dp</item>
         <item name="android:maxHeight">240dp</item>
     </style>
+
+    <style name="CommonTopCustomShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">16dp</item>
+    </style>
 </resources>

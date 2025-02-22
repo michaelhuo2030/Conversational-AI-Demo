@@ -1,6 +1,7 @@
 package io.agora.scene.common.constant
 
 import com.google.gson.annotations.SerializedName
+import io.agora.scene.common.net.ApiManager
 
 data class EnvConfig(
     @SerializedName("env_name")
@@ -80,5 +81,6 @@ object ServerConfig {
         toolBoxUrl = buildEnvConfig.toolboxServerHost
         rtcAppId = buildEnvConfig.rtcAppId
         rtcAppCert = buildEnvConfig.rtcAppCertificate
+        ApiManager.setBaseURL(toolBoxUrl)
     }
 }

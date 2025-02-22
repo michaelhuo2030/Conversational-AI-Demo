@@ -80,13 +80,16 @@ object CovRtcManager {
             setParameters("{\"che.audio.sf.procChainMode\":1}")
             setParameters("{\"che.audio.sf.nlpDynamicMode\":1}")
             setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
-            setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}")
+            //setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}")
             setParameters("{\"che.audio.sf.ainlpModelPref\":10}")
             setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
-            setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}")
+            //setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}")
             setParameters("{\"che.audio.sf.ainsModelPref\":10}")
             setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
             setParameters("{\"che.audio.agc.enable\":false}")
+
+            // audio predump default enable
+            setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
         }
     }
 
@@ -103,18 +106,16 @@ object CovRtcManager {
         rtcEngine?.adjustRecordingSignalVolume(if (mute) 0 else 100)
     }
 
-    fun onAudioDump(enable:Boolean){
+    fun onAudioDump(enable: Boolean) {
         if (enable) {
-            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
-//            rtcEngine?.setParameters("{\"rtc.debug.enable\": true}")
-//            rtcEngine?.setParameters(
-//                "{\"che.audio.frame_dump\":{\"location\":\"all\",\"action\":\"start\"," +
-//                        "\"max_size_bytes\":\"120000000\",\"uuid\":\"123456789\",\"duration\":\"1200000\"}}"
-//            )
+//            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
         } else {
-//            rtcEngine?.setParameters("{\"rtc.debug.enable\": false}")
-            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
+//            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
         }
+    }
+
+    fun generatePredumpFile() {
+        rtcEngine?.setParameters("{\"che.audio.start.predump\": true}")
     }
 
     fun resetData() {
