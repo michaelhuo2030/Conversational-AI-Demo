@@ -181,7 +181,7 @@ class AgentSettingBar: UIView {
     }
     
     private func setupViews() {
-        [infoListButton, titleContentView, netStateView, settingButton, countDownLabel].forEach { addSubview($0) }
+        [titleContentView, infoListButton, netStateView, settingButton, countDownLabel].forEach { addSubview($0) }
         [centerTipsLabel, centerTitleView].forEach { titleContentView.addSubview($0) }
         [netTrackView, netRenderView].forEach { netStateView.addSubview($0) }
         
