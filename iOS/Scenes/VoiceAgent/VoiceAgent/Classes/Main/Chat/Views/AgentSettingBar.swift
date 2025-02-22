@@ -73,7 +73,7 @@ class AgentSettingBar: UIView {
     }
     
     func startFlippingAnimation() {
-        Timer.scheduledTimer(timeInterval: 4.0, target: self, selector: #selector(flipViews), userInfo: nil, repeats: true)
+//        Timer.scheduledTimer(timeInterval: 4.0, target: self, selector: #selector(flipViews), userInfo: nil, repeats: true)
     }
     
     var tempView: UIView?
@@ -82,16 +82,16 @@ class AgentSettingBar: UIView {
             return
         }
         // 开始动画
-        UIView.animate(withDuration: 1.0, animations: {
-            self.centerTitleView.snp.updateConstraints { make in
-                make.bottom.equalTo(self.snp.top)
-            }
-            self.centerTipsLabel.snp.updateConstraints { make in
-                make.bottom.equalToSuperview()
-            }
-        }) { _ in
-            
-        }
+//        UIView.animate(withDuration: 1.0, animations: {
+//            self.centerTitleView.snp.updateConstraints { make in
+//                make.bottom.equalTo(self.snp.top)
+//            }
+//            self.centerTipsLabel.snp.updateConstraints { make in
+//                make.bottom.equalToSuperview()
+//            }
+//        }) { _ in
+//            
+//        }
     }
     
     private func updateNetWorkView() {
@@ -198,8 +198,6 @@ extension AgentSettingBar: AgentPreferenceManagerDelegate {
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {
-        if roomState == .unload {
-//            tipsButton.setImage(UIImage.ag_named("ic_agent_tips_icon"), for: .normal)
-        }
+        updateNetWorkView()
     }
 }
