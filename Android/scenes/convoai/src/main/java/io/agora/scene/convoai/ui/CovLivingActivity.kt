@@ -721,21 +721,21 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             when (value) {
                 3, 4 -> {
-                    btnInfo.setColorFilter(
+                    clTop.btnInfo.setColorFilter(
                         this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_yellow6),
                         PorterDuff.Mode.SRC_IN
                     )
                 }
 
                 5, 6 -> {
-                    btnInfo.setColorFilter(
+                    clTop.btnInfo.setColorFilter(
                         this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_red6),
                         PorterDuff.Mode.SRC_IN
                     )
                 }
 
                 else -> {
-                    btnInfo.setColorFilter(
+                    clTop.btnInfo.setColorFilter(
                         this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_icontext1),
                         PorterDuff.Mode.SRC_IN
                     )
@@ -770,11 +770,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setOnApplyWindowInsetsListener(root)
 
-            btnBack.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    onHandleOnBackPressed()
-                }
-            })
+//            btnBack.setOnClickListener(object : OnFastClickListener() {
+//                override fun onClickJacking(view: View) {
+//                    onHandleOnBackPressed()
+//                }
+//            })
             btnEndCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickEndCall()
@@ -784,7 +784,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 isLocalAudioMuted = !isLocalAudioMuted
                 CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
-            btnSettings.setOnClickListener(object : OnFastClickListener() {
+            clTop.btnSettings.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     if (CovAgentManager.getPresetList().isNullOrEmpty()) {
                         coroutineScope.launch {
@@ -803,7 +803,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             btnCc.setOnClickListener {
                 isShowMessageList = !isShowMessageList
             }
-            btnInfo.setOnClickListener(object : OnFastClickListener() {
+            clTop.btnInfo.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     infoDialog = CovAgentInfoDialog.newInstance {
                         infoDialog = null
