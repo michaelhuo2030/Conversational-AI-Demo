@@ -123,7 +123,7 @@ class AgentManager: AgentAPI {
                 "enable_words": true,
             ]
         ]
-        requesetBody["graph_id"] = "0.9.0-166-g4be1977"
+//        requesetBody["graph_id"] = "0.9.0-166-g4be1977"
         
         VoiceAgentLogger.info("request start api: \(url) parameters: \(requesetBody)")
         NetworkManager.shared.postRequest(urlString: url, params: requesetBody) { result in
