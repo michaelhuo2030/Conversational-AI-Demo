@@ -8,13 +8,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.ui.widget.LastItemDividerDecoration
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getDistanceFromScreenEdges
 import io.agora.scene.convoai.R
@@ -27,7 +26,7 @@ import io.agora.scene.convoai.constant.AgentConnectionState
 class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private var onDismissCallback: (() -> Unit)? = null
-    
+
     interface Callback {
         fun onPreset(preset: CovAgentPreset)
     }
@@ -36,7 +35,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     companion object {
         private const val TAG = "AgentSettingsSheetDialog"
-        
+
         fun newInstance(onDismiss: () -> Unit): CovSettingsDialog {
             return CovSettingsDialog().apply {
                 this.onDismissCallback = onDismiss
@@ -60,15 +59,16 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
+
         binding?.apply {
             setOnApplyWindowInsets(root)
             tvAiVad.text = Html.fromHtml(getString(R.string.cov_setting_ai_vad))
             rcOptions.adapter = optionsAdapter
             rcOptions.layoutManager = LinearLayoutManager(context)
-            val divider = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
-            divider.setDrawable(resources.getDrawable(io.agora.scene.common.R.drawable.shape_divider_line, null))
-            rcOptions.addItemDecoration(divider)
+            rcOptions.context.getDrawable(io.agora.scene.common.R.drawable.shape_divider_line)?.let {
+                rcOptions.addItemDecoration(LastItemDividerDecoration(it))
+            }
+
             clPreset.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickPreset()
@@ -108,13 +108,13 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     }
 
     // The non-English overseas version must disable AiVad.
-    private fun setAiVadBySelectLanguage(){
+    private fun setAiVadBySelectLanguage() {
         binding?.apply {
             if (CovAgentManager.getPreset()?.isIndependent() == true) {
                 CovAgentManager.enableAiVad = false
                 cbAiVad.isChecked = false
                 cbAiVad.isEnabled = false
-            }else{
+            } else {
                 cbAiVad.isEnabled = true
             }
         }
@@ -144,8 +144,14 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
-                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
-                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                ivPresetArrow.setColorFilter(
+                    context.getColor(io.agora.scene.common.R.color.ai_icontext1),
+                    PorterDuff.Mode.SRC_IN
+                )
+                ivLanguageArrow.setColorFilter(
+                    context.getColor(io.agora.scene.common.R.color.ai_icontext1),
+                    PorterDuff.Mode.SRC_IN
+                )
                 clPreset.isEnabled = true
                 clLanguage.isEnabled = true
                 cbAiVad.isEnabled = true
@@ -155,8 +161,14 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext4))
-                ivPresetArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
-                ivLanguageArrow.setColorFilter(context.getColor(io.agora.scene.common.R.color.ai_icontext4), PorterDuff.Mode.SRC_IN)
+                ivPresetArrow.setColorFilter(
+                    context.getColor(io.agora.scene.common.R.color.ai_icontext4),
+                    PorterDuff.Mode.SRC_IN
+                )
+                ivLanguageArrow.setColorFilter(
+                    context.getColor(io.agora.scene.common.R.color.ai_icontext4),
+                    PorterDuff.Mode.SRC_IN
+                )
                 clPreset.isEnabled = false
                 clLanguage.isEnabled = false
                 cbAiVad.isEnabled = false
@@ -169,7 +181,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         val presets = CovAgentManager.getPresetList() ?: return
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            
+
             // Calculate popup position using getDistanceFromScreenEdges
             val itemDistances = clPreset.getDistanceFromScreenEdges()
             val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
@@ -206,21 +218,21 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         val languages = CovAgentManager.getLanguages() ?: return
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
-            
+
             // Calculate popup position using getDistanceFromScreenEdges
             val itemDistances = clLanguage.getDistanceFromScreenEdges()
             val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
             val targetY = itemDistances.top - maskDistances.top + 30.dp
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
-            
+
             // Calculate height with constraints
             val params = cvOptions.layoutParams
             val itemHeight = 56.dp.toInt()
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * languages.size).coerceIn(itemHeight, finalMaxHeight)
-            
+
             params.height = finalHeight
             cvOptions.layoutParams = params
 
@@ -271,7 +283,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             notifyDataSetChanged()
         }
 
-        inner class ViewHolder(private val binding: CovSettingOptionItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class ViewHolder(private val binding: CovSettingOptionItemBinding) :
+            RecyclerView.ViewHolder(binding.root) {
             fun bind(option: String, selected: Boolean) {
                 binding.tvText.text = option
                 binding.ivIcon.visibility = if (selected) View.VISIBLE else View.INVISIBLE

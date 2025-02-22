@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bottom_dialog_bg"
+    android:layout_gravity="bottom"
     tools:theme="@style/Theme.AppCompat">
 
     <ScrollView

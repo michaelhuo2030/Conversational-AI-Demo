@@ -266,7 +266,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             enableBHVS = CovAgentManager.enableBHVS,
             presetName = CovAgentManager.getPreset()?.name,
             asrLanguage = CovAgentManager.language?.language_code,
-            graphId = "0.9.0-166-g4be1977",
             parameters = JSONObject().apply {
                 put("transcript", JSONObject().apply {
                     put("enable", true)
@@ -601,6 +600,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 presentationMs: Long
             ): Boolean {
                 // Pass render time to subtitle controller
+                Log.d(TAG,"onPlaybackAudioFrameBeforeMixing $presentationMs")
                 subRenderController.onPlaybackAudioFrameBeforeMixing(presentationMs)
                 return false
             }
@@ -951,10 +951,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
                 override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
 
-                override fun onAudioDumpEnable(enable: Boolean) {
-//                    CovRtcManager.onAudioDump(enable)
-                }
-
                 override fun onClickCopy() {
                     mBinding?.apply {
                         val messageContents = if (isSelfSubRender) {
@@ -973,11 +969,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                 }
 
-                override fun onCloseDebug() {
-                    coroutineScope.launch {
-                        delay(1000L)
-                        onHandleOnBackPressed()
-                    }
+                override fun onSeamlessPlayMode(enable: Boolean) {
+                    // TODO:  
                 }
             }
             mDebugDialog?.show(supportFragmentManager, "covAidebugSettings")

@@ -31,6 +31,13 @@ object DebugConfigSettings {
         this.isAudioDumpEnabled = isAudioDumpEnabled
     }
 
+    var isSeamlessPlayMode: Boolean = false
+        private set
+
+    fun enableSeamlessPlayMode(isSeamlessPlayMode: Boolean) {
+        this.isSeamlessPlayMode = isSeamlessPlayMode
+    }
+
     @JvmStatic
     fun init(context: Context, isMainLand: Boolean) {
         if (instance != null) return
