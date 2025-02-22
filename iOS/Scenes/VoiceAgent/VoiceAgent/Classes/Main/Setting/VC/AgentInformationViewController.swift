@@ -14,6 +14,11 @@ class AgentInformationViewController: UIViewController {
     private var panGesture: UIPanGestureRecognizer?
     private var moreItems: [UIView] = []
     private var channelInfoItems: [UIView] = []
+    private let loadingMaskView = {
+        let view = UIView()
+        view.isHidden = true
+        return view
+    }()
     
     private lazy var feedBackPresenter = FeedBackPresenter()
         
@@ -201,9 +206,16 @@ class AgentInformationViewController: UIViewController {
     
     @objc private func onClickFeedbackItem() {
         feedbackItem.startLoading()
+        loadingMaskView.isHidden = false
+//        if let agentId = CovAgentApiManager.agentId {
+//            let processedAgentId = agentId.split(separator: ":").first.map(String.init) ?? ""
+//            let zipFileName = "\(processedAgentId)_\(CovAgentManager.channelName)"
+//        } else {
+//            let zipFileName = "_\(CovAgentManager.channelName)"
+//        }
         feedBackPresenter.feedback(isSendLog: true, title: "") { error, result in
+            self.loadingMaskView.isHidden = true
             self.feedbackItem.stopLoading()
-            
         }
     }
     
@@ -217,8 +229,8 @@ class AgentInformationViewController: UIViewController {
 extension AgentInformationViewController {
     private func createViews() {
         view.backgroundColor = UIColor(white: 0, alpha: 0.5)
-//        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
-//        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
+        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
         
         view.addSubview(backgroundView)
         backgroundView.addSubview(topView)
@@ -235,6 +247,8 @@ extension AgentInformationViewController {
         
         moreItems.forEach { moreInfoView.addSubview($0) }
         channelInfoItems.forEach { channelInfoView.addSubview($0) }
+        
+        contentView.addSubview(loadingMaskView)
     }
     
     private func createConstrains() {
@@ -315,6 +329,9 @@ extension AgentInformationViewController {
                     make.bottom.equalToSuperview()
                 }
             }
+        }
+        loadingMaskView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
     }
     
