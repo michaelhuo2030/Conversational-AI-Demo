@@ -716,6 +716,21 @@ extension ChatViewController: MessageAdapterDelegate {
 }
 
 extension ChatViewController: AgentTimerCoordinatorDelegate {
+    func agentUseLimitedTimerStarted(duration: Int) {
+        addLog("[Call] agentUseLimitedTimerStarted")
+        topBar.startWithRestTime(duration)
+    }
+    
+    func agentUseLimitedTimerUpdated(duration: Int) {
+        addLog("[Call] agentUseLimitedTimerUpdated")
+        topBar.updateRestTime(duration)
+    }
+    
+    func agentUseLimitedTimerEnd() {
+        addLog("[Call] agentUseLimitedTimerEnd")
+        topBar.stop()
+    }
+    
     func agentStartPing() {
         addLog("[Call] agentStartPing()")
         self.startPingRequest()
@@ -744,9 +759,6 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
         timerCoordinator.stopJoinChannelTimer()
     }
     
-    func agentTimeLimited() {
-        addLog("[Call] agentTimeLimited")
-    }
 }
 
 extension ChatViewController: LoginManagerDelegate {

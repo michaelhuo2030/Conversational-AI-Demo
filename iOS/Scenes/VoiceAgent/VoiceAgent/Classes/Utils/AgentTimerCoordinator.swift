@@ -11,7 +11,9 @@ import Common
 protocol AgentTimerCoordinatorDelegate: AnyObject {
     func agentStartPing()
     func agentNotJoinedWithinTheScheduledTime()
-    func agentTimeLimited()
+    func agentUseLimitedTimerStarted(duration: Int)
+    func agentUseLimitedTimerUpdated(duration: Int)
+    func agentUseLimitedTimerEnd()
 }
 
 protocol AgentTimerCoordinatorProtocol {
@@ -32,28 +34,32 @@ class AgentTimerCoordinator: NSObject {
     private var pingTimer: Timer?
     private var joinChannelTimer: Timer?
     private var usageDurationLimitTimer: Timer?
-    private var useDuration = 0
+    private var useDuration = 600
     private let pingTimeInterval = 10.0
 
     private func initDurationLimitTimer() {
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
-            let limitDuration = preset.callTimeLimitSecond
-            useDuration = 0
+            useDuration = preset.callTimeLimitSecond
             usageDurationLimitTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
                 guard let self = self else {
                     return
                 }
                 
-                if self.useDuration >= limitDuration {
-                    self.delegate?.agentTimeLimited()
+                if self.useDuration <= 0 {
                     self.deinitDurationLimitTimer()
                 }
-                self.useDuration += 1
+                
+                self.delegate?.agentUseLimitedTimerUpdated(duration: self.useDuration)
+                self.useDuration -= 1
             })
         }
+        
+        self.delegate?.agentUseLimitedTimerStarted(duration: useDuration)
     }
     
     private func deinitDurationLimitTimer() {
+        self.delegate?.agentUseLimitedTimerEnd()
+
         useDuration = 0
         usageDurationLimitTimer?.invalidate()
         usageDurationLimitTimer = nil
