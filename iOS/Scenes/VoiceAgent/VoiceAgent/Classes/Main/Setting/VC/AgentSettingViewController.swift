@@ -159,7 +159,7 @@ class AgentSettingViewController: UIViewController {
         
         SVProgressHUD.show()
         VoiceAgentLogger.info("request presets in setting page")
-        agentManager.fetchAgentPresets { error, result in
+        agentManager.fetchAgentPresets(appId: AppContext.shared.appId) { error, result in
             SVProgressHUD.dismiss()
             if let error = error {
                 SVProgressHUD.showError(withStatus: error.message)

@@ -146,6 +146,7 @@ public class ChatViewController: UIViewController {
 
         let isLogin = UserCenter.shared.isLogin()
         welcomeMessageView.isHidden = isLogin
+        topBar.updateButtonVisible(isLogin)
     }
     
     public override func viewDidLoad() {
@@ -362,7 +363,7 @@ extension ChatViewController {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
         return try await withCheckedThrowingContinuation { continuation in
-            agentManager.fetchAgentPresets { error, result in
+            agentManager.fetchAgentPresets(appId: AppContext.shared.appId) { error, result in
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
@@ -808,8 +809,8 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
 extension ChatViewController: LoginManagerDelegate {
     func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
         welcomeMessageView.isHidden = loginState
+        topBar.updateButtonVisible(loginState)
         if !loginState {
-            
             stopLoading()
             stopAgent()
         }
