@@ -170,11 +170,11 @@ public class ChatViewController: UIViewController {
     }
     
     private func registerDelegate() {
-        AppContext.preferenceManager()?.addDelegate(self)
+        AppContext.loginManager()?.addDelegate(self)
     }
     
     private func deregisterDelegate() {
-        AppContext.preferenceManager()?.removeDelegate(self)
+        AppContext.loginManager()?.removeDelegate(self)
     }
     
     private func preloadData() {
@@ -746,6 +746,21 @@ extension ChatViewController: MessageAdapterDelegate {
 }
 
 extension ChatViewController: AgentTimerCoordinatorDelegate {
+    func agentUseLimitedTimerStarted(duration: Int) {
+        addLog("[Call] agentUseLimitedTimerStarted")
+        topBar.startWithRestTime(duration)
+    }
+    
+    func agentUseLimitedTimerUpdated(duration: Int) {
+        addLog("[Call] agentUseLimitedTimerUpdated")
+        topBar.updateRestTime(duration)
+    }
+    
+    func agentUseLimitedTimerEnd() {
+        addLog("[Call] agentUseLimitedTimerEnd")
+        topBar.stop()
+    }
+    
     func agentStartPing() {
         addLog("[Call] agentStartPing()")
         self.startPingRequest()
@@ -774,14 +789,11 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
         timerCoordinator.stopJoinChannelTimer()
     }
     
-    func agentTimeLimited() {
-        addLog("[Call] agentTimeLimited")
-    }
 }
 
-extension ChatViewController: AgentPreferenceManagerDelegate {
-    func preferenceManager(_ manager: AgentPreferenceManager, loginStateDidUpdated state: Bool) {
-        welcomeMessageView.isHidden = state
+extension ChatViewController: LoginManagerDelegate {
+    func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
+        welcomeMessageView.isHidden = loginState
     }
 }
 
