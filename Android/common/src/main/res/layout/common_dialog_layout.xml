@@ -7,12 +7,12 @@
     android:background="@drawable/bg_common_dialog"
     android:orientation="vertical">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/ivImage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        tools:visibility="gone"
+        app:shapeAppearanceOverlay="@style/CommonTopCustomShape"
         android:background="@drawable/common_bg_dialog" />
 
     <TextView
