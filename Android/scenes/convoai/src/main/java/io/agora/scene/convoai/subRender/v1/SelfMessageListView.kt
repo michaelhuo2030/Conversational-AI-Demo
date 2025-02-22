@@ -74,7 +74,7 @@ class SelfMessageListView @JvmOverloads constructor(
         messageAdapter.updateFromTitle(str)
     }
 
-    fun updateStreamContent(isMe: Boolean, turnId: Int, text: String, isFinal: Boolean = false) {
+    fun updateStreamContent(isMe: Boolean, turnId: Long, text: String, isFinal: Boolean = false) {
         if (isMe) {
             handleUserMessage(turnId, text, isFinal)
         } else {
@@ -82,9 +82,9 @@ class SelfMessageListView @JvmOverloads constructor(
         }
     }
 
-    private fun handleUserMessage(turnId: Int, text: String, isFinal: Boolean) {
+    private fun handleUserMessage(turnId: Long, text: String, isFinal: Boolean) {
         // The message’s turnId is 0
-        val exitMessage = if (turnId == 0) currentUserMessage else messageAdapter.getMessageByTurnId(turnId, true)
+        val exitMessage = if (turnId == 0L) currentUserMessage else messageAdapter.getMessageByTurnId(turnId, true)
         if (exitMessage == null) {
             val message = Message(true, turnId, text, isFinal)
             currentUserMessage = message
@@ -99,9 +99,9 @@ class SelfMessageListView @JvmOverloads constructor(
         autoScrollIfNeeded()
     }
 
-    private fun handleAgentMessage(turnId: Int, text: String, isFinal: Boolean) {
+    private fun handleAgentMessage(turnId: Long, text: String, isFinal: Boolean) {
         // The message’s turnId is 0
-        val exitMessage = if (turnId==0) currentAgentMessage else messageAdapter.getMessageByTurnId(turnId, false)
+        val exitMessage = if (turnId==0L) currentAgentMessage else messageAdapter.getMessageByTurnId(turnId, false)
         if (exitMessage == null) {
             val message = Message(false, turnId, text, isFinal)
             currentAgentMessage = message
@@ -164,7 +164,7 @@ class SelfMessageListView @JvmOverloads constructor(
 
     data class Message constructor(
         val isMe: Boolean,
-        val turnId: Int,
+        val turnId: Long,
         var content: String,
         var isFinal: Boolean = false
     )
@@ -233,7 +233,7 @@ class SelfMessageListView @JvmOverloads constructor(
             notifyItemRangeRemoved(0, size)
         }
 
-        fun getMessageByTurnId(turnId: Int, isMe: Boolean): Message? {
+        fun getMessageByTurnId(turnId: Long, isMe: Boolean): Message? {
             return messages.lastOrNull { it.turnId == turnId && it.isMe == isMe }
         }
 

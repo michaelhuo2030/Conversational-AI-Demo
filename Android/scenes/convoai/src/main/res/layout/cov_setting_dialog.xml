@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="360dp"
+    android:layout_height="wrap_content"
     android:background="@drawable/bottom_dialog_bg"
     tools:theme="@style/Theme.AppCompat">
 
@@ -31,16 +31,31 @@
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tv_title"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_gravity="start"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="10dp"
+                android:gravity="center"
                 android:text="@string/cov_setting_title"
                 android:textColor="@color/ai_icontext1"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/iv_title" />
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_title_connected_tips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="5dp"
+                android:text="@string/cov_setting_title_connected"
+                android:textColor="@color/ai_icontext3"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:layout_constraintStart_toEndOf="@+id/tv_title"
+                app:layout_constraintTop_toTopOf="@+id/tv_title"
+                app:layout_constraintBottom_toBottomOf="@+id/tv_title"/>
 
             <ImageButton
                 android:id="@+id/btn_close"
@@ -50,30 +65,21 @@
                 android:layout_marginEnd="24dp"
                 android:background="@drawable/app_setting_exit"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/tv_title"
+                app:layout_constraintTop_toTopOf="@+id/tv_title"
+                app:layout_constraintBottom_toBottomOf="@+id/tv_title"
                 app:tint="@color/ai_icontext2" />
-
-            <ImageView
-                android:id="@+id/iv_line"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="20dp"
-                android:background="#1DFFFFFF"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title" />
 
             <LinearLayout
                 android:id="@+id/ll_agent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="10dp"
                 android:background="@drawable/settings_item_bg"
                 android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/iv_line">
+                app:layout_constraintTop_toBottomOf="@id/tv_title">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/cl_preset"
@@ -216,6 +222,18 @@
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent" />
 
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_ai_vad_high"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:text="@string/cov_setting_ai_vad_high"
+                        android:textColor="@color/ai_brand_lightbrand6"
+                        android:textSize="14sp"
+                        app:layout_constraintStart_toEndOf="@+id/tv_ai_vad"
+                        app:layout_constraintTop_toTopOf="@+id/tv_ai_vad"
+                        app:layout_constraintBottom_toBottomOf="@+id/tv_ai_vad" />
+
                     <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/cb_ai_vad"
                         android:layout_width="wrap_content"
@@ -251,13 +269,14 @@
         android:id="@+id/v_options_mask"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        tools:visibility="gone"
         android:visibility="invisible">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_options"
             android:layout_width="218dp"
             android:layout_height="150dp"
-            android:backgroundTint="@color/ai_line1"
+            android:backgroundTint="#333333"
             app:cardCornerRadius="12dp">
 
             <androidx.recyclerview.widget.RecyclerView

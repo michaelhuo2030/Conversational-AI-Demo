@@ -39,6 +39,7 @@
     <string name="cov_info_uploader">Data Uploader</string>
 
     <string name="cov_setting_title">Settings</string>
+    <string name="cov_setting_title_connected">(连接中不可修改)</string>
     <string name="cov_setting_agent">AGENT</string>
     <string name="cov_setting_preset">Preset</string>
     <string name="cov_setting_voice">Voice</string>
@@ -50,6 +51,7 @@
     <string name="cov_setting_speaker">Speaker</string>
     <string name="cov_setting_bhvs">Enable BHVS</string>
     <string name="cov_setting_ai_vad">Intelligent Interruption Handling</string>
+    <string name="cov_setting_ai_vad_high">ToDo</string>
     <string name="cov_setting_network_error">Network Error!</string>
     <string name="cov_agent_connecting">Connecting…</string>
     <string name="cov_copy_succeed">Copied</string>

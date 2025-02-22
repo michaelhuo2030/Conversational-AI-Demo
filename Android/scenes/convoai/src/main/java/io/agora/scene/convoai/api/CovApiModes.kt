@@ -37,7 +37,7 @@ data class CovAgentPreset(
     val call_time_limit_second: Long,
 ) {
     fun isIndependent(): Boolean {
-        return preset_type == "independent"
+        return preset_type.startsWith("independent")
     }
 }
 

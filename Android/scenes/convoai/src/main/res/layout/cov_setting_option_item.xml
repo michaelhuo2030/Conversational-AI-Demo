@@ -1,13 +1,11 @@
-<!-- res/layout/support_simple_spinner_dropdown_item.xml -->
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:background="@android:color/transparent"
-    android:minHeight="?android:attr/listPreferredItemHeightSmall"
-    android:paddingStart="16dp"
-    android:paddingEnd="12dp">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/tv_text"
@@ -15,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textColor="@color/ai_icontext1"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:textDirection="ltr"
         android:textAppearance="?android:attr/textAppearanceListItemSmall" />
 
