@@ -20,6 +20,7 @@ class AgentSettingTopView: UIView {
         createConstrains()
     }
     
+    
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         createViews()

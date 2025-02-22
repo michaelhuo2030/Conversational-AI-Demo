@@ -86,6 +86,7 @@ extension ResourceManager {
 
         public enum Settings {
             public static let title = ResourceManager.localizedString("settings.title")
+            public static let tip = ResourceManager.localizedString("settings.connecting.tip")
             public static let preset = ResourceManager.localizedString("settings.preset")
             public static let advanced = ResourceManager.localizedString("settings.advanced")
             public static let device = ResourceManager.localizedString("settings.device")

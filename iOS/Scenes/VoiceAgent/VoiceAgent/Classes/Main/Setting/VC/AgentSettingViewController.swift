@@ -10,6 +10,11 @@ import Common
 import SVProgressHUD
 
 class AgentSettingViewController: UIViewController {
+    
+    private let grabberView = UIView()
+    private let titleLabel = UILabel()
+    private let infoView = UILabel()
+    private let closeButton = UIButton(type: .custom)
     private let backgroundViewHeight: CGFloat = 454
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
@@ -18,14 +23,7 @@ class AgentSettingViewController: UIViewController {
     weak var agentManager: AgentManager!
     var channelName = ""
     
-    private lazy var topView: AgentSettingTopView = {
-        let view = AgentSettingTopView()
-        view.setTitle(title: ResourceManager.L10n.Settings.title)
-        view.onCloseButtonTapped = { [weak self] in
-            self?.animateBackgroundViewOut()
-        }
-        return view
-    }()
+    private let topView = UIView()
     
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
@@ -298,7 +296,7 @@ class AgentSettingViewController: UIViewController {
         selectTableMask.isHidden = true
     }
 }
-
+// MARK: - Creations
 extension AgentSettingViewController {
     private func createViews() {
         view.backgroundColor = UIColor(white: 0, alpha: 0.5)
@@ -307,6 +305,22 @@ extension AgentSettingViewController {
         view.addGestureRecognizer(tapGesture)
         
         view.addSubview(backgroundView)
+        
+        grabberView.backgroundColor = UIColor(hex: "#404548")
+        grabberView.layerCornerRadius = 1.5
+        
+        titleLabel.textColor = .white
+        titleLabel.text = ResourceManager.L10n.Settings.title
+        titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        
+        infoView.textColor = .white
+        infoView.text = ResourceManager.L10n.Settings.title
+        infoView.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        
+        closeButton.setImage(UIImage.ag_named("ic_agent_setting_close"), for: .normal)
+        closeButton.addTarget(self, action: #selector(onClickClose(_:)), for: .touchUpInside)
+        [grabberView, titleLabel, infoView, closeButton].forEach { topView.addSubview($0) }
+        
         backgroundView.addSubview(topView)
         backgroundView.addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -332,12 +346,25 @@ extension AgentSettingViewController {
             make.left.right.bottom.equalToSuperview()
             make.height.equalTo(backgroundViewHeight)
         }
-        
         topView.snp.makeConstraints { make in
             make.top.left.right.equalToSuperview()
             make.height.equalTo(56)
         }
-        
+        grabberView.snp.makeConstraints { make in
+            make.top.equalTo(8)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(36)
+            make.height.equalTo(3)
+        }
+        titleLabel.snp.makeConstraints { make in
+            make.top.equalTo(8)
+            make.left.equalTo(20)
+        }
+        closeButton.snp.makeConstraints { make in
+            make.right.equalTo(-20)
+            make.centerY.equalToSuperview()
+            make.size.equalTo(CGSize(width: 48, height: 48))
+        }
         scrollView.snp.makeConstraints { make in
             make.top.equalTo(topView.snp.bottom)
             make.left.right.bottom.equalToSuperview()
@@ -349,7 +376,7 @@ extension AgentSettingViewController {
         }
         
         basicSettingView.snp.makeConstraints { make in
-            make.top.equalTo(16)
+            make.top.equalTo(10)
             make.left.equalTo(20)
             make.right.equalTo(-20)
         }
@@ -386,7 +413,7 @@ extension AgentSettingViewController {
         for (index, item) in advancedSettingItems.enumerated() {
             item.snp.makeConstraints { make in
                 make.left.right.equalToSuperview()
-                make.height.equalTo(70)
+                make.height.equalTo(62)
                 
                 if index == 0 {
                     make.top.equalTo(0)
