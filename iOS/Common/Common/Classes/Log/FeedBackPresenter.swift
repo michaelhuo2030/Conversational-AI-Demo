@@ -13,13 +13,11 @@ public struct FeedbackError: Error {
     public var message: String
 }
 
-public typealias FeedbackCompletion = (FeedbackError?, [String : Any]?) -> Void
+public typealias FeedbackCompletion = (FeedbackError?, String?) -> Void
 
 public class FeedBackPresenter {
     
-    private let kURLPathUploadImage = "/api-login/upload"
     private let kURLPathUploadLog = "/v1/convoai/upload/log"
-    private let kURLPathFeedback = "/api-login/feedback/upload"
     
     private var images = [UIImage]()
     private var imageUrls: [String]?
@@ -27,23 +25,38 @@ public class FeedBackPresenter {
     public init() {
     }
     
-    public func feedback(isSendLog: Bool, title: String, feedback: String = "", completion: @escaping FeedbackCompletion) {
-        var logUrl: String? = nil
-        let group = DispatchGroup()
-        if isSendLog {
-            group.enter()
-            zipAndSendLog(fileName: title, completion: { error, url in
-                logUrl = url
-                group.leave()
-            })
+    public func feedback(isSendLog: Bool, channel: String, agentId: String?, feedback: String = "", completion: @escaping FeedbackCompletion) {
+        var fileName = channel
+        if let agentId = agentId {
+            let processedAgentId = agentId.split(separator: ":").first.map(String.init) ?? ""
+            fileName = "\(processedAgentId)_\(channel)"
         }
-        group.notify(queue: .main) {
-            guard logUrl != nil else {
-                completion(FeedbackError(code: -1, message: "zip log error"), nil)
+        var fileURLs = [URL]()
+        fileURLs.append(contentsOf: AgoraEntLog.allLogsUrls())
+        fileURLs.append(contentsOf: getAgoraFiles())
+        let tempFile = NSTemporaryDirectory() + "/\(fileName).zip"
+        zipFiles(fileURLs: fileURLs, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
+            if let err = err {
+                completion(err, nil)
                 return
             }
-            self.submitFeedbackData(feedback: feedback, imageUrls: self.imageUrls, logUrl: logUrl) { errot, result in
-                completion(errot, result)
+            guard let url = url, let data = try? Data.init(contentsOf: url) else {
+                return
+            }
+            let req = AUIUploadNetworkModel()
+            req.interfaceName = self.kURLPathUploadLog
+            req.fileData = data
+            req.appId = AppContext.shared.appId
+            req.channelName = channel
+            req.agentId = agentId ?? ""
+            req.upload { progress in
+                print("upload log progress: \(progress)")
+            } completion: { err, content in
+                var logUrl: String? = nil
+                if let content = content as? [String: Any], let data = content["data"] as? [String: Any], let url = data["url"] as? String {
+                    logUrl = url
+                }
+                completion(FeedbackError(code: -1, message: "upload log error"), logUrl)
             }
         }
     }
@@ -70,66 +83,6 @@ public class FeedBackPresenter {
             }
         } catch {
             completion(FeedbackError(code: -1, message: "zip log error"), nil)
-        }
-    }
-    
-    private func submitFeedbackData(feedback: String, imageUrls: [String]?, logUrl: String?, completion: @escaping FeedbackCompletion) {
-        var images: [String: String] = [:]
-        imageUrls?.enumerated().forEach({
-            images["\($0.offset + 1)"] = $0.element
-        })
-        
-        let url = AppContext.shared.baseServerUrl + kURLPathFeedback
-        let parameters = ["screenshotURLs": images,
-                          "tags": [],
-                          "description": feedback,
-                          "logURL": logUrl ?? ""] as [String : Any]
-        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            if let code = result["code"] as? Int, code != 0 {
-                let msg = result["msg"] as? String ?? "Unknown error"
-                let error = FeedbackError(code: code, message: msg)
-                completion(error, nil)
-            } else {
-                completion(nil, result)
-            }
-        } failure: { msg in
-            let error = FeedbackError(code: -1, message: msg)
-            completion(error, nil)
-        }
-    }
-    
-    private func zipAndSendLog(fileName: String, completion: @escaping (FeedbackError?, String?) -> Void) {
-        var fileURLs = [URL]()
-        fileURLs.append(contentsOf: AgoraEntLog.allLogsUrls())
-        fileURLs.append(contentsOf: getAgoraFiles())
-        let fileName = "/\(fileName).zip"
-        let tempFile = NSTemporaryDirectory() + fileName
-        zipFiles(fileURLs: fileURLs, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
-            if let err = err {
-                completion(err, nil)
-                return
-            }
-            guard let url = url, let data = try? Data.init(contentsOf: url) else {
-                return
-            }
-            let req = AUIUploadNetworkModel()
-            req.interfaceName = self.kURLPathUploadLog
-            req.fileData = data
-            req.appId = AppContext.shared.appId
-            req.channelName = "agora"
-            req.agentId = "1213"
-//            req.name = "file"
-//            req.mimeType = "application/zip"
-//            req.fileName = fileName
-            req.upload { progress in
-                
-            } completion: { err, content in
-                var logUrl: String? = nil
-                if let content = content as? [String: Any], let data = content["data"] as? [String: Any], let url = data["url"] as? String {
-                    logUrl = url
-                }
-                completion(FeedbackError(code: -1, message: "upload log error"), logUrl)
-            }
         }
     }
     

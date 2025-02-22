@@ -83,13 +83,6 @@ extension DeveloperModeViewController {
     
     @objc private func onClickCopy(_ sender: UIButton) {
         copyCallback?()
-        feedbackPresenter.feedback(isSendLog: true, title: "111", feedback: "copy user question") { error, result in
-            if let error = error {
-                SVProgressHUD.showError(withStatus: error.message)
-            } else {
-                SVProgressHUD.showSuccess(withStatus: "copy user question success")
-            }
-        }
     }
     
     @objc private func onSwitchButtonClicked(_ sender: UIButton) {
