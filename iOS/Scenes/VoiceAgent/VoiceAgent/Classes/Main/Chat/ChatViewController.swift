@@ -807,6 +807,10 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
 extension ChatViewController: LoginManagerDelegate {
     func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
         welcomeMessageView.isHidden = loginState
+        if !loginState {
+            stopLoading()
+            stopAgent()
+        }
     }
 }
 
