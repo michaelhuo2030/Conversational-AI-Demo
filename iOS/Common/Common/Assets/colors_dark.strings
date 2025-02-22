@@ -9,14 +9,14 @@
 "ai_brand_white10" = "#ffffffff";
 "ai_fill1" = "#ff121212";
 "ai_fill2" = "#ff292a2d";
-"ai_input" = "#b2262c37";
+"ai_input" = "#7f262c37";
 "ai_line1" = "#994f4f51";
 "ai_mainhover" = "#cc353546";
 "ai_click" = "#cc84878e";
 "ai_line2" = "#e5535268";
 "ai_block2" = "#e5404045";
 "ai_block1" = "#28ababe8";
-"ai_block4_chat" = "#ff2b2b2b";
+"ai_block4_chat" = "#ff444449";
 "ai_icontext4" = "#4cffffff";
 "ai_red6" = "#ffe6544b";
 "ai_green6" = "#ff50e3c2";
@@ -24,7 +24,7 @@
 "ai_yellow6" = "#ffffc700";
 "ai_brand_lightbrand6" = "#ffa0faff";
 "ai_line3" = "#07ffffff";
-"ai_disable" = "#66222222";
+"ai_disable" = "#33222222";
 "ai_brand_white8" = "#ccffffff";
 "ai_brand_white6" = "#99ffffff";
 "ai_block5" = "#e53e3e43";

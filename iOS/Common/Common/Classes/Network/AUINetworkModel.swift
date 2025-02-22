@@ -95,10 +95,12 @@ open class AUINetworkModel: NSObject {
 
 @objcMembers
 open class AUIUploadNetworkModel: AUINetworkModel {
+    
+    public var appId: String?
+    public var channelName: String?
+    public var agentId: String?
+    public var payload: [String: Any]?
     public var fileData: Data?
-    public var name: String?
-    public var fileName: String?
-    public var mimeType: String?
     
     public lazy var  boundary: String = {
         UUID().uuidString
@@ -108,20 +110,20 @@ open class AUIUploadNetworkModel: AUINetworkModel {
         var headers = super.getHeaders()
         let contentType = "multipart/form-data; boundary=\(boundary)"
         headers["Content-Type"] = contentType
-        headers["Authorization"] = UserCenter.user?.token ?? ""
+        headers["Authorization"] = "Bearer \(UserCenter.user?.token ?? "")"
         return headers
     }
     
     public func multipartData() -> Data {
         // 创建HTTP请求体
         var data = Data()
-        guard let name = name, let fileName = fileName, let fileData = fileData, let mimeType = mimeType else {
+        guard let appId = appId, let channelName = channelName, let agentId = agentId, let fileData = fileData else {
             return data
         }
         // 添加数据
         data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; appId=\"\(appId)\"; channelName=\"\(channelName)\"; agentId=\"\(agentId)\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/zip\r\n\r\n".data(using: .utf8)!)
         data.append(fileData)
         // Multipart结束标记
         data.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)

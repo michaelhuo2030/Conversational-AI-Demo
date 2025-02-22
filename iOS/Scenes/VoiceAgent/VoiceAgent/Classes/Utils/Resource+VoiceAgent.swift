@@ -102,6 +102,9 @@ extension ResourceManager {
             public static let networkGood = ResourceManager.localizedString("channel.network.good")
             public static let networkPoor = ResourceManager.localizedString("channel.network.poor")
             public static let networkFair = ResourceManager.localizedString("channel.network.fair")
+            public static let moreInfo = ResourceManager.localizedString("channel.more.title")
+            public static let feedback = ResourceManager.localizedString("channel.more.feedback")
+            public static let logout = ResourceManager.localizedString("channel.more.logout")
         }
         
         public enum DevMode {

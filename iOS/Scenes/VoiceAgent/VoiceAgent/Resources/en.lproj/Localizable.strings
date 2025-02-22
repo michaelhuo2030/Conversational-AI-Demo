@@ -54,6 +54,9 @@
 "channel.network.good" = "Good";
 "channel.network.poor" = "Poor";
 "channel.network.fair" = "Fair";
+"channel.more.title" = "More";
+"channel.more.feedback" = "Feed Back";
+"channel.more.logout" = "Logout";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";
