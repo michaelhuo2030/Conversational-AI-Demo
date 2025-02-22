@@ -848,7 +848,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     infoDialog = CovAgentInfoDialog.newInstance({
                         infoDialog = null
                     }) {
-                        showLogoutConfirmDialog()
+                        showLogoutConfirmDialog {
+                            infoDialog?.dismiss()
+                        }
                     }
                     infoDialog?.updateConnectStatus(connectionState)
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
@@ -992,13 +994,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         if (tempToken.isNotEmpty()) {
             mLoginViewModel.getUserInfoByToken(tempToken)
         }
-        updateBottom(tempToken.isNotEmpty())
+        updateLoginStatus(tempToken.isNotEmpty())
         mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
             if (userInfo != null) {
                 // TODO: 已经登录
                 mLoginDialog?.dismiss()
                 mLoginDialog = null
-                updateBottom(true)
+                updateLoginStatus(true)
                 getPresetTokenConfig()
             } else {
                 ToastUtil.show("Get user info error")
@@ -1017,12 +1019,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private fun updateBottom(isLogin: Boolean) {
+    private fun updateLoginStatus(isLogin: Boolean) {
         mBinding?.apply {
             if (isLogin) {
+                clTop.btnSettings.visibility = View.VISIBLE
+                clTop.btnInfo.visibility = View.VISIBLE
                 clBottomLogged.root.visibility = View.VISIBLE
                 clBottomNotLogged.root.visibility = View.INVISIBLE
             } else {
+                clTop.btnSettings.visibility = View.INVISIBLE
+                clTop.btnInfo.visibility = View.INVISIBLE
                 clBottomLogged.root.visibility = View.INVISIBLE
                 clBottomNotLogged.root.visibility = View.VISIBLE
             }
@@ -1070,11 +1076,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         startActivity(intent)
     }
 
-    private fun showLogoutConfirmDialog() {
+    private fun showLogoutConfirmDialog(onLogout: () -> Unit) {
         CommonDialog.Builder()
             .setTitle(getString(io.agora.scene.common.R.string.common_logout_confirm_title))
             .setContent(getString(io.agora.scene.common.R.string.common_logout_confirm_text))
-            .setPositiveButton(getString(io.agora.scene.common.R.string.common_logout_confirm_known))
+            .setPositiveButton(getString(io.agora.scene.common.R.string.common_logout_confirm_known), {
+                stopAgentAndLeaveChannel()
+                SSOUserManager.logout()
+                updateLoginStatus(false)
+                onLogout.invoke()
+            })
             .setNegativeButton(getString(io.agora.scene.common.R.string.common_logout_confirm_cancel))
             .hideTopImage()
             .build()
