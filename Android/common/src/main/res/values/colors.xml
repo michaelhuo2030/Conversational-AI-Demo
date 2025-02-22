@@ -15,7 +15,7 @@
     <color name="ai_line1">#994f4f51</color>
     <color name="ai_mainhover">#cc353546</color>
     <color name="ai_click">#cc84878e</color>
-    <color name="ai_line2">#e5535268</color>
+    <color name="ai_line2">#ff555b69</color>
     <color name="ai_block2">#e5404045</color>
     <color name="ai_block1">#28ababe8</color>
     <color name="ai_block4_chat">#ff444449</color>
@@ -42,6 +42,7 @@
     <color name="ai_fill3">#ff22233d</color>
     <color name="ai_fill4">#ff242439</color>
     <color name="ai_icontext_inverse2">#b2000000</color>
+    <color name="ai_fill5">#ff3e3e4d</color>
 
     <array name="gradient_border_default_colors">
         <item>#FF00C2FF</item>

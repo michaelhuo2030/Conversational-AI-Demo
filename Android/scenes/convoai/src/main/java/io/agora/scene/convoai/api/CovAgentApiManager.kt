@@ -165,7 +165,7 @@ object CovAgentApiManager {
     }
 
     fun fetchPresets(completion: (error: Exception?, List<CovAgentPreset>) -> Unit) {
-        val requestURL = "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/presetAgents"
+        val requestURL = "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/presetAgents?app_id=${ServerConfig.rtcAppId}"
         val request = buildRequest(requestURL)
 
         okHttpClient.newCall(request).enqueue(object : Callback {

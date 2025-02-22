@@ -600,7 +600,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 presentationMs: Long
             ): Boolean {
                 // Pass render time to subtitle controller
-                Log.d(TAG,"onPlaybackAudioFrameBeforeMixing $presentationMs")
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG,"onPlaybackAudioFrameBeforeMixing $presentationMs")
+                }
                 subRenderController.onPlaybackAudioFrameBeforeMixing(presentationMs)
                 return false
             }
