@@ -2,6 +2,7 @@ package io.agora.scene.common.debugMode
 
 import android.content.Context
 import com.google.gson.Gson
+import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.EnvConfig
 import java.io.BufferedReader
 
@@ -51,5 +52,24 @@ object DebugConfigSettings {
     fun reset() {
         isDebug = false
         isAudioDumpEnabled = false
+    }
+
+    // Counter for debug mode activation
+    private var counts = 0
+    private val debugModeOpenTime: Long = 2000
+    private var beginTime: Long = 0
+
+    fun checkClickDebug() {
+        if (isDebug) return
+        if (counts == 0 || System.currentTimeMillis() - beginTime > debugModeOpenTime) {
+            beginTime = System.currentTimeMillis()
+            counts = 0
+        }
+        counts++
+        if (counts > 7) {
+            counts = 0
+            enableDebugMode(true)
+            DebugButton.getInstance(AgentApp.instance()).show()
+        }
     }
 }

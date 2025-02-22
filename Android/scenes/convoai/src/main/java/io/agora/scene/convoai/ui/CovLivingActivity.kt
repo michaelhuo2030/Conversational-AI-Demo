@@ -22,6 +22,7 @@ import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.debugMode.DebugButton
+import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugDialog
 import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.AgoraTokenType
@@ -858,6 +859,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
             })
+            clTop.tvTopTitle.setOnClickListener{
+                DebugConfigSettings.checkClickDebug()
+            }
             clBottomLogged.btnJoinCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickStartAgent()

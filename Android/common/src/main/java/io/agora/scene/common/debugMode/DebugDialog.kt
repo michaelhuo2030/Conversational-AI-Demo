@@ -1,6 +1,5 @@
 package io.agora.scene.common.debugMode
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +9,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.AgentApp
-import io.agora.scene.common.R
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.EnvConfig
 import io.agora.scene.common.constant.ServerConfig
@@ -83,11 +81,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
 
             layoutSwitchEnv.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    if (agentScene == AgentScenes.Common) {
-                        onClickSwitchEnv()
-                    } else {
-                        ToastUtil.show(getString(R.string.common_debug_switch_tips))
-                    }
+                    onClickSwitchEnv()
                 }
             })
 
