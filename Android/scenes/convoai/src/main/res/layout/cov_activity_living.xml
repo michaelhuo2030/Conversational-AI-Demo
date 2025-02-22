@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/ai_fill1"
     android:orientation="vertical">
 
     <View
@@ -11,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintHeight_percent="0.3"
-        android:background="@drawable/scene_detail_top_bg"
+        android:background="@drawable/bg_gradient_top_view"
         app:layout_constraintTop_toTopOf="parent"/>
 
     <include
@@ -37,6 +38,7 @@
             app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="999dp"
             app:cardElevation="0dp"
+            android:layout_marginTop="50dp"
             app:layout_constraintDimensionRatio="1142:1080"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -50,6 +52,13 @@
                 android:layout_height="match_parent" />
         </com.google.android.material.card.MaterialCardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/viewMessageMask"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="@color/ai_mask1"/>
 
     <io.agora.scene.convoai.subRender.v1.SelfMessageListView
         android:id="@+id/messageListViewV1"

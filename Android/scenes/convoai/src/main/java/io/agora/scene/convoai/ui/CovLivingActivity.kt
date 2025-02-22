@@ -720,6 +720,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun updateMessageList() {
         mBinding?.apply {
             if (isShowMessageList) {
+                viewMessageMask.visibility = View.VISIBLE
                 if (isSelfSubRender) {
                     messageListViewV1.visibility = View.VISIBLE
                 } else {
@@ -730,6 +731,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     PorterDuff.Mode.SRC_IN
                 )
             } else {
+                viewMessageMask.visibility = View.GONE
                 if (isSelfSubRender) {
                     messageListViewV1.visibility = View.INVISIBLE
                 } else {

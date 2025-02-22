@@ -276,7 +276,7 @@
             android:id="@+id/cv_options"
             android:layout_width="218dp"
             android:layout_height="150dp"
-            android:backgroundTint="#333333"
+            android:backgroundTint="@color/ai_block3"
             app:cardCornerRadius="12dp">
 
             <androidx.recyclerview.widget.RecyclerView
