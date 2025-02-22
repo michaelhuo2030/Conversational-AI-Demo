@@ -148,11 +148,11 @@ public class ChatViewController: UIViewController {
     }
     
     private func registerDelegate() {
-        AppContext.preferenceManager()?.addDelegate(self)
+        AppContext.loginManager()?.addDelegate(self)
     }
     
     private func deregisterDelegate() {
-        AppContext.preferenceManager()?.removeDelegate(self)
+        AppContext.loginManager()?.removeDelegate(self)
     }
     
     private func preloadData() {
@@ -749,9 +749,9 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
     }
 }
 
-extension ChatViewController: AgentPreferenceManagerDelegate {
-    func preferenceManager(_ manager: AgentPreferenceManager, loginStateDidUpdated state: Bool) {
-        welcomeMessageView.isHidden = state
+extension ChatViewController: LoginManagerDelegate {
+    func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
+        welcomeMessageView.isHidden = loginState
     }
 }
 

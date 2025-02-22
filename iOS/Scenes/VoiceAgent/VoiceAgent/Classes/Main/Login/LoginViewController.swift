@@ -225,16 +225,14 @@ class LoginViewController: UIViewController {
                 print("Received token: \(token)")
                 let model = LoginModel()
                 model.token = token
-                UserCenter.shared.storeUserInfo(model)
+                AppContext.loginManager()?.updateUserInfo(userInfo: model)
                 LoginApiService.getUserInfo { [weak self] error in
                     guard let self = self else { return }
                     
                     if let err = error {
-                        UserCenter.shared.logout()
-                        AppContext.preferenceManager()?.updateLoginState(false)
+                        AppContext.loginManager()?.logout()
                         SVProgressHUD.showInfo(withStatus: err.localizedDescription)
                     } else {
-                        AppContext.preferenceManager()?.updateLoginState(true)
                         self.dismiss(animated: false) { [weak self] in
                             self?.dismiss(animated: true)
                         }

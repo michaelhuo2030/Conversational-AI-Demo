@@ -39,7 +39,7 @@ class LoginApiService: NSObject {
                     let model = LoginModel()
                     model.token = UserCenter.user?.token ?? ""
                     model.uid = userInfo.accountUid
-                    UserCenter.shared.storeUserInfo(model)
+                    AppContext.loginManager()?.updateUserInfo(userInfo: model)
                     callback?(nil)
                 } catch {
                     callback?(NSError.init(domain: "Failed to decode JSON", code: -1))

@@ -209,9 +209,8 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickLogoutItem() {
-        
+        AppContext.loginManager()?.logout()
     }
-    
 }
 
 extension AgentInformationViewController {
