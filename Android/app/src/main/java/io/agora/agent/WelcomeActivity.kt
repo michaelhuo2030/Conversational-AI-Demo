@@ -1,6 +1,5 @@
 package io.agora.agent
 
-import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
@@ -18,7 +17,6 @@ import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.common.debugMode.DebugConfigSettings
-import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.ui.vm.LoginViewModel
 import io.agora.scene.convoai.ui.CovLivingActivity
 
@@ -42,19 +40,20 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
         )
         setupLocale()
         super.onCreate(savedInstanceState)
+        goScene(AgentScenes.ConvoAi)
     }
 
     override fun initView() {
         setupView()
-        val tempToken = SSOUserManager.getToken()
-        if (tempToken.isNotEmpty()) {
-            mLoginViewModel.getUserInfoByToken(tempToken)
-            mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
-                goScene(AgentScenes.ConvoAi)
-            }
-        }else{
-            goScene(AgentScenes.ConvoAi)
-        }
+//        val tempToken = SSOUserManager.getToken()
+//        if (tempToken.isNotEmpty()) {
+//            mLoginViewModel.getUserInfoByToken(tempToken)
+//            mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
+//                goScene(AgentScenes.ConvoAi)
+//            }
+//        }else{
+//            goScene(AgentScenes.ConvoAi)
+//        }
     }
 
     private fun goScene(scene: AgentScenes) {
@@ -82,8 +81,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
 
     override fun onPause() {
         super.onPause()
-        // Clear debug callback when activity is paused
-        DebugButton.setDebugCallback(null)
     }
 
     private fun setupView() {
