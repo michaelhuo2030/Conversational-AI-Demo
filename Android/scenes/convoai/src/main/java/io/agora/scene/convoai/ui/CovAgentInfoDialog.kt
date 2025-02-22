@@ -16,8 +16,6 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.DialogFragment
-import io.agora.scene.common.constant.SSOUserManager
-import io.agora.scene.common.ui.CommonDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.LogUploader
 import io.agora.scene.common.util.copyToClipboard
@@ -27,7 +25,6 @@ import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.api.CovAgentApiManager
 import io.agora.scene.convoai.constant.AgentConnectionState
-import io.agora.scene.convoai.rtc.CovRtcManager
 
 class CovAgentInfoDialog : DialogFragment() {
     private var binding: CovInfoDialogBinding? = null
@@ -43,7 +40,6 @@ class CovAgentInfoDialog : DialogFragment() {
         }
     }
 
-    private var value: Int = -1
     private var connectionState: AgentConnectionState = AgentConnectionState.IDLE
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -64,23 +60,6 @@ class CovAgentInfoDialog : DialogFragment() {
                     WindowManager.LayoutParams.WRAP_CONTENT,
                     WindowManager.LayoutParams.MATCH_PARENT
                 )
-                
-                // 隐藏状态栏和导航栏
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    decorView.windowInsetsController?.apply {
-                        hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                        systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                    }
-                } else {
-                    @Suppress("DEPRECATION")
-                    decorView.systemUiVisibility = (
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    )
-                }
             }
         }
     }
@@ -183,7 +162,6 @@ class CovAgentInfoDialog : DialogFragment() {
                     mtvUidValue.text = CovAgentManager.uid.toString()
                 }
             }
-            updateNetworkStatus(value)
         }
     }
 
@@ -208,34 +186,6 @@ class CovAgentInfoDialog : DialogFragment() {
                 dialog?.setCancelable(true)
             }
         }
-    }
-
-    fun updateNetworkStatus(value: Int) {
-        this.value = value
-//        val context = context ?: return
-//        binding?.apply {
-//            when (value) {
-//                -1 -> {
-//                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_disconnected)
-//                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
-//                }
-//
-//                Constants.QUALITY_VBAD, Constants.QUALITY_DOWN -> {
-//                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_poor)
-//                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_red6))
-//                }
-//
-//                Constants.QUALITY_POOR, Constants.QUALITY_BAD -> {
-//                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_medium)
-//                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_yellow6))
-//                }
-//
-//                else -> {
-//                    mtvNetworkStatus.text = getString(R.string.cov_info_your_network_good)
-//                    mtvNetworkStatus.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_green6))
-//                }
-//            }
-//        }
     }
 
     private fun copyToClipboard(text: String) {

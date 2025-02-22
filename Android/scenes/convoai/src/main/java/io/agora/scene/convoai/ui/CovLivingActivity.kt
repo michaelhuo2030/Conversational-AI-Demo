@@ -280,7 +280,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
-        showRoomEndDialog()
         subRenderController.setRenderMode(SubRenderMode.Idle)
         // Immediately show the connecting status
         isUserEndCall = false
@@ -446,6 +445,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             duration = Toast.LENGTH_LONG
                         )
                         startRoomCountDownTask()
+                        showTitleAnim()
                     }
                 }
             }
@@ -643,6 +643,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // 可以在这里更新UI显示剩余时间
         val minutes = (remainingTimeMs / 1000 / 60).toInt()
         val seconds = (remainingTimeMs / 1000 % 60).toInt()
+        mBinding?.clTop?.tvTimer?.text = String.format("%02d:%02d", minutes, seconds)
         CovLogger.d(TAG, "Timer: ${String.format("%02d:%02d", minutes, seconds)}")
     }
 
@@ -668,6 +669,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 isLocalAudioMuted = false
                 CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
+            clTop.tvTimer.visibility = View.GONE
         }
     }
 
@@ -741,28 +743,29 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun updateNetworkStatus(value: Int) {
         networkValue = value
-        infoDialog?.updateNetworkStatus(value)
         mBinding?.apply {
             when (value) {
-                3, 4 -> {
-                    clTop.btnInfo.setColorFilter(
-                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_yellow6),
-                        PorterDuff.Mode.SRC_IN
-                    )
+                -1 -> {
+                    clTop.btnNet.visibility = View.GONE
                 }
 
-                5, 6 -> {
-                    clTop.btnInfo.setColorFilter(
-                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_red6),
-                        PorterDuff.Mode.SRC_IN
-                    )
+                Constants.QUALITY_VBAD, Constants.QUALITY_DOWN -> {
+                    if (connectionState == AgentConnectionState.CONNECTED_INTERRUPT) {
+                        clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_disconnected)
+                    } else {
+                        clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
+                    }
+                    clTop.btnNet.visibility = View.VISIBLE
+                }
+
+                Constants.QUALITY_POOR, Constants.QUALITY_BAD -> {
+                    clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
+                    clTop.btnNet.visibility = View.VISIBLE
                 }
 
                 else -> {
-                    clTop.btnInfo.setColorFilter(
-                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_icontext1),
-                        PorterDuff.Mode.SRC_IN
-                    )
+                    clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_good)
+                    clTop.btnNet.visibility = View.VISIBLE
                 }
             }
         }
@@ -851,7 +854,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }) {
                         showLogoutConfirmDialog()
                     }
-                    infoDialog?.updateNetworkStatus(networkValue)
                     infoDialog?.updateConnectStatus(connectionState)
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
@@ -866,6 +868,21 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     showLoginDialog()
                 }
             })
+        }
+    }
+
+    private fun showTitleAnim() {
+        mBinding?.apply {
+            clTop.tvTips.text = getString(io.agora.scene.common.R.string.common_limit_time, (CovAgentManager.roomExpireTime / 60).toInt())
+            clTop.viewFlipper.postDelayed({
+                if (connectionState != AgentConnectionState.IDLE) {
+                    clTop.viewFlipper.showNext()
+                    clTop.viewFlipper.postDelayed({
+                        clTop.viewFlipper.showNext()
+                        clTop.tvTimer.visibility = View.VISIBLE
+                    }, 5000)
+                }
+            }, 2000)
         }
     }
 
