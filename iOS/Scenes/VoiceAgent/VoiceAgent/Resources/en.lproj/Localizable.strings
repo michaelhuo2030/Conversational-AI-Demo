@@ -38,7 +38,7 @@
 
 // Settings View
 "settings.title" = "Settings";
-"settings.connecting.tip" = "Connecting...";
+"settings.connected.tips" = "(Connected, cannot be modified)";
 "settings.preset" = "Preset";
 "settings.advanced" = "Advanced Settings";
 "settings.device" = "DEVICE";

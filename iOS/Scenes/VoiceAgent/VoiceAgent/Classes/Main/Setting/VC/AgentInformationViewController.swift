@@ -161,8 +161,8 @@ class AgentInformationViewController: UIViewController {
     }
     
     private func setupPanGesture() {
-//        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
-//        backgroundView.addGestureRecognizer(panGesture!)
+        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+        backgroundView.addGestureRecognizer(panGesture!)
     }
     
     private func animateBackgroundViewIn() {
@@ -186,11 +186,11 @@ class AgentInformationViewController: UIViewController {
         case .began:
             initialCenter = backgroundView.center
         case .changed:
-            let newX = max(translation.x, 0)
-            backgroundView.transform = CGAffineTransform(translationX:newX, y: 0)
+            let newX = min(max(translation.x, -backgroundViewWidth), 0)
+            backgroundView.transform = CGAffineTransform(translationX: newX, y: 0)
         case .ended:
             let velocity = gesture.velocity(in: view)
-            let shouldDismiss = translation.x > backgroundViewWidth / 2 || velocity.x > 500
+            let shouldDismiss = abs(translation.x) > backgroundViewWidth / 2 || abs(velocity.x) > 500
             
             if shouldDismiss {
                 animateBackgroundViewOut()

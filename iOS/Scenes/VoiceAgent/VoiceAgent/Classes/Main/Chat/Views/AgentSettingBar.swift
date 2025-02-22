@@ -90,15 +90,18 @@ class AgentSettingBar: UIView {
     }
     
     public func updateButtonVisible(_ visible: Bool) {
-        infoListButton.isHidden = !visible
-        settingButton.isHidden = !visible
-        netStateView.isHidden = !visible
+        if (visible) {
+            infoListButton.isHidden = false
+            settingButton.isHidden = false
+            updateNetWorkView()
+        } else {
+            infoListButton.isHidden = true
+            settingButton.isHidden = true
+            netStateView.isHidden = true
+        }
     }
     
     public func updateRestTime(_ seconds: Int) {
-        let minutes = seconds / 60
-        let seconds = seconds % 60
-        countDownLabel.text = String(format: "%02d:%02d", minutes, seconds)
         if seconds < 59 {
             countDownLabel.textColor = UIColor.themColor(named: "ai_green6")
         } else if seconds < 20 {
@@ -106,6 +109,9 @@ class AgentSettingBar: UIView {
         } else {
             countDownLabel.textColor = UIColor.themColor(named: "ai_brand_white10")
         }
+        let minutes = seconds / 60
+        let s = seconds % 60
+        countDownLabel.text = String(format: "%02d:%02d", minutes, s)
     }
     
     public func stop() {
@@ -162,6 +168,7 @@ class AgentSettingBar: UIView {
     
     private func updateNetWorkView() {
         guard let manager = AppContext.preferenceManager() else {
+            netStateView.isHidden = true
             return
         }
         let roomState = manager.information.rtcRoomState
@@ -244,14 +251,17 @@ class AgentSettingBar: UIView {
             make.centerY.equalToSuperview()
         }
         netStateView.snp.remakeConstraints { make in
-            make.right.equalTo(settingButton.snp.left).offset(-10)
+            make.right.equalTo(settingButton.snp.left)
+            make.width.height.equalTo(42)
             make.centerY.equalToSuperview()
         }
         netTrackView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.center.equalToSuperview()
+            make.width.height.equalTo(22)
         }
         netRenderView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.center.equalToSuperview()
+            make.width.height.equalTo(22)
         }
         countDownLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
