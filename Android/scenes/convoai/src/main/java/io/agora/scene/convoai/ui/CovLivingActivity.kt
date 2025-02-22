@@ -374,6 +374,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun stopAgentAndLeaveChannel() {
         stopRoomCountDownTask()
+        stopTitleAnim()
         subRenderController.setRenderMode(SubRenderMode.Idle)
         CovRtcManager.leaveChannel()
         if (connectionState == AgentConnectionState.IDLE) {
@@ -640,8 +641,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // 可以在这里更新UI显示剩余时间
         val minutes = (remainingTimeMs / 1000 / 60).toInt()
         val seconds = (remainingTimeMs / 1000 % 60).toInt()
+        if (remainingTimeMs <= 20000) {
+            mBinding?.clTop?.tvTimer?.setTextColor(getColor(io.agora.scene.common.R.color.ai_red6))
+        } else if (remainingTimeMs <= 60000) {
+            mBinding?.clTop?.tvTimer?.setTextColor(getColor(io.agora.scene.common.R.color.ai_green6))
+        }
         mBinding?.clTop?.tvTimer?.text = String.format("%02d:%02d", minutes, seconds)
-        CovLogger.d(TAG, "Timer: ${String.format("%02d:%02d", minutes, seconds)}")
     }
 
     private fun updateUserVolumeAnim(volume: Int) {
@@ -862,18 +867,41 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
+    private var titleAnimJob: Job? = null
     private fun showTitleAnim() {
+        titleAnimJob?.cancel()
         mBinding?.apply {
             clTop.tvTips.text = getString(io.agora.scene.common.R.string.common_limit_time, (CovAgentManager.roomExpireTime / 60).toInt())
-            clTop.viewFlipper.postDelayed({
+            titleAnimJob = coroutineScope.launch {
+                delay(2000)
                 if (connectionState != AgentConnectionState.IDLE) {
                     clTop.viewFlipper.showNext()
-                    clTop.viewFlipper.postDelayed({
+                    delay(5000)
+                    if (connectionState != AgentConnectionState.IDLE) {
                         clTop.viewFlipper.showNext()
                         clTop.tvTimer.visibility = View.VISIBLE
-                    }, 5000)
+                    } else {
+                        // 如果通话已结束，强制显示第一个view
+                        while (clTop.viewFlipper.displayedChild != 0) {
+                            clTop.viewFlipper.showPrevious()
+                        }
+                        clTop.tvTimer.visibility = View.GONE
+                    }
                 }
-            }, 2000)
+            }
+        }
+    }
+
+    private fun stopTitleAnim() {
+        titleAnimJob?.cancel()
+        titleAnimJob = null
+        mBinding?.apply {
+            // 强制显示第一个view
+            while (clTop.viewFlipper.displayedChild != 0) {
+                clTop.viewFlipper.showPrevious()
+            }
+            clTop.tvTimer.visibility = View.GONE
+            mBinding?.clTop?.tvTimer?.setTextColor(getColor(io.agora.scene.common.R.color.ai_brand_white10))
         }
     }
 

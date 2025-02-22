@@ -53,7 +53,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textFontWeight="500"
+                    android:textStyle="bold"
                     android:text="@string/cov_detail_agent_title"
                     android:textColor="@color/ai_icontext1"
                     android:textSize="16sp"/>
@@ -73,7 +73,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="@string/common_limit_time"
-                    android:textFontWeight="500"
+                    android:textStyle="bold"
                     android:textColor="@color/ai_icontext1"
                     android:textSize="16sp"/>
 
@@ -113,7 +113,7 @@
         android:paddingVertical="5dp"
         android:textSize="13sp"
         android:visibility="gone"
-        android:textFontWeight="500"
+        android:textStyle="bold"
         tools:text="00:00"
         tools:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"

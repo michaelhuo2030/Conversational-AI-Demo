@@ -13,6 +13,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import io.agora.scene.common.ui.BaseDialogFragment
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.util.LogUploader
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
@@ -20,6 +21,7 @@ import io.agora.scene.convoai.databinding.CovInfoDialogBinding
 import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.api.CovAgentApiManager
 import io.agora.scene.convoai.constant.AgentConnectionState
+import io.agora.scene.convoai.rtc.CovRtcManager
 
 class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
     private var onDismissCallback: (() -> Unit)? = null
@@ -85,10 +87,16 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
             tvUploader.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     updateUploadingStatus(true)
-                    //CovRtcManager.generatePredumpFile()
+                    CovRtcManager.generatePredumpFile()
                     tvUploader.postDelayed({
-                        //LogUploader.uploadLog(CovAgentApiManager.agentId?:"",CovAgentManager.channelName?:"")
-                        updateUploadingStatus(false)
+                        LogUploader.uploadLog(CovAgentApiManager.agentId ?: "",CovAgentManager.channelName) { err ->
+                            if (err == null) {
+                                ToastUtil.show(getString(io.agora.scene.common.R.string.common_upload_time_success))
+                            } else {
+                                ToastUtil.show(getString(io.agora.scene.common.R.string.common_upload_time_success))
+                            }
+                            updateUploadingStatus(false)
+                        }
                     }, 5000L)
                 }
             })
