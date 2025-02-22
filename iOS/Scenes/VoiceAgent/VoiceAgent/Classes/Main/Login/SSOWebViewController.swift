@@ -8,154 +8,71 @@
 import UIKit
 import WebKit
 import SVProgressHUD
+import Common
 
-struct CustomBarButtonItem {
-    var title: String?
-    var image: UIImage?
-    weak var target: AnyObject?
-    var action: Selector
-}
-
-
-class CustomNavigationBar: UIView {
-    var title: String? {
-        didSet {
-            titleLabel.text = title
-        }
-    }
+class CustomNavigationView: UIView {
+    var onBackButtonTapped: (() -> Void)?
     
-    var rightItems: [CustomBarButtonItem]? {
-        didSet {
-            addRightBarButtonItems(rightItems)
-        }
-    }
+    private lazy var backButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage.ag_named("ic_sso_back_icon"), for: .normal)
+        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        return button
+    }()
     
-    var leftItems: [CustomBarButtonItem]? {
-        didSet {
-            addLeftBarButtonItems(leftItems)
-        }
-    }
-    
-    private var leftButtons = [UIButton]()
-    private var rightButtons = [UIButton]()
-    
-    lazy var titleLabel: UILabel = {
-        let titleLabel = UILabel()
-        addSubview(titleLabel)
-        titleLabel.text = "navi_title_show_live"
-        titleLabel.textColor = .black
-        titleLabel.font = UIFont.systemFont(ofSize: 14)
-        return titleLabel
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .black
+        label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.textAlignment = .center
+        return label
     }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 44)
-        createSubviews()
+        self.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 64)
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func createSubviews(){
+    private func setupUI() {
+        backgroundColor = .white
         
+        addSubview(backButton)
         addSubview(titleLabel)
-        titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(16)
-            make.centerX.equalToSuperview()
+        
+        backButton.snp.makeConstraints { make in
+            make.left.equalTo(20)
+            make.centerY.equalTo(titleLabel)
+            make.width.height.equalTo(44)
         }
         
-        setLeftButtonTarget(self, action: #selector(didClickLeftButtonAction))
-    }
-    
-    func setLeftButtonTarget(_ target: AnyObject, action: Selector, image: UIImage? = UIImage(named: "show_navi_back"), title: String? = nil ) {
-        self.leftItems = nil
-        let item = CustomBarButtonItem(title: title, image: image ,target: target, action: action)
-        self.leftItems = [item]
-    }
-   
-}
-
-extension CustomNavigationBar {
-    
-    @objc private func didClickLeftButtonAction(){
-        currentNavigationController()?.popViewController(animated: true)
-    }
-    
-    private func currentNavigationController() -> UINavigationController? {
-        var nextResponder = next
-        while (nextResponder is UINavigationController || nextResponder == nil) == false {
-            nextResponder = nextResponder?.next
-        }
-        return nextResponder as? UINavigationController
-    }
-    
-    private func addRightBarButtonItems(_ items: [CustomBarButtonItem]?) {
-        if items == nil {
-            for button in rightButtons {
-                button.removeFromSuperview()
-            }
-            return
-        }
-        var firstButton: UIButton?
-        for item in items! {
-            let button = createBarButton(item: item)
-            addSubview(button)
-            rightButtons.append(button)
-            button.snp.makeConstraints { make in
-                if firstButton == nil {
-                    firstButton = button
-                    make.right.equalTo(-20)
-                }else{
-                    make.right.equalTo(firstButton!.snp.left).offset(-25)
-                }
-                make.centerY.equalTo(titleLabel)
-            }
+        titleLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.bottom.equalTo(-12)
         }
     }
     
-    private func addLeftBarButtonItems(_ items: [CustomBarButtonItem]?) {
-        if items == nil {
-            for button in leftButtons {
-                button.removeFromSuperview()
-            }
-            return
-        }
-        var firstButton: UIButton?
-        for item in items! {
-            let button = createBarButton(item: item)
-            addSubview(button)
-            leftButtons.append(button)
-            button.snp.makeConstraints { make in
-                if firstButton == nil {
-                    firstButton = button
-                    make.left.equalTo(20)
-                }else{
-                    make.left.equalTo(firstButton!.snp.rightMargin).offset(25)
-                }
-                make.centerY.equalTo(titleLabel)
-            }
-        }
+    @objc private func backButtonTapped() {
+        onBackButtonTapped?()
     }
     
-    private func createBarButton(item: CustomBarButtonItem) -> UIButton {
-        let button = UIButton(type: .custom)
-        button.setTitle(item.title, for: .normal)
-        button.setImage(item.image, for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
-        button.addTarget(item.target, action: item.action, for: .touchUpInside)
-        return button
+    func setTitle(_ title: String?) {
+        titleLabel.text = title
     }
 }
 
 @objc class SSOWebViewController: UIViewController {
-    private lazy var naviBar: CustomNavigationBar = {
-        let view = CustomNavigationBar()
-        view.title = "Agora Live"
+    private lazy var naviBar: CustomNavigationView = {
+        let view = CustomNavigationView()
+        view.setTitle(ResourceManager.L10n.Conversation.appName)
         view.backgroundColor = .white
-        view.setLeftButtonTarget(self, action: #selector(didClickCanelButton))
+        view.onBackButtonTapped = { [weak self] in
+            self?.dismiss(animated: true)
+        }
         return view
     }()
 
@@ -184,6 +101,17 @@ extension CustomNavigationBar {
         return view
     }()
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 0))
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        SVProgressHUD.dismiss()
+        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180))
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -211,11 +139,6 @@ extension CustomNavigationBar {
         
         emptyView.isHidden = true
 
-    }
-    
-    @objc private func didClickCanelButton() {
-        SVProgressHUD.dismiss()
-        self.navigationController?.popViewController(animated: true)
     }
     
     // MARK: - JavaScript Injection
@@ -290,7 +213,7 @@ extension SSOWebViewController: WKNavigationDelegate {
         SVProgressHUD.dismiss()
         webView.evaluateJavaScript("document.title") { [weak self] (result, error) in
             if let title = result as? String {
-                self?.title = title
+                self?.naviBar.setTitle(title)
             }
         }
         injectJavaScript()
