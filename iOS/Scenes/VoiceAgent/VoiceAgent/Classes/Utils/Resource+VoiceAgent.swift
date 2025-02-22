@@ -34,6 +34,7 @@ extension ResourceManager {
         public enum Join {
             public static let title = ResourceManager.localizedString("join.start.title")
             public static let state = ResourceManager.localizedString("join.start.state")
+            public static let tips = ResourceManager.localizedString("join.start.tips")
             public static let buttonTitle = ResourceManager.localizedString("join.start.button.title")
             public static let agentName = ResourceManager.localizedString("join.start.agent.name")
             public static let agentConnecting = ResourceManager.localizedString("conversation.agent.connecting")

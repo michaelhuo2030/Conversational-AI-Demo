@@ -48,15 +48,8 @@ public class ChatViewController: UIViewController {
     
     private lazy var topBar: AgentSettingBar = {
         let view = AgentSettingBar()
-        view.onTipsButtonTapped = { [weak self] in
-            self?.clickTheInformationButton()
-        }
-        view.onSettingButtonTapped = { [weak self] in
-            self?.clickTheSettingButton()
-        }
-        view.onBackButtonTapped = { [weak self] in
-            self?.clickTheBackButton()
-        }
+        view.infoListButton.addTarget(self, action: #selector(onClickInformationButton), for: .touchUpInside)
+        view.settingButton.addTarget(self, action: #selector(onClickSettingButton), for: .touchUpInside)
         return view
     }()
 
@@ -130,6 +123,11 @@ public class ChatViewController: UIViewController {
         setupConstraints()
     }
     
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    
     private func preloadData() {
         Task {
             do {
@@ -158,7 +156,7 @@ public class ChatViewController: UIViewController {
     private func setupConstraints() {
         topBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(5)
-            make.left.right.equalToSuperview().inset(20)
+            make.left.right.equalToSuperview()
             make.height.equalTo(48)
         }
         
@@ -576,13 +574,13 @@ private extension ChatViewController {
         self.navigationController?.popViewController(animated: true)
     }
     
-    private func clickTheInformationButton() {
+    @objc private func onClickInformationButton() {
         let settingVC = AgentInformationViewController()
         settingVC.modalPresentationStyle = .overFullScreen
         present(settingVC, animated: false)
     }
     
-    private func clickTheSettingButton() {
+    @objc private func onClickSettingButton() {
         let settingVC = AgentSettingViewController()
         settingVC.modalPresentationStyle = .overFullScreen
         settingVC.agentManager = agentManager

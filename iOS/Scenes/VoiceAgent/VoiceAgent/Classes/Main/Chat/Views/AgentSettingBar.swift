@@ -9,42 +9,33 @@ import UIKit
 import Common
 
 class AgentSettingBar: UIView {
-    // MARK: - Callbacks
-    var onBackButtonTapped: (() -> Void)?
-    var onTipsButtonTapped: (() -> Void)?
-    var onSettingButtonTapped: (() -> Void)?
-    var onNetworkStatusChanged: (() -> Void)?
     
-    private let signalBarCount = 5
-    private var signalBars: [UIView] = []
-    
-    lazy var backButton: UIButton = {
+    let infoListButton: UIButton = {
         let button = UIButton()
-        button.setImage(UIImage.ag_named("ic_agora_back"), for: .normal)
-        button.addTarget(self, action: #selector(backEvent), for: .touchUpInside)
+        button.setImage(UIImage.ag_named("ic_agent_info_list")?.withRenderingMode(.alwaysTemplate), for: .normal)
+        button.tintColor = UIColor.themColor(named: "ai_icontext1")
         return button
     }()
     
-    private lazy var titleLabel: UILabel = {
+    private lazy var centerTipsLabel: UILabel = {
         let label = UILabel()
-        label.text = ResourceManager.L10n.Join.title
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = UIColor.themColor(named: "ai_icontext2")
+        label.text = ResourceManager.L10n.Join.tips
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
         return label
     }()
     
-    private let tipsButton: UIButton = {
+    let netStateView = UIView()
+    private let netTrackView = UIImageView(image: UIImage.ag_named("ic_agent_net_4"))
+    private let netRenderView = UIImageView(image: UIImage.ag_named("ic_agent_net_3"))
+    
+    let settingButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.ag_named("ic_agent_tips_icon"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agent_setting"), for: .normal)
         return button
     }()
     
-    private lazy var settingButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setImage(UIImage.ag_named("ic_agent_setting"), for: .normal)
-        button.addTarget(self, action: #selector(settingButtonClicked), for: .touchUpInside)
-        return button
-    }()
+    private let centerTitleView = UIView()
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -52,7 +43,11 @@ class AgentSettingBar: UIView {
         registerDelegate()
         setupViews()
         setupConstraints()
-        tipsButton.addTarget(self, action: #selector(tipsButtonClicked), for: .touchUpInside)
+        updateNetWorkView()
+        
+        startFlippingAnimation()
+        
+        tempView = centerTitleView
     }
     
     required init?(coder: NSCoder) {
@@ -77,76 +72,134 @@ class AgentSettingBar: UIView {
         }
     }
     
+    func startFlippingAnimation() {
+        Timer.scheduledTimer(timeInterval: 4.0, target: self, selector: #selector(flipViews), userInfo: nil, repeats: true)
+    }
+    
+    var tempView: UIView?
+    @objc func flipViews() {
+        guard let view = tempView else {
+            return
+        }
+        // 开始动画
+        UIView.animate(withDuration: 1.0, animations: {
+            self.centerTitleView.snp.updateConstraints { make in
+                make.bottom.equalTo(self.snp.top)
+            }
+            self.centerTipsLabel.snp.updateConstraints { make in
+                make.bottom.equalToSuperview()
+            }
+        }) { _ in
+            
+        }
+    }
+    
+    private func updateNetWorkView() {
+        guard let manager = AppContext.preferenceManager() else {
+            return
+        }
+        let roomState = manager.information.rtcRoomState
+        if (roomState == .unload) {
+            netStateView.isHidden = true
+        } else if (roomState == .connected) {
+            netStateView.isHidden = false
+            netTrackView.isHidden = false
+            netRenderView.isHidden = false
+            netTrackView.image = UIImage.ag_named("ic_agent_net_0")
+            let netState = manager.information.networkState
+            var imageName = "ic_agent_net_1"
+            switch netState {
+            case .good:
+                imageName = "ic_agent_net_3"
+                break
+            case .fair:
+                imageName = "ic_agent_net_2"
+                break
+            case .poor:
+                imageName = "ic_agent_net_1"
+                break
+            }
+            netRenderView.image = UIImage.ag_named(imageName)
+        } else {
+            netStateView.isHidden = false
+            netTrackView.isHidden = false
+            netRenderView.isHidden = true
+            netTrackView.image = UIImage.ag_named("ic_agent_net_4")
+        }
+    }
+    
     private func setupViews() {
-        [backButton, titleLabel, tipsButton, settingButton].forEach { addSubview($0) }
+        [infoListButton, centerTipsLabel, centerTitleView, netStateView, settingButton].forEach { addSubview($0) }
+        [netTrackView, netRenderView].forEach { netStateView.addSubview($0) }
+        
+        let titleImageView = UIImageView()
+        titleImageView.image = UIImage.ag_named("ic_agent_detail_logo")
+        centerTitleView.addSubview(titleImageView)
+        titleImageView.snp.makeConstraints { make in
+            make.left.equalToSuperview()
+            make.centerY.equalToSuperview()
+        }
+        
+        let titleLabel = UILabel()
+        titleLabel.text = ResourceManager.L10n.Join.title
+        titleLabel.font = .systemFont(ofSize: 14)
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+        centerTitleView.addSubview(titleLabel)
+        titleLabel.snp.makeConstraints { make in
+            make.left.equalTo(titleImageView.snp.right).offset(10)
+            make.centerY.equalToSuperview()
+            make.right.equalToSuperview()
+        }
+        
+        netTrackView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        netRenderView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
     }
     
     private func setupConstraints() {
-        backButton.snp.makeConstraints { make in
-            make.left.equalToSuperview()
+        infoListButton.snp.makeConstraints { make in
+            make.left.equalTo(10)
+            make.width.height.equalTo(42)
             make.centerY.equalToSuperview()
-            make.width.height.equalTo(48)
         }
         
-        titleLabel.snp.makeConstraints { make in
-            make.left.equalTo(backButton.snp.right).offset(4)
-            make.centerY.equalToSuperview()
+        centerTitleView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.height.equalToSuperview()
+            make.bottom.equalToSuperview()
+        }
+        
+        centerTipsLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.height.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-44)
         }
         
         settingButton.snp.makeConstraints { make in
-            make.right.equalToSuperview()
+            make.right.equalTo(-10)
+            make.width.height.equalTo(42)
             make.centerY.equalToSuperview()
-            make.width.height.equalTo(48)
         }
         
-        tipsButton.snp.remakeConstraints { make in
+        netStateView.snp.remakeConstraints { make in
             make.right.equalTo(settingButton.snp.left)
             make.centerY.equalToSuperview()
             make.width.height.equalTo(48)
         }
-        
-    }
-    
-    // MARK: - Actions
-    @objc func backEvent() {
-        onBackButtonTapped?()
-    }
-    
-    @objc private func tipsButtonClicked() {
-        onTipsButtonTapped?()
-    }
-    
-    @objc private func settingButtonClicked() {
-        onSettingButtonTapped?()
     }
 }
 
 extension AgentSettingBar: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {
-        let roomState = manager.information.rtcRoomState
-        if roomState == .unload {
-            return
-        }
-        
-        var imageName = "ic_agent_tips_icon"
-        switch networkState {
-        case .good:
-            imageName = "ic_agent_tips_icon"
-            break
-        case .fair:
-            imageName = "ic_agent_tips_icon_yellow"
-            break
-        case .poor:
-            imageName = "ic_agent_tips_icon_red"
-            break
-        }
-        
-        tipsButton.setImage(UIImage.ag_named(imageName), for: .normal)
+        updateNetWorkView()
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {
         if roomState == .unload {
-            tipsButton.setImage(UIImage.ag_named("ic_agent_tips_icon"), for: .normal)
+//            tipsButton.setImage(UIImage.ag_named("ic_agent_tips_icon"), for: .normal)
         }
     }
 }

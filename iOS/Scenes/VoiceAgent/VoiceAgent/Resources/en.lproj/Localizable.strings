@@ -3,6 +3,7 @@
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";
+"join.start.tips" = "Limited to 10 minutes";
 
 "conversation.agent.name" = "Agent";
 "conversation.button.end.call" = "End Call";

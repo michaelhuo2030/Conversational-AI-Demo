@@ -3,6 +3,7 @@
 "join.start.state" = "未加入";
 "join.start.button.title" = "连接 AI 引擎";
 "join.start.agent.name" = "智能体";
+"join.start.tips" = "每次对话限时10分钟";
 
 "conversation.agent.name" = "智能体";
 "conversation.button.end.call" = "结束通话";
