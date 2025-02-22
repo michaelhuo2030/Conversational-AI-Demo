@@ -267,7 +267,6 @@ extension AgentInformationViewController {
             make.top.equalTo(channelInfoTitle.snp.bottom).offset(8)
             make.left.equalTo(16)
             make.right.equalTo(-16)
-            make.bottom.equalToSuperview()
         }
 
         for (index, item) in channelInfoItems.enumerated() {
@@ -298,6 +297,7 @@ extension AgentInformationViewController {
             make.top.equalTo(moreInfoTitle.snp.bottom).offset(8)
             make.left.equalTo(16)
             make.right.equalTo(-16)
+            make.bottom.equalToSuperview()
         }
 
         for (index, item) in moreItems.enumerated() {
