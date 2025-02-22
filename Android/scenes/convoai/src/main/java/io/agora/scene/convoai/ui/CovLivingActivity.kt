@@ -846,8 +846,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             clTop.btnInfo.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    infoDialog = CovAgentInfoDialog.newInstance {
+                    infoDialog = CovAgentInfoDialog.newInstance({
                         infoDialog = null
+                    }) {
+                        showLogoutConfirmDialog()
                     }
                     infoDialog?.updateNetworkStatus(networkValue)
                     infoDialog?.updateConnectStatus(connectionState)
@@ -1030,5 +1032,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun onClickTermsDetail() {
         val intent = Intent(this, TermsActivity::class.java)
         startActivity(intent)
+    }
+
+    private fun showLogoutConfirmDialog() {
+        CommonDialog.Builder()
+            .setTitle(getString(io.agora.scene.common.R.string.common_logout_confirm_title))
+            .setContent(getString(io.agora.scene.common.R.string.common_logout_confirm_text))
+            .setPositiveButton(getString(io.agora.scene.common.R.string.common_logout_confirm_known))
+            .setNegativeButton(getString(io.agora.scene.common.R.string.common_logout_confirm_cancel))
+            .build()
+            .show(supportFragmentManager, "logout_dialog_tag")
     }
 }

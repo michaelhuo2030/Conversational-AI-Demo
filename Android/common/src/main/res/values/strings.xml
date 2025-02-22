@@ -21,4 +21,9 @@
     <string name="common_terms_info">I agree to the</string>
     <string name="common_terms_selection"><u>Agora Terms of Service</u></string>
     <string name="common_terms_tips">Read me first</string>
+
+    <string name="common_logout_confirm_title">您是否要退出</string>
+    <string name="common_logout_confirm_text">您将退出当前账号，退出后需要重新登录才\n能使用完整功能。是否继续?</string>
+    <string name="common_logout_confirm_known">退出</string>
+    <string name="common_logout_confirm_cancel">取消</string>
 </resources>

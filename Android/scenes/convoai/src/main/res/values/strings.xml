@@ -34,6 +34,9 @@
     <string name="cov_info_your_network_medium">Fair</string>
     <string name="cov_info_your_network_poor">Poor</string>
     <string name="cov_netwotk_info_title">NETWORK INFO</string>
+    <string name="cov_info_logout">Logout</string>
+    <string name="cov_info_more">More Actions</string>
+    <string name="cov_info_uploader">Data Uploader</string>
 
     <string name="cov_setting_title">Settings</string>
     <string name="cov_setting_agent">AGENT</string>
