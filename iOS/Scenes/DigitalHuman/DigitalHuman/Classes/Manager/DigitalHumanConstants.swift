@@ -20,7 +20,7 @@ enum AgentVoiceType: String {
     // Mainland voices
     case femaleShaonv = "female-shaonv"
     
-    // Overseas voices
+    // global voices
     case emma2 = "en-US-Emma2:DragonHDLatestNeural"
     case emma = "en-US-EmmaMultilingualNeural"
     case andrew = "en-US-AndrewMultilingualNeural"

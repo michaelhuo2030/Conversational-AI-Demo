@@ -14,6 +14,7 @@ public class VoiceAgentEntrance: NSObject {
     public static let kSceneName = "VoiceAgent"
     
     public static func voiceAgentScene(viewController: UIViewController) {
+        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180))
         let vc = ChatViewController()
         viewController.navigationController?.pushViewController(vc, animated: true)
     }
@@ -21,6 +22,7 @@ public class VoiceAgentEntrance: NSObject {
 
 extension AppContext {
     static private var _preferenceManager: AgentPreferenceManager?
+    static private var _loginManager: LoginManager?
     
     static func preferenceManager() -> AgentPreferenceManager? {
         if let manager = _preferenceManager {
@@ -32,8 +34,19 @@ extension AppContext {
         return _preferenceManager
     }
     
+    static func loginManager() -> LoginManager? {
+        if let manager = _loginManager {
+            return manager
+        }
+        
+        _loginManager = LoginManager()
+        
+        return _loginManager
+    }
+    
     static func destory() {
         _preferenceManager = nil
+        _loginManager = nil
     }
     
     static var agentUid: Int {

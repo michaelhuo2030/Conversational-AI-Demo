@@ -31,15 +31,26 @@ extension ResourceManager {
             public static let digCardDes = ResourceManager.localizedString("scene.dig.card.des")
         }
 
+        public enum Login {
+            public static let title = ResourceManager.localizedString("login.title")
+            public static let description = ResourceManager.localizedString("login.description")
+            public static let buttonTitle = ResourceManager.localizedString("login.start.button.title")
+            public static let termsServicePrefix = ResourceManager.localizedString("login.terms.service.prefix")
+            public static let termsServiceSuffix = ResourceManager.localizedString("login.terms.service.suffix")
+            public static let termsServiceTips = ResourceManager.localizedString("login.terms.service.tips")
+        }
+
         public enum Join {
             public static let title = ResourceManager.localizedString("join.start.title")
             public static let state = ResourceManager.localizedString("join.start.state")
+            public static let tips = ResourceManager.localizedString("join.start.tips")
             public static let buttonTitle = ResourceManager.localizedString("join.start.button.title")
             public static let agentName = ResourceManager.localizedString("join.start.agent.name")
             public static let agentConnecting = ResourceManager.localizedString("conversation.agent.connecting")
         }
 
         public enum Conversation {
+            public static let appName = ResourceManager.localizedString("conversation.ai.app.name")
             public static let agentName = ResourceManager.localizedString("conversation.agent.name")
             public static let buttonEndCall = ResourceManager.localizedString("conversation.button.end.call")
             public static let agentLoading = ResourceManager.localizedString("conversation.agent.loading")
@@ -102,6 +113,9 @@ extension ResourceManager {
             public static let networkGood = ResourceManager.localizedString("channel.network.good")
             public static let networkPoor = ResourceManager.localizedString("channel.network.poor")
             public static let networkFair = ResourceManager.localizedString("channel.network.fair")
+            public static let moreInfo = ResourceManager.localizedString("channel.more.title")
+            public static let feedback = ResourceManager.localizedString("channel.more.feedback")
+            public static let logout = ResourceManager.localizedString("channel.more.logout")
         }
         
         public enum DevMode {

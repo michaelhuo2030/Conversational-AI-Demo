@@ -12,15 +12,15 @@ import SVProgressHUD
 import SwifterSwift
 import Common
 
-class ChatViewController: UIViewController {
+public class ChatViewController: UIViewController {
     private var isDenoise = true
     private let messageParser = MessageParser()
-    private let uid = "\(RtcEnum.getUid())"
     private var remoteIsJoined = false
     private var channelName = ""
     private var token = ""
     private var agentUid = 0
     private var remoteAgentId = ""
+    private let uid = "\(RtcEnum.getUid())"
     
     private lazy var timerCoordinator: AgentTimerCoordinator = {
         let coordinator = AgentTimerCoordinator()
@@ -48,21 +48,28 @@ class ChatViewController: UIViewController {
     
     private lazy var topBar: AgentSettingBar = {
         let view = AgentSettingBar()
-        view.onTipsButtonTapped = { [weak self] in
-            self?.clickTheInformationButton()
-        }
-        view.onSettingButtonTapped = { [weak self] in
-            self?.clickTheSettingButton()
-        }
-        view.onBackButtonTapped = { [weak self] in
-            self?.clickTheBackButton()
-        }
+        view.infoListButton.addTarget(self, action: #selector(onClickInformationButton), for: .touchUpInside)
+        view.settingButton.addTarget(self, action: #selector(onClickSettingButton), for: .touchUpInside)
         return view
     }()
 
     private lazy var bottomBar: AgentControlToolbar = {
         let view = AgentControlToolbar()
         view.delegate = self
+        return view
+    }()
+    
+    private lazy var welcomeMessageView: UIImageView = {
+        let view = UIImageView()
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.textColor = .white
+        label.text = "hi, i’m Convo aI agents"
+        label.textAlignment = .center
+        view.addSubview(label)
+        label.snp.makeConstraints { make in
+            make.edges.equalTo(UIEdgeInsets.zero)
+        }
         return view
     }()
     
@@ -74,6 +81,17 @@ class ChatViewController: UIViewController {
     private lazy var animateView: AnimateView = {
         let view = AnimateView(videoView: animateContentView)
         view.delegate = self
+        return view
+    }()
+    
+    private let upperBackgroundView: UIView = {
+        let view = UIView()
+        return view
+    }()
+    
+    private let lowerBackgroundView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.themColor(named: "ai_fill4")
         return view
     }()
     
@@ -119,18 +137,52 @@ class ChatViewController: UIViewController {
         
     deinit {
         print("liveing view controller deinit")
+        deregisterDelegate()
     }
     
-    override func viewDidLoad() {
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.setNavigationBarHidden(true, animated: false)
+
+        let isLogin = UserCenter.shared.isLogin()
+        welcomeMessageView.isHidden = isLogin
+    }
+    
+    public override func viewDidLoad() {
         super.viewDidLoad()
         UIApplication.shared.isIdleTimerDisabled = true
 
+        registerDelegate()
         preloadData()
         setupViews()
         setupConstraints()
     }
     
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // set gradient color from #23248399 to #242439
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.frame = upperBackgroundView.bounds
+        let startColor = UIColor(argbHexString: "#1D1D56") ?? .black
+        let endColor = UIColor(argbHexString: "#242439") ?? .black
+        gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+        upperBackgroundView.layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
+    private func registerDelegate() {
+        AppContext.loginManager()?.addDelegate(self)
+    }
+    
+    private func deregisterDelegate() {
+        AppContext.loginManager()?.removeDelegate(self)
+    }
+    
     private func preloadData() {
+        let isLogin = UserCenter.shared.isLogin()
+        if !isLogin {
+            return
+        }
+
         Task {
             do {
                 try await fetchPresetsIfNeeded()
@@ -144,8 +196,8 @@ class ChatViewController: UIViewController {
     private func setupViews() {
         view.backgroundColor = .black
         
-        [topBar, contentView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
-        devModeButton.isHidden = !AppContext.shared.enableDeveloperMode
+        [upperBackgroundView, lowerBackgroundView, topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
         
         contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
@@ -158,7 +210,7 @@ class ChatViewController: UIViewController {
     private func setupConstraints() {
         topBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(5)
-            make.left.right.equalToSuperview().inset(20)
+            make.left.right.equalToSuperview()
             make.height.equalTo(48)
         }
         
@@ -191,10 +243,25 @@ class ChatViewController: UIViewController {
             make.left.right.equalTo(0)
             make.height.equalTo(76)
         }
+        
+        welcomeMessageView.snp.makeConstraints { make in
+            make.left.equalTo(29)
+            make.right.equalTo(-29)
+            make.bottom.equalTo(bottomBar.snp.top).offset(-41)
+        }
+        
         devModeButton.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
             make.right.equalTo(-20)
             make.size.equalTo(CGSize(width: 44, height: 44))
+        }
+        upperBackgroundView.snp.makeConstraints { make in
+            make.top.left.right.equalToSuperview()
+            make.bottom.equalTo(animateContentView.snp.top)
+        }
+        lowerBackgroundView.snp.makeConstraints { make in
+            make.top.equalTo(animateContentView.snp.top)
+            make.left.right.bottom.equalToSuperview()
         }
     }
     
@@ -426,17 +493,17 @@ extension ChatViewController {
 
 // MARK: - AgoraRtcEngineDelegate
 extension ChatViewController: AgoraRtcEngineDelegate {
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didOccurError errorCode: AgoraErrorCode) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didOccurError errorCode: AgoraErrorCode) {
         addLog("[RTC Call Back] engine didOccurError: \(errorCode.rawValue)")
         SVProgressHUD.dismiss()
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didLeaveChannelWith stats: AgoraChannelStats) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didLeaveChannelWith stats: AgoraChannelStats) {
         addLog("[RTC Call Back] didLeaveChannelWith : \(stats)")
         print("didLeaveChannelWith")
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
         addLog("[RTC Call Back] connectionChangedToState: \(state), reason: \(reason)")
         if reason == .reasonInterrupted {
             animateView.updateAgentState(.idle)
@@ -467,11 +534,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
         addLog("[RTC Call Back] didJoinChannel uid: \(uid)")
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         toastView.dismiss()
         remoteIsJoined = true
         timerCoordinator.startUsageDurationLimitTimer()
@@ -484,7 +551,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
         addLog("[RTC Call Back] didOfflineOfUid uid: \(uid)")
         animateView.updateAgentState(.idle)
         AppContext.preferenceManager()?.updateAgentState(.disconnected)
@@ -492,7 +559,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         remoteIsJoined = false
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
         self.token = ""
         addLog("[RTC Call Back] tokenPrivilegeWillExpire")
         NetworkManager.shared.generateToken(
@@ -511,17 +578,17 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
         if AppContext.preferenceManager()?.information.agentState == .unload { return }
         addLog("[RTC Call Back] networkQuality: \(rxQuality)")
         AppContext.preferenceManager()?.updateNetworkState(NetworkStatus(agoraQuality: rxQuality))
     }
         
-    func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
         messageAdapter.inputStreamMessageData(data: data)
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
         speakers.forEach { info in
             if (info.uid == agentUid) {
                 var currentVolume: CGFloat = 0
@@ -538,7 +605,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStateChangedOfUid uid: UInt, state: AgoraAudioRemoteState, reason: AgoraAudioRemoteReason, elapsed: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStateChangedOfUid uid: UInt, state: AgoraAudioRemoteState, reason: AgoraAudioRemoteReason, elapsed: Int) {
         addLog("[RTC Call Back] remoteAudioStateChangedOfUid")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -552,14 +619,14 @@ extension ChatViewController: AgoraRtcEngineDelegate {
 // MARK: - AgoraAudioFrameDelegate
 extension ChatViewController: AgoraAudioFrameDelegate {
     
-    func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
+    public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
         if uid == agentUid {
             messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
         }
         return true
     }
     
-    func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
+    public func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
         return .beforeMixing
     }
 }
@@ -576,13 +643,13 @@ private extension ChatViewController {
         self.navigationController?.popViewController(animated: true)
     }
     
-    private func clickTheInformationButton() {
+    @objc private func onClickInformationButton() {
         let settingVC = AgentInformationViewController()
         settingVC.modalPresentationStyle = .overFullScreen
         present(settingVC, animated: false)
     }
     
-    private func clickTheSettingButton() {
+    @objc private func onClickSettingButton() {
         let settingVC = AgentSettingViewController()
         settingVC.modalPresentationStyle = .overFullScreen
         settingVC.agentManager = agentManager
@@ -600,7 +667,17 @@ private extension ChatViewController {
     
     private func clickTheStartButton() async {
         addLog("[Call] clickTheStartButton()")
-        await prepareToStartAgent()
+        let loginState = UserCenter.shared.isLogin()
+        if loginState {
+            await prepareToStartAgent()
+            return
+        }
+        
+        await MainActor.run {
+            let loginVC = LoginViewController()
+            loginVC.modalPresentationStyle = .overFullScreen
+            self.present(loginVC, animated: false)
+        }
     }
     
     private func clickCaptionsButton(state: Bool) {
@@ -669,6 +746,21 @@ extension ChatViewController: MessageAdapterDelegate {
 }
 
 extension ChatViewController: AgentTimerCoordinatorDelegate {
+    func agentUseLimitedTimerStarted(duration: Int) {
+        addLog("[Call] agentUseLimitedTimerStarted")
+        topBar.startWithRestTime(duration)
+    }
+    
+    func agentUseLimitedTimerUpdated(duration: Int) {
+        addLog("[Call] agentUseLimitedTimerUpdated")
+        topBar.updateRestTime(duration)
+    }
+    
+    func agentUseLimitedTimerEnd() {
+        addLog("[Call] agentUseLimitedTimerEnd")
+        topBar.stop()
+    }
+    
     func agentStartPing() {
         addLog("[Call] agentStartPing()")
         self.startPingRequest()
@@ -697,9 +789,11 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
         timerCoordinator.stopJoinChannelTimer()
     }
     
-    func agentTimeLimited() {
-        addLog("[Call] agentTimeLimited")
-    }
 }
 
+extension ChatViewController: LoginManagerDelegate {
+    func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
+        welcomeMessageView.isHidden = loginState
+    }
+}
 

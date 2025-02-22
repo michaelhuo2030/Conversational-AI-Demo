@@ -9,14 +9,14 @@ import UIKit
 import Common
 
 class AgentInformationViewController: UIViewController {
-    private let backgroundViewHeight: CGFloat = 492
+    private let backgroundViewWidth: CGFloat = 315
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
-    private var networkItems: [UIView] = []
+    private var moreItems: [UIView] = []
     private var channelInfoItems: [UIView] = []
     
-    var channelName = ""
-    
+    private lazy var feedBackPresenter = FeedBackPresenter()
+        
     private lazy var topView: AgentSettingTopView = {
         let view = AgentSettingTopView()
         view.setTitle(title: ResourceManager.L10n.ChannelInfo.title)
@@ -42,15 +42,15 @@ class AgentInformationViewController: UIViewController {
         return view
     }()
     
-    private lazy var networkInfoTitle: UILabel = {
+    private lazy var moreInfoTitle: UILabel = {
         let label = UILabel()
-        label.text = ResourceManager.L10n.ChannelInfo.networkInfoTitle
-        label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.text = ResourceManager.L10n.ChannelInfo.moreInfo
+        label.font = UIFont.boldSystemFont(ofSize: 12)
         label.textColor = UIColor.themColor(named: "ai_icontext4")
         return label
     }()
     
-    private lazy var networkInfoView: UIView = {
+    private lazy var moreInfoView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.themColor(named: "ai_block2")
         view.layerCornerRadius = 10
@@ -59,19 +59,29 @@ class AgentInformationViewController: UIViewController {
         return view
     }()
     
-    private lazy var networkItem: AgentSettingTableItemView = {
-        let view = AgentSettingTableItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourNetwork
-        view.detailLabel.textColor = UIColor.themColor(named: "ai_green6")
-        view.imageView.isHidden = true
+    private lazy var feedbackItem: AgentSettingIconItemView = {
+        let view = AgentSettingIconItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.feedback
+        view.imageView.image = UIImage.ag_named("ic_info_debug")?.withRenderingMode(.alwaysTemplate)
+        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
+        view.button.addTarget(self, action: #selector(onClickFeedbackItem), for: .touchUpInside)
+        return view
+    }()
+    
+    private lazy var logoutItem: AgentSettingIconItemView = {
+        let view = AgentSettingIconItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.logout
+        view.imageView.image = UIImage.ag_named("ic_info_logout")?.withRenderingMode(.alwaysTemplate)
+        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
+        view.button.addTarget(self, action: #selector(onClickLogoutItem), for: .touchUpInside)
         return view
     }()
     
     private lazy var channelInfoTitle: UILabel = {
         let label = UILabel()
         label.text = ResourceManager.L10n.ChannelInfo.subtitle
-        label.font = UIFont.boldSystemFont(ofSize: 16)
-        label.textColor = UIColor.themColor(named: "ai_icontext3")
+        label.font = UIFont.boldSystemFont(ofSize: 12)
+        label.textColor = UIColor.themColor(named: "ai_icontext4")
         return label
     }()
     
@@ -151,7 +161,7 @@ class AgentInformationViewController: UIViewController {
     }
     
     private func animateBackgroundViewIn() {
-        backgroundView.transform = CGAffineTransform(translationX: 0, y: backgroundViewHeight)
+        backgroundView.transform = CGAffineTransform(translationX: -self.backgroundViewWidth, y: 0)
         UIView.animate(withDuration: 0.3) {
             self.backgroundView.transform = .identity
         }
@@ -159,7 +169,7 @@ class AgentInformationViewController: UIViewController {
     
     private func animateBackgroundViewOut() {
         UIView.animate(withDuration: 0.3, animations: {
-            self.backgroundView.transform = CGAffineTransform(translationX:0, y: self.backgroundViewHeight)
+            self.backgroundView.transform = CGAffineTransform(translationX: -self.backgroundViewWidth, y: 0)
         }) { _ in
             self.dismiss(animated: false)
         }
@@ -172,11 +182,11 @@ class AgentInformationViewController: UIViewController {
         case .began:
             initialCenter = backgroundView.center
         case .changed:
-            let newY = max(translation.y, 0)
-            backgroundView.transform = CGAffineTransform(translationX:0, y: newY)
+            let newX = max(translation.x, 0)
+            backgroundView.transform = CGAffineTransform(translationX:newX, y: 0)
         case .ended:
             let velocity = gesture.velocity(in: view)
-            let shouldDismiss = translation.y > backgroundViewHeight / 2 || velocity.y > 500
+            let shouldDismiss = translation.x > backgroundViewWidth / 2 || velocity.x > 500
             
             if shouldDismiss {
                 animateBackgroundViewOut()
@@ -189,35 +199,47 @@ class AgentInformationViewController: UIViewController {
             break
         }
     }
+    
+    @objc private func onClickFeedbackItem() {
+        feedbackItem.startLoading()
+        feedBackPresenter.feedback(isSendLog: true, title: "") { error, result in
+            self.feedbackItem.stopLoading()
+            
+        }
+    }
+    
+    @objc private func onClickLogoutItem() {
+        AppContext.loginManager()?.logout()
+    }
 }
 
 extension AgentInformationViewController {
     private func createViews() {
         view.backgroundColor = UIColor(white: 0, alpha: 0.5)
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
-        view.addGestureRecognizer(tapGesture)
+//        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
+//        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
         
         view.addSubview(backgroundView)
         backgroundView.addSubview(topView)
         backgroundView.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        networkItems = [networkItem]
+        moreItems = [feedbackItem, logoutItem]
         channelInfoItems = [agentItem, agentIDItem, roomItem, roomIDItem, idItem]
         
-        contentView.addSubview(networkInfoTitle)
-        contentView.addSubview(networkInfoView)
+        contentView.addSubview(moreInfoTitle)
+        contentView.addSubview(moreInfoView)
         contentView.addSubview(channelInfoTitle)
         contentView.addSubview(channelInfoView)
         
-        networkItems.forEach { networkInfoView.addSubview($0) }
+        moreItems.forEach { moreInfoView.addSubview($0) }
         channelInfoItems.forEach { channelInfoView.addSubview($0) }
     }
     
     private func createConstrains() {
         backgroundView.snp.makeConstraints { make in
-            make.left.right.bottom.equalToSuperview()
-            make.height.equalTo(backgroundViewHeight)
+            make.left.top.bottom.equalToSuperview()
+            make.width.equalTo(backgroundViewWidth)
         }
         
         topView.snp.makeConstraints { make in
@@ -231,47 +253,19 @@ extension AgentInformationViewController {
         }
         
         contentView.snp.makeConstraints { make in
-            make.width.equalTo(self.view)
+            make.width.equalTo(self.backgroundView)
             make.left.right.top.bottom.equalToSuperview()
         }
         
-        networkInfoTitle.snp.makeConstraints { make in
-            make.top.equalTo(16)
-            make.left.equalTo(20)
-        }
-        
-        networkInfoView.snp.makeConstraints { make in
-            make.top.equalTo(networkInfoTitle.snp.bottom).offset(8)
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
-        }
-
-        for (index, item) in networkItems.enumerated() {
-            item.snp.makeConstraints { make in
-                make.left.right.equalToSuperview()
-                make.height.equalTo(60)
-                
-                if index == 0 {
-                    make.top.equalToSuperview()
-                } else {
-                    make.top.equalTo(networkItems[index - 1].snp.bottom)
-                }
-                
-                if index == networkItems.count - 1 {
-                    make.bottom.equalToSuperview()
-                }
-            }
-        }
-        
         channelInfoTitle.snp.makeConstraints { make in
-            make.top.equalTo(networkInfoView.snp.bottom).offset(32)
-            make.left.equalTo(20)
+            make.top.equalTo(16)
+            make.left.equalTo(32)
         }
         
         channelInfoView.snp.makeConstraints { make in
             make.top.equalTo(channelInfoTitle.snp.bottom).offset(8)
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
+            make.left.equalTo(16)
+            make.right.equalTo(-16)
             make.bottom.equalToSuperview()
         }
 
@@ -293,16 +287,40 @@ extension AgentInformationViewController {
                 }
             }
         }
+        
+        moreInfoTitle.snp.makeConstraints { make in
+            make.top.equalTo(channelInfoView.snp.bottom).offset(32)
+            make.left.equalTo(32)
+        }
+        
+        moreInfoView.snp.makeConstraints { make in
+            make.top.equalTo(moreInfoTitle.snp.bottom).offset(8)
+            make.left.equalTo(16)
+            make.right.equalTo(-16)
+        }
+
+        for (index, item) in moreItems.enumerated() {
+            item.snp.makeConstraints { make in
+                make.left.right.equalToSuperview()
+                make.height.equalTo(60)
+                
+                if index == 0 {
+                    make.top.equalToSuperview()
+                } else {
+                    make.top.equalTo(moreItems[index - 1].snp.bottom)
+                }
+                
+                if index == moreItems.count - 1 {
+                    make.bottom.equalToSuperview()
+                }
+            }
+        }
     }
     
     private func initStatus() {
         guard let manager = AppContext.preferenceManager() else {
             return
         }
-        
-        // Update Network Status
-        networkItem.detailLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.networkState.rawValue
-        networkItem.detailLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.networkState.color
         
         agentItem.detailLabel.text = manager.information.agentState == .unload ? ConnectionStatus.disconnected.rawValue : manager.information.agentState.rawValue
         agentItem.detailLabel.textColor = manager.information.agentState == .unload ? ConnectionStatus.disconnected.color : manager.information.agentState.color
@@ -322,22 +340,27 @@ extension AgentInformationViewController {
         // Update Participant ID
         idItem.detailLabel.text = manager.information.rtcRoomState == .unload ? "--" : manager.information.userId
         idItem.detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
+        
+        // Update Feedback Item
+        feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
     }
     
-    @objc func handleTapGesture(_: UIGestureRecognizer) {
+    @objc func onClickBackground(_ sender: UIGestureRecognizer) {
         animateBackgroundViewOut()
+    }
+    @objc func onClickContent(_ sender: UIGestureRecognizer) {
     }
 }
 
 extension AgentInformationViewController: AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {
-        networkItem.detailLabel.text = networkState.rawValue
-        networkItem.detailLabel.textColor = networkState.color
+        
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
         agentItem.detailLabel.text = agentState == .unload ? ConnectionStatus.disconnected.rawValue : agentState.rawValue
         agentItem.detailLabel.textColor = agentState == .unload ? ConnectionStatus.disconnected.color : agentState.color
+        feedbackItem.setEnabled(isEnabled: agentState != .unload)
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {

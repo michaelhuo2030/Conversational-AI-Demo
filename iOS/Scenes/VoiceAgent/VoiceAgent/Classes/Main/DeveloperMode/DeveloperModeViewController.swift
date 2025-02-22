@@ -6,6 +6,13 @@ import SVProgressHUD
 
 public class DeveloperModeViewController: UIViewController {
     
+    public static func setDeveloperMode(_ enable: Bool) {
+        UserDefaults.standard.set(enable, forKey: "DeveloperMode")
+    }
+    public static func getDeveloperMode() -> Bool {
+        return UserDefaults.standard.bool(forKey: "DeveloperMode")
+    }
+    
     public static func show(from vc: UIViewController,
                             audioDump: Bool,
                             serverHost: String,
@@ -65,7 +72,7 @@ extension DeveloperModeViewController {
     }
     
     @objc private func onClickCloseMode(_ sender: UIButton) {
-        AppContext.shared.enableDeveloperMode = false
+        DeveloperModeViewController.setDeveloperMode(false)
         onCloseDevModeCallback?()
         self.dismiss(animated: true)
     }
@@ -76,9 +83,7 @@ extension DeveloperModeViewController {
     
     @objc private func onClickCopy(_ sender: UIButton) {
         copyCallback?()
-        
-        
-        feedbackPresenter.feedback(isSendLog: true, feedback: "copy user question") { error, result in
+        feedbackPresenter.feedback(isSendLog: true, title: "111", feedback: "copy user question") { error, result in
             if let error = error {
                 SVProgressHUD.showError(withStatus: error.message)
             } else {

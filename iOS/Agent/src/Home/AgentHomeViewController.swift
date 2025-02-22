@@ -28,6 +28,15 @@ class AgentHomeViewController: UIViewController {
         button.alpha = 0.5
         return button
     }()
+    
+    private lazy var testSSOButton: UIButton = {
+        let button = UIButton()
+        button.addTarget(self, action: #selector(ssoLogin), for: .touchUpInside)
+        button.backgroundColor = .white
+        button.setTitle("SSO", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        return button
+    }()
 
     private lazy var titleImageView: UIImageView = {
         let imageView = UIImageView()
@@ -85,7 +94,7 @@ class AgentHomeViewController: UIViewController {
     private lazy var devModeButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
-        button.isHidden = true
+        button.isHidden = !DeveloperModeViewController.getDeveloperMode()
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onLongPressDevMode(_:)))
         button.addGestureRecognizer(longPressGesture)
@@ -124,7 +133,7 @@ class AgentHomeViewController: UIViewController {
     
     @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
         devModeButton.isHidden = true
-        AppContext.shared.enableDeveloperMode = false
+        DeveloperModeViewController.setDeveloperMode(false)
     }
     
     @objc func onClickDevMode() {
@@ -138,7 +147,7 @@ class AgentHomeViewController: UIViewController {
     
     func onThresholdReached() {
         devModeButton.isHidden = false
-        AppContext.shared.enableDeveloperMode = true
+        DeveloperModeViewController.setDeveloperMode(true)
     }
     
     private func isValidURL(_ urlString: String) -> Bool {
@@ -158,10 +167,17 @@ class AgentHomeViewController: UIViewController {
         view.addSubview(privacyCheckBox)
         view.addSubview(privacyLabel)
         view.addSubview(termsButton)
+        view.addSubview(testSSOButton)
     }
 
     private func setupConstraints() {
         view.backgroundColor = UIColor(hex: 0x111111)
+        testSSOButton.snp.makeConstraints { make in
+            make.top.equalTo(200)
+            make.left.equalTo(0)
+            make.width.equalTo(100)
+            make.height.equalTo(45)
+        }
         titleImageView.snp.makeConstraints { make in
             make.top.equalTo(80)
             make.width.equalTo(100)
@@ -227,31 +243,31 @@ class AgentHomeViewController: UIViewController {
         self.navigationController?.pushViewController(webVC)
     }
     
-    func ssoLogin() {
-        let ssoWebVC = SSOWebViewController()
-        let baseUrl = AppContext.shared.baseServerUrl
-        ssoWebVC.urlString = "\(baseUrl)/sso/login"
-        ssoWebVC.completionHandler = { [weak self] token in
-            if let token = token {
-                print("Received token: \(token)")
-                let model = LoginModel()
-                model.token = token
-                UserCenter.shared.storeUserInfo(model)
-                LoginApiService.getUserInfo { [weak self] error in
-                    guard let self = self else { return }
-                    
-                    if let err = error {
-                        UserCenter.shared.logout()
-                        SVProgressHUD.showInfo(withStatus: err.localizedDescription)
-                    } else {
-                        self.navigationController?.popViewController(animated: true)
-                    }
-                }
-            } else {
-                print("Failed to get token")
-            }
-        }
-        navigationController?.pushViewController(ssoWebVC, animated: true)
+    @objc func ssoLogin() {
+//        let ssoWebVC = SSOWebViewController()
+//        let baseUrl = AppContext.shared.baseServerUrl
+//        ssoWebVC.urlString = "\(baseUrl)/v1/convoai/sso/login"
+//        ssoWebVC.completionHandler = { [weak self] token in
+//            if let token = token {
+//                print("Received token: \(token)")
+//                let model = LoginModel()
+//                model.token = token
+//                UserCenter.shared.storeUserInfo(model)
+//                LoginApiService.getUserInfo { [weak self] error in
+//                    guard let self = self else { return }
+//                    
+//                    if let err = error {
+//                        UserCenter.shared.logout()
+//                        SVProgressHUD.showInfo(withStatus: err.localizedDescription)
+//                    } else {
+//                        self.navigationController?.popViewController(animated: true)
+//                    }
+//                }
+//            } else {
+//                print("Failed to get token")
+//            }
+//        }
+//        navigationController?.pushViewController(ssoWebVC, animated: true)
     }
 }
 

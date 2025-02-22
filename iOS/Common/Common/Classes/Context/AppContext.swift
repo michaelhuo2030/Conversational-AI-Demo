@@ -21,7 +21,6 @@ import Foundation
     private var _certificate: String = ""
     private var _baseServerUrl: String = ""
     private var _appArea: AppArea = .global
-    private var _developerMode: Bool = false
     private var _environments: [[String : String]] = []
     
     override init() {
@@ -61,15 +60,6 @@ import Foundation
         }
         set {
             _baseServerUrl = newValue
-        }
-    }
-    
-    @objc public var enableDeveloperMode: Bool {
-        get {
-            return _developerMode
-        }
-        set {
-            _developerMode = newValue
         }
     }
     
