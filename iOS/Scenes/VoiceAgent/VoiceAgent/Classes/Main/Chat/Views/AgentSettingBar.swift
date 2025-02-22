@@ -71,8 +71,6 @@ class AgentSettingBar: UIView {
         unregisterDelegate()
     }
     
-    // MARK: - Private Methods
-    
     func registerDelegate() {
         if let manager = AppContext.preferenceManager() {
             manager.addDelegate(self)
@@ -91,10 +89,23 @@ class AgentSettingBar: UIView {
         updateRestTime(seconds)
     }
     
+    public func updateButtonVisible(_ visible: Bool) {
+        infoListButton.isHidden = !visible
+        settingButton.isHidden = !visible
+        netStateView.isHidden = !visible
+    }
+    
     public func updateRestTime(_ seconds: Int) {
         let minutes = seconds / 60
         let seconds = seconds % 60
         countDownLabel.text = String(format: "%02d:%02d", minutes, seconds)
+        if seconds < 59 {
+            countDownLabel.textColor = UIColor.themColor(named: "ai_green6")
+        } else if seconds < 20 {
+            countDownLabel.textColor = UIColor.themColor(named: "ai_yellow6")
+        } else {
+            countDownLabel.textColor = UIColor.themColor(named: "ai_brand_white10")
+        }
     }
     
     public func stop() {
@@ -125,6 +136,7 @@ class AgentSettingBar: UIView {
         Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(hideTips), userInfo: nil, repeats: false)
     }
     
+    // MARK: - Private Methods
     @objc private func hideTips() {
         self.centerTipsLabel.snp.remakeConstraints { make in
             make.centerX.equalToSuperview()
