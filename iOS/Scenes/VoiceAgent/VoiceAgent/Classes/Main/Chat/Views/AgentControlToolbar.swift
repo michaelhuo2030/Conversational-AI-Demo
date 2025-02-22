@@ -53,7 +53,7 @@ class AgentControlToolbar: UIView {
         
         setupStartButton(button: button)
         
-        button.layer.cornerRadius = startButtonHeight / 2.0
+        button.layer.cornerRadius = 15
         button.addTarget(self, action: #selector(startAction), for: .touchUpInside)
         button.setImage(UIImage.ag_named("ic_agent_join_button_icon"), for: .normal)
         
@@ -242,9 +242,9 @@ class AgentControlToolbar: UIView {
         
         let gradientLayer = CAGradientLayer()
         gradientLayer.colors = [
-            UIColor(hex: 0x17F1FE)?.cgColor as Any,
-            UIColor(hex: 0x17C5FF)?.cgColor as Any,
-            UIColor(hex: 0x283DFF)?.cgColor as Any
+            UIColor(hexString: "#17C5FF")?.cgColor as Any,
+            UIColor(hexString: "#315DFF")?.cgColor as Any,
+            UIColor(hexString: "#446CFF")?.cgColor as Any
         ]
         gradientLayer.locations = [0, 0.1, 1.0]
         gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)

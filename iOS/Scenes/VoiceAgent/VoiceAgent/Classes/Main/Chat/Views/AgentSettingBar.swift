@@ -16,15 +16,7 @@ class AgentSettingBar: UIView {
         button.tintColor = UIColor.themColor(named: "ai_icontext1")
         return button
     }()
-    
-    private lazy var centerTipsLabel: UILabel = {
-        let label = UILabel()
-        label.text = ResourceManager.L10n.Join.tips
-        label.font = .systemFont(ofSize: 14)
-        label.textColor = UIColor.themColor(named: "ai_icontext1")
-        return label
-    }()
-    
+        
     let netStateView = UIView()
     private let netTrackView = UIImageView(image: UIImage.ag_named("ic_agent_net_4"))
     private let netRenderView = UIImageView(image: UIImage.ag_named("ic_agent_net_3"))
@@ -35,7 +27,30 @@ class AgentSettingBar: UIView {
         return button
     }()
     
+    private let titleContentView = {
+       let view = UIView()
+        view.clipsToBounds = true
+        return view
+    }()
+    
     private let centerTitleView = UIView()
+    private lazy var centerTipsLabel: UILabel = {
+        let label = UILabel()
+        label.text = ResourceManager.L10n.Join.tips
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
+        return label
+    }()
+    
+    private let countDownLabel: UILabel = {
+        let label = UILabel()
+        label.text = "00:00"
+        label.font = .systemFont(ofSize: 12)
+        label.textAlignment = .center
+        label.layerCornerRadius = 11
+        label.textColor = UIColor.themColor(named: "ai_brand_white10")
+        return label
+    }()
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -44,10 +59,6 @@ class AgentSettingBar: UIView {
         setupViews()
         setupConstraints()
         updateNetWorkView()
-        
-        startFlippingAnimation()
-        
-        tempView = centerTitleView
     }
     
     required init?(coder: NSCoder) {
@@ -72,26 +83,67 @@ class AgentSettingBar: UIView {
         }
     }
     
-    func startFlippingAnimation() {
-//        Timer.scheduledTimer(timeInterval: 4.0, target: self, selector: #selector(flipViews), userInfo: nil, repeats: true)
+    public func startWithRestTime(_ seconds: Int) {
+        showTips()
+        countDownLabel.isHidden = false
+        updateRestTime(seconds)
     }
     
-    var tempView: UIView?
-    @objc func flipViews() {
-        guard let view = tempView else {
-            return
+    public func updateRestTime(_ seconds: Int) {
+        let minutes = seconds / 60
+        let seconds = seconds % 60
+        countDownLabel.text = String(format: "%02d:%02d", minutes, seconds)
+    }
+    
+    public func stop() {
+        countDownLabel.isHidden = true
+    }
+    
+    public func showTips() {
+        self.centerTitleView.snp.remakeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.height.equalToSuperview()
+            make.bottom.equalTo(self.snp.top)
         }
-        // 开始动画
-//        UIView.animate(withDuration: 1.0, animations: {
-//            self.centerTitleView.snp.updateConstraints { make in
-//                make.bottom.equalTo(self.snp.top)
-//            }
-//            self.centerTipsLabel.snp.updateConstraints { make in
-//                make.bottom.equalToSuperview()
-//            }
-//        }) { _ in
-//            
-//        }
+        self.centerTipsLabel.snp.remakeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.height.equalToSuperview()
+            make.bottom.equalToSuperview()
+        }
+        UIView.animate(withDuration: 1.0, animations: {
+            self.layoutIfNeeded()
+        }) { _ in
+            self.centerTitleView.snp.remakeConstraints { make in
+                make.centerX.equalToSuperview()
+                make.height.equalToSuperview()
+                make.top.equalTo(self.snp.bottom)
+            }
+            self.layoutIfNeeded()
+        }
+        Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(hideTips), userInfo: nil, repeats: false)
+    }
+    
+    @objc private func hideTips() {
+        self.centerTipsLabel.snp.remakeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.height.equalToSuperview()
+            make.bottom.equalTo(self.snp.top)
+        }
+        self.centerTitleView.snp.remakeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.height.equalToSuperview()
+            make.bottom.equalToSuperview()
+        }
+        UIView.animate(withDuration: 1.0, animations: {
+            self.layoutIfNeeded()
+        }) { _ in
+            self.centerTipsLabel.snp.remakeConstraints { make in
+                make.centerX.equalToSuperview()
+                make.height.equalToSuperview()
+                make.top.equalTo(self.snp.bottom)
+            }
+            self.layoutIfNeeded()
+        }
     }
     
     private func updateNetWorkView() {
@@ -129,7 +181,8 @@ class AgentSettingBar: UIView {
     }
     
     private func setupViews() {
-        [infoListButton, centerTipsLabel, centerTitleView, netStateView, settingButton].forEach { addSubview($0) }
+        [infoListButton, titleContentView, netStateView, settingButton, countDownLabel].forEach { addSubview($0) }
+        [centerTipsLabel, centerTitleView].forEach { titleContentView.addSubview($0) }
         [netTrackView, netRenderView].forEach { netStateView.addSubview($0) }
         
         let titleImageView = UIImageView()
@@ -150,13 +203,6 @@ class AgentSettingBar: UIView {
             make.centerY.equalToSuperview()
             make.right.equalToSuperview()
         }
-        
-        netTrackView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-        netRenderView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
     }
     
     private func setupConstraints() {
@@ -165,29 +211,40 @@ class AgentSettingBar: UIView {
             make.width.height.equalTo(42)
             make.centerY.equalToSuperview()
         }
-        
+        titleContentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
         centerTitleView.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
             make.bottom.equalToSuperview()
         }
-        
         centerTipsLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
-            make.bottom.equalToSuperview().offset(-44)
+            make.top.equalTo(self.snp.bottom)
         }
-        
         settingButton.snp.makeConstraints { make in
             make.right.equalTo(-10)
             make.width.height.equalTo(42)
             make.centerY.equalToSuperview()
         }
-        
         netStateView.snp.remakeConstraints { make in
             make.right.equalTo(settingButton.snp.left)
             make.centerY.equalToSuperview()
             make.width.height.equalTo(48)
+        }
+        netTrackView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        netRenderView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        countDownLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.width.equalTo(49)
+            make.height.equalTo(22)
+            make.bottom.equalTo(self.snp.bottom)
         }
     }
 }
