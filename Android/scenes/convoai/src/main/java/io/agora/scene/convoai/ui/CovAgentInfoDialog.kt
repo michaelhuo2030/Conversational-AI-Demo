@@ -3,21 +3,16 @@ package io.agora.scene.convoai.ui
 import android.app.Dialog
 import android.view.Gravity
 import android.view.WindowManager
-import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.content.DialogInterface
 import android.graphics.PorterDuff
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import androidx.activity.OnBackPressedCallback
-import androidx.fragment.app.DialogFragment
+import io.agora.scene.common.ui.BaseDialogFragment
 import io.agora.scene.common.ui.OnFastClickListener
-import io.agora.scene.common.util.LogUploader
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
@@ -26,8 +21,7 @@ import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.api.CovAgentApiManager
 import io.agora.scene.convoai.constant.AgentConnectionState
 
-class CovAgentInfoDialog : DialogFragment() {
-    private var binding: CovInfoDialogBinding? = null
+class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
     private var onDismissCallback: (() -> Unit)? = null
     private var onLogout: (() -> Unit)? = null
 
@@ -70,7 +64,7 @@ class CovAgentInfoDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         uploadAnimation = AnimationUtils.loadAnimation(context, R.anim.cov_rotate_loading)
         
-        binding?.apply {
+        mBinding?.apply {
             mtvAgentId.setOnLongClickListener {
                 copyToClipboard(mtvAgentId.text.toString())
                 return@setOnLongClickListener true
@@ -112,7 +106,7 @@ class CovAgentInfoDialog : DialogFragment() {
 
     private fun updateView() {
         val context = context ?: return
-        binding?.apply {
+        mBinding?.apply {
             when (connectionState) {
                 AgentConnectionState.IDLE, AgentConnectionState.ERROR -> {
                     mtvRoomStatus.text = getString(R.string.cov_info_your_network_disconnected)
@@ -167,7 +161,7 @@ class CovAgentInfoDialog : DialogFragment() {
 
     private fun updateUploadingStatus(isUploading: Boolean) {
         context ?: return
-        binding?.apply {
+        mBinding?.apply {
             if (isUploading) {
                 tvUploader.startAnimation(uploadAnimation)
                 tvUploader.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext3), PorterDuff.Mode.SRC_IN)
@@ -195,21 +189,17 @@ class CovAgentInfoDialog : DialogFragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = CovInfoDialogBinding.inflate(inflater, container, false)
-        activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                //onHandleOnBackPressed()
-            }
-        })
-        return binding?.root
+    override fun getViewBinding(inflater: LayoutInflater, container: ViewGroup?): CovInfoDialogBinding? {
+        return CovInfoDialogBinding.inflate(inflater, container, false)
     }
 
-    // 删除 getViewBinding 方法，因为我们直接在 onCreateView 中处理了 ViewBinding
+    override fun onHandleOnBackPressed() {
+//        super.onHandleOnBackPressed()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
+//        binding = null
     }
 
 }

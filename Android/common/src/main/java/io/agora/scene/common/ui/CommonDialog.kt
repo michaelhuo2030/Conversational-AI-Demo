@@ -15,6 +15,7 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
     private var positiveText: String? = null
     private var negativeText: String? = null
     private var showNegative: Boolean = true
+    private var showImage: Boolean = true
     private var onPositiveClick: (() -> Unit)? = null
     private var onNegativeClick: (() -> Unit)? = null
 
@@ -38,6 +39,7 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
             btnPositive.text = positiveText
             btnNegative.text = negativeText
             btnNegative.isVisible = showNegative
+            ivImage.isVisible = showImage
 
             // Click listeners
             btnPositive.setOnClickListener {
@@ -58,6 +60,7 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
         private var positiveText: String? = null
         private var negativeText: String? = null
         private var showNegative: Boolean = true
+        private var showImage: Boolean = true
         private var onPositiveClick: (() -> Unit)? = null
         private var onNegativeClick: (() -> Unit)? = null
 
@@ -74,6 +77,8 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
         }
         fun hideNegativeButton() = apply { this.showNegative = false }
 
+        fun hideTopImage() = apply { this.showImage = false }
+
         fun build(): CommonDialog {
             return CommonDialog().apply {
                 this@apply.title = this@Builder.title
@@ -83,6 +88,7 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
                 this@apply.showNegative = this@Builder.showNegative
                 this@apply.onPositiveClick = this@Builder.onPositiveClick
                 this@apply.onNegativeClick = this@Builder.onNegativeClick
+                this@apply.showImage = this@Builder.showImage
             }
         }
     }

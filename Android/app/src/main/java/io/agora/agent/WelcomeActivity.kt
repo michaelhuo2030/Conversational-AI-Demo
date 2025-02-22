@@ -57,11 +57,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
 
     override fun initView() {
         setupView()
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.RECORD_AUDIO),
-            REQUEST_CODE
-        )
         val tempToken = SSOUserManager.getToken()
         if (tempToken.isNotEmpty()) {
             mLoginViewModel.getUserInfoByToken(tempToken)

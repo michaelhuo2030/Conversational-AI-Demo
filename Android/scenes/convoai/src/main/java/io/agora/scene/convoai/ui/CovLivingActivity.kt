@@ -21,9 +21,7 @@ import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.SSOUserManager
-import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugButton
-import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugDialog
 import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.AgoraTokenType
@@ -53,7 +51,6 @@ import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.rtc.CovAudioFrameObserver
 import io.agora.scene.convoai.rtc.CovRtcManager
-import io.agora.scene.convoai.subRender.MessageParser
 import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
 import io.agora.scene.convoai.subRender.v2.CovSubRenderController
 import io.agora.scene.convoai.subRender.v2.SubRenderMode
@@ -678,20 +675,20 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             when (connectionState) {
                 AgentConnectionState.IDLE -> {
                     clBottomLogged.llCalling.visibility = View.INVISIBLE
-                    clBottomLogged.llJoinCall.visibility = View.VISIBLE
+                    clBottomLogged.btnJoinCall.visibility = View.VISIBLE
                     vConnecting.visibility = View.GONE
                 }
 
                 AgentConnectionState.CONNECTING -> {
                     clBottomLogged.llCalling.visibility = View.VISIBLE
-                    clBottomLogged.llJoinCall.visibility = View.INVISIBLE
+                    clBottomLogged.btnJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.VISIBLE
                 }
 
                 AgentConnectionState.CONNECTED,
                 AgentConnectionState.CONNECTED_INTERRUPT -> {
                     clBottomLogged.llCalling.visibility = View.VISIBLE
-                    clBottomLogged.llJoinCall.visibility = View.INVISIBLE
+                    clBottomLogged.btnJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.GONE
                 }
 
@@ -813,12 +810,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            setOnApplyWindowInsetsListener(root)
-//            btnBack.setOnClickListener(object : OnFastClickListener() {
-//                override fun onClickJacking(view: View) {
-//                    onHandleOnBackPressed()
-//                }
-//            })
             clBottomLogged.btnEndCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickEndCall()
@@ -858,7 +849,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
             })
-            clBottomLogged.llJoinCall.setOnClickListener(object : OnFastClickListener() {
+            clBottomLogged.btnJoinCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickStartAgent()
                 }
@@ -1057,6 +1048,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .setContent(getString(io.agora.scene.common.R.string.common_logout_confirm_text))
             .setPositiveButton(getString(io.agora.scene.common.R.string.common_logout_confirm_known))
             .setNegativeButton(getString(io.agora.scene.common.R.string.common_logout_confirm_cancel))
+            .hideTopImage()
             .build()
             .show(supportFragmentManager, "logout_dialog_tag")
     }

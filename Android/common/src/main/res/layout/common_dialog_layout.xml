@@ -8,8 +8,11 @@
     android:orientation="vertical">
 
     <ImageView
+        android:id="@+id/ivImage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="visible"
+        tools:visibility="gone"
         android:background="@drawable/common_bg_dialog" />
 
     <TextView
@@ -51,9 +54,9 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:textAllCaps="true"
-            android:textColor="#666666"
+            android:textColor="@color/ai_icontext2"
             android:textSize="14sp"
-            app:backgroundTint="#F5F5F5"
+            app:backgroundTint="@color/ai_line2"
             app:cornerRadius="12dp"
             app:rippleColor="#1A000000"
             tools:text="Cancel" />
@@ -67,7 +70,7 @@
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:textAllCaps="true"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/ai_brand_white10"
             android:textSize="14sp"
             app:backgroundTint="@color/ai_brand_main6"
             app:cornerRadius="12dp"
