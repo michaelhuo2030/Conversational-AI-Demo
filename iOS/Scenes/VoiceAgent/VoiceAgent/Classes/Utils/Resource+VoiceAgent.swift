@@ -38,6 +38,11 @@ extension ResourceManager {
             public static let termsServicePrefix = ResourceManager.localizedString("login.terms.service.prefix")
             public static let termsServiceSuffix = ResourceManager.localizedString("login.terms.service.suffix")
             public static let termsServiceTips = ResourceManager.localizedString("login.terms.service.tips")
+            public static let logoutAlertTitle = ResourceManager.localizedString("logout.alert.title")
+            public static let logoutAlertDescription = ResourceManager.localizedString("logout.alert.description")
+            public static let logoutAlertConfirm = ResourceManager.localizedString("logout.alert.cancel.title")
+            public static let logoutAlertCancel = ResourceManager.localizedString("logout.alert.confirm.title")
+
         }
 
         public enum Join {
@@ -116,6 +121,9 @@ extension ResourceManager {
             public static let moreInfo = ResourceManager.localizedString("channel.more.title")
             public static let feedback = ResourceManager.localizedString("channel.more.feedback")
             public static let logout = ResourceManager.localizedString("channel.more.logout")
+            public static let timeLimitdAlertTitle = ResourceManager.localizedString("channel.time.limited.alert.title")
+            public static let timeLimitdAlertDescription = ResourceManager.localizedString("channel.time.limited.alert.description")
+            public static let timeLimitdAlertConfim = ResourceManager.localizedString("channel.time.limited.alert.confim")
         }
         
         public enum DevMode {

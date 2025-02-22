@@ -14,6 +14,7 @@ protocol AgentTimerCoordinatorDelegate: AnyObject {
     func agentUseLimitedTimerStarted(duration: Int)
     func agentUseLimitedTimerUpdated(duration: Int)
     func agentUseLimitedTimerEnd()
+    func agentUseLimitedTimerClosed()
 }
 
 protocol AgentTimerCoordinatorProtocol {
@@ -46,6 +47,7 @@ class AgentTimerCoordinator: NSObject {
                 }
                 
                 if self.useDuration <= 0 {
+                    self.delegate?.agentUseLimitedTimerEnd()
                     self.deinitDurationLimitTimer()
                 }
                 
@@ -58,8 +60,7 @@ class AgentTimerCoordinator: NSObject {
     }
     
     private func deinitDurationLimitTimer() {
-        self.delegate?.agentUseLimitedTimerEnd()
-
+        self.delegate?.agentUseLimitedTimerClosed()
         useDuration = 0
         usageDurationLimitTimer?.invalidate()
         usageDurationLimitTimer = nil

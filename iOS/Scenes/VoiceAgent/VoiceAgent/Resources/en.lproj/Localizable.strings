@@ -5,6 +5,10 @@
 "login.terms.service.prefix" = "I agree to the ";
 "login.terms.service.suffix" = "Agora Terms of Service";
 "login.terms.service.tips" = "Read me first";
+"logout.alert.title" = "您是否要退出？";
+"logout.alert.description" = "您将退出当前账号，退出后需要重新登录才能使用完整功能。是否继续？";
+"logout.alert.confirm.title" = "取消";
+"logout.alert.cancel.title" = "退出";
 
 "join.start.title" = "Conversational AI Engine";
 "join.start.state" = "Not Joined";
@@ -66,6 +70,9 @@
 "channel.more.title" = "More";
 "channel.more.feedback" = "Feed Back";
 "channel.more.logout" = "Logout";
+"channel.time.limited.alert.title" = "本次对话时间到！";
+"channel.time.limited.alert.description" = "每次对话限时%d分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。";
+"channel.time.limited.alert.confim" = "我知道了";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";

@@ -668,6 +668,7 @@ private extension ChatViewController {
     private func clickTheStartButton() async {
         addLog("[Call] clickTheStartButton()")
         let loginState = UserCenter.shared.isLogin()
+
         if loginState {
             await prepareToStartAgent()
             return
@@ -746,6 +747,11 @@ extension ChatViewController: MessageAdapterDelegate {
 }
 
 extension ChatViewController: AgentTimerCoordinatorDelegate {
+    func agentUseLimitedTimerClosed() {
+        addLog("[Call] agentUseLimitedTimerClosed")
+        topBar.stop()
+    }
+    
     func agentUseLimitedTimerStarted(duration: Int) {
         addLog("[Call] agentUseLimitedTimerStarted")
         topBar.startWithRestTime(duration)
@@ -759,6 +765,13 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
     func agentUseLimitedTimerEnd() {
         addLog("[Call] agentUseLimitedTimerEnd")
         topBar.stop()
+        let title = ResourceManager.L10n.ChannelInfo.timeLimitdAlertTitle
+        if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
+            let min = preset.callTimeLimitSecond / 60
+            TimeoutAlertView.show(in: view, title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min)) { [weak self] in
+                self?.stopAgent()
+            }
+        }
     }
     
     func agentStartPing() {

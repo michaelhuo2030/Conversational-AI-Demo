@@ -59,6 +59,7 @@ class AgentSettingIconItemView: UIView {
 
 extension AgentSettingIconItemView {
     private func createViews() {
+        self.isUserInteractionEnabled = true
         self.backgroundColor = UIColor.themColor(named: "ai_block2")
 
         titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")

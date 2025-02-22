@@ -53,8 +53,8 @@ class AgentAlertView: UIView {
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .custom)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
-        button.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
-        button.backgroundColor = UIColor.themColor(named: "ai_block2")
+        button.setTitleColor(UIColor.themColor(named: "ai_icontext2"), for: .normal)
+        button.backgroundColor = UIColor.themColor(named: "ai_line2")
         button.layer.cornerRadius = 12
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
@@ -65,8 +65,8 @@ class AgentAlertView: UIView {
     private lazy var confirmButton: UIButton = {
         let button = UIButton(type: .custom)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
-        button.setTitleColor(UIColor.themColor(named: "ai_icontext_inverse1"), for: .normal)
-        button.backgroundColor = UIColor.themColor(named: "ai_icontext1")
+        button.setTitleColor(UIColor.themColor(named: "ai_brand_white10"), for: .normal)
+        button.backgroundColor = UIColor.themColor(named: "ai_brand_main6")
         button.layer.cornerRadius = 12
         button.addTarget(self, action: #selector(confirmButtonTapped), for: .touchUpInside)
         return button
@@ -98,35 +98,40 @@ class AgentAlertView: UIView {
         
         containerView.snp.makeConstraints { make in
             make.center.equalToSuperview()
-            make.left.equalTo(20)
-            make.right.equalTo(-20)
+            make.left.equalTo(30)
+            make.right.equalTo(-30)
         }
         
         titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(24)
+            make.top.equalTo(20)
             make.left.equalTo(24)
             make.right.equalTo(-24)
         }
         
         contentLabel.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(8)
+            make.top.equalTo(titleLabel.snp.bottom).offset(20)
             make.left.equalTo(24)
             make.right.equalTo(-24)
         }
         
         buttonStackView.snp.makeConstraints { make in
-            make.top.equalTo(contentLabel.snp.bottom).offset(24)
+            make.top.equalTo(contentLabel.snp.bottom).offset(20)
             make.left.equalTo(24)
             make.right.equalTo(-24)
-            make.bottom.equalTo(-24)
-            make.height.equalTo(48)
+            make.bottom.equalTo(-20)
+            make.height.equalTo(40)
         }
     }
     
-    func show(in view: UIView, title: String, content: String, cancelTitle: String = "取消", confirmTitle: String = "确定") {
-        self.frame = view.bounds
+    static func show(in view: UIView, title: String, content: String, cancelTitle: String = "取消", confirmTitle: String = "确定", onConfirm: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+        let alertView = AgentAlertView(frame: view.bounds)
+        alertView.onConfirmButtonTapped = onConfirm
+        alertView.onCancelButtonTapped = onCancel
+        alertView.show(in: view, title: title, content: content, cancelTitle: cancelTitle, confirmTitle: confirmTitle)
+    }
+    
+    private func show(in view: UIView, title: String, content: String, cancelTitle: String, confirmTitle: String) {
         view.addSubview(self)
-        
         titleLabel.text = title
         contentLabel.text = content
         cancelButton.setTitle(cancelTitle, for: .normal)
@@ -134,10 +139,12 @@ class AgentAlertView: UIView {
         
         containerView.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
         containerView.alpha = 0
+        backgroundView.alpha = 0
         
         UIView.animate(withDuration: 0.3) {
             self.containerView.transform = .identity
             self.containerView.alpha = 1
+            self.backgroundView.alpha = 1
         }
     }
     
