@@ -205,15 +205,13 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickFeedbackItem() {
+        guard let channelName = AppContext.preferenceManager()?.information.roomId else {
+            return
+        }
+        let agentId = AppContext.preferenceManager()?.information.agentId
         feedbackItem.startLoading()
         loadingMaskView.isHidden = false
-//        if let agentId = CovAgentApiManager.agentId {
-//            let processedAgentId = agentId.split(separator: ":").first.map(String.init) ?? ""
-//            let zipFileName = "\(processedAgentId)_\(CovAgentManager.channelName)"
-//        } else {
-//            let zipFileName = "_\(CovAgentManager.channelName)"
-//        }
-        feedBackPresenter.feedback(isSendLog: true, title: "") { error, result in
+        feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { error, result in
             self.loadingMaskView.isHidden = true
             self.feedbackItem.stopLoading()
         }
