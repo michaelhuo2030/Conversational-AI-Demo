@@ -17,7 +17,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-import java.util.UUID
 import org.json.JSONObject
 
 object LogUploader {
@@ -85,7 +84,7 @@ object LogUploader {
     @Volatile
     private var isUploading = false
 
-    fun uploadLog(agentId: String, channelName: String) {
+    fun uploadLog(agentId: String, channelName: String, completion: ((error: Exception?) -> Unit)? = null) {
         if (isUploading) return
         isUploading = true
 
@@ -117,17 +116,21 @@ object LogUploader {
                 requestUploadLog(agentId, channelName, File(path),
                     onSuccess = {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
+                        completion?.invoke(null)
                         isUploading = false
                         Log.d(TAG, "Upload log success: ${it.logId}")
                     },
                     onError = {
-//                        FileUtils.deleteFile(allLogZipFile.absolutePath)
+                        FileUtils.deleteFile(allLogZipFile.absolutePath)
                         isUploading = false
+                        completion?.invoke(it)
                         Log.e(TAG, "Upload log failed: ${it.message}")
                     })
             }
 
             override fun onError(error: Exception) {
+                FileUtils.deleteFile(allLogZipFile.absolutePath)
+                completion?.invoke(error)
                 isUploading = false
                 Log.e(TAG, "Upload log compression failed: ${error.message}")
             }
