@@ -161,8 +161,8 @@ class AgentInformationViewController: UIViewController {
     }
     
     private func setupPanGesture() {
-        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
-        backgroundView.addGestureRecognizer(panGesture!)
+//        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+//        backgroundView.addGestureRecognizer(panGesture!)
     }
     
     private func animateBackgroundViewIn() {
@@ -182,7 +182,6 @@ class AgentInformationViewController: UIViewController {
     
     @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: view)
-        
         switch gesture.state {
         case .began:
             initialCenter = backgroundView.center
@@ -221,7 +220,9 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickLogoutItem() {
-        AppContext.loginManager()?.logout()
+        AgentAlertView.show(in: view, title: ResourceManager.L10n.Login.logoutAlertTitle, content: ResourceManager.L10n.Login.logoutAlertDescription, onConfirm:  {
+            AppContext.loginManager()?.logout()
+        })
     }
 }
 
@@ -360,6 +361,9 @@ extension AgentInformationViewController {
         
         // Update Feedback Item
         feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
+        
+        //Update Logout Item
+        logoutItem.setEnabled(isEnabled: true)
     }
     
     @objc func onClickBackground(_ sender: UIGestureRecognizer) {

@@ -266,7 +266,9 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func termsButtonTapped() {
-        // TODO: Show terms of service
+        let termsServiceVC = UINavigationController(rootViewController: TermsServiceWebViewController())
+        termsServiceVC.modalPresentationStyle = .fullScreen
+        self.present(termsServiceVC, animated: true)
     }
     
     @objc private func backgroundTapped() {

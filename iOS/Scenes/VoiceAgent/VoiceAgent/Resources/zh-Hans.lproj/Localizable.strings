@@ -1,9 +1,13 @@
 "login.title" = "Login for Chat free";
 "login.description" = "Power your business future at once";
-"login.start.button.title" = "login with phone number";
+"login.start.button.title" = "Login with phone number";
 "login.terms.service.prefix" = "I agree to the ";
 "login.terms.service.suffix" = "Agora Terms of Service";
 "login.terms.service.tips" = "Read me first";
+"logout.alert.title" = "您是否要退出？";
+"logout.alert.description" = "您将退出当前账号，退出后需要重新登录才能使用完整功能。是否继续？";
+"logout.alert.confirm.title" = "取消";
+"logout.alert.cancel.title" = "退出";
 
 "join.start.title" = "对话式 AI 引擎";
 "join.start.state" = "未加入";
@@ -62,6 +66,9 @@
 "channel.more.title" = "更多操作";
 "channel.more.feedback" = "一键上报";
 "channel.more.logout" = "退出登录";
+"channel.time.limited.alert.title" = "本次对话时间到！";
+"channel.time.limited.alert.description" = "每次对话限时%d分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。";
+"channel.time.limited.alert.confim" = "我知道了";
 
 "error.network" = "请求失败：";
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";
