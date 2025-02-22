@@ -1,4 +1,4 @@
-package io.agora.agent
+package io.agora.scene.common.ui.vm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

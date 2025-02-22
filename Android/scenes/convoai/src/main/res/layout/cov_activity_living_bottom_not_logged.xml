@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    android:background="@android:color/transparent">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/common_start_anim"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="30dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnStartWithoutLogin"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStartWithoutLogin"
+        android:layout_width="0dp"
+        android:layout_height="58dp"
+        android:layout_marginStart="8dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="@string/cov_detail_join_call"
+        android:textAllCaps="false"
+        android:textColor="@color/ai_brand_white10"
+        android:textSize="18sp"
+        app:backgroundTint="@null"
+        app:icon="@drawable/cov_detail_join_call"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:iconTint="@color/ai_brand_white10"
+        app:cornerRadius="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.84"
+        app:rippleColor="#1AFFFFFF"
+        android:background="@drawable/bg_gradient_button" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

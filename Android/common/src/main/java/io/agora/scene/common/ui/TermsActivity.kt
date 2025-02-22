@@ -1,15 +1,14 @@
-package io.agora.agent
+package io.agora.scene.common.ui
 
 import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
-import io.agora.agent.databinding.ActivityTermsBinding
 import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.databinding.CommonTermsActivityBinding
 
-class TermsActivity : BaseActivity<ActivityTermsBinding>() {
+class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
 
-    override fun getViewBinding(): ActivityTermsBinding {
-        return  ActivityTermsBinding.inflate(layoutInflater)
+    override fun getViewBinding(): CommonTermsActivityBinding {
+        return  CommonTermsActivityBinding.inflate(layoutInflater)
     }
 
     override fun initView() {

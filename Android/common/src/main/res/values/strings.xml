@@ -14,4 +14,11 @@
     <string name="common_call_time_is_up">The local conversation time is up.</string>
     <string name="common_call_time_is_up_tips">Each conversation is limited to %1s minutes. The time for this conversation has ended. You can close the popup and start a new conversation experience.</string>
     <string name="common_i_known">Got it</string>
+
+    <string name="common_login_chat">Login for Chat free</string>
+    <string name="common_login_chat_tips">Power your business future\n at once</string>
+    <string name="common_login_with_agora_sso">Login With Agora SSO</string>
+    <string name="common_terms_info">I agree to the</string>
+    <string name="common_terms_selection"><u>Agora Terms of Service</u></string>
+    <string name="common_terms_tips">Read me first</string>
 </resources>

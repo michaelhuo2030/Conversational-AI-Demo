@@ -1,9 +1,8 @@
-package io.agora.agent;
+package io.agora.scene.common.ui;
 
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
@@ -12,15 +11,14 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
-import io.agora.agent.databinding.AppActivitySsoBinding
 import io.agora.scene.common.constant.ServerConfig.toolBoxUrl
-import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.databinding.CommonActivitySsoBinding
 import io.agora.scene.common.util.CommonLogger
 
-class SSOWebViewActivity : BaseActivity<AppActivitySsoBinding>() {
+class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
 
-    override fun getViewBinding(): AppActivitySsoBinding {
-        return AppActivitySsoBinding.inflate(layoutInflater)
+    override fun getViewBinding(): CommonActivitySsoBinding {
+        return CommonActivitySsoBinding.inflate(layoutInflater)
     }
 
     companion object {

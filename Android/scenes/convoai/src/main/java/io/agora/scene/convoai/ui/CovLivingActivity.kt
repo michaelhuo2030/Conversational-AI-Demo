@@ -1,18 +1,29 @@
 package io.agora.scene.convoai.ui
 
+import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.graphics.PorterDuff
+import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.webkit.CookieManager
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.core.app.ActivityCompat
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.AgentScenes
+import io.agora.scene.common.constant.SSOUserManager
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugButton
+import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugDialog
 import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.AgoraTokenType
@@ -20,7 +31,12 @@ import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.ui.CommonDialog
+import io.agora.scene.common.ui.LoginDialog
+import io.agora.scene.common.ui.LoginDialogCallback
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.ui.SSOWebViewActivity
+import io.agora.scene.common.ui.TermsActivity
+import io.agora.scene.common.ui.vm.LoginViewModel
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.toast.ToastUtil
@@ -143,6 +159,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private var countDownJob: Job? = null
 
+    private var mLoginDialog: LoginDialog? = null
+
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
+
+    private val mLoginViewModel: LoginViewModel by viewModels()
+
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
     }
@@ -157,14 +179,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             finish()
         }, true)
 
-        // Fetch token and presets when entering the scene
-        coroutineScope.launch {
-            val deferreds = listOf(
-                async { updateTokenAsync() },
-                async { fetchPresetsAsync() }
-            )
-            deferreds.awaitAll()
-        }
+        checkLogin()
         // v1 Subtitle Rendering Controller
         selfRenderController.onUpdateStreamContent = { isMe, turnId, text, isFinal ->
             runOnUiThread {
@@ -636,9 +651,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             // todo  0～10000 icon high 20 top 6
             var level = volume * 20 + 3500
             if (level > 8500) level = 8500
-            mBinding?.btnMic?.setImageLevel(level)
+            mBinding?.clBottomLogged?.btnMic?.setImageLevel(level)
         } else {
-            mBinding?.btnMic?.setImageLevel(0)
+            mBinding?.clBottomLogged?.btnMic?.setImageLevel(0)
         }
     }
 
@@ -660,21 +675,21 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             when (connectionState) {
                 AgentConnectionState.IDLE -> {
-                    llCalling.visibility = View.INVISIBLE
-                    llJoinCall.visibility = View.VISIBLE
+                    clBottomLogged.llCalling.visibility = View.INVISIBLE
+                    clBottomLogged.llJoinCall.visibility = View.VISIBLE
                     vConnecting.visibility = View.GONE
                 }
 
                 AgentConnectionState.CONNECTING -> {
-                    llCalling.visibility = View.VISIBLE
-                    llJoinCall.visibility = View.INVISIBLE
+                    clBottomLogged.llCalling.visibility = View.VISIBLE
+                    clBottomLogged.llJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.VISIBLE
                 }
 
                 AgentConnectionState.CONNECTED,
                 AgentConnectionState.CONNECTED_INTERRUPT -> {
-                    llCalling.visibility = View.VISIBLE
-                    llJoinCall.visibility = View.INVISIBLE
+                    clBottomLogged.llCalling.visibility = View.VISIBLE
+                    clBottomLogged.llJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.GONE
                 }
 
@@ -686,11 +701,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun updateMicrophoneView() {
         mBinding?.apply {
             if (isLocalAudioMuted) {
-                btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_brand_white_selector)
+                clBottomLogged.btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
+                clBottomLogged.btnMic.setBackgroundResource(
+                    io.agora.scene.common.R.drawable
+                        .btn_bg_brand_white_selector
+                )
             } else {
-                btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
+                clBottomLogged.btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
+                clBottomLogged.btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
             }
         }
     }
@@ -703,14 +721,20 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 } else {
                     messageListViewV2.visibility = View.VISIBLE
                 }
-                btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_brand_main6), PorterDuff.Mode.SRC_IN)
+                clBottomLogged.btnCc.setColorFilter(
+                    getColor(io.agora.scene.common.R.color.ai_brand_main6),
+                    PorterDuff.Mode.SRC_IN
+                )
             } else {
                 if (isSelfSubRender) {
                     messageListViewV1.visibility = View.INVISIBLE
                 } else {
                     messageListViewV2.visibility = View.INVISIBLE
                 }
-                btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                clBottomLogged.btnCc.setColorFilter(
+                    getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff
+                        .Mode.SRC_IN
+                )
             }
         }
     }
@@ -766,21 +790,38 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun setupView() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.RECORD_AUDIO),
+            100
+        )
+        activityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data: Intent? = result.data
+                    val token = data?.getStringExtra("token")
+                    if (token != null) {
+                        SSOUserManager.saveToken(token)
+                        mLoginViewModel.getUserInfoByToken(token)
+                    } else {
+                        ToastUtil.show("Login error")
+                    }
+                }
+            }
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             setOnApplyWindowInsetsListener(root)
-
 //            btnBack.setOnClickListener(object : OnFastClickListener() {
 //                override fun onClickJacking(view: View) {
 //                    onHandleOnBackPressed()
 //                }
 //            })
-            btnEndCall.setOnClickListener(object : OnFastClickListener() {
+            clBottomLogged.btnEndCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickEndCall()
                 }
             })
-            btnMic.setOnClickListener {
+            clBottomLogged.btnMic.setOnClickListener {
                 isLocalAudioMuted = !isLocalAudioMuted
                 CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
@@ -800,7 +841,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                 }
             })
-            btnCc.setOnClickListener {
+            clBottomLogged.btnCc.setOnClickListener {
                 isShowMessageList = !isShowMessageList
             }
             clTop.btnInfo.setOnClickListener(object : OnFastClickListener() {
@@ -813,9 +854,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
             })
-            llJoinCall.setOnClickListener(object : OnFastClickListener() {
+            clBottomLogged.llJoinCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickStartAgent()
+                }
+            })
+            clBottomNotLogged.btnStartWithoutLogin.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    showLoginDialog()
                 }
             })
         }
@@ -901,6 +947,88 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .hideNegativeButton()
             .build()
             .show(supportFragmentManager, "dialog_tag")
+    }
 
+    private fun checkLogin() {
+        val tempToken = SSOUserManager.getToken()
+        if (tempToken.isNotEmpty()) {
+            mLoginViewModel.getUserInfoByToken(tempToken)
+        }
+        updateBottom(tempToken.isNotEmpty())
+        mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
+            if (userInfo != null) {
+                // TODO: 已经登录
+                mLoginDialog?.dismiss()
+                mLoginDialog = null
+                updateBottom(true)
+                getPresetTokenConfig()
+            } else {
+                ToastUtil.show("Get user info error")
+            }
+        }
+    }
+
+    private fun getPresetTokenConfig(){
+        // Fetch token and presets when entering the scene
+        coroutineScope.launch {
+            val deferreds = listOf(
+                async { updateTokenAsync() },
+                async { fetchPresetsAsync() }
+            )
+            deferreds.awaitAll()
+        }
+    }
+
+    private fun updateBottom(isLogin: Boolean) {
+        mBinding?.apply {
+            if (isLogin) {
+                clBottomLogged.root.visibility = View.VISIBLE
+                clBottomNotLogged.root.visibility = View.INVISIBLE
+            } else {
+                clBottomLogged.root.visibility = View.INVISIBLE
+                clBottomNotLogged.root.visibility = View.VISIBLE
+            }
+        }
+
+    }
+
+    private fun showLoginDialog() {
+        if (!isFinishing && !isDestroyed) {  // Add safety check
+            mLoginDialog = LoginDialog().apply {
+                onLoginDialogCallback = object : LoginDialogCallback {
+                    override fun onDialogDismiss() {
+                        mLoginDialog = null
+                    }
+
+                    override fun onClickStartSSO() {
+                        onClickLoginSSO()
+                    }
+
+                    override fun onClickTerms() {
+                        onClickTermsDetail()
+                    }
+                }
+            }
+            mLoginDialog?.show(supportFragmentManager, "mainDebugDialog")
+        }
+    }
+
+    private fun onClickLoginSSO() {
+        // TODO: clean cookie?
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies { success ->
+            if (success) {
+                Log.d("clearCookies", "Cookies successfully removed")
+            } else {
+                Log.d("clearCookies", "Failed to remove cookies")
+            }
+        }
+        cookieManager.flush()
+        activityResultLauncher.launch(Intent(this, SSOWebViewActivity::class.java))
+    }
+
+    private fun onClickTermsDetail() {
+        val intent = Intent(this, TermsActivity::class.java)
+        startActivity(intent)
     }
 }

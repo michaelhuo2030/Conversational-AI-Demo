@@ -69,7 +69,7 @@
             android:textAllCaps="true"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
-            app:backgroundTint="@color/fcr_ui_scene_ramp_brand6"
+            app:backgroundTint="@color/ai_brand_main6"
             app:cornerRadius="12dp"
             app:rippleColor="#1AFFFFFF"
             tools:text="Confirm" />

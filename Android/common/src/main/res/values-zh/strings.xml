@@ -15,4 +15,10 @@
     <string name="common_call_time_is_up_tips">每次对话限时%1s分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。</string>
     <string name="common_i_known">我知道了</string>
 
+    <string name="common_login_chat">Login for Chat free</string>
+    <string name="common_login_chat_tips">Power your business future\n at once</string>
+    <string name="common_login_with_agora_sso">Login With Agora SSO</string>
+    <string name="common_terms_info">我已阅读并同意</string>
+    <string name="common_terms_selection"><u>声网 服务条款</u></string>
+    <string name="common_terms_tips">别忘了勾选哦</string>
 </resources>

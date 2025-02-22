@@ -103,7 +103,7 @@ class AuthorizationInterceptor : Interceptor {
         if (response.code == 401) {
             // 触发全局回调
             ApiManager.notifyUnauthorized()
-            throw UnauthorizedException("Unauthorized access. Please login again.")
+//            throw UnauthorizedException("Unauthorized access. Please login again.")
         }
         
         return response

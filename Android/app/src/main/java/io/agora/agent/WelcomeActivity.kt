@@ -7,39 +7,26 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
-import androidx.fragment.app.FragmentTransaction
-import io.agora.agent.databinding.ActivityMainBinding
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseActivity
 import java.util.Locale
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.util.Log
-import android.view.View
-import android.webkit.CookieManager
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
+import io.agora.agent.databinding.WelcomeActivityBinding
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.SSOUserManager
-import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.common.debugMode.DebugDialog
 import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.debugMode.DebugDialogCallback
-import io.agora.scene.common.net.TokenGenerator
-import io.agora.scene.common.ui.LoginDialog
-import io.agora.scene.common.ui.LoginDialogCallback
-import io.agora.scene.common.ui.SSOWebViewActivity
-import io.agora.scene.common.ui.TermsActivity
 import io.agora.scene.common.ui.vm.LoginViewModel
 import io.agora.scene.convoai.ui.CovLivingActivity
 
-class MainActivity : BaseActivity<ActivityMainBinding>() {
+class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
 
     private val REQUEST_CODE = 100
 
@@ -48,14 +35,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val debugModeOpenTime: Long = 2000
     private var beginTime: Long = 0
     private var mDebugDialog: DebugDialog? = null
-    private var mLoginDialog: LoginDialog? = null
-
-    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
 
     private val mLoginViewModel: LoginViewModel by viewModels()
 
-    override fun getViewBinding(): ActivityMainBinding {
-        return ActivityMainBinding.inflate(layoutInflater)
+    override fun getViewBinding(): WelcomeActivityBinding {
+        return WelcomeActivityBinding.inflate(layoutInflater)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,38 +62,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             arrayOf(Manifest.permission.RECORD_AUDIO),
             REQUEST_CODE
         )
-        activityResultLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
-                    val data: Intent? = result.data
-                    val token = data?.getStringExtra("token")
-                    if (token != null) {
-                        SSOUserManager.saveToken(token)
-                        mLoginViewModel.getUserInfoByToken(token)
-                    } else {
-                        ToastUtil.show("Login error")
-                    }
-                }
-            }
-
         val tempToken = SSOUserManager.getToken()
         if (tempToken.isNotEmpty()) {
             mLoginViewModel.getUserInfoByToken(tempToken)
-        }
-
-        mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
-            if (userInfo != null) {
+            mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
                 goScene(AgentScenes.ConvoAi)
-            } else {
-                ToastUtil.show("获取用户信息失败")
             }
-        }
-
-        TokenGenerator.tokenErrorCompletion = {
-            if (it != null) {
-                SSOUserManager.logout()
-                // TODO:
-            }
+        }else{
+            goScene(AgentScenes.ConvoAi)
         }
     }
 
@@ -157,27 +117,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 ivLogo.setImageResource(R.drawable.app_main_logo)
                 ivLogo.clearColorFilter()
             }
-
-            // Setup UI event listeners
-            cbTerms.setOnCheckedChangeListener { _, _ ->
-                updateStartButtonState()
-            }
-            tvTermsSelection.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    onClickTermsDetail()
-                }
-            })
-            tvGetStarted.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    showLoginDialog()
-                }
-            })
-            tvSsoLogin.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    onClickLoginSSO()
-                }
-            })
-
             // Debug mode activation with multiple taps
             ivIcon.setOnClickListener {
                 if (DebugConfigSettings.isDebug) return@setOnClickListener
@@ -197,57 +136,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_enable))
                 }
             }
-            updateStartButtonState()
         }
-    }
-
-    private fun updateStartButtonState() {
-        mBinding?.apply {
-            // Update start button opacity and enabled state based on terms acceptance
-            if (cbTerms.isChecked) {
-                tvGetStarted.alpha = 1f
-                tvGetStarted.isEnabled = true
-            } else {
-                tvGetStarted.alpha = 0.6f
-                tvGetStarted.isEnabled = false
-            }
-        }
-    }
-
-    private fun onClickTermsDetail() {
-        val intent = Intent(this, TermsActivity::class.java)
-        startActivity(intent)
-    }
-
-    private fun onClickGetStarted() {
-        mBinding?.apply {
-            if (!cbTerms.isChecked) {
-                return
-            }
-            val fragmentTransaction: FragmentTransaction = supportFragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.fragment_container, SceneSelectionFragment())
-            fragmentTransaction.commit()
-        }
-    }
-
-    private fun onClickLoginSSO() {
-        if (mBinding?.cbTerms?.isChecked == false) {
-            return
-        }
-        clearCookies()
-        activityResultLauncher.launch(Intent(this, SSOWebViewActivity::class.java))
-    }
-
-    private fun clearCookies() {
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookies { success ->
-            if (success) {
-                Log.d("clearCookies", "Cookies successfully removed")
-            } else {
-                Log.d("clearCookies", "Failed to remove cookies")
-            }
-        }
-        cookieManager.flush()
     }
 
     private fun setupLocale() {
@@ -285,31 +174,5 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
             mDebugDialog?.show(supportFragmentManager, "mainDebugDialog")
         }
-    }
-
-    private fun showLoginDialog(){
-        if (!isFinishing && !isDestroyed) {  // Add safety check
-            mLoginDialog = LoginDialog().apply {
-                onLoginDialogCallback = object : LoginDialogCallback{
-                    override fun onDialogDismiss() {
-                        mLoginDialog = null
-                    }
-
-                    override fun onClickStartSSO() {
-                        onClickLoginSSO()
-                    }
-
-                    override fun onClickTerms() {
-                        onClickTermsDetail()
-                    }
-                }
-            }
-            mLoginDialog?.show(supportFragmentManager, "mainDebugDialog")
-        }
-    }
-
-    override fun onDestroy() {
-        DebugButton.getInstance(AgentApp.instance()).hide()
-        super.onDestroy()
     }
 }
