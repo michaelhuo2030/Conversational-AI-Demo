@@ -48,6 +48,8 @@ class AgentSettingBar: UIView {
         label.font = .systemFont(ofSize: 12)
         label.textAlignment = .center
         label.layerCornerRadius = 11
+        label.isHidden = true
+        label.backgroundColor = UIColor.white.withAlphaComponent(0.15)
         label.textColor = UIColor.themColor(named: "ai_brand_white10")
         return label
     }()
@@ -230,9 +232,8 @@ class AgentSettingBar: UIView {
             make.centerY.equalToSuperview()
         }
         netStateView.snp.remakeConstraints { make in
-            make.right.equalTo(settingButton.snp.left)
+            make.right.equalTo(settingButton.snp.left).offset(-10)
             make.centerY.equalToSuperview()
-            make.width.height.equalTo(48)
         }
         netTrackView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
@@ -244,7 +245,7 @@ class AgentSettingBar: UIView {
             make.centerX.equalToSuperview()
             make.width.equalTo(49)
             make.height.equalTo(22)
-            make.bottom.equalTo(self.snp.bottom)
+            make.top.equalTo(self.snp.bottom)
         }
     }
 }

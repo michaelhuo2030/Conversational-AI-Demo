@@ -60,7 +60,7 @@ class AgentControlToolbar: UIView {
         let spacing: CGFloat = 5
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -spacing/2, bottom: 0, right: spacing/2)
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: spacing/2, bottom: 0, right: -spacing/2)
-        
+        button.clipsToBounds = true
         return button
     }()
     
@@ -204,7 +204,6 @@ class AgentControlToolbar: UIView {
         }
         
         startButton.layoutIfNeeded()
-        startButton.layer.cornerRadius = startButton.frame.height / 2
         
         buttonControlContentView.snp.makeConstraints { make in
             make.edges.equalTo(UIEdgeInsets.zero)
@@ -246,15 +245,11 @@ class AgentControlToolbar: UIView {
             UIColor(hexString: "#315DFF")?.cgColor as Any,
             UIColor(hexString: "#446CFF")?.cgColor as Any
         ]
-        gradientLayer.locations = [0, 0.1, 1.0]
         gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
         gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
-        gradientLayer.cornerRadius = startButtonHeight / 2.0
         gradientLayer.frame = CGRectMake(0, 0, UIScreen.main.bounds.width - 40, startButtonHeight)
         button.layer.addSublayer(gradientLayer)
         gradientLayer.zPosition = -0.1
-        button.layer.masksToBounds = true
-        
         self.gradientLayer = gradientLayer
         
         CATransaction.commit()
@@ -294,9 +289,7 @@ class AgentControlToolbar: UIView {
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             
-            startButton.layer.cornerRadius = startButton.frame.height / 2
             gradientLayer?.frame = startButton.bounds
-            gradientLayer?.cornerRadius = startButton.frame.height / 2
             
             CATransaction.commit()
         }

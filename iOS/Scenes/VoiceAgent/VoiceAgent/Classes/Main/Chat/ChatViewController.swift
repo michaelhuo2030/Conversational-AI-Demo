@@ -84,6 +84,17 @@ public class ChatViewController: UIViewController {
         return view
     }()
     
+    private let upperBackgroundView: UIView = {
+        let view = UIView()
+        return view
+    }()
+    
+    private let lowerBackgroundView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.themColor(named: "ai_fill4")
+        return view
+    }()
+    
     private lazy var toastView: ToastView = {
         let view = ToastView()
         view.isHidden = true
@@ -147,6 +158,17 @@ public class ChatViewController: UIViewController {
         setupConstraints()
     }
     
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // set gradient color from #23248399 to #242439
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.frame = upperBackgroundView.bounds
+        let startColor = UIColor(argbHexString: "#1D1D56") ?? .black
+        let endColor = UIColor(argbHexString: "#242439") ?? .black
+        gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+        upperBackgroundView.layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
     private func registerDelegate() {
         AppContext.preferenceManager()?.addDelegate(self)
     }
@@ -174,7 +196,7 @@ public class ChatViewController: UIViewController {
     private func setupViews() {
         view.backgroundColor = .black
         
-        [topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        [upperBackgroundView, lowerBackgroundView, topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
         devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
         
         contentView.addSubview(animateContentView)
@@ -232,6 +254,14 @@ public class ChatViewController: UIViewController {
             make.centerY.equalToSuperview()
             make.right.equalTo(-20)
             make.size.equalTo(CGSize(width: 44, height: 44))
+        }
+        upperBackgroundView.snp.makeConstraints { make in
+            make.top.left.right.equalToSuperview()
+            make.bottom.equalTo(animateContentView.snp.top)
+        }
+        lowerBackgroundView.snp.makeConstraints { make in
+            make.top.equalTo(animateContentView.snp.top)
+            make.left.right.bottom.equalToSuperview()
         }
     }
     

@@ -217,8 +217,8 @@ class AgentInformationViewController: UIViewController {
 extension AgentInformationViewController {
     private func createViews() {
         view.backgroundColor = UIColor(white: 0, alpha: 0.5)
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
-        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
+//        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
+//        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
         
         view.addSubview(backgroundView)
         backgroundView.addSubview(topView)
