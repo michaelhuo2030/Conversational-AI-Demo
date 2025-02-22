@@ -14,7 +14,8 @@ protocol AgentPreferenceManagerDelegate: AnyObject {
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage)
     func preferenceManager(_ manager: AgentPreferenceManager, aiVadStateDidUpdated state: Bool)
     func preferenceManager(_ manager: AgentPreferenceManager, bhvsStateDidUpdated state: Bool)
-    
+    func preferenceManager(_ manager: AgentPreferenceManager, loginStateDidUpdated state: Bool)
+
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus)
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus)
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus)
@@ -29,6 +30,8 @@ protocol AgentPreferenceManagerProtocol {
     func addDelegate(_ delegate: AgentPreferenceManagerDelegate)
     func removeDelegate(_ delegate: AgentPreferenceManagerDelegate)
     
+    // User Login State Updates
+    func updateLoginState(_ state: Bool)
     
     // Preference Updates
     func updatePreset(_ preset: AgentPreset)
@@ -124,6 +127,10 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
         notifyDelegates { $0.preferenceManager(self, targetServerDidUpdated: server) }
     }
     
+    func updateLoginState(_ state: Bool) {
+        notifyDelegates { $0.preferenceManager(self, loginStateDidUpdated: state)}
+    }
+
     func resetAgentInformation() {
         updateNetworkState(.good)
         updateRoomState(.unload)
@@ -258,7 +265,8 @@ extension AgentPreferenceManagerDelegate {
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {}
     func preferenceManager(_ manager: AgentPreferenceManager, aiVadStateDidUpdated state: Bool) {}
     func preferenceManager(_ manager: AgentPreferenceManager, bhvsStateDidUpdated state: Bool) {}
-    
+    func preferenceManager(_ manager: AgentPreferenceManager, loginStateDidUpdated state: Bool) {}
+
     func preferenceManager(_ manager: AgentPreferenceManager, networkDidUpdated networkState: NetworkStatus) {}
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {}
     func preferenceManager(_ manager: AgentPreferenceManager, roomStateDidUpdated roomState: ConnectionStatus) {}

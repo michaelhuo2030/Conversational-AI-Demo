@@ -59,6 +59,20 @@ public class ChatViewController: UIViewController {
         return view
     }()
     
+    private lazy var welcomeMessageView: UIImageView = {
+        let view = UIImageView()
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.textColor = .white
+        label.text = "hi, i’m Convo aI agents"
+        label.textAlignment = .center
+        view.addSubview(label)
+        label.snp.makeConstraints { make in
+            make.edges.equalTo(UIEdgeInsets.zero)
+        }
+        return view
+    }()
+    
     private lazy var animateContentView: UIView = {
         let view = UIView()
         return view
@@ -112,23 +126,41 @@ public class ChatViewController: UIViewController {
         
     deinit {
         print("liveing view controller deinit")
+        deregisterDelegate()
+    }
+    
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.setNavigationBarHidden(true, animated: false)
+
+        let isLogin = UserCenter.shared.isLogin()
+        welcomeMessageView.isHidden = isLogin
     }
     
     public override func viewDidLoad() {
         super.viewDidLoad()
         UIApplication.shared.isIdleTimerDisabled = true
 
+        registerDelegate()
         preloadData()
         setupViews()
         setupConstraints()
     }
     
-    public override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        self.navigationController?.setNavigationBarHidden(true, animated: false)
+    private func registerDelegate() {
+        AppContext.preferenceManager()?.addDelegate(self)
+    }
+    
+    private func deregisterDelegate() {
+        AppContext.preferenceManager()?.removeDelegate(self)
     }
     
     private func preloadData() {
+        let isLogin = UserCenter.shared.isLogin()
+        if !isLogin {
+            return
+        }
+
         Task {
             do {
                 try await fetchPresetsIfNeeded()
@@ -142,7 +174,7 @@ public class ChatViewController: UIViewController {
     private func setupViews() {
         view.backgroundColor = .black
         
-        [topBar, contentView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        [topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
         devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
         
         contentView.addSubview(animateContentView)
@@ -189,6 +221,13 @@ public class ChatViewController: UIViewController {
             make.left.right.equalTo(0)
             make.height.equalTo(76)
         }
+        
+        welcomeMessageView.snp.makeConstraints { make in
+            make.left.equalTo(29)
+            make.right.equalTo(-29)
+            make.bottom.equalTo(bottomBar.snp.top).offset(-41)
+        }
+        
         devModeButton.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
             make.right.equalTo(-20)
@@ -598,7 +637,17 @@ private extension ChatViewController {
     
     private func clickTheStartButton() async {
         addLog("[Call] clickTheStartButton()")
-        await prepareToStartAgent()
+        let loginState = UserCenter.shared.isLogin()
+        if loginState {
+            await prepareToStartAgent()
+            return
+        }
+        
+        await MainActor.run {
+            let loginVC = LoginViewController()
+            loginVC.modalPresentationStyle = .overFullScreen
+            self.present(loginVC, animated: false)
+        }
     }
     
     private func clickCaptionsButton(state: Bool) {
@@ -700,4 +749,9 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
     }
 }
 
+extension ChatViewController: AgentPreferenceManagerDelegate {
+    func preferenceManager(_ manager: AgentPreferenceManager, loginStateDidUpdated state: Bool) {
+        welcomeMessageView.isHidden = state
+    }
+}
 

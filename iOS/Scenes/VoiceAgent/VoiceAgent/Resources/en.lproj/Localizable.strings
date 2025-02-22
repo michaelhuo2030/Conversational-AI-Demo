@@ -1,10 +1,18 @@
 
+"login.title" = "Login for Chat free";
+"login.description" = "Power your business future at once";
+"login.start.button.title" = "login with phone number";
+"login.terms.service.prefix" = "I agree to the ";
+"login.terms.service.suffix" = "Agora Terms of Service";
+"login.terms.service.tips" = "Read me first";
+
 "join.start.title" = "Conversational AI Engine";
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";
 "join.start.tips" = "Limited to 10 minutes";
 
+"conversation.ai.app.name" = "Conversational AI Engine";
 "conversation.agent.name" = "Agent";
 "conversation.button.end.call" = "End Call";
 "conversation.agent.loading" = "Joining";

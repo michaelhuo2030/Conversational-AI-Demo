@@ -1,3 +1,9 @@
+"login.title" = "Login for Chat free";
+"login.description" = "Power your business future at once";
+"login.start.button.title" = "login with phone number";
+"login.terms.service.prefix" = "I agree to the ";
+"login.terms.service.suffix" = "Agora Terms of Service";
+"login.terms.service.tips" = "Read me first";
 
 "join.start.title" = "对话式 AI 引擎";
 "join.start.state" = "未加入";
@@ -5,6 +11,7 @@
 "join.start.agent.name" = "智能体";
 "join.start.tips" = "每次对话限时10分钟";
 
+"conversation.ai.app.name" = "对话式 AI 引擎";
 "conversation.agent.name" = "智能体";
 "conversation.button.end.call" = "结束通话";
 "conversation.agent.loading" = "智能体正在加入";
