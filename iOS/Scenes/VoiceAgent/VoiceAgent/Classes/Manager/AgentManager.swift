@@ -50,7 +50,7 @@ protocol AgentAPI {
     
     /// Retrieves the list of available agent presets
     /// - Parameter completion: Callback with optional error and array of agent presets
-    func fetchAgentPresets(completion: @escaping ((AgentError?, [AgentPreset]?) -> Void))
+    func fetchAgentPresets(appId: String, completion: @escaping ((AgentError?, [AgentPreset]?) -> Void))
 }
 
 class AgentManager: AgentAPI {    
@@ -58,10 +58,13 @@ class AgentManager: AgentAPI {
         AgentServiceUrl.host = host
     }
     
-    func fetchAgentPresets(completion: @escaping ((AgentError?, [AgentPreset]?) -> Void)) {
+    func fetchAgentPresets(appId: String, completion: @escaping ((AgentError?, [AgentPreset]?) -> Void)) {
         let url = AgentServiceUrl.stopAgentPath("v3/convoai/presetAgents").toHttpUrlSting()
         VoiceAgentLogger.info("request agent preset api: \(url)")
-        NetworkManager.shared.getRequest(urlString: url) { result in
+        let requesetBody: [String: Any] = [
+            "app_id": appId
+        ]
+        NetworkManager.shared.getRequest(urlString: url, params: requesetBody) { result in
             VoiceAgentLogger.info("presets request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"

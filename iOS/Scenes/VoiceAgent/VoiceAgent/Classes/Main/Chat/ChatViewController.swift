@@ -146,6 +146,7 @@ public class ChatViewController: UIViewController {
 
         let isLogin = UserCenter.shared.isLogin()
         welcomeMessageView.isHidden = isLogin
+        topBar.updateButtonVisible(isLogin)
     }
     
     public override func viewDidLoad() {
@@ -201,7 +202,7 @@ public class ChatViewController: UIViewController {
         
         contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
-        contentView.addSubview(messageView)
+        view.addSubview(messageView)
         
         animateView.setupMediaPlayer(rtcManager.getRtcEntine())
         animateView.updateAgentState(.idle)
@@ -229,7 +230,8 @@ public class ChatViewController: UIViewController {
         }
         
         messageView.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
+            make.top.left.right.equalTo(0)
+            make.bottom.equalTo(bottomBar.snp.top)
         }
         
         toastView.snp.makeConstraints { make in
@@ -361,7 +363,7 @@ extension ChatViewController {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
         return try await withCheckedThrowingContinuation { continuation in
-            agentManager.fetchAgentPresets { error, result in
+            agentManager.fetchAgentPresets(appId: AppContext.shared.appId) { error, result in
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
@@ -807,6 +809,7 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
 extension ChatViewController: LoginManagerDelegate {
     func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
         welcomeMessageView.isHidden = loginState
+        topBar.updateButtonVisible(loginState)
         if !loginState {
             stopLoading()
             stopAgent()

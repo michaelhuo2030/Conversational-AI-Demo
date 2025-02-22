@@ -80,9 +80,9 @@ public class NetworkManager:NSObject {
         }
     }
     
-    public func getRequest(urlString: String, success: SuccessClosure?, failure: FailClosure?) {
+    public func getRequest(urlString: String, params: [String: Any]?, success: SuccessClosure?, failure: FailClosure?) {
         DispatchQueue.global().async {
-            self.request(urlString: urlString, params: nil, method: .GET, success: success, failure: failure)
+            self.request(urlString: urlString, params: params, method: .GET, success: success, failure: failure)
         }
     }
 
@@ -115,10 +115,15 @@ public class NetworkManager:NSObject {
                             method: HTTPMethods,
                             success: SuccessClosure?,
                             failure: FailClosure?) -> URLRequest? {
-        let string = urlString
+        var string = urlString
+        if method == .GET {
+            string = string.appendingParameters(parameters: params)
+        }
+        
         guard let url = URL(string: string) else {
             return nil
         }
+        
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         if method == .POST {

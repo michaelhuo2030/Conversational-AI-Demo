@@ -197,14 +197,15 @@ class ChatView: UIView {
     
     // MARK: - Setup
     private func setupViews() {
-        backgroundColor = UIColor.black.withAlphaComponent(0.85)
+        backgroundColor = UIColor.themColor(named: "ai_mask1")
         addSubview(tableView)
         addSubview(arrowButton)
     }
     
     private func setupConstraints() {
         tableView.snp.makeConstraints { make in
-            make.top.left.right.equalTo(0)
+            make.top.equalTo(102)
+            make.left.right.equalTo(0)
             make.bottom.equalTo(0)
         }
         
