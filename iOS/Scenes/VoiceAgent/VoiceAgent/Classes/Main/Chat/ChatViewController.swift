@@ -12,7 +12,7 @@ import SVProgressHUD
 import SwifterSwift
 import Common
 
-class ChatViewController: UIViewController {
+public class ChatViewController: UIViewController {
     private var isDenoise = true
     private let messageParser = MessageParser()
     private var remoteIsJoined = false
@@ -136,13 +136,13 @@ class ChatViewController: UIViewController {
         deregisterDelegate()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         let isLogin = UserCenter.shared.isLogin()
         welcomeMessageView.isHidden = isLogin
     }
     
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
         UIApplication.shared.isIdleTimerDisabled = true
 
@@ -468,17 +468,17 @@ extension ChatViewController {
 
 // MARK: - AgoraRtcEngineDelegate
 extension ChatViewController: AgoraRtcEngineDelegate {
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didOccurError errorCode: AgoraErrorCode) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didOccurError errorCode: AgoraErrorCode) {
         addLog("[RTC Call Back] engine didOccurError: \(errorCode.rawValue)")
         SVProgressHUD.dismiss()
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didLeaveChannelWith stats: AgoraChannelStats) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didLeaveChannelWith stats: AgoraChannelStats) {
         addLog("[RTC Call Back] didLeaveChannelWith : \(stats)")
         print("didLeaveChannelWith")
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, connectionChangedTo state: AgoraConnectionState, reason: AgoraConnectionChangedReason) {
         addLog("[RTC Call Back] connectionChangedToState: \(state), reason: \(reason)")
         if reason == .reasonInterrupted {
             animateView.updateAgentState(.idle)
@@ -509,11 +509,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
         addLog("[RTC Call Back] didJoinChannel uid: \(uid)")
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         toastView.dismiss()
         remoteIsJoined = true
         timerCoordinator.startUsageDurationLimitTimer()
@@ -526,7 +526,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didOfflineOfUid uid: UInt, reason: AgoraUserOfflineReason) {
         addLog("[RTC Call Back] didOfflineOfUid uid: \(uid)")
         animateView.updateAgentState(.idle)
         AppContext.preferenceManager()?.updateAgentState(.disconnected)
@@ -534,7 +534,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         remoteIsJoined = false
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, tokenPrivilegeWillExpire token: String) {
         self.token = ""
         addLog("[RTC Call Back] tokenPrivilegeWillExpire")
         NetworkManager.shared.generateToken(
@@ -553,17 +553,17 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, networkQuality uid: UInt, txQuality: AgoraNetworkQuality, rxQuality: AgoraNetworkQuality) {
         if AppContext.preferenceManager()?.information.agentState == .unload { return }
         addLog("[RTC Call Back] networkQuality: \(rxQuality)")
         AppContext.preferenceManager()?.updateNetworkState(NetworkStatus(agoraQuality: rxQuality))
     }
         
-    func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
         messageAdapter.inputStreamMessageData(data: data)
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
         speakers.forEach { info in
             if (info.uid == agentUid) {
                 var currentVolume: CGFloat = 0
@@ -580,7 +580,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
     
-    func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStateChangedOfUid uid: UInt, state: AgoraAudioRemoteState, reason: AgoraAudioRemoteReason, elapsed: Int) {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, remoteAudioStateChangedOfUid uid: UInt, state: AgoraAudioRemoteState, reason: AgoraAudioRemoteReason, elapsed: Int) {
         addLog("[RTC Call Back] remoteAudioStateChangedOfUid")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -594,14 +594,14 @@ extension ChatViewController: AgoraRtcEngineDelegate {
 // MARK: - AgoraAudioFrameDelegate
 extension ChatViewController: AgoraAudioFrameDelegate {
     
-    func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
+    public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
         if uid == agentUid {
             messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
         }
         return true
     }
     
-    func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
+    public func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
         return .beforeMixing
     }
 }

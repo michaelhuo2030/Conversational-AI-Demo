@@ -18,7 +18,7 @@ public typealias FeedbackCompletion = (FeedbackError?, [String : Any]?) -> Void
 public class FeedBackPresenter {
     
     private let kURLPathUploadImage = "/api-login/upload"
-    private let kURLPathUploadLog = "/api-login/upload/log"
+    private let kURLPathUploadLog = "/v1/convoai/upload/log"
     private let kURLPathFeedback = "/api-login/feedback/upload"
     
     private var images = [UIImage]()
@@ -50,6 +50,8 @@ public class FeedBackPresenter {
     
     private func zipFiles(fileURLs: [URL], destinationURL: URL, completion: @escaping (FeedbackError?, URL?) -> Void) {
         let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("AgentLogs")
+        // delete exist files
+        try? FileManager.default.removeItem(at: tempDirectory)
         do {
             try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true, attributes: nil)
             
@@ -113,9 +115,12 @@ public class FeedBackPresenter {
             let req = AUIUploadNetworkModel()
             req.interfaceName = self.kURLPathUploadLog
             req.fileData = data
-            req.name = "file"
-            req.mimeType = "application/zip"
-            req.fileName = fileName
+            req.appId = AppContext.shared.appId
+            req.channelName = "agora"
+            req.agentId = "1213"
+//            req.name = "file"
+//            req.mimeType = "application/zip"
+//            req.fileName = fileName
             req.upload { progress in
                 
             } completion: { err, content in

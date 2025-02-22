@@ -16,7 +16,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let window = UIWindow(windowScene: windowScene)
 //        window.rootViewController = setupTabbarController()
-        let navigationVC = UINavigationController(rootViewController: AgentHomeViewController())
+        let navigationVC = UINavigationController(rootViewController: ChatViewController())
         window.rootViewController = navigationVC
         self.window = window
         window.makeKeyAndVisible()

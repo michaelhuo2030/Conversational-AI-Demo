@@ -58,6 +58,9 @@
 "channel.network.good" = "良好";
 "channel.network.fair" = "一般";
 "channel.network.poor" = "较差";
+"channel.more.title" = "更多操作";
+"channel.more.feedback" = "一键上报";
+"channel.more.logout" = "退出登录";
 
 "error.network" = "请求失败：";
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";
