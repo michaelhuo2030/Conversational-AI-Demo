@@ -191,7 +191,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
         // v2 Subtitle Rendering Controller
         subRenderController.onUpdateStreamContent = { subtitleMessage ->
-            CovLogger.d(CovSubRenderController.TAG, "onUpdateStreamContent: $subtitleMessage")
             runOnUiThread {
                 if (!isSelfSubRender) {
                     mBinding?.messageListViewV2?.updateStreamContent(subtitleMessage)
