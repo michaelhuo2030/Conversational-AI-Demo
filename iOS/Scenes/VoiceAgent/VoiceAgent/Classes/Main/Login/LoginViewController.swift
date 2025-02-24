@@ -35,6 +35,7 @@ class LoginViewController: UIViewController {
         label.font = .systemFont(ofSize: 16)
         label.numberOfLines = 0
         label.textColor = UIColor.themColor(named: "ai_icontext1")
+        label.isHidden = AppContext.shared.appArea == .global
         return label
     }()
     
@@ -74,15 +75,38 @@ class LoginViewController: UIViewController {
     private lazy var termsButton: UIButton = {
         let button = UIButton(type: .system)
         let attributedString = NSAttributedString(
-            string: ResourceManager.L10n.Login.termsServiceSuffix,
+            string: ResourceManager.L10n.Login.termsServiceName,
             attributes: [
                 .underlineStyle: NSUnderlineStyle.single.rawValue,
                 .font: UIFont.systemFont(ofSize: 14),
-                .foregroundColor: UIColor.white
+                .foregroundColor: UIColor.themColor(named: "ai_icontext1")
             ]
         )
         button.setAttributedTitle(attributedString, for: .normal)
         button.addTarget(self, action: #selector(termsButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var andLabel: UILabel = {
+        let label = UILabel()
+        label.text = ResourceManager.L10n.Login.termsServiceAndWord
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
+        return label
+    }()
+    
+    private lazy var privacyPolicyButton: UIButton = {
+        let button = UIButton(type: .system)
+        let attributedString = NSAttributedString(
+            string: ResourceManager.L10n.Login.termsPrivacyName,
+            attributes: [
+                .underlineStyle: NSUnderlineStyle.single.rawValue,
+                .font: UIFont.systemFont(ofSize: 14),
+                .foregroundColor: UIColor.themColor(named: "ai_icontext1")
+            ]
+        )
+        button.setAttributedTitle(attributedString, for: .normal)
+        button.addTarget(self, action: #selector(privacyPolicyTapped), for: .touchUpInside)
         return button
     }()
     
@@ -97,9 +121,12 @@ class LoginViewController: UIViewController {
         let button = UIButton()
         button.setTitle(ResourceManager.L10n.Login.termsServiceTips, for: .normal)
         button.setTitleColor(UIColor.themColor(named: "ai_icontext_inverse1"), for: .normal)
-        button.setBackgroundImage(UIImage.ag_named("ic_login_tips"), for: .normal)
+        let image = UIImage.ag_named("ic_login_tips")
+        let resizableImage = image?.resizableImage(withCapInsets: UIEdgeInsets(top: 0, left: 33, bottom: 0, right: 12), resizingMode: .stretch)
+        button.setBackgroundImage(resizableImage, for: .normal)
         button.isHidden = true
         button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 33, bottom: 0, right: 21)
         return button
     }()
     
@@ -127,6 +154,8 @@ class LoginViewController: UIViewController {
         containerView.addSubview(termsCheckbox)
         containerView.addSubview(termsLabel)
         containerView.addSubview(termsButton)
+        containerView.addSubview(andLabel)
+        containerView.addSubview(privacyPolicyButton)
         containerView.addSubview(closeButton)
     }
     
@@ -147,18 +176,18 @@ class LoginViewController: UIViewController {
         }
         
         subtitleLabel.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(6)
+            make.bottom.equalTo(logoView.snp.bottom).offset(-1)
             make.left.right.equalTo(titleLabel)
         }
         
         logoView.snp.makeConstraints { make in
             make.top.equalTo(titleLabel)
             make.right.equalTo(-33)
-            make.width.height.equalTo(96)
+            make.width.height.equalTo(64)
         }
         
         phoneLoginButton.snp.makeConstraints { make in
-            make.top.equalTo(logoView.snp.bottom).offset(28)
+            make.top.equalTo(logoView.snp.bottom).offset(46)
             make.left.equalTo(30)
             make.right.equalTo(-30)
             make.height.equalTo(58)
@@ -178,6 +207,16 @@ class LoginViewController: UIViewController {
         termsButton.snp.makeConstraints { make in
             make.centerY.equalTo(termsCheckbox)
             make.left.equalTo(termsLabel.snp.right)
+        }
+        
+        andLabel.snp.makeConstraints { make in
+            make.centerY.equalTo(termsCheckbox)
+            make.left.equalTo(termsButton.snp.right)
+        }
+        
+        privacyPolicyButton.snp.makeConstraints { make in
+            make.centerY.equalTo(termsCheckbox)
+            make.left.equalTo(andLabel.snp.right)
         }
         
         warningButton.snp.makeConstraints { make in
@@ -266,7 +305,17 @@ class LoginViewController: UIViewController {
     }
     
     @objc private func termsButtonTapped() {
-        let termsServiceVC = UINavigationController(rootViewController: TermsServiceWebViewController())
+        let vc = TermsServiceWebViewController()
+        vc.url = AppContext.shared.termsOfServiceUrl
+        let termsServiceVC = UINavigationController(rootViewController: vc)
+        termsServiceVC.modalPresentationStyle = .fullScreen
+        self.present(termsServiceVC, animated: true)
+    }
+    
+    @objc private func privacyPolicyTapped() {
+        let vc = TermsServiceWebViewController()
+        vc.url = AppContext.shared.termsOfServiceUrl
+        let termsServiceVC = UINavigationController(rootViewController: vc)
         termsServiceVC.modalPresentationStyle = .fullScreen
         self.present(termsServiceVC, animated: true)
     }

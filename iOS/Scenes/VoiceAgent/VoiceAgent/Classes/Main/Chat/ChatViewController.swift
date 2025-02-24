@@ -819,7 +819,7 @@ extension ChatViewController: LoginManagerDelegate {
         stopLoading()
         stopAgent()
         
-        SVProgressHUD.showError(withStatus: "登录态过期，请重新登录")
+        SVProgressHUD.showError(withStatus: ResourceManager.L10n.Login.sessionExpired)
     }
 }
 

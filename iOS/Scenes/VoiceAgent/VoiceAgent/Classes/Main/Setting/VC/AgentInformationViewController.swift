@@ -7,6 +7,7 @@
 
 import UIKit
 import Common
+import SVProgressHUD
 
 class AgentInformationViewController: UIViewController {
     
@@ -225,6 +226,11 @@ class AgentInformationViewController: UIViewController {
         loadingMaskView.isHidden = false
         rtcManager.predump {
             self.feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { error, result in
+                if error == nil {
+                    SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.feedbackSuccess)
+                } else {
+                    SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.feedbackFailed)
+                }
                 self.loadingMaskView.isHidden = true
                 self.feedbackItem.stopLoading()
             }

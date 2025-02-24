@@ -1,21 +1,25 @@
-"login.title" = "Login for Chat free";
-"login.description" = "Power your business future at once";
-"login.start.button.title" = "Login with phone number";
-"login.terms.service.prefix" = "I agree to the ";
-"login.terms.service.suffix" = "Agora Terms of Service";
-"login.terms.service.tips" = "Read me first";
-"logout.alert.title" = "您是否要退出？";
+"login.title" = "一键登录";
+"login.description" = "解锁♾️免费畅聊";
+"login.start.button.title" = "手机号登录";
+"login.terms.service.prefix" = "我已阅读并同意 ";
+"login.terms.service.name" = "《用户协议》";
+"login.terms.service.and" = "和";
+"login.privacy.policy.name" = "《隐私政策》";
+"login.terms.service.tips" = "请勾选协议";
+"login.session.expired" = "登录过期，请重新登录";
+
+"logout.alert.title" = "退出登录";
 "logout.alert.description" = "您将退出当前账号，退出后需要重新登录才能使用完整功能。是否继续？";
 "logout.alert.confirm.title" = "取消";
-"logout.alert.cancel.title" = "退出";
+"logout.alert.cancel.title" = "退出登录";
 
-"join.start.title" = "对话式 AI 引擎";
+"join.start.title" = "对话式 AI 引擎体验";
 "join.start.state" = "未加入";
 "join.start.button.title" = "连接 AI 引擎";
 "join.start.agent.name" = "智能体";
 "join.start.tips" = "每次对话限时10分钟";
 
-"conversation.ai.app.name" = "对话式 AI 引擎";
+"conversation.ai.app.name" = "对话式 AI 引擎体验";
 "conversation.agent.name" = "智能体";
 "conversation.button.end.call" = "结束通话";
 "conversation.agent.loading" = "智能体正在加入";
@@ -34,7 +38,7 @@
 "conversation.alert.cancel" = "取消";
 "conversation.alert.clear" = "清除";
 
-"settings.title" = "设置";
+"settings.title" = "设置(通话中不可修改)";
 "settings.connected.tips" = "(连接中不可修改)";
 "settings.preset" = "预设";
 "settings.advanced" = "高级设置";
@@ -66,6 +70,8 @@
 "channel.network.poor" = "较差";
 "channel.more.title" = "更多操作";
 "channel.more.feedback" = "一键上报";
+"channel.more.feedback.success" = "提交成功，感谢反馈";
+"channel.more.feedback.failed" = "提交失败，请稍后重试";
 "channel.more.logout" = "退出登录";
 "channel.time.limited.alert.title" = "本次对话时间到！";
 "channel.time.limited.alert.description" = "每次对话限时%d分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。";
