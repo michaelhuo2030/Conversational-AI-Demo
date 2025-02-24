@@ -26,10 +26,6 @@
 		AB7A7D832D366D87000B3034 /* TabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7A7D782D366D87000B3034 /* TabbarController.swift */; };
 		AB7A7D872D3689EF000B3034 /* TermsServicViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7A7D842D3689EE000B3034 /* TermsServicViewController.swift */; };
 		AB7A7D882D3689EF000B3034 /* TermsServicViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7A7D842D3689EE000B3034 /* TermsServicViewController.swift */; };
-		AB7A7D892D3689EF000B3034 /* AgentHomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7A7D852D3689EE000B3034 /* AgentHomeViewController.swift */; };
-		AB7A7D8A2D3689EF000B3034 /* AgentHomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7A7D852D3689EE000B3034 /* AgentHomeViewController.swift */; };
-		AB7A7D8B2D3689EF000B3034 /* AgentSceneViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7A7D862D3689EF000B3034 /* AgentSceneViewController.swift */; };
-		AB7A7D8C2D3689EF000B3034 /* AgentSceneViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7A7D862D3689EF000B3034 /* AgentSceneViewController.swift */; };
 		AB7A7DA82D43B145000B3034 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB7A7DA22D43B145000B3034 /* Assets.xcassets */; };
 		AB7A7DA92D43B145000B3034 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = AB7A7DA42D43B145000B3034 /* Localizable.strings */; };
 		AB7A7DAB2D43B204000B3034 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB7A7DA22D43B145000B3034 /* Assets.xcassets */; };
@@ -72,8 +68,6 @@
 		AB7A7D772D366D87000B3034 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		AB7A7D782D366D87000B3034 /* TabbarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabbarController.swift; sourceTree = "<group>"; };
 		AB7A7D842D3689EE000B3034 /* TermsServicViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TermsServicViewController.swift; sourceTree = "<group>"; };
-		AB7A7D852D3689EE000B3034 /* AgentHomeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AgentHomeViewController.swift; sourceTree = "<group>"; };
-		AB7A7D862D3689EF000B3034 /* AgentSceneViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AgentSceneViewController.swift; sourceTree = "<group>"; };
 		AB7A7DA22D43B145000B3034 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AB7A7DA32D43B145000B3034 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		AB7A7DAD2D43B219000B3034 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -181,8 +175,6 @@
 		AB7A7D792D366D87000B3034 /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				AB7A7D852D3689EE000B3034 /* AgentHomeViewController.swift */,
-				AB7A7D862D3689EF000B3034 /* AgentSceneViewController.swift */,
 				AB7A7D842D3689EE000B3034 /* TermsServicViewController.swift */,
 				AB7A7D742D366D87000B3034 /* AboutViewController.swift */,
 				AB7A7D752D366D87000B3034 /* HomeContentViewCell.swift */,
@@ -444,7 +436,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB7A7D802D366D87000B3034 /* MainViewController.swift in Sources */,
-				AB7A7D892D3689EF000B3034 /* AgentHomeViewController.swift in Sources */,
 				AB7A7D822D366D87000B3034 /* TabbarController.swift in Sources */,
 				AB7A7D582D360F37000B3034 /* AppDelegate.swift in Sources */,
 				AB7A7D7C2D366D87000B3034 /* HomeContentViewCell.swift in Sources */,
@@ -454,7 +445,6 @@
 				AB297B742CA93805007FB93B /* KeyCenter.swift in Sources */,
 				AB7A7D872D3689EF000B3034 /* TermsServicViewController.swift in Sources */,
 				AB7A7DB02D43B292000B3034 /* Resource+Home.swift in Sources */,
-				AB7A7D8B2D3689EF000B3034 /* AgentSceneViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -463,7 +453,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB7A7D812D366D87000B3034 /* MainViewController.swift in Sources */,
-				AB7A7D8A2D3689EF000B3034 /* AgentHomeViewController.swift in Sources */,
 				AB7A7D832D366D87000B3034 /* TabbarController.swift in Sources */,
 				AB7A7D592D360F37000B3034 /* AppDelegate.swift in Sources */,
 				AB7A7D7D2D366D87000B3034 /* HomeContentViewCell.swift in Sources */,
@@ -473,7 +462,6 @@
 				AB53ED992D35341B0055DF2E /* KeyCenter.swift in Sources */,
 				AB7A7D882D3689EF000B3034 /* TermsServicViewController.swift in Sources */,
 				AB7A7DB12D43B292000B3034 /* Resource+Home.swift in Sources */,
-				AB7A7D8C2D3689EF000B3034 /* AgentSceneViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
