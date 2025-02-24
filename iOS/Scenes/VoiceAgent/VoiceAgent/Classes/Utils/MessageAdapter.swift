@@ -93,6 +93,7 @@ class MessageAdapter: NSObject {
     private var messageQueue: [TurnObj] = []
     private var messageMode: MessageMode = .idle
     
+    private var lastTurn: TurnObj? = nil
     private var lastFinishTurn: TurnObj? = nil
     
     private func addLog(_ txt: String) {
@@ -164,9 +165,6 @@ class MessageAdapter: NSObject {
                 guard let status = TurnStatus(rawValue: message.turn_status ?? 0) else {
                     return
                 }
-                guard let status = TurnStatus(rawValue: message.turn_status ?? 0) else {
-                    return
-                }
                 var temp: TurnObj?
                 for buffer in self.messageQueue {
                     if buffer.turnId == message.turn_id {
@@ -211,11 +209,9 @@ class MessageAdapter: NSObject {
                 return
             }
             //message dequeue
-            var isSended = false
+            var interrupte = false
             for (index, buffer) in self.messageQueue.enumerated().reversed() {
-                if isSended {
-                    // message intterupted by before message
-//                    self.delegate?.messageFlush(turnId: buffer.turnId, message: "", owner: .agent, isFinished: true, isInterrupted: true)
+                if interrupte {
                     self.messageQueue.remove(at: index)
                     continue
                 }
@@ -232,8 +228,19 @@ class MessageAdapter: NSObject {
 //                    print("🌍[MessageAdapter] unfinish words: \(text)")
                 }
                 if !text.isEmpty {
-                    isSended = true
+                    lastTurn = TurnObj()
+                    lastTurn?.turnId = buffer.turnId
+                    lastTurn?.text = text
+                    lastTurn?.status = isFinished ? .end : .inprogress
                     self.delegate?.messageFlush(turnId: buffer.turnId, message: text, owner: .agent, isFinished: isFinished, isInterrupted: false)
+                }
+                // if last turn is interrupte by this buffer
+                if let lastTurn = lastTurn,
+                   lastTurn.status == .inprogress,
+                   buffer.turnId > lastTurn.turnId  {
+                    // interrupte last turn
+                    self.delegate?.messageFlush(turnId: lastTurn.turnId, message: lastTurn.text, owner: .agent, isFinished: true, isInterrupted: true)
+                    interrupte = true
                 }
             }
         }
