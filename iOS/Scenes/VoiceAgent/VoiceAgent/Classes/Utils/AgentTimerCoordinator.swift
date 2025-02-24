@@ -41,8 +41,6 @@ class AgentTimerCoordinator: NSObject {
     private func initDurationLimitTimer() {
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
             useDuration = preset.callTimeLimitSecond
-            useDuration = 60000
-
             usageDurationLimitTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
                 guard let self = self else {
                     return
