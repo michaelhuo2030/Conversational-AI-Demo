@@ -171,6 +171,8 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
         context ?: return
         mBinding?.apply {
             if (isUploading) {
+                tvLogout.isEnabled = false
+                tvLogout.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext3), PorterDuff.Mode.SRC_IN)
                 tvUploader.startAnimation(uploadAnimation)
                 tvUploader.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext3), PorterDuff.Mode.SRC_IN)
                 tvUploader.isEnabled = false
@@ -184,6 +186,8 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
                 tvUploader.isEnabled = true
                 btnClose.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
                 btnClose.isEnabled = true
+                tvLogout.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                tvLogout.isEnabled = true
                 // 恢复返回键
                 dialog?.setCancelable(true)
             }

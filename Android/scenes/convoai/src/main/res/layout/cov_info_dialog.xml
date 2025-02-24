@@ -297,7 +297,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_gravity="center_vertical"
-                android:src="@drawable/icon_logout"/>
+                android:src="@drawable/icon_logout"
+                app:tint="@color/ai_icontext1" />
         </LinearLayout>
     </LinearLayout>
 

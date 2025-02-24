@@ -145,6 +145,7 @@ class CovSubRenderController : ISubRenderController {
         set(value) {
             field = value
             if (mRenderMode == SubRenderMode.Word) {
+                mLastDequeuedTurn = null
                 startSubtitleTicker()
             } else {
                 stopSubtitleTicker()
