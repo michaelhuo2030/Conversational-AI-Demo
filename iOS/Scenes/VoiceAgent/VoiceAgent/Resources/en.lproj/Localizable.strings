@@ -87,6 +87,11 @@
 "error.join.error" = "Failed to join. Please try again.";
 "error.network.disconnect" = "Network is unstable, please exit and try again.";
 
+"error.microphone.permission.alert.title" = "No microphone permission";
+"error.microphone.permission.alert.description" = "Please enable microphone permissions in the settings";
+"error.permission.alert.cancel" = "Cancel";
+"error.permission.alert.confirm" = "Setting";
+
 "devmode.title" = "Developer Mode";
 "devmode.rtc" = "RTC Version";
 "devmode.host" = "Server Host";

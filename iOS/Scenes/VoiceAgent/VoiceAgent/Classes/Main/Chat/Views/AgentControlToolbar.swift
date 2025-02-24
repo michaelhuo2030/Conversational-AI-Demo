@@ -16,7 +16,7 @@ enum AgentControlStyle {
 protocol AgentControlToolbarDelegate: AnyObject {
     func hangUp()
     func getStart() async
-    func mute(selectedState: Bool)
+    func mute(selectedState: Bool) -> Bool
     func switchCaptions(selectedState: Bool)
 }
 
@@ -75,7 +75,7 @@ class AgentControlToolbar: UIView {
         return button
     }()
     
-    lazy var muteButton: UIButton = {
+    private lazy var muteButton: UIButton = {
         let button = UIButton(type: .custom)
         button.addTarget(self, action: #selector(muteAction(_ :)), for: .touchUpInside)
         button.titleLabel?.textAlignment = .center
@@ -266,10 +266,10 @@ class AgentControlToolbar: UIView {
         delegate?.hangUp()
     }
     
-    @objc private func muteAction(_ sender: UIButton) {
-        sender.isSelected = !sender.isSelected
+    @objc func muteAction(_ sender: UIButton) {
+        let result = delegate?.mute(selectedState: sender.isSelected) ?? false
+        sender.isSelected = result
         micProgressView.isHidden = sender.isSelected
-        delegate?.mute(selectedState: sender.isSelected)
     }
 
     @objc private func switchCaptionsAction(_ sender: UIButton) {
@@ -303,6 +303,11 @@ class AgentControlToolbar: UIView {
             self.setNeedsLayout()
             self.layoutIfNeeded()
         }
+    }
+    
+    func setMircophoneButtonSelectState(state: Bool) {
+        muteButton.isSelected = state
+        micProgressView.isHidden = state
     }
 }
 

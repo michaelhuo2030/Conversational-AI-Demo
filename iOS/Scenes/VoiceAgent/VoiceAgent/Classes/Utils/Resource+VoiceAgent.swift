@@ -86,6 +86,10 @@ extension ResourceManager {
             public static let roomError = ResourceManager.localizedString("error.room.error")
             public static let joinError = ResourceManager.localizedString("error.join.error")
             public static let networkDisconnected = ResourceManager.localizedString("error.network.disconnect")
+            public static let microphonePermissionTitle = ResourceManager.localizedString("error.microphone.permission.alert.title")
+            public static let microphonePermissionDescription = ResourceManager.localizedString("error.microphone.permission.alert.description")
+            public static let permissionCancel = ResourceManager.localizedString("error.permission.alert.cancel")
+            public static let permissionConfirm = ResourceManager.localizedString("error.permission.alert.confirm")
         }
 
         public enum Settings {

@@ -238,7 +238,7 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickLogoutItem() {
-        AgentAlertView.show(in: view, title: ResourceManager.L10n.Login.logoutAlertTitle, content: ResourceManager.L10n.Login.logoutAlertDescription, onConfirm:  {
+        AgentAlertView.show(in: view, title: ResourceManager.L10n.Login.logoutAlertTitle, content: ResourceManager.L10n.Login.logoutAlertDescription, cancelTitle: ResourceManager.L10n.Login.logoutAlertCancel, confirmTitle: ResourceManager.L10n.Login.logoutAlertConfirm, onConfirm: {
             AppContext.loginManager()?.logout()
         })
     }

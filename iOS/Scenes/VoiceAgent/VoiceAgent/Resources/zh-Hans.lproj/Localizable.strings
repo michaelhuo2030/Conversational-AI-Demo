@@ -36,6 +36,7 @@
 "conversation.user.speak.toast" = "请在对话初期大声、清晰地说话，提升智能体对您的声音锁定效果。";
 
 "conversation.alert.cancel" = "取消";
+"conversation.alert.confirm" = "确定";
 "conversation.alert.clear" = "清除";
 
 "settings.title" = "设置(通话中不可修改)";
@@ -81,6 +82,10 @@
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";
 "error.join.error" = "智能体加入失败，请稍后重试。";
 "error.network.disconnect" = "网络异常，请检查网络设置";
+"error.microphone.permission.alert.title" = "没有麦克风权限";
+"error.microphone.permission.alert.description" = "请在设置中打开麦克风权限";
+"error.permission.alert.cancel" = "取消";
+"error.permission.alert.confirm" = "设置";
 
 "devmode.title" = "开发者模式";
 "devmode.rtc" = "RTC 版本";
