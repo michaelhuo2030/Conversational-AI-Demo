@@ -38,6 +38,7 @@ class ChatMessageCell: UITableViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 18)
         label.numberOfLines = 0
+        label.attributedText = NSAttributedString(string: "")
         return label
     }()
     
@@ -81,16 +82,31 @@ class ChatMessageCell: UITableViewCell {
             messageBubble.backgroundColor = .clear
         }
         
-        messageLabel.text = message.content
-        
+        let paragraphStyle = NSMutableParagraphStyle()
         let detector = NSLinguisticTagger(tagSchemes: [.language], options: 0)
         detector.string = message.content
         if let language = detector.dominantLanguage {
             let rtlLanguages = ["ar", "fa", "he", "ur"]
-            messageLabel.textAlignment = rtlLanguages.contains(language) ? .right : .left
+            paragraphStyle.alignment = rtlLanguages.contains(language) ? .right : .left
         } else {
-            messageLabel.textAlignment = .left
+            paragraphStyle.alignment = .left
         }
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 18),
+            .foregroundColor: message.isMine ? UIColor.themColor(named: "ai_icontext1") : UIColor.themColor(named: "ai_icontext1"),
+            .paragraphStyle: paragraphStyle
+        ]
+        
+        let attributedString = NSMutableAttributedString(string: message.content, attributes: attributes)
+        if message.isInterrupted {
+            let attachment = NSTextAttachment()
+            attachment.image = UIImage.ag_named("ic_interrput_icon")
+            attachment.bounds = CGRect(x: 0, y: -3, width: 22, height: 16)
+            let imageString = NSAttributedString(attachment: attachment)
+            attributedString.append(imageString)
+        }
+        messageLabel.attributedText = attributedString
     }
     
     private func setupUserLayout() {

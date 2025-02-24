@@ -11,8 +11,9 @@ class Message {
     var content: String = ""
     var isMine: Bool = false
     var isFinal: Bool = false
+    var isInterrupted: Bool = false
     var timestamp: Int64 = 0
-    var turn_id: String = ""
+    var turn_id: Int = -100
 }
 
 protocol ChatMessageViewModelDelegate: AnyObject {
@@ -35,7 +36,7 @@ class ChatMessageViewModel: NSObject {
         if turnId == -1 {
             reduceIndependentMessage(message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
         } else {
-            reduceStandardMessage(turnId: "\(turnId)", message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
+            reduceStandardMessage(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
         }
     }
 }

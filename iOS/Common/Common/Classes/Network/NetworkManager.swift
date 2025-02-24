@@ -153,6 +153,9 @@ public class NetworkManager:NSObject {
                 } else {
                     failure?("Error in the request status code \(httpResponse.statusCode), response: \(String(describing: response))")
                 }
+            case 401:
+                NotificationCenter.default.post(name: .TokenExpired, object: nil, userInfo: nil)
+                failure?("Error in the request status code \(httpResponse.statusCode), response: \(String(describing: response))")
             default:
                 failure?("Error in the request status code \(httpResponse.statusCode), response: \(String(describing: response))")
             }
@@ -186,4 +189,9 @@ public extension URLRequest {
 
         return cURL
     }
+}
+
+extension Notification.Name {
+    public static let TokenExpired =
+        Notification.Name("com.token.expired")
 }

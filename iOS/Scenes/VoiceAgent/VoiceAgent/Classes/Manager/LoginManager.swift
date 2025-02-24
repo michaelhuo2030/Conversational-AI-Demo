@@ -10,6 +10,7 @@ import Common
 
 protocol LoginManagerDelegate: AnyObject {
     func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool)
+    func userLoginSessionExpired()
 }
 
 protocol LoginManagerProtocol {
@@ -22,12 +23,25 @@ protocol LoginManagerProtocol {
 class LoginManager {
     private var delegates = NSHashTable<AnyObject>.weakObjects()
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    init() {
+        NotificationCenter.default.addObserver(self, selector: #selector(loginSessionExpired), name: .TokenExpired, object: nil)
+    }
+    
     private func notifyDelegates(_ notification: (LoginManagerDelegate) -> Void) {
         for delegate in delegates.allObjects {
             if let delegate = delegate as? LoginManagerDelegate {
                 notification(delegate)
             }
         }
+    }
+    
+    @objc private func loginSessionExpired() {
+        UserCenter.shared.logout()
+        notifyDelegates { $0.userLoginSessionExpired() }
     }
 }
 
@@ -53,3 +67,7 @@ extension LoginManager: LoginManagerProtocol {
     }
 }
 
+extension LoginManagerDelegate {
+    func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {}
+    func userLoginSessionExpired() {}
+}
