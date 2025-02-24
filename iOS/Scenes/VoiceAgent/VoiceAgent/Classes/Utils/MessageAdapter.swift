@@ -40,6 +40,7 @@ private struct Word: Codable {
 private class TurnObj {
     var turnId = 0
     var text: String = ""
+    var start_ms: Int64 = 0
     var words: [WordObj] = []
     var status: TurnStatus = .inprogress
 }
@@ -63,12 +64,12 @@ enum MessageMode {
 
 private enum TurnStatus: Int {
     case inprogress = 0
-    case interrupted
-    case end
+    case end = 1
+    case interrupted = 2
 }
 
 protocol MessageAdapterDelegate: AnyObject {
-    func messageFlush(turnId: Int, message: String, owner: MessageOwner, isFinished: Bool, isInterrupted: Bool)
+    func messageFlush(turnId: Int, message: String, owner: MessageOwner, timestamp: Int64, isFinished: Bool, isInterrupted: Bool)
 }
 
 protocol MessageAdapterProtocol {
@@ -129,6 +130,7 @@ class MessageAdapter: NSObject {
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
                                         owner: .agent,
+                                        timestamp: message.start_ms ?? 0,
                                         isFinished: isFinal,
                                         isInterrupted: false)
             print("🌍[MessageAdapter] send agent text: \(text), final: \(isFinal)")
@@ -137,6 +139,7 @@ class MessageAdapter: NSObject {
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
                                         owner: .me,
+                                        timestamp: message.start_ms ?? 0,
                                         isFinished: isFinal,
                                         isInterrupted: false)
             print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(isFinal)")
@@ -149,10 +152,11 @@ class MessageAdapter: NSObject {
             self.delegate?.messageFlush(turnId: message.turn_id ?? 0,
                                         message: text,
                                         owner: .me,
+                                        timestamp: message.start_ms ?? 0,
                                         isFinished: (message.final == true),
                                         isInterrupted: false)
 //            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(message.final == true)")
-        } else {
+        } else if message.object == MessageType.assistant.rawValue {
             queue.async(flags: .barrier) {
                 if let queueLastTurnId = self.messageQueue.last?.turnId,
                    queueLastTurnId > (message.turn_id ?? 0) {
@@ -165,23 +169,30 @@ class MessageAdapter: NSObject {
                 guard let status = TurnStatus(rawValue: message.turn_status ?? 0) else {
                     return
                 }
-                var temp: TurnObj?
+                print("🌍[MessageAdapter] message turn_id: \(message.turn_id ?? 0), status: \(status) words: \(message.words?.map { $0.word ?? "" }.joined() ?? "")")
+                var curBuffer: TurnObj?
                 for buffer in self.messageQueue {
                     if buffer.turnId == message.turn_id {
-                        temp = buffer
+                        curBuffer = buffer
                         break
                     }
                 }
-                if temp == nil {
+                if curBuffer == nil {
                     let newTurn = TurnObj()
                     newTurn.turnId = message.turn_id ?? 0
                     self.messageQueue.append(newTurn)
-                    temp = newTurn
+                    curBuffer = newTurn
+                }
+                if let curMS = curBuffer?.start_ms,
+                   let msgMS = message.start_ms,
+                   msgMS > curMS {
+                    curBuffer?.start_ms = message.start_ms ?? 0
+                    curBuffer?.text = message.text ?? ""
+                    curBuffer?.status = status
                 }
                 // update buffer
-                let isMessageFinished = (message.turn_status != TurnStatus.inprogress.rawValue)
-                temp?.text = message.text ?? ""
-                temp?.status = status
+                let isMessageFinished = (curBuffer?.status != .inprogress)
+                
                 if let words = message.words, !words.isEmpty {
                     let wordBufferList = words.compactMap { word -> WordObj? in
                         guard let wordText = word.word, let startTime = word.start_ms else {
@@ -192,11 +203,14 @@ class MessageAdapter: NSObject {
                                        start_ns: startTime)
                     }
                     // if the message state is end, sign last word finished
-                    temp?.words.append(contentsOf: wordBufferList)
+                    curBuffer?.words.append(contentsOf: wordBufferList)
                     // sort words by timestamp
-                    temp?.words.sort { $0.start_ns < $1.start_ns }
-                    if isMessageFinished, var lastWord = temp?.words.last {
+                    curBuffer?.words.sort { $0.start_ns < $1.start_ns }
+                    if isMessageFinished, var lastWord = curBuffer?.words.last {
                         lastWord.isFinished = isMessageFinished
+                        // update last word
+                        curBuffer?.words.removeLast()
+                        curBuffer?.words.append(lastWord)
                     }
                 }
             }
@@ -215,14 +229,23 @@ class MessageAdapter: NSObject {
                     self.messageQueue.remove(at: index)
                     continue
                 }
+                // if last turn is interrupte by this buffer
+                if let lastTurn = lastTurn,
+                   lastTurn.status == .inprogress,
+                   buffer.turnId > lastTurn.turnId  {
+                    // interrupte last turn
+                    self.delegate?.messageFlush(turnId: lastTurn.turnId, message: lastTurn.text, owner: .agent, timestamp: lastTurn.start_ms, isFinished: true, isInterrupted: true)
+                    interrupte = true
+                }
                 let currentWords = buffer.words.filter { $0.start_ns < audioTimestamp }
-                let isFinished = currentWords.last?.isFinished ?? false
+                let lastWord = currentWords.last
+                let isFinished = lastWord?.isFinished ?? false
                 var text: String
                 if isFinished {
                     text = buffer.text
                     self.messageQueue.remove(at: index)
                     lastFinishTurn = buffer
-                    print("🌍[MessageAdapter] send current words: \(text)")
+//                    print("🌍[MessageAdapter] send current words: \(text)")
                 } else {
                     text = currentWords.map { $0.text }.joined()
 //                    print("🌍[MessageAdapter] unfinish words: \(text)")
@@ -232,15 +255,7 @@ class MessageAdapter: NSObject {
                     lastTurn?.turnId = buffer.turnId
                     lastTurn?.text = text
                     lastTurn?.status = isFinished ? .end : .inprogress
-                    self.delegate?.messageFlush(turnId: buffer.turnId, message: text, owner: .agent, isFinished: isFinished, isInterrupted: false)
-                }
-                // if last turn is interrupte by this buffer
-                if let lastTurn = lastTurn,
-                   lastTurn.status == .inprogress,
-                   buffer.turnId > lastTurn.turnId  {
-                    // interrupte last turn
-                    self.delegate?.messageFlush(turnId: lastTurn.turnId, message: lastTurn.text, owner: .agent, isFinished: true, isInterrupted: true)
-                    interrupte = true
+                    self.delegate?.messageFlush(turnId: buffer.turnId, message: text, owner: .agent, timestamp: buffer.start_ms, isFinished: isFinished, isInterrupted: false)
                 }
             }
         }
@@ -267,7 +282,7 @@ extension MessageAdapter: MessageAdapterProtocol {
         if let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
            let jsonDataPretty = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
            let jsonString = String(data: jsonDataPretty, encoding: .utf8) {
-            print("✅[MessageAdapter] json: \(jsonString)")
+//            print("✅[MessageAdapter] json: \(jsonString)")
         } else {
             print("❌[MessageAdapter] 无法解析 JSON 数据")
         }
