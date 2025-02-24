@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.graphics.PorterDuff
-import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -15,7 +14,6 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.app.ActivityCompat
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineEx
@@ -164,6 +162,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private var mLoginDialog: LoginDialog? = null
 
     private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var mPermissionHelp: PermissionHelp
 
     private val mLoginViewModel: LoginViewModel by viewModels()
 
@@ -177,10 +176,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         CovAgentManager.resetData()
         createRtcEngine()
         setupBallAnimView()
-        
-        // Check microphone permission
-        checkMicrophonePermission()
-        
+
         checkLogin()
         // v1 Subtitle Rendering Controller
         selfRenderController.onUpdateStreamContent = { isMe, turnId, text, isFinal ->
@@ -254,11 +250,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun startRecordingService() {
-        val intent = Intent(this, CovRtcForegroundService::class.java)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        if (mPermissionHelp.hasMicPerm()){
+            val intent = Intent(this, CovRtcForegroundService::class.java)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
         }
     }
 
@@ -813,11 +811,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun setupView() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.RECORD_AUDIO),
-            100
-        )
         activityResultLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
@@ -831,6 +824,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                 }
             }
+        mPermissionHelp = PermissionHelp(this)
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             val statusBarHeight = getStatusBarHeight() ?: 25.dp.toInt()
@@ -844,8 +838,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             })
             clBottomLogged.btnMic.setOnClickListener {
-                isLocalAudioMuted = !isLocalAudioMuted
-                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+                val currentAudioMuted = isLocalAudioMuted
+                checkMicrophonePermission(
+                    granted = {
+                        if (it) {
+                            isLocalAudioMuted = !isLocalAudioMuted
+                            CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+                        }
+                    },
+                    force = currentAudioMuted,
+                )
             }
             clTop.btnSettings.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
@@ -884,7 +886,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             clBottomLogged.btnJoinCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    onClickStartAgent()
+                    // Check microphone permission
+                    checkMicrophonePermission(
+                        granted = {
+                            isLocalAudioMuted = !it
+                            CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+                            onClickStartAgent()
+                        },
+                        force = true,
+                    )
                 }
             })
             clBottomNotLogged.btnStartWithoutLogin.setOnClickListener(object : OnFastClickListener() {
@@ -1114,32 +1124,44 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .show(supportFragmentManager, "logout_dialog_tag")
     }
 
-    private fun checkMicrophonePermission() {
-        PermissionHelp(this).checkMicPerm(
-            granted = {
-                // Permission granted, do nothing
-            },
-            unGranted = {
-                // Show dialog when permission is denied
-                showPermissionDialog()
-            },
-            force = true
-        )
+    private fun checkMicrophonePermission(granted: (Boolean) -> Unit, force: Boolean, ) {
+        if (force) {
+            if (mPermissionHelp.hasMicPerm()) {
+                granted.invoke(true)
+            } else {
+                showPermissionDialog {
+                    if (it) {
+                        mPermissionHelp.launchAppSettingForMic(
+                            granted = {
+                                granted.invoke(true)
+                            },
+                            unGranted = {
+                                granted.invoke(false)
+                            },
+                        )
+                    } else {
+                        granted.invoke(false)
+                    }
+                }
+            }
+        } else {
+            granted.invoke(true)
+        }
     }
 
-    private fun showPermissionDialog() {
+    private fun showPermissionDialog(onResult: (Boolean) -> Unit) {
         CommonDialog.Builder()
             .setTitle(getString(R.string.cov_permission_required))
             .setContent(getString(R.string.cov_mic_permission_required_content))
             .setPositiveButton(getString(R.string.cov_retry)) {
-            // Retry permission request
-            checkMicrophonePermission()
-        }
-        .setNegativeButton(getString(R.string.cov_exit)) {
-
-        }
-        .setCancelable(false)
-        .build()
-        .show(supportFragmentManager, "permission_dialog")
+                onResult.invoke(true)
+            }
+            .setNegativeButton(getString(R.string.cov_exit)) {
+                onResult.invoke(false)
+            }
+            .hideTopImage()
+            .setCancelable(false)
+            .build()
+            .show(supportFragmentManager, "permission_dialog")
     }
 }
