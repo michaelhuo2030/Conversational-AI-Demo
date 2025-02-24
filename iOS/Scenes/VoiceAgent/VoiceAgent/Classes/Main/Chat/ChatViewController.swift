@@ -596,7 +596,6 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                 var currentVolume: CGFloat = 0
                 currentVolume = CGFloat(info.volume)
                 if currentVolume > 0 {
-                    addLog("agent speak volume : \(currentVolume)")
                     animateView.updateAgentState(.speaking, volume: Int(currentVolume))
                 } else {
                     animateView.updateAgentState(.listening, volume: Int(currentVolume))
@@ -765,12 +764,12 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
     func agentUseLimitedTimerEnd() {
         addLog("[Call] agentUseLimitedTimerEnd")
         topBar.stop()
+        stopLoading()
+        stopAgent()
         let title = ResourceManager.L10n.ChannelInfo.timeLimitdAlertTitle
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
             let min = preset.callTimeLimitSecond / 60
-            TimeoutAlertView.show(in: view, title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min)) { [weak self] in
-                self?.stopAgent()
-            }
+            TimeoutAlertView.show(in: view, title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min))
         }
     }
     
@@ -812,6 +811,15 @@ extension ChatViewController: LoginManagerDelegate {
             stopLoading()
             stopAgent()
         }
+    }
+    
+    func userLoginSessionExpired() {
+        welcomeMessageView.isHidden = false
+        topBar.updateButtonVisible(false)
+        stopLoading()
+        stopAgent()
+        
+        SVProgressHUD.showError(withStatus: "登录态过期，请重新登录")
     }
 }
 

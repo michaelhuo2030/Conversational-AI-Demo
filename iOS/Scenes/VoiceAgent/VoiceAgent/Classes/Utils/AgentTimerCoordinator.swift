@@ -49,10 +49,11 @@ class AgentTimerCoordinator: NSObject {
                 if self.useDuration <= 0 {
                     self.delegate?.agentUseLimitedTimerEnd()
                     self.deinitDurationLimitTimer()
+                } else {
+                    self.delegate?.agentUseLimitedTimerUpdated(duration: self.useDuration)
+                    self.useDuration -= 1
                 }
                 
-                self.delegate?.agentUseLimitedTimerUpdated(duration: self.useDuration)
-                self.useDuration -= 1
             })
         }
         
