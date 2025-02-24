@@ -741,7 +741,7 @@ extension ChatViewController: AnimateViewDelegate {
 
 extension ChatViewController: MessageAdapterDelegate {
     func messageFlush(turnId: Int, message: String, owner: MessageOwner, isFinished: Bool, isInterrupted: Bool) {
-        messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: 0, owner: owner, isFinished: isFinished)
+        messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: 0, owner: owner, isFinished: isFinished, isInterrupted: isInterrupted)
     }
 }
 
