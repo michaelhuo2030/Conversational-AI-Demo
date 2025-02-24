@@ -23,7 +23,7 @@
     <string name="common_terms_of_services"><u>Terms of Services</u></string>
     <string name="common_and">&#160;and&#160;</string>
     <string name="common_privacy_policy"><u>Privacy Policy.</u></string>
-    <string name="common_terms_tips">Please accept the terms to proceed.</string>
+    <string name="common_terms_tips">Read me first</string>
 
     <string name="common_logout_confirm_title">You will be logged out</string>
     <string name="common_logout_confirm_text">You\'ll need to sign in again to use all features. Log out now?</string>
