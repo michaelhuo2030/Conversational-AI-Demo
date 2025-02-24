@@ -2,32 +2,29 @@ package io.agora.agent
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.ui.BaseActivity
 import java.util.Locale
 import android.annotation.SuppressLint
-import androidx.activity.viewModels
 import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
 import io.agora.agent.databinding.WelcomeActivityBinding
 import io.agora.scene.common.constant.AgentScenes
-import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.common.debugMode.DebugConfigSettings
-import io.agora.scene.common.ui.vm.LoginViewModel
 import io.agora.scene.convoai.ui.CovLivingActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
-
 
     override fun getViewBinding(): WelcomeActivityBinding {
         return WelcomeActivityBinding.inflate(layoutInflater)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 初始化配置要在 super.onCreate 之前
         DebugConfigSettings.init(this, BuildConfig.IS_MAINLAND)
         ServerConfig.initBuildConfig(
             BuildConfig.IS_MAINLAND,
@@ -37,6 +34,14 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
             BuildConfig.AG_APP_CERTIFICATE
         )
         setupLocale()
+        // 处理启动画面
+        installSplashScreen().apply {
+            // 设置启动画面持续时间
+            setKeepOnScreenCondition {
+                // 返回 true 保持启动画面显示，返回 false 结束启动画面
+                false
+            }
+        }
         super.onCreate(savedInstanceState)
         goScene(AgentScenes.ConvoAi)
     }
@@ -84,14 +89,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
     private fun setupView() {
         mBinding?.apply {
             setOnApplyWindowInsetsListener(root)
-            // Set logo based on region
-            if (ServerConfig.isMainlandVersion) {
-                ivLogo.setImageResource(R.drawable.app_main_logo_cn)
-                ivLogo.setColorFilter(Color.WHITE)
-            } else {
-                ivLogo.setImageResource(R.drawable.app_main_logo)
-                ivLogo.clearColorFilter()
-            }
         }
     }
 

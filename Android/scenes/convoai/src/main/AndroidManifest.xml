@@ -11,6 +11,6 @@
 
         <service
             android:name=".ui.CovRtcForegroundService"
-            android:foregroundServiceType="microphone|camera|mediaPlayback" />
+            android:foregroundServiceType="microphone|mediaPlayback" />
     </application>
 </manifest>

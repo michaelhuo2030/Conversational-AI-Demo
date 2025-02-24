@@ -4,15 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A0A"
-    tools:context=".MainActivity">
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineH10"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintGuide_percent="0.1"
-        android:orientation="horizontal"/>
+    android:background="@color/ai_fill1"
+    tools:context=".WelcomeActivity">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH30"
@@ -22,30 +15,23 @@
         android:orientation="horizontal"/>
 
     <ImageView
-        android:id="@+id/iv_logo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/app_main_logo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guidelineH10"/>
-
-    <ImageView
         android:id="@+id/iv_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/app_icon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/scene_detail_convo_ai_logo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/guidelineH30"/>
 
-    <ImageView
-        android:id="@+id/iv_text"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/app_main_first_title"
-        android:layout_marginTop="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iv_icon"/>
+        app:layout_constraintTop_toBottomOf="@+id/iv_icon"
+        android:layout_marginTop="40dp"
+        android:textSize="28sp"
+        android:text="@string/common_splash"
+        android:textColor="@color/ai_icontext1"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

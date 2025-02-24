@@ -90,11 +90,6 @@ android {
 dependencies {
     implementation project(':common')
     implementation project(':scenes:convoai')
-    implementation project(':scenes:digitalhuman')
-//    def convoAiModule = ':scenes:convoai'
-//    if (findProject(convoAiModule) != null) {
-//        runtimeOnly project(convoAiModule)
-//    }
 
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
