@@ -13,7 +13,7 @@ class AgentSettingViewController: UIViewController {
     
     private let grabberView = UIView()
     private let titleLabel = UILabel()
-    private let infoView = UILabel()
+    private let connectTipsLabel = UILabel()
     private let closeButton = UIButton(type: .custom)
     private let backgroundViewHeight: CGFloat = 454
     private var initialCenter: CGPoint = .zero
@@ -313,13 +313,14 @@ extension AgentSettingViewController {
         titleLabel.text = ResourceManager.L10n.Settings.title
         titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         
-        infoView.textColor = .white
-        infoView.text = ResourceManager.L10n.Settings.title
-        infoView.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        connectTipsLabel.textColor = .white
+        connectTipsLabel.text = ResourceManager.L10n.Settings.tips
+        connectTipsLabel.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        connectTipsLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         
         closeButton.setImage(UIImage.ag_named("ic_agent_setting_close"), for: .normal)
         closeButton.addTarget(self, action: #selector(onClickClose(_:)), for: .touchUpInside)
-        [grabberView, titleLabel, infoView, closeButton].forEach { topView.addSubview($0) }
+        [grabberView, titleLabel, connectTipsLabel, closeButton].forEach { topView.addSubview($0) }
         
         backgroundView.addSubview(topView)
         backgroundView.addSubview(scrollView)
@@ -337,7 +338,8 @@ extension AgentSettingViewController {
         
         view.addSubview(selectTableMask)
         
-//        let agentState = AppContext.preferenceManager()?.information.agentState
+        let agentState = AppContext.preferenceManager()?.information.agentState
+        connectTipsLabel.isHidden = (agentState == .unload)
 //        maskView.isHidden = agentState == .unload
     }
     
@@ -357,8 +359,12 @@ extension AgentSettingViewController {
             make.height.equalTo(3)
         }
         titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(8)
+            make.centerY.equalToSuperview()
             make.left.equalTo(20)
+        }
+        connectTipsLabel.snp.makeConstraints { make in
+            make.centerY.equalTo(titleLabel)
+            make.left.equalTo(titleLabel.snp.right).offset(5)
         }
         closeButton.snp.makeConstraints { make in
             make.right.equalTo(-20)
