@@ -167,7 +167,8 @@ object CovAgentApiManager {
     }
 
     fun fetchPresets(completion: (error: Exception?, List<CovAgentPreset>) -> Unit) {
-        val requestURL = "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/presetAgents?app_id=${ServerConfig.rtcAppId}"
+        val requestURL =
+            "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/presetAgents?app_id=${ServerConfig.rtcAppId}"
         val request = buildRequest(requestURL)
 
         okHttpClient.newCall(request).enqueue(object : Callback {
@@ -220,6 +221,18 @@ object CovAgentApiManager {
 
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
+                val json = response.body.string()
+                try {
+                    val jsonObject = GsonTools.toBean(json, JsonObject::class.java)
+                    val code = jsonObject?.get("code")?.asInt ?: -1
+                    if (code == 0) {
+                        // success
+                    } else {
+                        CovLogger.e(TAG, "ping failed code = $code")
+                    }
+                } catch (e: Exception) {
+                    CovLogger.e(TAG, "Parse ping failed: $e")
+                }
             }
 
             override fun onFailure(call: Call, e: IOException) {
@@ -253,7 +266,26 @@ object CovAgentApiManager {
                 val json = response.body.string()
                 runOnMainThread {
                     agentId = null
-                    completion.invoke(null)
+
+                }
+                try {
+                    val jsonObject = GsonTools.toBean(json, JsonObject::class.java)
+                    val code = jsonObject?.get("code")?.asInt ?: -1
+                    if (code == 0) {
+                        // success
+                    } else {
+                        runOnMainThread {
+                            completion.invoke(Exception("stopAgent failed:$json"))
+                        }
+                        CovLogger.e(TAG, "stopAgent failed $json")
+                    }
+                } catch (e: Exception) {
+                    CovLogger.e(TAG, "Parse stopAgent failed: $e")
+                    runOnMainThread {
+                        completion.invoke(e)
+                    }
+                } finally {
+                    agentId = null
                 }
             }
 

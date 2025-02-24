@@ -146,6 +146,7 @@ class CovSubRenderController : ISubRenderController {
             field = value
             if (mRenderMode == SubRenderMode.Word) {
                 mLastDequeuedTurn = null
+                mCurSubtitleMessage = null
                 startSubtitleTicker()
             } else {
                 stopSubtitleTicker()
@@ -180,6 +181,7 @@ class CovSubRenderController : ISubRenderController {
 
     private fun stopSubtitleTicker() {
         mCurSubtitleMessage = null
+        mLastDequeuedTurn = null
         agentTurnQueue.clear()
         tickerJob?.cancel()
         tickerJob = null
@@ -273,7 +275,6 @@ class CovSubRenderController : ISubRenderController {
                 }
 
                 agentTurnQueue.offer(newInfo)
-                CovLogger.d(TAG, "queue offer merged: $newInfo")
             } else {
                 // No existing message, use new message directly
                 val newInfo = TurnMessageInfo(
@@ -289,7 +290,6 @@ class CovSubRenderController : ISubRenderController {
                 }
 
                 agentTurnQueue.offer(newInfo)
-                CovLogger.d(TAG, "queue offer new: $newInfo")
             }
 
             // Cleanup old turns
