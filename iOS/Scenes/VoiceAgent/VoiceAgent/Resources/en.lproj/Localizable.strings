@@ -6,7 +6,7 @@
 "login.terms.service.name" = "Terms of Services";
 "login.terms.service.and" = "and";
 "login.privacy.policy.name" = "Privacy Policy";
-"login.terms.service.tips" = "Please accept the terms to proceed";
+"login.terms.service.tips" = "Read me first";
 "login.session.expired" = "Your session has expired. Please log in again";
 
 "logout.alert.title" = "You will be logged out";
@@ -86,6 +86,11 @@
 "error.room.error" = "Room no longer exists. Please join a new call.";
 "error.join.error" = "Failed to join. Please try again.";
 "error.network.disconnect" = "Network is unstable, please exit and try again.";
+
+"error.microphone.permission.alert.title" = "No microphone permission";
+"error.microphone.permission.alert.description" = "Please enable microphone permissions in the settings";
+"error.permission.alert.cancel" = "Cancel";
+"error.permission.alert.confirm" = "Setting";
 
 "devmode.title" = "Developer Mode";
 "devmode.rtc" = "RTC Version";

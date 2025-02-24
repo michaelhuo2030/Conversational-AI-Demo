@@ -15,6 +15,11 @@ public class PermissionManager: NSObject {
     public typealias CameraPermissionHandler = (Bool) -> Void
     public typealias BothPermissionsHandler = (Bool, Bool) -> Void
 
+    public static func getMicrophonePermission() -> AVAudioSession.RecordPermission {
+        let audioSession = AVAudioSession.sharedInstance()
+        return audioSession.recordPermission
+    }
+    
     public static func checkMicrophonePermission(completion: @escaping MicrophonePermissionHandler) {
         let audioSession = AVAudioSession.sharedInstance()
         switch audioSession.recordPermission {

@@ -194,6 +194,18 @@ public class ChatViewController: UIViewController {
         }
     }
     
+    private func showMicroPhonePermissionAlert() {
+        let title = ResourceManager.L10n.Error.microphonePermissionTitle
+        let description = ResourceManager.L10n.Error.microphonePermissionDescription
+        let cancel = ResourceManager.L10n.Error.permissionCancel
+        let confirm = ResourceManager.L10n.Error.permissionConfirm
+        AgentAlertView.show(in: view, title: title, content: description, cancelTitle: cancel, confirmTitle: confirm, onConfirm: {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        })
+    }
+    
     private func setupViews() {
         view.backgroundColor = .black
         
@@ -301,7 +313,6 @@ public class ChatViewController: UIViewController {
     }
     
     private func joinChannel() {
-        
         addLog("[Call] joinChannel()")
         if channelName.isEmpty {
             addLog("cancel to join channel")
@@ -669,7 +680,24 @@ private extension ChatViewController {
         let loginState = UserCenter.shared.isLogin()
 
         if loginState {
-            await prepareToStartAgent()
+            await MainActor.run {
+                let needsShowMicrophonePermissionAlert = PermissionManager.getMicrophonePermission() == .denied
+                if needsShowMicrophonePermissionAlert {
+                    self.bottomBar.setMircophoneButtonSelectState(state: true)
+                }
+            }
+            
+            PermissionManager.checkMicrophonePermission { res in
+                Task {
+                    await self.prepareToStartAgent()
+                    await MainActor.run {
+                        if !res {
+                            self.bottomBar.setMircophoneButtonSelectState(state: true)
+                        }
+                    }
+                }
+            }
+            
             return
         }
         
@@ -684,8 +712,23 @@ private extension ChatViewController {
         messageView.isHidden = !state
     }
     
-    private func clickMuteButton(state: Bool) {
-        setupMuteState(state: state)
+    private func clickMuteButton(state: Bool) -> Bool{
+        if state {
+            let needsShowMicrophonePermissionAlert = PermissionManager.getMicrophonePermission() == .denied
+            if needsShowMicrophonePermissionAlert {
+                showMicroPhonePermissionAlert()
+                let selectedState = true
+                return selectedState
+            } else {
+                let selectedState = !state
+                setupMuteState(state: selectedState)
+                return selectedState
+            }
+        } else {
+            let selectedState = !state
+            setupMuteState(state: selectedState)
+            return selectedState
+        }
     }
     
     @objc private func onClickDevMode() {
@@ -721,8 +764,8 @@ extension ChatViewController: AgentControlToolbarDelegate {
         await clickTheStartButton()
     }
     
-    func mute(selectedState: Bool) {
-        clickMuteButton(state: selectedState)
+    func mute(selectedState: Bool) -> Bool{
+        return clickMuteButton(state: selectedState)
     }
     
     func switchCaptions(selectedState: Bool) {
