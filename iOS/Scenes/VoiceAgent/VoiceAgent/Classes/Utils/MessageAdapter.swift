@@ -68,7 +68,7 @@ private enum TurnStatus: Int {
 }
 
 protocol MessageAdapterDelegate: AnyObject {
-    func messageFlush(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool)
+    func messageFlush(turnId: Int, message: String, owner: MessageOwner, isFinished: Bool, isInterrupted: Bool)
 }
 
 protocol MessageAdapterProtocol {
@@ -93,6 +93,8 @@ class MessageAdapter: NSObject {
     private var messageQueue: [TurnObj] = []
     private var messageMode: MessageMode = .idle
     
+    private var lastFinishTurn: TurnObj? = nil
+    
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
     }
@@ -101,12 +103,12 @@ class MessageAdapter: NSObject {
     
     private func handleMessage(_ message: TranscriptionMessage) {
         if messageMode == .idle {
-            if message.object != nil {
-                messageMode = .words
-            } else {
+            if let words = message.words, words.isEmpty == false {
                 messageMode = .text
                 timer?.invalidate()
                 timer = nil
+            } else {
+                messageMode = .words
             }
         }
         if messageMode == .words {
@@ -125,17 +127,17 @@ class MessageAdapter: NSObject {
         if message.stream_id == 0 {
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
-                                        timestamp: message.start_ms ?? 0,
                                         owner: .agent,
-                                        isFinished: isFinal)
+                                        isFinished: isFinal,
+                                        isInterrupted: false)
             print("🌍[MessageAdapter] send agent text: \(text), final: \(isFinal)")
         } else {
             let text = message.text ?? ""
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
-                                        timestamp: message.start_ms ?? 0,
                                         owner: .me,
-                                        isFinished: isFinal)
+                                        isFinished: isFinal,
+                                        isInterrupted: false)
             print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(isFinal)")
         }
     }
@@ -145,14 +147,21 @@ class MessageAdapter: NSObject {
             let text = message.text ?? ""
             self.delegate?.messageFlush(turnId: message.turn_id ?? 0,
                                         message: text,
-                                        timestamp: message.start_ms ?? 0,
                                         owner: .me,
-                                        isFinished: (message.final == true))
+                                        isFinished: (message.final == true),
+                                        isInterrupted: false)
 //            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(message.final == true)")
         } else {
             queue.async(flags: .barrier) {
-                if let lastTurnId = self.messageQueue.last?.turnId,
-                   lastTurnId > (message.turn_id ?? 0) {
+                if let queueLastTurnId = self.messageQueue.last?.turnId,
+                   queueLastTurnId > (message.turn_id ?? 0) {
+                    return
+                }
+                if let lastFinishTurnId = self.lastFinishTurn?.turnId,
+                   lastFinishTurnId > (message.turn_id ?? 0) {
+                    return
+                }
+                guard let status = TurnStatus(rawValue: message.turn_status ?? 0) else {
                     return
                 }
                 guard let status = TurnStatus(rawValue: message.turn_status ?? 0) else {
@@ -172,7 +181,7 @@ class MessageAdapter: NSObject {
                     temp = newTurn
                 }
                 // update buffer
-                let isLastOne = (message.turn_status != TurnStatus.inprogress.rawValue)
+                let isMessageFinished = (message.turn_status != TurnStatus.inprogress.rawValue)
                 temp?.text = message.text ?? ""
                 temp?.status = status
                 if let words = message.words, !words.isEmpty {
@@ -185,16 +194,11 @@ class MessageAdapter: NSObject {
                                        start_ns: startTime)
                     }
                     // if the message state is end, sign last word finished
-                    if isLastOne,
-                       var lastWord = wordBufferList.last {
-                        lastWord.isFinished = isLastOne
-                        var updatedList = wordBufferList
-                        updatedList[updatedList.count - 1] = lastWord
-                        temp?.words.append(contentsOf: updatedList)
-                        // sort words by timestamp
-                        temp?.words.sort { $0.start_ns < $1.start_ns }
-                    } else {
-                        temp?.words.append(contentsOf: wordBufferList)
+                    temp?.words.append(contentsOf: wordBufferList)
+                    // sort words by timestamp
+                    temp?.words.sort { $0.start_ns < $1.start_ns }
+                    if isMessageFinished, var lastWord = temp?.words.last {
+                        lastWord.isFinished = isMessageFinished
                     }
                 }
             }
@@ -211,7 +215,7 @@ class MessageAdapter: NSObject {
             for (index, buffer) in self.messageQueue.enumerated().reversed() {
                 if isSended {
                     // message intterupted by before message
-//                    self.delegate?.messageFlush(turnId: buffer.turnId, message: "", timestamp: 0, owner: .agent, isFinished: true)
+//                    self.delegate?.messageFlush(turnId: buffer.turnId, message: "", owner: .agent, isFinished: true, isInterrupted: true)
                     self.messageQueue.remove(at: index)
                     continue
                 }
@@ -221,6 +225,7 @@ class MessageAdapter: NSObject {
                 if isFinished {
                     text = buffer.text
                     self.messageQueue.remove(at: index)
+                    lastFinishTurn = buffer
                     print("🌍[MessageAdapter] send current words: \(text)")
                 } else {
                     text = currentWords.map { $0.text }.joined()
@@ -228,7 +233,7 @@ class MessageAdapter: NSObject {
                 }
                 if !text.isEmpty {
                     isSended = true
-                    self.delegate?.messageFlush(turnId: buffer.turnId, message: text, timestamp: 0, owner: .agent, isFinished: isFinished)
+                    self.delegate?.messageFlush(turnId: buffer.turnId, message: text, owner: .agent, isFinished: isFinished, isInterrupted: false)
                 }
             }
         }

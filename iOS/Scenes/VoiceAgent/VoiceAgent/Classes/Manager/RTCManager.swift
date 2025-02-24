@@ -30,6 +30,9 @@ protocol RTCManagerProtocol {
     /// Enables or disables audio dump
     func getAudioDump() -> Bool
     
+    // Start predump, generate log files
+    func predump(completion: @escaping () -> Void)
+    
     /// Enables or disables audio dump
     func enableAudioDump(enabled: Bool)
     
@@ -99,6 +102,13 @@ extension RTCManager: RTCManagerProtocol {
     
     func muteVoice(state: Bool) {
         rtcEngine.adjustRecordingSignalVolume(state ? 0 : 100)
+    }
+    
+    func predump(completion: @escaping () -> Void) {
+        rtcEngine.setParameters("{\"che.audio.start.predump\":true}")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            completion()
+        }
     }
     
     func enableAudioDump(enabled: Bool) {

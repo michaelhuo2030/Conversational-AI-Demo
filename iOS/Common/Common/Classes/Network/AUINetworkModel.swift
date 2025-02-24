@@ -97,8 +97,9 @@ open class AUIUploadNetworkModel: AUINetworkModel {
     
     public var appId: String?
     public var channelName: String?
+    public var fileName: String?
     public var agentId: String?
-    public var payload: [String: Any]?
+    public var payload: [String: Any] = [String: Any]()
     public var fileData: Data?
     
     public lazy var  boundary: String = {
@@ -114,18 +115,33 @@ open class AUIUploadNetworkModel: AUINetworkModel {
     }
     
     public func multipartData() -> Data {
-        // 创建HTTP请求体
         var data = Data()
-        guard let appId = appId, let channelName = channelName, let agentId = agentId, let fileData = fileData else {
+        guard let appId = appId, let channelName = channelName, let agentId = agentId, let fileData = fileData, let fileName = fileName else {
             return data
         }
-        // 添加数据
-        data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; appId=\"\(appId)\"; channelName=\"\(channelName)\"; agentId=\"\(agentId)\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: application/zip\r\n\r\n".data(using: .utf8)!)
+        let contentDict: [String: Any] = [
+            "appId": appId,
+            "channelName": channelName,
+            "agentId": agentId,
+            "payload": payload
+        ]
+        print("upload log with \(contentDict)" )
+        guard let contentData = try? JSONSerialization.data(withJSONObject: contentDict) else {
+            return data
+        }
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"content\"\r\n\r\n".data(using: .utf8)!)
+        data.append(contentData)
+        data.append("\r\n".data(using: .utf8)!)
+        // add part of file
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName).zip\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
         data.append(fileData)
-        // Multipart结束标记
-        data.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        data.append("\r\n".data(using: .utf8)!)
+        
+        // add end sign
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
         return data
     }
     

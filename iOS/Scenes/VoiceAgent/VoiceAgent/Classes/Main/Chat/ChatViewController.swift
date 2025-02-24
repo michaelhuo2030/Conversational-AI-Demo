@@ -645,9 +645,7 @@ private extension ChatViewController {
     }
     
     @objc private func onClickInformationButton() {
-        let settingVC = AgentInformationViewController()
-        settingVC.modalPresentationStyle = .overFullScreen
-        present(settingVC, animated: false)
+        AgentInformationViewController.show(in: self, rtcManager: rtcManager)
     }
     
     @objc private func onClickSettingButton() {
@@ -742,8 +740,8 @@ extension ChatViewController: AnimateViewDelegate {
 }
 
 extension ChatViewController: MessageAdapterDelegate {
-    func messageFlush(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
-        messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
+    func messageFlush(turnId: Int, message: String, owner: MessageOwner, isFinished: Bool, isInterrupted: Bool) {
+        messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: 0, owner: owner, isFinished: isFinished)
     }
 }
 
