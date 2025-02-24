@@ -61,6 +61,7 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
         private var negativeText: String? = null
         private var showNegative: Boolean = true
         private var showImage: Boolean = true
+        private var cancelable: Boolean = true
         private var onPositiveClick: (() -> Unit)? = null
         private var onNegativeClick: (() -> Unit)? = null
 
@@ -79,6 +80,8 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
 
         fun hideTopImage() = apply { this.showImage = false }
 
+        fun setCancelable(cancelable:Boolean) = apply { this.cancelable = cancelable }
+
         fun build(): CommonDialog {
             return CommonDialog().apply {
                 this@apply.title = this@Builder.title
@@ -89,6 +92,7 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
                 this@apply.onPositiveClick = this@Builder.onPositiveClick
                 this@apply.onNegativeClick = this@Builder.onNegativeClick
                 this@apply.showImage = this@Builder.showImage
+                this@apply.isCancelable = this@Builder.cancelable
             }
         }
     }

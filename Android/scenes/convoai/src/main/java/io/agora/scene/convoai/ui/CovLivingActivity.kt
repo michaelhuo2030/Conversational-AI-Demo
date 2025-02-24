@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.CookieManager
 import android.widget.Toast
@@ -39,6 +40,8 @@ import io.agora.scene.common.ui.TermsActivity
 import io.agora.scene.common.ui.vm.LoginViewModel
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
+import io.agora.scene.common.util.dp
+import io.agora.scene.common.util.getStatusBarHeight
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
@@ -55,7 +58,6 @@ import io.agora.scene.convoai.rtc.CovAudioFrameObserver
 import io.agora.scene.convoai.rtc.CovRtcManager
 import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
 import io.agora.scene.convoai.subRender.v2.CovSubRenderController
-import io.agora.scene.convoai.subRender.v2.CovSubRenderController.Companion
 import io.agora.scene.convoai.subRender.v2.SubRenderMode
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -175,10 +177,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         CovAgentManager.resetData()
         createRtcEngine()
         setupBallAnimView()
-        PermissionHelp(this).checkMicPerm({}, {
-            finish()
-        }, true)
-
+        
+        // Check microphone permission
+        checkMicrophonePermission()
+        
         checkLogin()
         // v1 Subtitle Rendering Controller
         selfRenderController.onUpdateStreamContent = { isMe, turnId, text, isFinal ->
@@ -199,7 +201,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         ApiManager.setOnUnauthorizedCallback {
             // TODO: 登录过期
-            ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_enable))
+            ToastUtil.show(getString(io.agora.scene.common.R.string.common_login_expired))
             stopAgentAndLeaveChannel()
             SSOUserManager.logout()
             updateLoginStatus(false)
@@ -831,6 +833,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            val statusBarHeight = getStatusBarHeight() ?: 25.dp.toInt()
+            CovLogger.d(TAG, "statusBarHeight $statusBarHeight")
+            val layoutParams = clTop.root.layoutParams as ViewGroup.MarginLayoutParams
+            layoutParams.topMargin = statusBarHeight
+            clTop.root.layoutParams = layoutParams
             clBottomLogged.btnEndCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickEndCall()
@@ -1105,5 +1112,34 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .hideTopImage()
             .build()
             .show(supportFragmentManager, "logout_dialog_tag")
+    }
+
+    private fun checkMicrophonePermission() {
+        PermissionHelp(this).checkMicPerm(
+            granted = {
+                // Permission granted, do nothing
+            },
+            unGranted = {
+                // Show dialog when permission is denied
+                showPermissionDialog()
+            },
+            force = true
+        )
+    }
+
+    private fun showPermissionDialog() {
+        CommonDialog.Builder()
+            .setTitle(getString(R.string.cov_permission_required))
+            .setContent(getString(R.string.cov_mic_permission_required_content))
+            .setPositiveButton(getString(R.string.cov_retry)) {
+            // Retry permission request
+            checkMicrophonePermission()
+        }
+        .setNegativeButton(getString(R.string.cov_exit)) {
+
+        }
+        .setCancelable(false)
+        .build()
+        .show(supportFragmentManager, "permission_dialog")
     }
 }

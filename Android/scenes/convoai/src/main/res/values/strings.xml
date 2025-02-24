@@ -65,4 +65,9 @@
         <item>Inbuilt Speaker</item>
     </string-array>
 
+    <string name="cov_permission_required">Permission Required</string>
+    <string name="cov_mic_permission_required_content">Microphone permission is required for voice chat. Please grant the permission to continue.</string>
+    <string name="cov_retry">Retry</string>
+    <string name="cov_exit">Exit</string>
+
 </resources>

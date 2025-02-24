@@ -23,8 +23,6 @@ import io.agora.scene.convoai.ui.CovLivingActivity
 class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
 
 
-    private val mLoginViewModel: LoginViewModel by viewModels()
-
     override fun getViewBinding(): WelcomeActivityBinding {
         return WelcomeActivityBinding.inflate(layoutInflater)
     }

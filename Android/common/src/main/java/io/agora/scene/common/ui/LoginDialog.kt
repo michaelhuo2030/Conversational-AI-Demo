@@ -36,6 +36,7 @@ class LoginDialog constructor() : BaseSheetDialog<CommonLoginDialogBinding>() {
             btnLoginSSO.setOnClickListener { v: View? ->
                 if (cbTerms.isChecked) {
                     onLoginDialogCallback?.onClickStartSSO()
+                    dismiss()
                 } else {
                     animCheckTip()
                 }

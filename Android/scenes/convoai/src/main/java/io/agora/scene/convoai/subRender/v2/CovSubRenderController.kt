@@ -94,7 +94,7 @@ class CovSubRenderController : ISubRenderController {
                                 status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
                             )
                             // Local user messages are directly callbacked out
-                            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $subtitleMessage")
+                            CovLogger.d(TAG_UI, "pts：$mPresentationMs, $subtitleMessage")
                             onUpdateStreamContent?.invoke(subtitleMessage)
                         } else {
 
@@ -214,7 +214,7 @@ class CovSubRenderController : ISubRenderController {
                 status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
             )
             // Agent text mode messages are directly callbacked out
-            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $subtitleMessage")
+            CovLogger.d(TAG_UI, "pts：$mPresentationMs, $subtitleMessage")
             onUpdateStreamContent?.invoke(subtitleMessage)
             return
         }
@@ -230,6 +230,14 @@ class CovSubRenderController : ISubRenderController {
                 return
             }
 
+            // The last turn to be dequeued
+            mLastDequeuedTurn?.let { lastEnd ->
+                if (turnId <= lastEnd.turnId) {
+                    CovLogger.w(TAG, "Discarding the turn has already been processed: received=$turnId, latest=${lastEnd.turnId}")
+                    return
+                }
+            }
+
             // Remove and get existing info in one operation
             val existingInfo = agentTurnQueue.find { it.turnId == turnId }?.also {
                 agentTurnQueue.remove(it)
@@ -237,9 +245,14 @@ class CovSubRenderController : ISubRenderController {
 
             // Check if there is an existing message that needs to be merged
             if (existingInfo != null) {
+                // Reset end flag of existing words if needed
+                existingInfo.words.lastOrNull()?.let { lastWord ->
+                    if (lastWord.isEnd) lastWord.isEnd = false
+                }
+
                 // Use new data if the new message has a later timestamp
                 val useNewData = startMs >= existingInfo.startMs
-                
+
                 // Merge words and sort by timestamp
                 val mergedWords = (existingInfo.words + newWords)
                     .sortedBy { it.startMs }    // Ensure sorted by timestamp
@@ -269,7 +282,7 @@ class CovSubRenderController : ISubRenderController {
                     isFinal = isFinal,
                     words = newWords
                 )
-                
+
                 if (isFinal && newWords.isNotEmpty()) {
                     newWords.last().isEnd = true
                 }
@@ -290,6 +303,10 @@ class CovSubRenderController : ISubRenderController {
     // Current subtitle rendering data, only kept if not in End or Interrupted status
     @Volatile
     private var mCurSubtitleMessage: SubtitleMessage? = null
+
+    // The last turn to be dequeued
+    @Volatile
+    private var mLastDequeuedTurn: TurnMessageInfo? = null
 
     private fun updateSubtitleDisplay() {
         // Audio callback PTS is not assigned.
@@ -321,10 +338,11 @@ class CovSubRenderController : ISubRenderController {
                     mCurSubtitleMessage?.let { current ->
                         if (current.turnId == turn.turnId) {
                             val interruptedMessage = current.copy(status = SubtitleStatus.Interrupted)
-                            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $interruptedMessage")
+                            CovLogger.d(TAG_UI, "pts：$mPresentationMs, $interruptedMessage")
                             onUpdateStreamContent?.invoke(interruptedMessage)
                         }
                     }
+                    mLastDequeuedTurn = turn
                     // Remove the interrupted turn from queue
                     agentTurnQueue.remove(turn)
                 }
@@ -339,10 +357,11 @@ class CovSubRenderController : ISubRenderController {
                 else targetWords.joinToString("") { it.word },
                 status = if (targetIsEnd) SubtitleStatus.End else SubtitleStatus.Progress
             )
-            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $newSubtitleMessage")
+            CovLogger.d(TAG_UI, "pts：$mPresentationMs, $newSubtitleMessage")
             onUpdateStreamContent?.invoke(newSubtitleMessage)
 
             if (targetIsEnd) {
+                mLastDequeuedTurn = targetTurn
                 agentTurnQueue.remove(targetTurn)
                 mCurSubtitleMessage = null
             } else {

@@ -96,18 +96,27 @@ class CovMessageListView @JvmOverloads constructor(
                 status = subtitleMessage.status
             )
 
-            if (subtitleMessage.isMe) {
-                // Try to insert before agent message with same turnId
-                messageAdapter.getMessageByTurnId(subtitleMessage.turnId, false)?.let { agentMessage ->
-                    val agentIndex = messageAdapter.getMessageIndex(agentMessage)
-                    if (agentIndex != -1) {
-                        messageAdapter.insertMessage(agentIndex, newMessage)
-                    } else {
-                        messageAdapter.addMessage(newMessage)
+            // Determine message insertion position
+            when {
+                // User message: try to insert before corresponding agent message
+                subtitleMessage.isMe -> {
+                    messageAdapter.getMessageByTurnId(subtitleMessage.turnId, false)?.let { agentMessage ->
+                        val agentIndex = messageAdapter.getMessageIndex(agentMessage)
+                        if (agentIndex != -1) {
+                            messageAdapter.insertMessage(agentIndex, newMessage)
+                            return
+                        }
                     }
-                } ?: messageAdapter.addMessage(newMessage)
-            } else {
-                messageAdapter.addMessage(newMessage)
+                    messageAdapter.addMessage(newMessage)
+                }
+                // Agent greeting message (turnId = 0): insert at the beginning
+                subtitleMessage.turnId == 0L -> {
+                    messageAdapter.insertMessage(0, newMessage)
+                }
+                // Normal agent message: append to the end
+                else -> {
+                    messageAdapter.addMessage(newMessage)
+                }
             }
         }
         autoScrollIfNeeded()
