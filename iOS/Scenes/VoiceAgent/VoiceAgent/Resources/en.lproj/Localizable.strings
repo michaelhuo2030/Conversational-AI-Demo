@@ -6,7 +6,7 @@
 "login.terms.service.name" = "Terms of Services";
 "login.terms.service.and" = "and";
 "login.privacy.policy.name" = "Privacy Policy";
-"login.terms.service.tips" = "Please accept the terms to proceed";
+"login.terms.service.tips" = "Read me first";
 "login.session.expired" = "Your session has expired. Please log in again";
 
 "logout.alert.title" = "You will be logged out";
