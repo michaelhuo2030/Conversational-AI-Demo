@@ -104,13 +104,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 ToastUtil.show("获取用户信息失败")
             }
         }
-
-        TokenGenerator.tokenErrorCompletion = {
-            if (it != null) {
-                SSOUserManager.logout()
-                // TODO:
-            }
-        }
     }
 
     private fun goScene(scene: AgentScenes) {

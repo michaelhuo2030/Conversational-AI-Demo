@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.JsonObject
 import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.net.AuthorizationInterceptor
 import io.agora.scene.common.net.HttpLogger
 import io.agora.scene.common.net.SecureOkHttpClient
 import io.agora.scene.common.util.GsonTools
@@ -35,6 +36,7 @@ object CovAgentApiManager {
             connectTimeout = 120.seconds
         )
             .addInterceptor(HttpLogger())
+            .addInterceptor(AuthorizationInterceptor())
             .build()
     }
 

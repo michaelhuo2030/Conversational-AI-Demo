@@ -26,6 +26,7 @@ import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugDialog
 import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.AgoraTokenType
+import io.agora.scene.common.net.ApiManager
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.ui.BaseActivity
@@ -54,6 +55,7 @@ import io.agora.scene.convoai.rtc.CovAudioFrameObserver
 import io.agora.scene.convoai.rtc.CovRtcManager
 import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
 import io.agora.scene.convoai.subRender.v2.CovSubRenderController
+import io.agora.scene.convoai.subRender.v2.CovSubRenderController.Companion
 import io.agora.scene.convoai.subRender.v2.SubRenderMode
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -189,11 +191,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
         // v2 Subtitle Rendering Controller
         subRenderController.onUpdateStreamContent = { subtitleMessage ->
+            CovLogger.d(CovSubRenderController.TAG, "onUpdateStreamContent: $subtitleMessage")
             runOnUiThread {
                 if (!isSelfSubRender) {
                     mBinding?.messageListViewV2?.updateStreamContent(subtitleMessage)
                 }
             }
+        }
+        ApiManager.setOnUnauthorizedCallback {
+            // TODO: 登录过期
+            ToastUtil.show(getString(io.agora.scene.common.R.string.common_debug_mode_enable))
+            stopAgentAndLeaveChannel()
+            SSOUserManager.logout()
+            updateLoginStatus(false)
         }
     }
 
@@ -556,10 +566,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
 
             override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
-                if (isSelfSubRender) {
-                    selfRenderController.onStreamMessage(uid, streamId, data)
-                } else {
-                    subRenderController.onStreamMessage(uid, streamId, data)
+                logScope.launch {
+                    if (isSelfSubRender) {
+                        selfRenderController.onStreamMessage(uid, streamId, data)
+                    } else {
+                        subRenderController.onStreamMessage(uid, streamId, data)
+                    }
                 }
             }
 
@@ -601,7 +613,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             ): Boolean {
                 // Pass render time to subtitle controller
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG,"onPlaybackAudioFrameBeforeMixing $presentationMs")
+                    Log.d(TAG, "onPlaybackAudioFrameBeforeMixing $presentationMs")
                 }
                 subRenderController.onPlaybackAudioFrameBeforeMixing(presentationMs)
                 return false
@@ -861,7 +873,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
             })
-            clTop.tvTopTitle.setOnClickListener{
+            clTop.tvTopTitle.setOnClickListener {
                 DebugConfigSettings.checkClickDebug()
             }
             clBottomLogged.btnJoinCall.setOnClickListener(object : OnFastClickListener() {
@@ -881,7 +893,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun showTitleAnim() {
         titleAnimJob?.cancel()
         mBinding?.apply {
-            clTop.tvTips.text = getString(io.agora.scene.common.R.string.common_limit_time, (CovAgentManager.roomExpireTime / 60).toInt())
+            clTop.tvTips.text = getString(
+                io.agora.scene.common.R.string.common_limit_time,
+                (CovAgentManager.roomExpireTime / 60).toInt()
+            )
             titleAnimJob = coroutineScope.launch {
                 delay(2000)
                 if (connectionState != AgentConnectionState.IDLE) {
@@ -1009,7 +1024,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private fun getPresetTokenConfig(){
+    private fun getPresetTokenConfig() {
         // Fetch token and presets when entering the scene
         coroutineScope.launch {
             val deferreds = listOf(

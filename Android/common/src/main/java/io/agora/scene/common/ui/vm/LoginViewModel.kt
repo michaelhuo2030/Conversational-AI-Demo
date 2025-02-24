@@ -43,9 +43,6 @@ class LoginViewModel : ViewModel() {
                 SSOUserManager.logout()
                 _userInfoLiveData.postValue(null)
                 ToastUtil.show("Login expired")
-                if ((e is HttpException) && e.code() == 401) {
-                    CommonLogger.e(TAG, "Token expired, please log in again.")
-                }
             }
         }
     }

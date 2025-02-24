@@ -24,6 +24,7 @@ enum class TurnStatus {
 // Producer: Single sentence information
 data class TurnMessageInfo(
     val turnId: Long,
+    val startMs: Long,
     val text: String,
     val isFinal: Boolean,
     val words: List<TurnWordInfo>
@@ -57,7 +58,8 @@ enum class SubRenderMode {
 class CovSubRenderController : ISubRenderController {
 
     companion object {
-        private const val TAG = "CovSubRenderController"
+        const val TAG = "CovSubRenderController"
+        const val TAG_UI = "CovSubRenderController-UI"
     }
 
     private var mMessageParser = MessageParser()
@@ -92,6 +94,7 @@ class CovSubRenderController : ISubRenderController {
                                 status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
                             )
                             // Local user messages are directly callbacked out
+                            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $subtitleMessage")
                             onUpdateStreamContent?.invoke(subtitleMessage)
                         } else {
 
@@ -108,10 +111,11 @@ class CovSubRenderController : ISubRenderController {
                                 CovLogger.e(TAG, "unknown turn_status:$turnStatusInt")
                                 return
                             }
+                            val startMs = (msg["start_ms"] as? Number)?.toLong() ?: 0L
                             // Parse words array
                             val wordsArray = msg["words"] as? List<Map<String, Any>>
-                            val words = parseWords(status, wordsArray)
-                            onAgentMessageReceived(turnId, text, words, status == TurnStatus.END)
+                            val words = parseWords(wordsArray)
+                            onAgentMessageReceived(turnId, startMs, text, words, status == TurnStatus.END)
                         }
                     }
                 }
@@ -121,7 +125,7 @@ class CovSubRenderController : ISubRenderController {
         }
     }
 
-    private fun parseWords(turnStatus: TurnStatus, wordsArray: List<Map<String, Any>>?): List<TurnWordInfo>? {
+    private fun parseWords(wordsArray: List<Map<String, Any>>?): List<TurnWordInfo>? {
         if (wordsArray.isNullOrEmpty()) return null
 
         // Convert words array to WordInfo list and sort by startMs in ascending order
@@ -130,12 +134,7 @@ class CovSubRenderController : ISubRenderController {
                 word = wordMap["word"] as? String ?: "",
                 startMs = (wordMap["start_ms"] as? Number)?.toLong() ?: 0L,
             )
-        }.sortedBy { it.startMs }.toMutableList()
-
-        // If turnStatus is not progress and list is not empty, set the last word's isEnd to true
-        if (turnStatus != TurnStatus.IN_PROGRESS && wordsList.isNotEmpty()) {
-            wordsList.last().isEnd = true
-        }
+        }.toMutableList()
 
         // Return an immutable list to ensure thread safety
         return wordsList.toList()
@@ -192,6 +191,7 @@ class CovSubRenderController : ISubRenderController {
 
     private fun onAgentMessageReceived(
         turnId: Long,
+        startMs: Long,
         text: String,
         words: List<TurnWordInfo>?,
         isFinal: Boolean,
@@ -214,6 +214,7 @@ class CovSubRenderController : ISubRenderController {
                 status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
             )
             // Agent text mode messages are directly callbacked out
+            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $subtitleMessage")
             onUpdateStreamContent?.invoke(subtitleMessage)
             return
         }
@@ -234,21 +235,48 @@ class CovSubRenderController : ISubRenderController {
                 agentTurnQueue.remove(it)
             }
 
-            // Merge words while preserving order
-            val mergedWords = if (existingInfo != null && existingInfo.words.isNotEmpty()) {
-                existingInfo.words + newWords
+            // Check if there is an existing message that needs to be merged
+            if (existingInfo != null) {
+                // Use new data if the new message has a later timestamp
+                val useNewData = startMs >= existingInfo.startMs
+                
+                // Merge words and sort by timestamp
+                val mergedWords = (existingInfo.words + newWords)
+                    .sortedBy { it.startMs }    // Ensure sorted by timestamp
+                    .toList()
+
+                val newInfo = TurnMessageInfo(
+                    turnId = turnId,
+                    startMs = if (useNewData) startMs else existingInfo.startMs,
+                    text = if (useNewData) text else existingInfo.text,
+                    isFinal = if (useNewData) isFinal else existingInfo.isFinal,
+                    words = mergedWords
+                )
+
+                // Mark the last word as end if this is the final message
+                if (newInfo.isFinal && mergedWords.isNotEmpty()) {
+                    mergedWords.last().isEnd = true
+                }
+
+                agentTurnQueue.offer(newInfo)
+                CovLogger.d(TAG, "queue offer merged: $newInfo")
             } else {
-                newWords
+                // No existing message, use new message directly
+                val newInfo = TurnMessageInfo(
+                    turnId = turnId,
+                    startMs = startMs,
+                    text = text,
+                    isFinal = isFinal,
+                    words = newWords
+                )
+                
+                if (isFinal && newWords.isNotEmpty()) {
+                    newWords.last().isEnd = true
+                }
+
+                agentTurnQueue.offer(newInfo)
+                CovLogger.d(TAG, "queue offer new: $newInfo")
             }
-
-            val newInfo = TurnMessageInfo(
-                turnId = turnId,
-                text = text,
-                isFinal = isFinal,
-                words = mergedWords
-            )
-
-            agentTurnQueue.offer(newInfo)
 
             // Cleanup old turns
             while (agentTurnQueue.size > 5) {
@@ -293,6 +321,7 @@ class CovSubRenderController : ISubRenderController {
                     mCurSubtitleMessage?.let { current ->
                         if (current.turnId == turn.turnId) {
                             val interruptedMessage = current.copy(status = SubtitleStatus.Interrupted)
+                            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $interruptedMessage")
                             onUpdateStreamContent?.invoke(interruptedMessage)
                         }
                     }
@@ -310,6 +339,7 @@ class CovSubRenderController : ISubRenderController {
                 else targetWords.joinToString("") { it.word },
                 status = if (targetIsEnd) SubtitleStatus.End else SubtitleStatus.Progress
             )
+            CovLogger.d(TAG_UI,"pts：$mPresentationMs, $newSubtitleMessage")
             onUpdateStreamContent?.invoke(newSubtitleMessage)
 
             if (targetIsEnd) {

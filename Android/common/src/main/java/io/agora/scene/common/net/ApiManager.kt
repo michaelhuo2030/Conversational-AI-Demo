@@ -8,6 +8,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import okhttp3.Interceptor
 import okhttp3.Response
+import okhttp3.logging.HttpLoggingInterceptor
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -103,11 +104,8 @@ class AuthorizationInterceptor : Interceptor {
         if (response.code == 401) {
             // 触发全局回调
             ApiManager.notifyUnauthorized()
-//            throw UnauthorizedException("Unauthorized access. Please login again.")
         }
         
         return response
     }
 }
-
-class UnauthorizedException(message: String) : IOException(message)

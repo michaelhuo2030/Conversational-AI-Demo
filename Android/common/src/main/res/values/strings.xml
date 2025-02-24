@@ -30,4 +30,5 @@
     <string name="common_limit_time">每次对话限制%d分钟</string>
     <string name="common_upload_time_success">上报成功</string>
     <string name="common_upload_time_failed">上报失败，请再试一下</string>
+    <string name="common_login_expired">登录状态已失效，请重新登录</string>
 </resources>

@@ -118,7 +118,7 @@ object LogUploader {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
                         completion?.invoke(null)
                         isUploading = false
-                        Log.d(TAG, "Upload log success: ${it.logId}")
+                        Log.d(TAG, "Upload log success")
                     },
                     onError = {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
@@ -141,7 +141,7 @@ object LogUploader {
         agentId: String,
         channelName: String,
         file: File,
-        onSuccess: (UploadLogResponse) -> Unit,
+        onSuccess: (Any) -> Unit,
         onError: (Exception) -> Unit
     ) {
         if (!file.exists()) {
