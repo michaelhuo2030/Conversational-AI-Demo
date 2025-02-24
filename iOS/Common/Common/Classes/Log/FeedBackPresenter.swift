@@ -44,6 +44,7 @@ public class FeedBackPresenter {
                 return
             }
             let req = AUIUploadNetworkModel()
+            req.fileName = fileName
             req.interfaceName = self.kURLPathUploadLog
             req.fileData = data
             req.appId = AppContext.shared.appId
@@ -95,11 +96,7 @@ public class FeedBackPresenter {
             let files = try fileManager.contentsOfDirectory(at: documentsDirectory, includingPropertiesForKeys: nil)
             let agoraFiles = files.filter {
                 ($0.lastPathComponent.hasPrefix("agora")) ||
-                ($0.lastPathComponent.hasPrefix("aec_farin")) ||
-                ($0.lastPathComponent.hasPrefix("aec_linear")) ||
-                ($0.lastPathComponent.hasPrefix("aec_nearin")) ||
-                ($0.lastPathComponent.hasPrefix("af_ns")) ||
-                ($0.lastPathComponent.hasPrefix("af_sfnlp"))
+                ($0.lastPathComponent.contains("predump"))
             }
             return agoraFiles
         } catch {

@@ -9,6 +9,16 @@ import UIKit
 import Common
 
 class AgentInformationViewController: UIViewController {
+    
+    static func show(in viewController: UIViewController, rtcManager: RTCManager?) {
+        let settingVC = AgentInformationViewController()
+        settingVC.rtcManager = rtcManager
+        settingVC.modalPresentationStyle = .overFullScreen
+        viewController.present(settingVC, animated: false)
+    }
+    
+    public var rtcManager: RTCManager?
+    
     private let backgroundViewWidth: CGFloat = 315
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
@@ -205,15 +215,19 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickFeedbackItem() {
-        guard let channelName = AppContext.preferenceManager()?.information.roomId else {
+        guard let channelName = AppContext.preferenceManager()?.information.roomId,
+              let rtcManager = rtcManager
+        else {
             return
         }
         let agentId = AppContext.preferenceManager()?.information.agentId
         feedbackItem.startLoading()
         loadingMaskView.isHidden = false
-        feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { error, result in
-            self.loadingMaskView.isHidden = true
-            self.feedbackItem.stopLoading()
+        rtcManager.predump {
+            self.feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { error, result in
+                self.loadingMaskView.isHidden = true
+                self.feedbackItem.stopLoading()
+            }
         }
     }
     
@@ -358,7 +372,7 @@ extension AgentInformationViewController {
         idItem.detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         
         // Update Feedback Item
-        feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
+//        feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
         
         //Update Logout Item
         logoutItem.setEnabled(isEnabled: true)
