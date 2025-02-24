@@ -238,7 +238,11 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickLogoutItem() {
-        AgentAlertView.show(in: view, title: ResourceManager.L10n.Login.logoutAlertTitle, content: ResourceManager.L10n.Login.logoutAlertDescription, cancelTitle: ResourceManager.L10n.Login.logoutAlertCancel, confirmTitle: ResourceManager.L10n.Login.logoutAlertConfirm, onConfirm: {
+        AgentAlertView.show(in: view, title: ResourceManager.L10n.Login.logoutAlertTitle,
+                            content: ResourceManager.L10n.Login.logoutAlertDescription,
+                            cancelTitle: ResourceManager.L10n.Login.logoutAlertCancel,
+                            confirmTitle: ResourceManager.L10n.Login.logoutAlertConfirm,
+                            onConfirm:  {
             AppContext.loginManager()?.logout()
         })
     }
@@ -378,7 +382,7 @@ extension AgentInformationViewController {
         idItem.detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         
         // Update Feedback Item
-//        feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
+        feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
         
         //Update Logout Item
         logoutItem.setEnabled(isEnabled: true)
