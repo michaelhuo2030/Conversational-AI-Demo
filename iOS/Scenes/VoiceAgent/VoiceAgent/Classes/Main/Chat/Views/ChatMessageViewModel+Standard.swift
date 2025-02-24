@@ -8,7 +8,7 @@
 import Foundation
 
 protocol MessageStandard {
-    func reduceStandardMessage(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool)
+    func reduceStandardMessage(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isInterrupted: Bool)
 }
 
 extension ChatMessageViewModel: MessageStandard {
@@ -17,13 +17,13 @@ extension ChatMessageViewModel: MessageStandard {
         return key
     }
     
-    func reduceStandardMessage(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
+    func reduceStandardMessage(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isInterrupted: Bool) {
         let isMine = owner == .me
         let key = generateMessageKey(turnId: turnId, isMine: isMine)
         let messageObj = messageMapTable[key]
 
         if messageObj != nil {
-            updateContent(content: message, turnId: turnId, isFinished: isFinished, isMine: isMine)
+            updateContent(content: message, turnId: turnId, isMine: isMine, isInterrupted: isInterrupted)
         } else {
             startNewMessage(content: message, timestamp: timestamp, isMine: isMine, turnId: turnId)
         }
@@ -49,12 +49,12 @@ extension ChatMessageViewModel: MessageStandard {
         delegate?.startNewMessage()
     }
     
-    private func updateContent(content: String, turnId: Int, isFinished: Bool, isMine: Bool) {
+    private func updateContent(content: String, turnId: Int, isMine: Bool, isInterrupted: Bool) {
         let key = generateMessageKey(turnId: turnId, isMine: isMine)
         let message = messageMapTable[key]
         message?.content = content
-        message?.isFinal = isFinished
         message?.turn_id = turnId
+        message?.isInterrupted = isInterrupted
         
         delegate?.messageUpdated()
     }
