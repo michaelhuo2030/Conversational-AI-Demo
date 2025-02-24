@@ -1,22 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- 启动主题 -->
-    <style name="App_Theme.Starting" parent="Theme.SplashScreen">
-        <!-- 启动画面背景色 -->
-        <item name="windowSplashScreenBackground">@color/ai_fill1</item>
-        <!-- 启动图标 -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_wrapper</item>
-        <!-- 启动动画时长 -->
-        <item name="windowSplashScreenAnimationDuration">1000</item>
-        <!-- 启动图标背景色 -->
-        <item name="windowSplashScreenIconBackgroundColor">@color/ai_fill1</item>
-        <!-- 启动后的主题 -->
-        <item name="postSplashScreenTheme">@style/App_Theme.ProjectAI</item>
-    </style>
-
-    <!-- 应用主题 -->
     <style name="App_Base.Theme.ProjectAI" parent="Theme.Material3.Light.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+         <item name="android:windowBackground">@drawable/bg_app_window</item>
     </style>
 
     <style name="App_Theme.ProjectAI" parent="App_Base.Theme.ProjectAI" />

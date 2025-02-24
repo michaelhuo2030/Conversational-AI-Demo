@@ -60,7 +60,6 @@ dependencies {
     api libs.androidx.lifecycle.process
     api libs.navigation.fragment.ktx
     api libs.navigation.ui.ktx
-    api libs.androidx.core.splashscreen
 
     api libs.okhttp.core
     api libs.okhttp.logging.interceptor

@@ -6,22 +6,12 @@
         </shape>
     </item>
 
-    <item android:top="200dp">
-        <bitmap
-            android:gravity="top|center_horizontal"
-            android:src="@drawable/scene_detail_convo_ai_logo" />
-    </item>
+    <item
+        android:width="76dp"
+        android:height="76dp">
 
-    <!-- 使用 shape + text 显示文字 -->
-    <item android:top="300dp">
-        <shape>
-            <size android:height="100dp" />
-            <padding android:left="16dp" android:right="16dp" />
-        </shape>
-        <text
-            android:textSize="28sp"
-            android:textColor="@color/ai_icontext1"
+        <bitmap
             android:gravity="center"
-            android:text="@string/common_splash" />
+            android:src="@drawable/scene_detail_convo_ai_logo" />
     </item>
 </layer-list> 

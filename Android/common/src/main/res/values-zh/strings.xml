@@ -12,24 +12,25 @@
     <string name="common_debug_seamless_play_mode">畅玩模式</string>
     <string name="common_debug_close">关闭开发者模式</string>
     <string name="common_debug_copy_user_question">复制用户当前通话提问</string>
-    <string name="common_call_time_is_up">本地对话时间到</string>
+    <string name="common_call_time_is_up">本地对话时间到！</string>
     <string name="common_call_time_is_up_tips">每次对话限时%1s分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。</string>
     <string name="common_i_known">我知道了</string>
 
-    <string name="common_login_chat">Login for Chat free</string>
-    <string name="common_login_chat_tips">Power your business future\n at once</string>
-    <string name="common_login_with_agora_sso">Login With Agora SSO</string>
-    <string name="common_terms_info">我已阅读并同意</string>
-    <string name="common_terms_selection"><u>声网 服务条款</u></string>
-    <string name="common_terms_tips">别忘了勾选哦</string>
+    <string name="common_login_chat">一键登录</string>
+    <string name="common_login_chat_tips">解锁 \u267E\uFE0F 免费畅聊</string>
+    <string name="common_login_with_agora_sso">手机号登录</string>
+    <string name="common_acceept">我已阅读并同意</string>
+    <string name="common_terms_of_services"><u>《用户协议》</u></string>
+    <string name="common_and">和</string>
+    <string name="common_privacy_policy"><u>《隐私政策》</u></string>
+    <string name="common_terms_tips">请勾选协议</string>
 
-    <string name="common_logout_confirm_title">您是否要退出</string>
-    <string name="common_logout_confirm_text">您将退出当前账号，退出后需要重新登录才能使用完整功能。是否继续?</string>
-    <string name="common_logout_confirm_known">退出</string>
+    <string name="common_logout_confirm_title">退出登录</string>
+    <string name="common_logout_confirm_text">您将退出当前账号，退出后需要重新登录才能使用完整功能。是否继续？</string>
+    <string name="common_logout_confirm_known">退出登录</string>
     <string name="common_logout_confirm_cancel">取消</string>
     <string name="common_limit_time">每次对话限制%d分钟</string>
-    <string name="common_upload_time_success">上报成功</string>
-    <string name="common_upload_time_failed">上报失败，请再试一下</string>
+    <string name="common_upload_time_success">提交成功，感谢反馈</string>
+    <string name="common_upload_time_failed">提交失败，请稍后重试</string>
     <string name="common_login_expired">登录状态已失效，请重新登录</string>
-    <string name="common_splash">对话式 AI 引擎体验</string>
 </resources>

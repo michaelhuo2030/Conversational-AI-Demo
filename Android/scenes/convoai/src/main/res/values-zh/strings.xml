@@ -1,7 +1,7 @@
 <resources>
     <string name="cov_main_agent_title">对话式 AI 引擎</string>
-    <string name="cov_login_for_chat">Login for Chat free</string>
-    <string name="cov_detail_agent_title">对话式 AI 引擎</string>
+    <string name="cov_login_for_chat">连接 AI 引擎</string>
+    <string name="cov_detail_agent_title">对话式 AI 引擎体验</string>
     <string name="cov_detail_not_joined">未加入</string>
     <string name="cov_detail_join_call">连接 AI 引擎</string>
     <string name="cov_detail_end_call">结束通话</string>

@@ -15,7 +15,6 @@ import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.convoai.ui.CovLivingActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
 
@@ -34,29 +33,12 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
             BuildConfig.AG_APP_CERTIFICATE
         )
         setupLocale()
-        // 处理启动画面
-        installSplashScreen().apply {
-            // 设置启动画面持续时间
-            setKeepOnScreenCondition {
-                // 返回 true 保持启动画面显示，返回 false 结束启动画面
-                false
-            }
-        }
         super.onCreate(savedInstanceState)
         goScene(AgentScenes.ConvoAi)
     }
 
     override fun initView() {
         setupView()
-//        val tempToken = SSOUserManager.getToken()
-//        if (tempToken.isNotEmpty()) {
-//            mLoginViewModel.getUserInfoByToken(tempToken)
-//            mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
-//                goScene(AgentScenes.ConvoAi)
-//            }
-//        }else{
-//            goScene(AgentScenes.ConvoAi)
-//        }
     }
 
     private fun goScene(scene: AgentScenes) {
@@ -80,10 +62,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
     override fun onResume() {
         super.onResume()
         setupLocale()
-    }
-
-    override fun onPause() {
-        super.onPause()
     }
 
     private fun setupView() {

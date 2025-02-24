@@ -33,7 +33,6 @@
             android:name=".WelcomeActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/App_Theme.Starting"
             android:windowSoftInputMode="stateHidden|adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

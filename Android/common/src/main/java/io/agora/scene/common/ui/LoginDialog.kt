@@ -46,14 +46,19 @@ class LoginDialog constructor() : BaseSheetDialog<CommonLoginDialogBinding>() {
                     tvCheckTips.visibility = View.INVISIBLE
                 }
             }
-            tvTermsSelection.setOnClickListener(object : OnFastClickListener() {
+            tvAccept.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    cbTerms.isChecked = !cbTerms.isChecked
+                }
+            })
+            tvTermsOfServices.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onLoginDialogCallback?.onClickTerms()
                 }
             })
-            tvTermsInfo.setOnClickListener(object : OnFastClickListener() {
+            tvPrivacyPolicy.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    cbTerms.isChecked = !cbTerms.isChecked
+                    onLoginDialogCallback?.onClickTerms()
                 }
             })
         }

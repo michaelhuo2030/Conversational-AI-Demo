@@ -7,31 +7,14 @@
     android:background="@color/ai_fill1"
     tools:context=".WelcomeActivity">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guidelineH30"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintGuide_percent="0.3"
-        android:orientation="horizontal"/>
 
     <ImageView
         android:id="@+id/iv_icon"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="76dp"
+        android:layout_height="76dp"
         android:background="@drawable/scene_detail_convo_ai_logo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guidelineH30"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iv_icon"
-        android:layout_marginTop="40dp"
-        android:textSize="28sp"
-        android:text="@string/common_splash"
-        android:textColor="@color/ai_icontext1"/>
-
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

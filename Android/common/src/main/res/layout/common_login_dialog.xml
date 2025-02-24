@@ -113,20 +113,36 @@
             android:drawableStart="@drawable/agent_terms_cb_selector" />
 
         <TextView
-            android:id="@+id/tv_terms_info"
+            android:id="@+id/tv_accept"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/common_terms_info"
+            android:text="@string/common_acceept"
             android:textColor="@color/ai_icontext1"
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/tv_terms_selection"
+            android:id="@+id/tv_terms_of_services"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/common_terms_of_services"
+            android:textColor="@color/ai_icontext1"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_and"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/common_and"
+            android:textColor="@color/ai_icontext1"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tv_privacy_policy"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginStart="5dp"
             android:gravity="center"
-            android:text="@string/common_terms_selection"
+            android:text="@string/common_privacy_policy"
             android:textColor="@color/ai_icontext1"
             android:textSize="14sp" />
     </LinearLayout>
