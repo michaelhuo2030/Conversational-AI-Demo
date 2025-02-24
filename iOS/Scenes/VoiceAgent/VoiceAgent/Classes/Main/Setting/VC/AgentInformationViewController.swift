@@ -378,7 +378,7 @@ extension AgentInformationViewController {
         idItem.detailLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         
         // Update Feedback Item
-//        feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
+        feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
         
         //Update Logout Item
         logoutItem.setEnabled(isEnabled: true)
