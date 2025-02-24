@@ -22,12 +22,22 @@
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Agora_AiLogo.png" translatesAutoresizingMaskIntoConstraints="NO" id="PYj-6u-cVY">
+                                <rect key="frame" x="171.66666666666666" y="331.66666666666669" width="50" height="50"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="J9H-Du-8L4"/>
+                                    <constraint firstAttribute="width" constant="50" id="t6p-oA-elv"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
                         <color key="backgroundColor" red="0.14117647058823529" green="0.14117647058823529" blue="0.22352941176470587" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="Jfu-2Z-Wt6" firstAttribute="top" secondItem="PYj-6u-cVY" secondAttribute="bottom" constant="40" id="Fge-bl-iv6"/>
                             <constraint firstItem="Jfu-2Z-Wt6" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="f3K-wF-lie"/>
                             <constraint firstItem="Jfu-2Z-Wt6" firstAttribute="centerY" secondItem="Bcu-3y-fUS" secondAttribute="centerY" id="i14-Ah-MXC"/>
+                            <constraint firstItem="PYj-6u-cVY" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="vDb-9O-g79"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -36,4 +46,7 @@
             <point key="canvasLocation" x="52.671755725190835" y="374.64788732394368"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="Agora_AiLogo.png" width="50.333332061767578" height="50"/>
+    </resources>
 </document>

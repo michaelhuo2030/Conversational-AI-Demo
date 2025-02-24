@@ -1,20 +1,24 @@
 
-"login.title" = "Login for Chat free";
+"login.title" = "Unlock ♾️ Free Chat";
 "login.description" = "Power your business future at once";
-"login.start.button.title" = "Login with phone number";
-"login.terms.service.prefix" = "I agree to the ";
-"login.terms.service.suffix" = "Agora Terms of Service";
-"login.terms.service.tips" = "Read me first";
-"logout.alert.title" = "您是否要退出？";
-"logout.alert.description" = "您将退出当前账号，退出后需要重新登录才能使用完整功能。是否继续？";
-"logout.alert.confirm.title" = "取消";
-"logout.alert.cancel.title" = "退出";
+"login.start.button.title" = "Log in with Agora account";
+"login.terms.service.prefix" = "I accept the ";
+"login.terms.service.name" = "Terms of Services";
+"login.terms.service.and" = "and";
+"login.privacy.policy.name" = "Privacy Policy";
+"login.terms.service.tips" = "Please accept the terms to proceed";
+"login.session.expired" = "Your session has expired. Please log in again";
+
+"logout.alert.title" = "You will be logged out";
+"logout.alert.description" = "You'll need to sign in again to use all features. Log out now?";
+"logout.alert.confirm.title" = "Cancel";
+"logout.alert.cancel.title" = "Log out";
 
 "join.start.title" = "Conversational AI Engine";
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";
-"join.start.tips" = "Limited to 10 minutes";
+"join.start.tips" = "Chats limited to 10 minutes each";
 
 "conversation.ai.app.name" = "Conversational AI Engine";
 "conversation.agent.name" = "Agent";
@@ -68,12 +72,15 @@
 "channel.network.good" = "Good";
 "channel.network.poor" = "Poor";
 "channel.network.fair" = "Fair";
-"channel.more.title" = "More";
-"channel.more.feedback" = "Feed Back";
-"channel.more.logout" = "Logout";
-"channel.time.limited.alert.title" = "本次对话时间到！";
-"channel.time.limited.alert.description" = "每次对话限时%d分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。";
-"channel.time.limited.alert.confim" = "我知道了";
+"channel.more.title" = "More Actions";
+"channel.more.feedback" = "Quick Report";
+"channel.more.feedback.success" = "We've received your report. Thanks for helping us improve!";
+"channel.more.feedback.failed" = "Opps! Something went wrong. Please try reporting again";
+
+"channel.more.logout" = "Log Out";
+"channel.time.limited.alert.title" = "Time's Up!";
+"channel.time.limited.alert.description" = "Each session is limited to 10 minutes. Start a new conversation after closing this window";
+"channel.time.limited.alert.confim" = "Got it";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";

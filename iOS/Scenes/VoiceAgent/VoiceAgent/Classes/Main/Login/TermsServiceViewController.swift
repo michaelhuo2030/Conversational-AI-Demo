@@ -10,6 +10,8 @@ import WebKit
 import Common
 
 class TermsServiceWebViewController: UIViewController {
+    var url: String = ""
+    
     private lazy var webView: WKWebView = {
         let configuration = WKWebViewConfiguration()
         let webView = WKWebView(frame: .zero, configuration: configuration)
@@ -87,7 +89,7 @@ class TermsServiceWebViewController: UIViewController {
     }
     
     private func loadWebContent() {
-        if let url = URL(string: AppContext.shared.termsOfServiceUrl) {
+        if let url = URL(string: url) {
             let request = URLRequest(url: url)
             webView.load(request)
         }
