@@ -15,7 +15,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="25dp"
         android:padding="16dp"
-        android:src="@drawable/scene_detail_convo_ai_logo"
+        android:src="@drawable/ai_login_icon"
         app:layout_constraintBottom_toTopOf="@+id/btnLoginSSO"
         app:layout_constraintDimensionRatio="1:1"
         android:layout_marginBottom="20dp"
