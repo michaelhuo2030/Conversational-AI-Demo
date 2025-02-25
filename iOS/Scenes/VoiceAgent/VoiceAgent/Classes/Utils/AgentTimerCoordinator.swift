@@ -37,7 +37,7 @@ class AgentTimerCoordinator: NSObject {
     private var usageDurationLimitTimer: Timer?
     private var useDuration = 600
     private let pingTimeInterval = 10.0
-
+    
     private func initDurationLimitTimer() {
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
             useDuration = preset.callTimeLimitSecond

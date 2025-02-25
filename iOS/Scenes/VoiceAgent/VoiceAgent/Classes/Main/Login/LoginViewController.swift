@@ -255,37 +255,6 @@ class LoginViewController: UIViewController {
         warningButton.layer.add(animation, forKey: "shake")
     }
     
-    private func login() {
-        let ssoWebVC = SSOWebViewController()
-        let baseUrl = AppContext.shared.baseServerUrl
-        ssoWebVC.urlString = "\(baseUrl)/v1/convoai/sso/login"
-        ssoWebVC.completionHandler = { [weak self] token in
-            if let token = token {
-                print("Received token: \(token)")
-                let model = LoginModel()
-                model.token = token
-                AppContext.loginManager()?.updateUserInfo(userInfo: model)
-                LoginApiService.getUserInfo { [weak self] error in
-                    guard let self = self else { return }
-                    
-                    if let err = error {
-                        AppContext.loginManager()?.logout()
-                        SVProgressHUD.showInfo(withStatus: err.localizedDescription)
-                    } else {
-                        self.dismiss(animated: false) { [weak self] in
-                            self?.dismiss(animated: true)
-                        }
-                    }
-                }
-            } else {
-                print("Failed to get token")
-            }
-        }
-        let navigationVC = UINavigationController(rootViewController: ssoWebVC)
-        navigationVC.modalPresentationStyle = .fullScreen
-        self.present(navigationVC, animated: true)
-    }
-    
     @objc private func phoneLoginTapped() {
         if !termsCheckbox.isSelected {
             warningButton.isHidden = false
@@ -294,7 +263,7 @@ class LoginViewController: UIViewController {
         }
         
         loginAction?()
-        login()
+        self.dismiss()
     }
     
     @objc private func termsCheckboxTapped() {

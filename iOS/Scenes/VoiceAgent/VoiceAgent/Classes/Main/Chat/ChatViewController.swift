@@ -59,17 +59,10 @@ public class ChatViewController: UIViewController {
         return view
     }()
     
-    private lazy var welcomeMessageView: UIImageView = {
-        let view = UIImageView()
-        let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 24)
-        label.textColor = .white
-        label.text = "hi, i’m Convo aI agents"
-        label.textAlignment = .center
-        view.addSubview(label)
-        label.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
-        }
+    private lazy var welcomeMessageView: TypewriterLabel = {
+        let view = TypewriterLabel()
+        view.font = UIFont.systemFont(ofSize: 20)
+        view.startAnimation()
         return view
     }()
     
@@ -365,6 +358,30 @@ public class ChatViewController: UIViewController {
     
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
+    }
+    
+    private func goToSSOViewController() {
+        let ssoWebVC = SSOWebViewController()
+        let baseUrl = AppContext.shared.baseServerUrl
+        ssoWebVC.urlString = "\(baseUrl)/v1/convoai/sso/login"
+        ssoWebVC.completionHandler = { [weak self] token in
+            guard let self = self else { return }
+            if let token = token {
+                self.addLog("SSO token: \(token)")
+                let model = LoginModel()
+                model.token = token
+                AppContext.loginManager()?.updateUserInfo(userInfo: model)
+                self.bottomBar.startLoadingAnimation()
+                LoginApiService.getUserInfo { [weak self] error in
+                    self?.bottomBar.stopLoadingAnimation()                    
+                    if let err = error {
+                        AppContext.loginManager()?.logout()
+                        SVProgressHUD.showInfo(withStatus: err.localizedDescription)
+                    }
+                }
+            }
+        }
+        self.navigationController?.pushViewController(ssoWebVC, animated: false)
     }
 }
 
@@ -704,6 +721,9 @@ private extension ChatViewController {
         await MainActor.run {
             let loginVC = LoginViewController()
             loginVC.modalPresentationStyle = .overFullScreen
+            loginVC.loginAction = { [weak self] in
+                self?.goToSSOViewController()
+            }
             self.present(loginVC, animated: false)
         }
     }
