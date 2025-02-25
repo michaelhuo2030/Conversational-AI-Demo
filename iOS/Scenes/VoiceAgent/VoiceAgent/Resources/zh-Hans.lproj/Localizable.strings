@@ -39,7 +39,7 @@
 "conversation.alert.confirm" = "确定";
 "conversation.alert.clear" = "清除";
 
-"settings.title" = "设置(通话中不可修改)";
+"settings.title" = "设置";
 "settings.connected.tips" = "(连接中不可修改)";
 "settings.preset" = "预设";
 "settings.advanced" = "高级设置";
