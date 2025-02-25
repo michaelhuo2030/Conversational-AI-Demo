@@ -148,17 +148,19 @@ class CovSubRenderController: NSObject {
     }
     
     private func getMessageMode(_ message: TranscriptionMessage) -> SubRenderMode {
-        let messageType = MessageType(rawValue: message.object ?? "string") ?? .unknown
         if renderMode == .idle {
-            if messageType == .interrupt || messageType == .unknown {
+            let messageType = MessageType(rawValue: message.object ?? "string") ?? .unknown
+            guard messageType == .string || messageType == .assistant else {
                 return .idle
             }
             if let words = message.words, !words.isEmpty {
                 renderMode = .words
+                addLog("✅[CovSubRenderController] render mode: word")
             } else {
                 renderMode = .text
                 timer?.invalidate()
                 timer = nil
+                addLog("✅[CovSubRenderController] render mode: text")
             }
         }
         return renderMode
