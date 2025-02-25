@@ -95,13 +95,6 @@ open class AUINetworkModel: NSObject {
 @objcMembers
 open class AUIUploadNetworkModel: AUINetworkModel {
     
-    public var appId: String?
-    public var channelName: String?
-    public var fileName: String?
-    public var agentId: String?
-    public var payload: [String: Any] = [String: Any]()
-    public var fileData: Data?
-    
     public lazy var  boundary: String = {
         UUID().uuidString
     }()
@@ -114,34 +107,8 @@ open class AUIUploadNetworkModel: AUINetworkModel {
         return headers
     }
     
-    public func multipartData() -> Data {
+    open func multipartData() -> Data {
         var data = Data()
-        guard let appId = appId, let channelName = channelName, let agentId = agentId, let fileData = fileData, let fileName = fileName else {
-            return data
-        }
-        let contentDict: [String: Any] = [
-            "appId": appId,
-            "channelName": channelName,
-            "agentId": agentId,
-            "payload": payload
-        ]
-        print("upload log with \(contentDict)" )
-        guard let contentData = try? JSONSerialization.data(withJSONObject: contentDict) else {
-            return data
-        }
-        data.append("--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; name=\"content\"\r\n\r\n".data(using: .utf8)!)
-        data.append(contentData)
-        data.append("\r\n".data(using: .utf8)!)
-        // add part of file
-        data.append("--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName).zip\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
-        data.append(fileData)
-        data.append("\r\n".data(using: .utf8)!)
-        
-        // add end sign
-        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
         return data
     }
     

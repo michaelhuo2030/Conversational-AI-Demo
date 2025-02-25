@@ -19,9 +19,6 @@ public class FeedBackPresenter {
     
     private let kURLPathUploadLog = "/v1/convoai/upload/log"
     
-    private var images = [UIImage]()
-    private var imageUrls: [String]?
-    
     public init() {
     }
     
@@ -43,7 +40,7 @@ public class FeedBackPresenter {
             guard let url = url, let data = try? Data.init(contentsOf: url) else {
                 return
             }
-            let req = AUIUploadNetworkModel()
+            let req = FeedbackNetworkModel()
             req.fileName = fileName
             req.interfaceName = self.kURLPathUploadLog
             req.fileData = data
@@ -64,16 +61,16 @@ public class FeedBackPresenter {
     
     private func zipFiles(fileURLs: [URL], destinationURL: URL, completion: @escaping (FeedbackError?, URL?) -> Void) {
         let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("AgentLogs")
+        // delete exist files
+        try? FileManager.default.removeItem(at: tempDirectory)
         do {
-            // delete exist files
-            try FileManager.default.removeItem(at: tempDirectory)
             try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true, attributes: nil)
             
             for fileURL in fileURLs {
                 let destinationFileURL = tempDirectory.appendingPathComponent(fileURL.lastPathComponent)
                 try FileManager.default.copyItem(at: fileURL, to: destinationFileURL)
             }
-            try FileManager.default.removeItem(at: destinationURL)
+            try? FileManager.default.removeItem(at: destinationURL)
             
             let success = SSZipArchive.createZipFile(atPath: destinationURL.path,
                                                      withContentsOfDirectory: tempDirectory.path)
@@ -82,8 +79,8 @@ public class FeedBackPresenter {
             } else {
                 completion(FeedbackError(code: -1, message: "zip log error"), nil)
             }
-        } catch {
-            completion(FeedbackError(code: -1, message: "zip log error"), nil)
+        } catch let err {
+            completion(FeedbackError(code: -1, message: err.localizedDescription), nil)
         }
     }
     
@@ -102,5 +99,45 @@ public class FeedBackPresenter {
         } catch {
             return []
         }
+    }
+}
+
+class FeedbackNetworkModel: AUIUploadNetworkModel {
+    public var appId: String?
+    public var channelName: String?
+    public var fileName: String?
+    public var agentId: String?
+    public var payload: [String: Any] = [String: Any]()
+    public var fileData: Data?
+    
+    public override func multipartData() -> Data {
+        var data = Data()
+        guard let appId = appId, let channelName = channelName, let agentId = agentId, let fileData = fileData, let fileName = fileName else {
+            return data
+        }
+        let contentDict: [String: Any] = [
+            "appId": appId,
+            "channelName": channelName,
+            "agentId": agentId,
+            "payload": payload
+        ]
+        print("upload log with \(contentDict)" )
+        guard let contentData = try? JSONSerialization.data(withJSONObject: contentDict) else {
+            return data
+        }
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"content\"\r\n\r\n".data(using: .utf8)!)
+        data.append(contentData)
+        data.append("\r\n".data(using: .utf8)!)
+        // add part of file
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName).zip\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(fileData)
+        data.append("\r\n".data(using: .utf8)!)
+        
+        // add end sign
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        return data
     }
 }
