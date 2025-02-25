@@ -25,5 +25,5 @@ interface ApiManagerService {
         @Header("Authorization") token: String,
         @Part("content") content: RequestBody,
         @Part file: MultipartBody.Part
-    ): BaseResponse<Any>
+    ): BaseResponse<Unit>
 }
