@@ -820,8 +820,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         SSOUserManager.saveToken(token)
                         mLoginViewModel.getUserInfoByToken(token)
                     } else {
+                        showLoginLoading(false)
                         ToastUtil.show("Login error")
                     }
+                }else{
+                    showLoginLoading(false)
                 }
             }
         mPermissionHelp = PermissionHelp(this)
@@ -1032,9 +1035,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 // TODO: 已经登录
                 mLoginDialog?.dismiss()
                 mLoginDialog = null
+                showLoginLoading(false)
                 updateLoginStatus(true)
                 getPresetTokenConfig()
             } else {
+                showLoginLoading(false)
                 ToastUtil.show("Get user info error")
             }
         }
@@ -1065,7 +1070,18 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 clBottomNotLogged.root.visibility = View.VISIBLE
             }
         }
+    }
 
+    private fun showLoginLoading(show: Boolean) {
+        mBinding?.apply {
+            if (show) {
+                clBottomNotLogged.layoutLoading.visibility = View.VISIBLE
+                clBottomNotLogged.loadingView.startAnimation()
+            } else {
+                clBottomNotLogged.layoutLoading.visibility = View.GONE
+                clBottomNotLogged.loadingView.stopAnimation()
+            }
+        }
     }
 
     private fun showLoginDialog() {
@@ -1078,6 +1094,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
                     override fun onClickStartSSO() {
                         onClickLoginSSO()
+                        showLoginLoading(true)
                     }
 
                     override fun onClickTerms() {

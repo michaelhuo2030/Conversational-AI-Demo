@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
@@ -9,10 +10,10 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/common_start_anim"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="30dp"
+        android:src="@drawable/common_start_anim"
         app:layout_constraintBottom_toTopOf="@+id/btnStartWithoutLogin"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.button.MaterialButton
@@ -20,24 +21,42 @@
         android:layout_width="0dp"
         android:layout_height="58dp"
         android:layout_marginStart="8dp"
+        android:background="@drawable/selector_gradient_button"
         android:insetTop="0dp"
         android:insetBottom="0dp"
+        android:stateListAnimator="@null"
         android:text="@string/cov_login_for_chat"
         android:textAllCaps="false"
         android:textColor="@color/ai_brand_white10"
         android:textSize="18sp"
         app:backgroundTint="@null"
+        app:cornerRadius="15dp"
         app:icon="@drawable/cov_detail_join_call"
         app:iconGravity="textStart"
         app:iconPadding="10dp"
         app:iconSize="24dp"
         app:iconTint="@color/ai_brand_white10"
-        app:cornerRadius="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintWidth_percent="0.84"
-        android:background="@drawable/selector_gradient_button"
-        android:stateListAnimator="@null" />
+        app:layout_constraintWidth_percent="0.84" />
+
+    <FrameLayout
+        android:id="@+id/layoutLoading"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_gradient_start_loading_button"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/btnStartWithoutLogin"
+        app:layout_constraintEnd_toEndOf="@+id/btnStartWithoutLogin"
+        app:layout_constraintStart_toStartOf="@+id/btnStartWithoutLogin"
+        app:layout_constraintTop_toTopOf="@+id/btnStartWithoutLogin">
+
+        <io.agora.scene.common.ui.widget.PointLoadingView
+            android:id="@+id/loadingView"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

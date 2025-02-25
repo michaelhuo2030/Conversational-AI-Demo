@@ -153,7 +153,8 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
             } else {
                 super.onHandleOnBackPressed()
             }
+        } ?: run {
+            super.onHandleOnBackPressed()
         }
-        super.onHandleOnBackPressed()
     }
 }
