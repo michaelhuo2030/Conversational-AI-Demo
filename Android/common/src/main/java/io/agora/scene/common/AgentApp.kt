@@ -35,8 +35,8 @@ class AgentApp : Application() {
         initMMKV()
         try {
             extractResourceToCache("common_resource.zip")
-            initFile("ball_video_start.mov")
-            initFile("ball_video_rotating.mov")
+            initFile("ball_video_start.mp4")
+            initFile("ball_video_rotating.mp4")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init files", e)
         }

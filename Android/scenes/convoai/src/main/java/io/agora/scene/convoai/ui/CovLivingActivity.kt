@@ -936,7 +936,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 coroutineScope.launch {
                     delay(1000L)
                     ToastUtil.show(getString(R.string.cov_detail_state_error), Toast.LENGTH_LONG)
-                    onHandleOnBackPressed()
+                    stopAgentAndLeaveChannel()
+//                    onHandleOnBackPressed()
                 }
             }
         })
