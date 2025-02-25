@@ -98,7 +98,7 @@ object CovAgentApiManager {
             if (tts.length() > 0) {
                 postBody.put("tts", tts)
             }
-            postBody.put("graph_id", "0.10.0-10-g88d8b6b")
+            params.graphId?.let { postBody.put("graph_id", it) }
             params.parameters?.let { postBody.put("parameters", it) }
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
