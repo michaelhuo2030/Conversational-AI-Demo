@@ -34,8 +34,8 @@ class AnimateView: NSObject {
         static let durationMedium: TimeInterval = 0.5
         static let durationLow: TimeInterval = 0.6
         static let bounceScale: Float = 0.02
-        static let videoFirstFileName = "ball_small_video_first.mov"
-        static let videoFileName = "ball_small_video.mov"
+        static let videoFirstFileName = "ball_small_video_first.mp4"
+        static let videoFileName = "ball_small_video.mp4"
     }
     
     private weak var videoView: UIView?

@@ -40,10 +40,10 @@
 		F7D294BA2D6C5D9900583343 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F7D294B82D6C5D9900583343 /* Launch Screen.storyboard */; };
 		F7D294BF2D6C6F9C00583343 /* Agora_AiLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = F7D294BE2D6C6F9C00583343 /* Agora_AiLogo.png */; };
 		F7D294C02D6C6F9C00583343 /* Agora_AiLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = F7D294BE2D6C6F9C00583343 /* Agora_AiLogo.png */; };
-		F7D294C82D6DDFB800583343 /* ball_small_video.mov in Resources */ = {isa = PBXBuildFile; fileRef = F7D294C72D6DDFB800583343 /* ball_small_video.mov */; };
-		F7D294C92D6DDFB800583343 /* ball_small_video.mov in Resources */ = {isa = PBXBuildFile; fileRef = F7D294C72D6DDFB800583343 /* ball_small_video.mov */; };
-		F7D294CB2D6DE00400583343 /* ball_small_video_first.mov in Resources */ = {isa = PBXBuildFile; fileRef = F7D294CA2D6DE00400583343 /* ball_small_video_first.mov */; };
-		F7D294CC2D6DE00400583343 /* ball_small_video_first.mov in Resources */ = {isa = PBXBuildFile; fileRef = F7D294CA2D6DE00400583343 /* ball_small_video_first.mov */; };
+		F7D294CF2D6E131000583343 /* ball_small_video.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294CD2D6E130F00583343 /* ball_small_video.mp4 */; };
+		F7D294D02D6E131000583343 /* ball_small_video.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294CD2D6E130F00583343 /* ball_small_video.mp4 */; };
+		F7D294D12D6E131000583343 /* ball_small_video_first.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294CE2D6E130F00583343 /* ball_small_video_first.mp4 */; };
+		F7D294D22D6E131000583343 /* ball_small_video_first.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294CE2D6E130F00583343 /* ball_small_video_first.mp4 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -78,8 +78,8 @@
 		F75CC8A62D3941B800F9D4B7 /* Info-global.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-global.plist"; sourceTree = "<group>"; };
 		F7D294B82D6C5D9900583343 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		F7D294BE2D6C6F9C00583343 /* Agora_AiLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Agora_AiLogo.png; sourceTree = "<group>"; };
-		F7D294C72D6DDFB800583343 /* ball_small_video.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = ball_small_video.mov; sourceTree = "<group>"; };
-		F7D294CA2D6DE00400583343 /* ball_small_video_first.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = ball_small_video_first.mov; sourceTree = "<group>"; };
+		F7D294CD2D6E130F00583343 /* ball_small_video.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = ball_small_video.mp4; sourceTree = "<group>"; };
+		F7D294CE2D6E130F00583343 /* ball_small_video_first.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = ball_small_video_first.mp4; sourceTree = "<group>"; };
 		FFC83CF1A80017C399C30BA7 /* Pods-Agent-oversea.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Agent-oversea.release.xcconfig"; path = "Target Support Files/Pods-Agent-oversea/Pods-Agent-oversea.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -189,9 +189,9 @@
 			isa = PBXGroup;
 			children = (
 				F727F8682D5E3292003AF48D /* common_resource.zip */,
+				F7D294CE2D6E130F00583343 /* ball_small_video_first.mp4 */,
+				F7D294CD2D6E130F00583343 /* ball_small_video.mp4 */,
 				F7D294BE2D6C6F9C00583343 /* Agora_AiLogo.png */,
-				F7D294CA2D6DE00400583343 /* ball_small_video_first.mov */,
-				F7D294C72D6DDFB800583343 /* ball_small_video.mov */,
 				AB7A7DA22D43B145000B3034 /* Assets.xcassets */,
 				AB7A7DA42D43B145000B3034 /* Localizable.strings */,
 			);
@@ -289,12 +289,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				F7D294BF2D6C6F9C00583343 /* Agora_AiLogo.png in Resources */,
+				F7D294D12D6E131000583343 /* ball_small_video_first.mp4 in Resources */,
+				F7D294CF2D6E131000583343 /* ball_small_video.mp4 in Resources */,
 				AB7A7DA92D43B145000B3034 /* Localizable.strings in Resources */,
-				F7D294CB2D6DE00400583343 /* ball_small_video_first.mov in Resources */,
 				F7D294B92D6C5D9900583343 /* Launch Screen.storyboard in Resources */,
 				F727F8692D5E3292003AF48D /* common_resource.zip in Resources */,
 				AB7A7DA82D43B145000B3034 /* Assets.xcassets in Resources */,
-				F7D294C82D6DDFB800583343 /* ball_small_video.mov in Resources */,
 				F75CC8A72D3941B800F9D4B7 /* Info-global.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -303,13 +303,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F7D294C92D6DDFB800583343 /* ball_small_video.mov in Resources */,
+				F7D294D02D6E131000583343 /* ball_small_video.mp4 in Resources */,
 				F727F86A2D5E3292003AF48D /* common_resource.zip in Resources */,
+				F7D294D22D6E131000583343 /* ball_small_video_first.mp4 in Resources */,
 				AB7A7DAB2D43B204000B3034 /* Assets.xcassets in Resources */,
 				AB7A7DAC2D43B211000B3034 /* Localizable.strings in Resources */,
 				F7D294BA2D6C5D9900583343 /* Launch Screen.storyboard in Resources */,
 				F7D294C02D6C6F9C00583343 /* Agora_AiLogo.png in Resources */,
-				F7D294CC2D6DE00400583343 /* ball_small_video_first.mov in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
