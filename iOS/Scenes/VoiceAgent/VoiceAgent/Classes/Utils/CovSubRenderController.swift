@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AgoraRtcKit
 
 private struct TranscriptionMessage: Codable {
     let data_type: String?
@@ -56,7 +57,7 @@ enum MessageOwner {
     case me
 }
 
-enum RenderMode {
+enum SubRenderMode {
     case idle
     case words
     case text
@@ -77,17 +78,22 @@ struct SubtitleMessage {
 
 private typealias TurnState = SubtitleStatus
 
-protocol ICovMessageListView: AnyObject {
+protocol CovSubRenderDelegate: AnyObject {
     
-    func messageFlush(turnId: Int, message: String, owner: MessageOwner, timestamp: Int64, isFinished: Bool, isInterrupted: Bool)
-    
+    func onUpdateTextMessageContent(subtitle: SubtitleMessage, timestamp: Int64)
+        
     func onUpdateStreamContent(subtitle: SubtitleMessage)
 }
 
+struct SubRenderConfig {
+    let rtcEngine: AgoraRtcEngineKit
+    let renderMode: SubRenderMode?
+    let delegate: CovSubRenderDelegate?
+}
+
 protocol CovSubRenderControllerProtocol {
+    func setupWithConfig(_ config: SubRenderConfig)
     func start()
-    func updateAudioTimestamp(timestamp: Int64)
-    func inputStreamMessageData(data: Data)
     func stop()
 }
 
@@ -106,9 +112,9 @@ class CovSubRenderController: NSObject {
     private var audioTimestamp: Int64 = 0
     private var messageParser = MessageParser()
     
-    weak var delegate: ICovMessageListView?
+    private weak var delegate: CovSubRenderDelegate?
     private var messageQueue: [TurnObj] = []
-    private var renderMode: RenderMode = .idle
+    private var renderMode: SubRenderMode = .idle
     
     private var lastMessage: SubtitleMessage? = nil
     private var lastFinishMessage: SubtitleMessage? = nil
@@ -119,6 +125,21 @@ class CovSubRenderController: NSObject {
     
     private let queue = DispatchQueue(label: "com.voiceagent.messagequeue", attributes: .concurrent)
     
+    private func inputStreamMessageData(data: Data) {
+        guard let jsonData = messageParser.parseToJsonData(data) else {
+            return
+        }
+        let string = String(data: jsonData, encoding: .utf8) ?? ""
+        addLog("✅[CovSubRenderController] json: \(string)")
+        do {
+            let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
+            handleMessage(transcription)
+        } catch {
+            print("⚠️[CovSubRenderController] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
+            return
+        }
+    }
+    
     private func handleMessage(_ message: TranscriptionMessage) {
         let renderMode = getMessageMode(message)
         if renderMode == .words {
@@ -128,7 +149,7 @@ class CovSubRenderController: NSObject {
         }
     }
     
-    private func getMessageMode(_ message: TranscriptionMessage) -> RenderMode {
+    private func getMessageMode(_ message: TranscriptionMessage) -> SubRenderMode {
         let messageType = MessageType(rawValue: message.object ?? "string") ?? .unknown
         if renderMode == .idle {
             if messageType == .interrupt || messageType == .unknown {
@@ -151,20 +172,18 @@ class CovSubRenderController: NSObject {
         }
         let isFinal = message.is_final ?? false
         if message.stream_id == 0 {
-            self.delegate?.messageFlush(turnId: -1,
-                                        message: text,
-                                        owner: .agent,
-                                        timestamp: message.start_ms ?? 0,
-                                        isFinished: isFinal,
-                                        isInterrupted: false)
+            let subtitleMessage = SubtitleMessage(turnId: -1,
+                                                  isMe: false,
+                                                  text: text,
+                                                  status: isFinal ? .end : .inprogress)
+            self.delegate?.onUpdateTextMessageContent(subtitle: subtitleMessage, timestamp: message.start_ms ?? 0)
             print("🌍[CovSubRenderController] send agent text: \(text), final: \(isFinal)")
         } else {
-            self.delegate?.messageFlush(turnId: -1,
-                                        message: text,
-                                        owner: .me,
-                                        timestamp: message.start_ms ?? 0,
-                                        isFinished: isFinal,
-                                        isInterrupted: false)
+            let subtitleMessage = SubtitleMessage(turnId: -1,
+                                                  isMe: true,
+                                                  text: text,
+                                                  status: isFinal ? .end : .inprogress)
+            self.delegate?.onUpdateTextMessageContent(subtitle: subtitleMessage, timestamp: message.start_ms ?? 0)
             print("🙋🏻‍♀️[CovSubRenderController] send user text: \(text), final: \(isFinal)")
         }
     }
@@ -327,34 +346,42 @@ class CovSubRenderController: NSObject {
         }
     }
 }
+// MARK: - AgoraRtcEngineDelegate
+extension CovSubRenderController: AgoraRtcEngineDelegate {
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
+        inputStreamMessageData(data: data)
+    }
+}
 
+// MARK: - AgoraAudioFrameDelegate
+extension CovSubRenderController: AgoraAudioFrameDelegate {
+    
+    public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
+        audioTimestamp = frame.presentationMs
+        return true
+    }
+    
+    public func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
+        return .beforeMixing
+    }
+}
+// MARK: - CovSubRenderControllerProtocol
 extension CovSubRenderController: CovSubRenderControllerProtocol {
+    
+    func setupWithConfig(_ config: SubRenderConfig) {
+        self.delegate = config.delegate
+        self.renderMode = config.renderMode ?? .idle
+        config.rtcEngine.setAudioFrameDelegate(self)
+        config.rtcEngine.addDelegate(self)
+    }
+    
     func start() {
         timer?.invalidate()
         timer = nil
         
         timer = Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(eventLoop), userInfo: nil, repeats: true)
     }
-    
-    func updateAudioTimestamp(timestamp: Int64) {
-        audioTimestamp = timestamp
-    }
-    
-    func inputStreamMessageData(data: Data) {
-        guard let jsonData = messageParser.parseToJsonData(data) else {
-            return
-        }
-        let string = String(data: jsonData, encoding: .utf8) ?? ""
-        print("✅[CovSubRenderController] json: \(string)")
-        do {
-            let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
-            handleMessage(transcription)
-        } catch {
-            print("⚠️[CovSubRenderController] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
-            return
-        }
-    }
-    
+        
     func stop() {
         timer?.invalidate()
         timer = nil

@@ -30,13 +30,12 @@ public class ChatViewController: UIViewController {
     }()
 
     private lazy var subRenderController: CovSubRenderController = {
-        let adapter = CovSubRenderController()
-        adapter.delegate = self
-        return adapter
+        let renderCtrl = CovSubRenderController()
+        return renderCtrl
     }()
     
     private lazy var rtcManager: RTCManager = {
-        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self, audioFrameDelegate: self)
+        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self)
         addLog("rtc sdk version: \(AgoraRtcEngineKit.getSdkVersion())")
         return manager
     }()
@@ -211,6 +210,9 @@ public class ChatViewController: UIViewController {
         
         animateView.setupMediaPlayer(rtcManager.getRtcEntine())
         animateView.updateAgentState(.idle)
+        
+        let subRenderConfig = SubRenderConfig(rtcEngine: rtcManager.getRtcEntine(), renderMode: nil, delegate: self)
+        subRenderController.setupWithConfig(subRenderConfig)
     }
     
     private func setupConstraints() {
@@ -613,10 +615,6 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         addLog("[RTC Call Back] networkQuality: \(rxQuality)")
         AppContext.preferenceManager()?.updateNetworkState(NetworkStatus(agoraQuality: rxQuality))
     }
-        
-    public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
-        subRenderController.inputStreamMessageData(data: data)
-    }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
         speakers.forEach { info in
@@ -643,20 +641,6 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                 animateView.updateAgentState(.listening)
             }
         }
-    }
-}
-// MARK: - AgoraAudioFrameDelegate
-extension ChatViewController: AgoraAudioFrameDelegate {
-    
-    public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
-        if uid == agentUid {
-            subRenderController.updateAudioTimestamp(timestamp: frame.presentationMs)
-        }
-        return true
-    }
-    
-    public func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
-        return .beforeMixing
     }
 }
 
@@ -802,7 +786,11 @@ extension ChatViewController: AnimateViewDelegate {
     }
 }
 
-extension ChatViewController: ICovMessageListView {
+extension ChatViewController: CovSubRenderDelegate {
+    func onUpdateTextMessageContent(subtitle: SubtitleMessage, timestamp: Int64) {
+        
+    }
+    
     func onUpdateStreamContent(subtitle: SubtitleMessage) {
         messageView.viewModel.messageFlush(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isFinished: (subtitle.status == .end || subtitle.status == .interrupt), isInterrupted: subtitle.status == .interrupt)
     }
