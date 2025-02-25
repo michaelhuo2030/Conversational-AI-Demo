@@ -31,7 +31,7 @@
             android:textSize="16sp"
             android:textColor="@color/ai_icontext1"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"/>
+            android:text="@string/common_app_name"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ProgressBar
