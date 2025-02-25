@@ -1,5 +1,5 @@
 //
-//  MessageAdapter.swift
+//  CovSubRenderController.swift
 //  VoiceAgent
 //
 //  Created by qinhui on 2025/2/18.
@@ -84,7 +84,7 @@ protocol ICovMessageListView: AnyObject {
     func onUpdateStreamContent(subtitle: SubtitleMessage)
 }
 
-protocol MessageAdapterProtocol {
+protocol CovSubRenderControllerProtocol {
     func start()
     func updateAudioTimestamp(timestamp: Int64)
     func inputStreamMessageData(data: Data)
@@ -157,7 +157,7 @@ class CovSubRenderController: NSObject {
                                         timestamp: message.start_ms ?? 0,
                                         isFinished: isFinal,
                                         isInterrupted: false)
-            print("🌍[MessageAdapter] send agent text: \(text), final: \(isFinal)")
+            print("🌍[CovSubRenderController] send agent text: \(text), final: \(isFinal)")
         } else {
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
@@ -165,20 +165,18 @@ class CovSubRenderController: NSObject {
                                         timestamp: message.start_ms ?? 0,
                                         isFinished: isFinal,
                                         isInterrupted: false)
-            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(isFinal)")
+            print("🙋🏻‍♀️[CovSubRenderController] send user text: \(text), final: \(isFinal)")
         }
     }
     
     private func handleWordsMessage(_ message: TranscriptionMessage) {
         if message.object == MessageType.user.rawValue {
             let text = message.text ?? ""
-            self.delegate?.messageFlush(turnId: message.turn_id ?? 0,
-                                        message: text,
-                                        owner: .me,
-                                        timestamp: message.start_ms ?? 0,
-                                        isFinished: (message.final == true),
-                                        isInterrupted: false)
-//            print("🙋🏻‍♀️[MessageAdapter] send user text: \(text), final: \(message.final == true)")
+            let subtitleMessage = SubtitleMessage(turnId: message.turn_id ?? 0,
+                                                  isMe: true,
+                                                  text: text,
+                                                  status: (message.final == true) ? .end : .inprogress)
+            self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
             return
         }
         
@@ -196,12 +194,12 @@ class CovSubRenderController: NSObject {
                 guard let turnStatus = TurnState(rawValue: message.turn_status ?? 0) else {
                     return
                 }
-                print("🌍[MessageAdapter] message turn_id: \(message.turn_id ?? 0), status: \(turnStatus)")
+                print("🌍[CovSubRenderController] message turn_id: \(message.turn_id ?? 0), status: \(turnStatus)")
                 let curBuffer: TurnObj = self.messageQueue.first { $0.turnId == message.turn_id } ?? {
                     let newTurn = TurnObj()
                     newTurn.turnId = message.turn_id ?? 0
                     self.messageQueue.append(newTurn)
-                    print("🌍[MessageAdapter] add new turn")
+                    print("🌍[CovSubRenderController] add new turn")
                     return newTurn
                 }()
                 // if this message time is later than current buffer time, update buffer
@@ -210,12 +208,12 @@ class CovSubRenderController: NSObject {
                 {
                     curBuffer.start_ms = message.start_ms ?? 0
                     curBuffer.text = message.text ?? ""
-                    print("🌍[MessageAdapter] update turn")
+                    print("🌍[CovSubRenderController] update turn")
                 }
                 // update buffer
                 if let words = message.words, !words.isEmpty
                 {
-                    print("🌍[MessageAdapter] update words: \(words.map { $0.word ?? "" }.joined())")
+                    print("🌍[CovSubRenderController] update words: \(words.map { $0.word ?? "" }.joined())")
                     let bufferWords = curBuffer.words
                     let uniqueWords = words.filter { newWord in
                         return !bufferWords.contains { firstWord in firstWord.start_ms == newWord.start_ms}
@@ -254,7 +252,7 @@ class CovSubRenderController: NSObject {
                 if let interruptTime = message.start_ms,
                    let buffer: TurnObj = self.messageQueue.first(where: { $0.turnId == message.turn_id })
                 {
-                    print("🚧[MessageAdapter] interrupt: \(buffer.turnId) after \(buffer.words.first(where: {$0.start_ms > interruptTime})?.text ?? "")")
+                    print("🚧[CovSubRenderController] interrupt: \(buffer.turnId) after \(buffer.words.first(where: {$0.start_ms > interruptTime})?.text ?? "")")
                     for index in buffer.words.indices {
                         if buffer.words[index].start_ms > interruptTime {
                             buffer.words[index].status = .interrupt
@@ -319,8 +317,8 @@ class CovSubRenderController: NSObject {
                                                       text: currentWords.map { $0.text }.joined(),
                                                       status: .inprogress)
                 }
-                print("📊 [MessageAdapter] message flush state: \(subtitleMessage.status)")
-//                print("📊 [MessageAdapter] turn: \(buffer.turnId) range \(buffer.words.count) Subrange: \(minRange) words: \(currentWords.map { $0.text }.joined())")
+                print("📊 [CovSubRenderController] message flush state: \(subtitleMessage.status)")
+//                print("📊 [CovSubRenderController] turn: \(buffer.turnId) range \(buffer.words.count) Subrange: \(minRange) words: \(currentWords.map { $0.text }.joined())")
                 if !subtitleMessage.text.isEmpty {
                     lastMessage = subtitleMessage
                     self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
@@ -330,7 +328,7 @@ class CovSubRenderController: NSObject {
     }
 }
 
-extension CovSubRenderController: MessageAdapterProtocol {
+extension CovSubRenderController: CovSubRenderControllerProtocol {
     func start() {
         timer?.invalidate()
         timer = nil
@@ -347,12 +345,12 @@ extension CovSubRenderController: MessageAdapterProtocol {
             return
         }
         let string = String(data: jsonData, encoding: .utf8) ?? ""
-        print("✅[MessageAdapter] json: \(string)")
+        print("✅[CovSubRenderController] json: \(string)")
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
         } catch {
-            print("⚠️[MessageAdapter] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
+            print("⚠️[CovSubRenderController] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
             return
         }
     }

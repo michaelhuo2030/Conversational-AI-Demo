@@ -279,7 +279,7 @@ public class ChatViewController: UIViewController {
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
-            startMessageAdapter()
+            startCovSubRenderController()
             startAgentRequest()
             joinChannel()
         } catch {
@@ -345,7 +345,7 @@ public class ChatViewController: UIViewController {
         messageView.isHidden = true
         bottomBar.resetState()
         timerCoordinator.stopAllTimer()
-        stopMessageAdapter()
+        stopCovSubRenderController()
         stopAgentRequest()
         leaveChannel()
         AppContext.preferenceManager()?.resetAgentInformation()
@@ -438,11 +438,11 @@ extension ChatViewController {
         SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
     }
     
-    private func startMessageAdapter() {
+    private func startCovSubRenderController() {
         subRenderController.start()
     }
     
-    private func stopMessageAdapter() {
+    private func stopCovSubRenderController() {
         subRenderController.stop()
     }
     
