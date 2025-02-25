@@ -1,8 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="App_Base.Theme.ProjectAI" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Customize your light theme here. -->
-         <item name="android:windowBackground">@drawable/bg_app_window</item>
+    <style name="App_Base.Theme.ProjectAI" parent="Theme.MaterialComponents.Light.NoActionBar">
+<!--        <item name="colorPrimary">@color/ai_fill1</item>-->
+<!--        <item name="colorPrimaryVariant">@color/ai_fill1</item>-->
+<!--        <item name="colorOnPrimary">@color/ai_fill1</item>-->
     </style>
 
     <style name="App_Theme.ProjectAI" parent="App_Base.Theme.ProjectAI" />
+
+    <style name="App_Theme.Splash" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/bg_app_window</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">false</item>
+    </style>
 </resources>

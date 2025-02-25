@@ -7,14 +7,13 @@
     android:background="@color/ai_fill1"
     tools:context=".WelcomeActivity">
 
-
-    <ImageView
-        android:id="@+id/iv_icon"
-        android:layout_width="76dp"
-        android:layout_height="76dp"
-        android:background="@drawable/scene_detail_convo_ai_logo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+<!--    <ImageView-->
+<!--        android:id="@+id/iv_icon"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="@drawable/ai_login_icon_wrapper"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"/>-->
 </androidx.constraintlayout.widget.ConstraintLayout>

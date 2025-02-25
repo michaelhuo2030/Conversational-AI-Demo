@@ -1,20 +1,23 @@
 package io.agora.agent
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.ui.BaseActivity
-import java.util.Locale
-import android.annotation.SuppressLint
-import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import io.agora.agent.databinding.WelcomeActivityBinding
 import io.agora.scene.common.constant.AgentScenes
-import io.agora.scene.common.util.toast.ToastUtil
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.ui.CovLivingActivity
+import java.util.Locale
+import androidx.annotation.RequiresApi
+
 
 class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
 
@@ -23,7 +26,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 初始化配置要在 super.onCreate 之前
         DebugConfigSettings.init(this, BuildConfig.IS_MAINLAND)
         ServerConfig.initBuildConfig(
             BuildConfig.IS_MAINLAND,
@@ -33,12 +35,19 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
             BuildConfig.AG_APP_CERTIFICATE
         )
         setupLocale()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            handleSplashScreenExit()
+        } else {
+            goScene(AgentScenes.ConvoAi)
+        }
         super.onCreate(savedInstanceState)
-        goScene(AgentScenes.ConvoAi)
+    }
+
+    override fun immersiveMode(): ImmersiveMode {
+        return ImmersiveMode.FULLY_IMMERSIVE
     }
 
     override fun initView() {
-        setupView()
     }
 
     private fun goScene(scene: AgentScenes) {
@@ -64,11 +73,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
         setupLocale()
     }
 
-    private fun setupView() {
-        mBinding?.apply {
-            setOnApplyWindowInsetsListener(root)
-        }
-    }
 
     private fun setupLocale() {
         val lang = if (ServerConfig.isMainlandVersion) "zh" else "en"
@@ -92,5 +96,32 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
             @Suppress("DEPRECATION")
             resources.updateConfiguration(config, resources.displayMetrics)
         }
+    }
+
+    private val SPLASH_DURATION = 300L
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun handleSplashScreenExit() {
+        val splashScreen = installSplashScreen()
+        var keepSplashOnScreen = true
+        
+        splashScreen.setOnExitAnimationListener { provider ->
+            provider.iconView.animate()
+                .alpha(0f)
+                .setDuration(300L)
+                .scaleX(1f)
+                .scaleY(1f)
+                .withEndAction {
+                    provider.remove()
+                    goScene(AgentScenes.ConvoAi)
+                }.start()
+        }
+        
+        val handler = android.os.Handler(mainLooper)
+        handler.postDelayed({
+            keepSplashOnScreen = false
+        }, SPLASH_DURATION)
+        
+        splashScreen.setKeepOnScreenCondition { keepSplashOnScreen }
     }
 }

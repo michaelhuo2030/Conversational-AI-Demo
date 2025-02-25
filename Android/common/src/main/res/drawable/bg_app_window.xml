@@ -8,10 +8,10 @@
 
     <item
         android:width="76dp"
-        android:height="76dp">
-
+        android:height="76dp"
+        android:gravity="center">
         <bitmap
-            android:gravity="center"
+            android:gravity="fill"
             android:src="@drawable/scene_detail_convo_ai_logo" />
     </item>
 </layer-list> 

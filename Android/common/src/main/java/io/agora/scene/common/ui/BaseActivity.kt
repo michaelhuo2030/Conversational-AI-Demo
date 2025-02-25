@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -33,10 +33,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = isLightStatusBars()
-        }
         _binding = getViewBinding()
         if (_binding?.root == null) {
             finish()
@@ -44,15 +40,17 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
         setContentView(_binding!!.root)
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
-        if (isFullScreen()) {
-            setupFullScreen()
-        }
+        setupSystemBarsAndCutout(immersiveMode(), usesDarkStatusBarIcons())
         initView()
     }
 
-    open fun isLightStatusBars(): Boolean = false
+    open fun immersiveMode(): ImmersiveMode = ImmersiveMode.SEMI_IMMERSIVE
 
-    open fun isFullScreen(): Boolean = true
+    /**
+     * Determines the status bar icons/text color
+     * @return true for dark icons (suitable for light backgrounds), false for light icons (suitable for dark backgrounds)
+     */
+    open fun usesDarkStatusBarIcons(): Boolean = false
 
     override fun finish() {
         onBackPressedCallback.remove()
@@ -82,31 +80,103 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
     }
 
-    private fun setupFullScreen() {
-        window.apply {
-            statusBarColor = Color.TRANSPARENT
-            navigationBarColor = Color.TRANSPARENT
+    /**
+     * Sets up immersive display and notch screen adaptation
+     * @param immersiveMode Type of immersive mode
+     * @param lightStatusBar Whether to use dark status bar icons
+     */
+    protected fun setupSystemBarsAndCutout(
+        immersiveMode: ImmersiveMode = ImmersiveMode.EDGE_TO_EDGE,
+        lightStatusBar: Boolean = false
+    ) {
+        // Step 1: Set up basic Edge-to-Edge display
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+
+            window.setDecorFitsSystemWindows(false)
+            WindowCompat.getInsetsController(window, window.decorView).apply {
+                isAppearanceLightStatusBars = lightStatusBar
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            var flags = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                // For Android 11+ use WindowInsetsController
-                decorView.windowInsetsController?.apply {
-                    // 只隐藏导航栏，不隐藏状态栏
-                    hide(WindowInsets.Type.navigationBars())
-                    // 显示状态栏
-                    show(WindowInsets.Type.statusBars())
-                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            if (lightStatusBar) {
+                flags = flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+
+            window.decorView.systemUiVisibility = flags
+        }
+
+        // Step 2: Set system bar transparency
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+
+        // Step 3: Handle notch screens
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+
+        // Step 4: Set system UI visibility based on immersive mode
+        when (immersiveMode) {
+            ImmersiveMode.EDGE_TO_EDGE -> {
+                // Do not hide any system bars, only extend content to full screen
+                // Already set in step 1
+            }
+
+            ImmersiveMode.SEMI_IMMERSIVE -> {
+                // Hide navigation bar, show status bar
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    window.insetsController?.apply {
+                        hide(WindowInsets.Type.navigationBars())
+                        show(WindowInsets.Type.statusBars())
+                        systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.decorView.systemUiVisibility = (window.decorView.systemUiVisibility
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
                 }
-            } else {
-                // For Android 10 and below
-                @Suppress("DEPRECATION")
-                decorView.systemUiVisibility = (
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        )
+            }
+
+            ImmersiveMode.FULLY_IMMERSIVE -> {
+                // Hide all system bars
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    window.insetsController?.apply {
+                        hide(WindowInsets.Type.systemBars())
+                        systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.decorView.systemUiVisibility = (window.decorView.systemUiVisibility
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                }
             }
         }
+    }
+
+    /**
+     * Immersive mode types
+     */
+    enum class ImmersiveMode {
+        /**
+         * Content extends under system bars, but system bars remain visible
+         */
+        EDGE_TO_EDGE,
+
+        /**
+         * Hide navigation bar, show status bar
+         */
+        SEMI_IMMERSIVE,
+
+        /**
+         * Hide all system bars, fully immersive
+         */
+        FULLY_IMMERSIVE
     }
 }

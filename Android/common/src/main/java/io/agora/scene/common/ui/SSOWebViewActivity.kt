@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -14,6 +15,8 @@ import androidx.core.view.isVisible
 import io.agora.scene.common.constant.ServerConfig.toolBoxUrl
 import io.agora.scene.common.databinding.CommonActivitySsoBinding
 import io.agora.scene.common.util.CommonLogger
+import io.agora.scene.common.util.dp
+import io.agora.scene.common.util.getStatusBarHeight
 
 class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
 
@@ -31,7 +34,11 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
 
     override fun initView() {
         mBinding?.apply {
-            setOnApplyWindowInsetsListener(root)
+            val statusBarHeight = getStatusBarHeight() ?: 25.dp.toInt()
+            val layoutParams = layoutTitle.layoutParams as ViewGroup.MarginLayoutParams
+            layoutParams.topMargin = statusBarHeight
+            layoutTitle.layoutParams = layoutParams
+
             ivBackIcon.setOnClickListener {
                 onHandleOnBackPressed()
             }

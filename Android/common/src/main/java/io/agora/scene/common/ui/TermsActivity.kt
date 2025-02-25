@@ -1,9 +1,12 @@
 package io.agora.scene.common.ui
 
+import android.view.ViewGroup
 import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.databinding.CommonTermsActivityBinding
+import io.agora.scene.common.util.dp
+import io.agora.scene.common.util.getStatusBarHeight
 
 class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
 
@@ -13,7 +16,11 @@ class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
 
     override fun initView() {
         mBinding?.apply {
-            setOnApplyWindowInsetsListener(root)
+            val statusBarHeight = getStatusBarHeight() ?: 25.dp.toInt()
+            val layoutParams = layoutTitle.layoutParams as ViewGroup.MarginLayoutParams
+            layoutParams.topMargin = statusBarHeight
+            layoutTitle.layoutParams = layoutParams
+
             ivBackIcon.setOnClickListener {
                 onHandleOnBackPressed()
             }
