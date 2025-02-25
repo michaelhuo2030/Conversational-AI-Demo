@@ -42,13 +42,13 @@ private class TurnObj {
     var text: String = ""
     var start_ms: Int64 = 0
     var words: [WordObj] = []
-    var bufferState: TurnStatus = .inprogress
+    var bufferState: SubtitleStatus = .inprogress
 }
 
 private struct WordObj {
     let text: String
     let start_ms: Int64
-    var status: TurnStatus = .inprogress
+    var status: SubtitleStatus = .inprogress
 }
 
 enum MessageOwner {
@@ -62,14 +62,26 @@ enum RenderMode {
     case text
 }
 
-private enum TurnStatus: Int {
+enum SubtitleStatus: Int {
     case inprogress = 0
     case end = 1
     case interrupt = 2
 }
 
-protocol MessageAdapterDelegate: AnyObject {
+struct SubtitleMessage {
+    let turnId: Int
+    let isMe: Bool
+    let text: String
+    var status: SubtitleStatus
+}
+
+private typealias TurnState = SubtitleStatus
+
+protocol ICovMessageListView: AnyObject {
+    
     func messageFlush(turnId: Int, message: String, owner: MessageOwner, timestamp: Int64, isFinished: Bool, isInterrupted: Bool)
+    
+    func onUpdateStreamContent(subtitle: SubtitleMessage)
 }
 
 protocol MessageAdapterProtocol {
@@ -79,7 +91,8 @@ protocol MessageAdapterProtocol {
     func stop()
 }
 
-class MessageAdapter: NSObject {
+// MARK: - CovSubRenderController
+class CovSubRenderController: NSObject {
     
     enum MessageType: String {
         case assistant = "assistant.transcription"
@@ -93,12 +106,12 @@ class MessageAdapter: NSObject {
     private var audioTimestamp: Int64 = 0
     private var messageParser = MessageParser()
     
-    weak var delegate: MessageAdapterDelegate?
+    weak var delegate: ICovMessageListView?
     private var messageQueue: [TurnObj] = []
     private var renderMode: RenderMode = .idle
     
-    private var lastTurn: TurnObj? = nil
-    private var lastFinishTurn: TurnObj? = nil
+    private var lastMessage: SubtitleMessage? = nil
+    private var lastFinishMessage: SubtitleMessage? = nil
     
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
@@ -172,15 +185,15 @@ class MessageAdapter: NSObject {
         queue.async(flags: .barrier) {
             // handle new agent message
             if message.object == MessageType.assistant.rawValue {
-                if let lastFinishTurnId = self.lastFinishTurn?.turnId,
-                   lastFinishTurnId >= (message.turn_id ?? 0) {
+                if let lastFinishId = self.lastFinishMessage?.turnId,
+                   lastFinishId >= (message.turn_id ?? 0) {
                     return
                 }
                 if let queueLastTurnId = self.messageQueue.last?.turnId,
                    queueLastTurnId > (message.turn_id ?? 0) {
                     return
                 }
-                guard let turnStatus = TurnStatus(rawValue: message.turn_status ?? 0) else {
+                guard let turnStatus = TurnState(rawValue: message.turn_status ?? 0) else {
                     return
                 }
                 print("🌍[MessageAdapter] message turn_id: \(message.turn_id ?? 0), status: \(turnStatus)")
@@ -265,11 +278,12 @@ class MessageAdapter: NSObject {
                     continue
                 }
                 // if last turn is interrupte by this buffer
-                if let lastTurn = lastTurn,
-                   lastTurn.bufferState == .inprogress,
-                   buffer.turnId > lastTurn.turnId  {
+                if var lastMessage = lastMessage,
+                   lastMessage.status == .inprogress,
+                   buffer.turnId > lastMessage.turnId  {
                     // interrupte last turn
-                    self.delegate?.messageFlush(turnId: lastTurn.turnId, message: lastTurn.text, owner: .agent, timestamp: lastTurn.start_ms, isFinished: true, isInterrupted: true)
+                    lastMessage.status = .interrupt
+                    self.delegate?.onUpdateStreamContent(subtitle: lastMessage)
                     interrupte = true
                 }
                 // get turn sub range
@@ -282,47 +296,41 @@ class MessageAdapter: NSObject {
                 }
                 let currentWords = Array(buffer.words[0..<minRange])
                 // send turn with state
-                var handleState = TurnStatus.inprogress
-                var text: String
-                var isFinished: Bool
-                var isInterrupted: Bool
+                var subtitleMessage: SubtitleMessage
                 if minRange == interruptSub {
-                    handleState = .interrupt
-                    text = currentWords.map { $0.text }.joined()
-                    isFinished = true
-                    isInterrupted = true
+                    subtitleMessage = SubtitleMessage(turnId: buffer.turnId,
+                                                      isMe: false,
+                                                      text: currentWords.map { $0.text }.joined(),
+                                                      status: .interrupt)
                     // remove finished turn
                     self.messageQueue.remove(at: index)
-                    lastFinishTurn = buffer
+                    lastFinishMessage = subtitleMessage
                 } else if minRange == endSub {
-                    handleState = .end
-                    text = buffer.text
-                    isFinished = true
-                    isInterrupted = false
+                    subtitleMessage = SubtitleMessage(turnId: buffer.turnId,
+                                                      isMe: false,
+                                                      text: buffer.text,
+                                                      status: .end)
                     // remove finished turn
                     self.messageQueue.remove(at: index)
-                    lastFinishTurn = buffer
+                    lastFinishMessage = subtitleMessage
                 } else {
-                    handleState = .inprogress
-                    text = currentWords.map { $0.text }.joined()
-                    isFinished = false
-                    isInterrupted = false
+                    subtitleMessage = SubtitleMessage(turnId: buffer.turnId,
+                                                      isMe: false,
+                                                      text: currentWords.map { $0.text }.joined(),
+                                                      status: .inprogress)
                 }
-                print("📊 [MessageAdapter] message flush state: \(handleState)")
+                print("📊 [MessageAdapter] message flush state: \(subtitleMessage.status)")
 //                print("📊 [MessageAdapter] turn: \(buffer.turnId) range \(buffer.words.count) Subrange: \(minRange) words: \(currentWords.map { $0.text }.joined())")
-                if !text.isEmpty {
-                    lastTurn = TurnObj()
-                    lastTurn?.turnId = buffer.turnId
-                    lastTurn?.text = text
-                    lastTurn?.bufferState = handleState
-                    self.delegate?.messageFlush(turnId: buffer.turnId, message: text, owner: .agent, timestamp: buffer.start_ms, isFinished: isFinished, isInterrupted: isInterrupted)
+                if !subtitleMessage.text.isEmpty {
+                    lastMessage = subtitleMessage
+                    self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
                 }
             }
         }
     }
 }
 
-extension MessageAdapter: MessageAdapterProtocol {
+extension CovSubRenderController: MessageAdapterProtocol {
     func start() {
         timer?.invalidate()
         timer = nil
@@ -353,8 +361,8 @@ extension MessageAdapter: MessageAdapterProtocol {
         timer?.invalidate()
         timer = nil
         renderMode = .idle
-        lastTurn = nil
-        lastFinishTurn = nil
+        lastMessage = nil
+        lastFinishMessage = nil
         audioTimestamp = 0
         messageQueue.removeAll()
     }
