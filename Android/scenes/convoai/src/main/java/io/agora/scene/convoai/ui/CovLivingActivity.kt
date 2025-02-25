@@ -1121,20 +1121,27 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             if (mPermissionHelp.hasMicPerm()) {
                 granted.invoke(true)
             } else {
-                showPermissionDialog {
-                    if (it) {
-                        mPermissionHelp.launchAppSettingForMic(
-                            granted = {
-                                granted.invoke(true)
-                            },
-                            unGranted = {
+                mPermissionHelp.checkMicPerm(
+                    granted = {
+                        granted.invoke(true)
+                    },
+                    unGranted = {
+                        showPermissionDialog {
+                            if (it) {
+                                mPermissionHelp.launchAppSettingForMic(
+                                    granted = {
+                                        granted.invoke(true)
+                                    },
+                                    unGranted = {
+                                        granted.invoke(false)
+                                    }
+                                )
+                            } else {
                                 granted.invoke(false)
-                            },
-                        )
-                    } else {
-                        granted.invoke(false)
+                            }
+                        }
                     }
-                }
+                )
             }
         } else {
             granted.invoke(true)
