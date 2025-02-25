@@ -84,6 +84,7 @@ class MessageAdapter: NSObject {
     enum MessageType: String {
         case assistant = "assistant.transcription"
         case user = "user.transcription"
+        case unknown = "unknown"
     }
     
     private var timer: Timer?
@@ -104,13 +105,16 @@ class MessageAdapter: NSObject {
     private let queue = DispatchQueue(label: "com.voiceagent.messagequeue", attributes: .concurrent)
     
     private func handleMessage(_ message: TranscriptionMessage) {
+        guard validMessage(message) else {
+            return
+        }
         if messageMode == .idle {
-            if let words = message.words, words.isEmpty == false {
+            if let words = message.words, !words.isEmpty {
+                messageMode = .words
+            } else {
                 messageMode = .text
                 timer?.invalidate()
                 timer = nil
-            } else {
-                messageMode = .words
             }
         }
         if messageMode == .words {
@@ -120,12 +124,23 @@ class MessageAdapter: NSObject {
         }
     }
     
+    private func validMessage(_ message: TranscriptionMessage) -> Bool {
+        if let object = message.object {
+            let type = MessageType(rawValue: object) ?? .unknown
+            if type == .unknown {
+                return false
+            }
+        } else {
+            return true
+        }
+        return true
+    }
+    
     private func handleTextMessage(_ message: TranscriptionMessage) {
-        guard let text = message.text,
-              let isFinal = message.is_final
-        else {
+        guard let text = message.text, !text.isEmpty else {
             return
         }
+        let isFinal = message.is_final ?? false
         if message.stream_id == 0 {
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
@@ -135,7 +150,6 @@ class MessageAdapter: NSObject {
                                         isInterrupted: false)
             print("🌍[MessageAdapter] send agent text: \(text), final: \(isFinal)")
         } else {
-            let text = message.text ?? ""
             self.delegate?.messageFlush(turnId: -1,
                                         message: text,
                                         owner: .me,
@@ -278,20 +292,22 @@ extension MessageAdapter: MessageAdapterProtocol {
         guard let jsonData = messageParser.parseToJsonData(data) else {
             return
         }
-        
-        if let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
-           let jsonDataPretty = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
-           let jsonString = String(data: jsonDataPretty, encoding: .utf8) {
+        let string = String(data: jsonData, encoding: .utf8) ?? ""
+        print("✅[MessageAdapter] json: \(string)")
+
+//        if let jsonObject = try? JSONSerialization.jsonObject(with: jsonData, options: []),
+//           let jsonDataPretty = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted),
+//           let jsonString = String(data: jsonDataPretty, encoding: .utf8) {
 //            print("✅[MessageAdapter] json: \(jsonString)")
-        } else {
-            print("❌[MessageAdapter] 无法解析 JSON 数据")
-        }
+//        } else {
+//            print("❌[MessageAdapter] 无法解析 JSON 数据")
+//        }
         
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
         } catch {
-//            print("⚠️[MessageAdapter] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
+            print("⚠️[MessageAdapter] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
             return
         }
     }
@@ -300,6 +316,8 @@ extension MessageAdapter: MessageAdapterProtocol {
         timer?.invalidate()
         timer = nil
         messageMode = .idle
+        lastTurn = nil
+        lastFinishTurn = nil
         audioTimestamp = 0
         messageQueue.removeAll()
     }
