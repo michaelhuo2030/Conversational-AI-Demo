@@ -149,6 +149,7 @@ public class ChatViewController: UIViewController {
         preloadData()
         setupViews()
         setupConstraints()
+        setupSomeNecessaryConfig()
     }
     
     public override func viewDidLayoutSubviews() {
@@ -200,19 +201,10 @@ public class ChatViewController: UIViewController {
     
     private func setupViews() {
         view.backgroundColor = .black
-        
         [upperBackgroundView, lowerBackgroundView, animateContentView, topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
-        devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
         
         contentView.addSubview(aiNameLabel)
         view.addSubview(messageView)
-        
-        
-        animateView.setupMediaPlayer(rtcManager.getRtcEntine())
-        animateView.updateAgentState(.idle)
-        
-        let subRenderConfig = SubRenderConfig(rtcEngine: rtcManager.getRtcEntine(), renderMode: nil, delegate: self)
-        subRenderController.setupWithConfig(subRenderConfig)
     }
     
     private func setupConstraints() {
@@ -279,6 +271,18 @@ public class ChatViewController: UIViewController {
             make.left.right.bottom.equalToSuperview()
         }
     }
+    
+    private func setupSomeNecessaryConfig() {
+        let rtcEngine = rtcManager.getRtcEntine()
+        animateView.setupMediaPlayer(rtcEngine)
+        animateView.updateAgentState(.idle)
+        
+        let subRenderConfig = SubRenderConfig(rtcEngine: rtcEngine, renderMode: nil, delegate: self)
+        subRenderController.setupWithConfig(subRenderConfig)
+        
+        devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
+    }
+
     
     @MainActor
     private func prepareToStartAgent() async {
