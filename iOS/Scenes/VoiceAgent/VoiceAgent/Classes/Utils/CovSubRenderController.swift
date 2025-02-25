@@ -78,7 +78,6 @@ struct SubtitleMessage {
 private typealias TurnState = SubtitleStatus
 
 protocol ICovMessageListView: AnyObject {
-    
     func messageFlush(turnId: Int, message: String, owner: MessageOwner, timestamp: Int64, isFinished: Bool, isInterrupted: Bool)
     
     func onUpdateStreamContent(subtitle: SubtitleMessage)

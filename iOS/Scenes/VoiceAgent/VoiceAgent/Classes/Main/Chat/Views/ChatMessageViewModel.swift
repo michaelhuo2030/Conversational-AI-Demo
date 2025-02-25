@@ -31,14 +31,6 @@ class ChatMessageViewModel: NSObject {
         messages.removeAll()
         messageMapTable.removeAll()
     }
-    
-    func messageFlush(turnId:Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool, isInterrupted: Bool) {
-        if turnId == -1 {
-            reduceIndependentMessage(message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
-        } else {
-            reduceStandardMessage(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isInterrupted: isInterrupted)
-        }
-    }
 }
 
 

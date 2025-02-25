@@ -811,11 +811,11 @@ extension ChatViewController: AnimateViewDelegate {
 
 extension ChatViewController: ICovMessageListView {
     func onUpdateStreamContent(subtitle: SubtitleMessage) {
-        messageView.viewModel.messageFlush(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isFinished: (subtitle.status == .end || subtitle.status == .interrupt), isInterrupted: subtitle.status == .interrupt)
+        messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isInterrupted: subtitle.status == .interrupt)
     }
     
     func messageFlush(turnId: Int, message: String, owner: MessageOwner, timestamp: Int64, isFinished: Bool, isInterrupted: Bool) {
-        messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished, isInterrupted: isInterrupted)
+        messageView.viewModel.reduceIndependentMessage(message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
     }
 }
 
