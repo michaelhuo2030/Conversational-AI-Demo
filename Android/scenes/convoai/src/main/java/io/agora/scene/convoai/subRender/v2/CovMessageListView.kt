@@ -24,7 +24,7 @@ class CovMessageListView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), ICovMessageListView {
 
     val TAG = "CovMessageListView"
 
@@ -78,10 +78,6 @@ class CovMessageListView @JvmOverloads constructor(
 
     fun updateAgentName(str: String) {
         messageAdapter.updateFromTitle(str)
-    }
-
-    fun updateStreamContent(subtitleMessage: SubtitleMessage) {
-        handleMessage(subtitleMessage)
     }
 
     private fun handleMessage(subtitleMessage: SubtitleMessage) {
@@ -309,5 +305,9 @@ class CovMessageListView @JvmOverloads constructor(
             fromTitle = title
             notifyDataSetChanged()
         }
+    }
+
+    override fun onUpdateStreamContent(subtitle: SubtitleMessage) {
+        handleMessage(subtitle)
     }
 }
