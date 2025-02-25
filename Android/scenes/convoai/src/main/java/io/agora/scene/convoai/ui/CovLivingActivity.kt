@@ -1,6 +1,5 @@
 package io.agora.scene.convoai.ui
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.graphics.PorterDuff
@@ -36,6 +35,7 @@ import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.ui.SSOWebViewActivity
 import io.agora.scene.common.ui.TermsActivity
 import io.agora.scene.common.ui.vm.LoginViewModel
+import io.agora.scene.common.ui.widget.TypingEffect
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.dp
@@ -57,11 +57,22 @@ import io.agora.scene.convoai.rtc.CovRtcManager
 import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
 import io.agora.scene.convoai.subRender.v2.CovSubRenderController
 import io.agora.scene.convoai.subRender.v2.SubRenderMode
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.nio.ByteBuffer
 import java.util.UUID
-import kotlin.coroutines.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
@@ -1056,6 +1067,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
+    private var typingEffect:TypingEffect?=null
     private fun updateLoginStatus(isLogin: Boolean) {
         mBinding?.apply {
             if (isLogin) {
@@ -1063,11 +1075,19 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 clTop.btnInfo.visibility = View.VISIBLE
                 clBottomLogged.root.visibility = View.VISIBLE
                 clBottomNotLogged.root.visibility = View.INVISIBLE
+
+                typingEffect?.stop()
             } else {
                 clTop.btnSettings.visibility = View.INVISIBLE
                 clTop.btnInfo.visibility = View.INVISIBLE
                 clBottomLogged.root.visibility = View.INVISIBLE
                 clBottomNotLogged.root.visibility = View.VISIBLE
+
+                typingEffect?.stop()
+                typingEffect = TypingEffect(clBottomNotLogged.tvTyping,
+                    getString(io.agora.scene.common.R.string.common_login_typing_text1),
+                    getString(io.agora.scene.common.R.string.common_login_typing_text2))
+                typingEffect?.startTypingAnimation()
             }
         }
     }
@@ -1141,7 +1161,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .show(supportFragmentManager, "logout_dialog_tag")
     }
 
-    private fun checkMicrophonePermission(granted: (Boolean) -> Unit, force: Boolean, ) {
+    private fun checkMicrophonePermission(granted: (Boolean) -> Unit, force: Boolean) {
         if (force) {
             if (mPermissionHelp.hasMicPerm()) {
                 granted.invoke(true)

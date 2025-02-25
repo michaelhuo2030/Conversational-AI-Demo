@@ -7,11 +7,14 @@
     android:layout_gravity="bottom"
     android:background="@android:color/transparent">
 
-    <ImageView
+    <TextView
+        android:id="@+id/tvTyping"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="30dp"
-        android:src="@drawable/common_start_anim"
+        android:textColor="@color/ai_icontext1"
+        android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/btnStartWithoutLogin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -54,9 +57,9 @@
 
         <io.agora.scene.common.ui.widget.PointLoadingView
             android:id="@+id/loadingView"
-            android:layout_gravity="center"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
