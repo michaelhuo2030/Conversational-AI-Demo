@@ -52,14 +52,14 @@ import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.constant.AgentConnectionState
 import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
-import io.agora.scene.convoai.rtc.CovAudioFrameObserver
 import io.agora.scene.convoai.rtc.CovRtcManager
+import io.agora.scene.convoai.subRender.v1.SelfRenderConfig
 import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
 import io.agora.scene.convoai.subRender.v2.CovSubRenderController
+import io.agora.scene.convoai.subRender.v2.SubRenderConfig
 import io.agora.scene.convoai.subRender.v2.SubRenderMode
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import java.nio.ByteBuffer
 import java.util.UUID
 import kotlin.coroutines.*
 
@@ -153,9 +153,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private var isSelfSubRender = false
 
-    private val subRenderController = CovSubRenderController()
+    private var subRenderController: CovSubRenderController? = null
 
-    private val selfRenderController = SelfSubRenderController()
+    private var selfRenderController: SelfSubRenderController? = null
 
     private var countDownJob: Job? = null
 
@@ -174,27 +174,21 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         setupView()
         updateStateView()
         CovAgentManager.resetData()
-        createRtcEngine()
+        val rtcEngine = createRtcEngine()
         setupBallAnimView()
 
         checkLogin()
         // v1 Subtitle Rendering Controller
-        selfRenderController.onUpdateStreamContent = { isMe, turnId, text, isFinal ->
-            runOnUiThread {
-                if (isSelfSubRender) {
-                    mBinding?.messageListViewV1?.updateStreamContent(isMe, turnId, text, isFinal)
-                }
-            }
-        }
-
+        selfRenderController = SelfSubRenderController(SelfRenderConfig(
+            rtcEngine = rtcEngine,
+            view = mBinding?.messageListViewV1
+        ))
         // v2 Subtitle Rendering Controller
-        subRenderController.onUpdateStreamContent = { subtitleMessage ->
-            runOnUiThread {
-                if (!isSelfSubRender) {
-                    mBinding?.messageListViewV2?.updateStreamContent(subtitleMessage)
-                }
-            }
-        }
+        subRenderController = CovSubRenderController(SubRenderConfig(
+            rtcEngine = rtcEngine,
+            null,
+            mBinding?.messageListViewV2
+        ))
         ApiManager.setOnUnauthorizedCallback {
             // TODO: 登录过期
             ToastUtil.show(getString(io.agora.scene.common.R.string.common_login_expired))
@@ -223,7 +217,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         CovRtcManager.resetData()
         CovAgentManager.resetData()
-        subRenderController.resetClear()
+        subRenderController?.release()
         super.finish()
     }
 
@@ -286,7 +280,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
-        subRenderController.setRenderMode(SubRenderMode.Idle)
+        subRenderController?.setRenderMode(SubRenderMode.Idle)
         // Immediately show the connecting status
         isUserEndCall = false
         connectionState = AgentConnectionState.CONNECTING
@@ -295,8 +289,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         isSelfSubRender = CovAgentManager.getPreset()?.isIndependent() == true
         mBinding?.apply {
             if (isSelfSubRender) {
+                selfRenderController?.enable(true)
+                subRenderController?.enable(false)
                 messageListViewV1.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
             } else {
+                selfRenderController?.enable(false)
+                subRenderController?.enable(true)
                 messageListViewV2.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
             }
         }
@@ -384,7 +382,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun stopAgentAndLeaveChannel() {
         stopRoomCountDownTask()
         stopTitleAnim()
-        subRenderController.setRenderMode(SubRenderMode.Idle)
+        subRenderController?.setRenderMode(SubRenderMode.Idle)
         CovRtcManager.leaveChannel()
         if (connectionState == AgentConnectionState.IDLE) {
             return
@@ -564,15 +562,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
 
-            override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
-                logScope.launch {
-                    if (isSelfSubRender) {
-                        selfRenderController.onStreamMessage(uid, streamId, data)
-                    } else {
-                        subRenderController.onStreamMessage(uid, streamId, data)
-                    }
-                }
-            }
+//            override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
+//                logScope.launch {
+//                    if (isSelfSubRender) {
+//                        selfRenderController.onStreamMessage(uid, streamId, data)
+//                    } else {
+//                        subRenderController.onStreamMessage(uid, streamId, data)
+//                    }
+//                }
+//            }
 
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
                 if (uid == 0) {
@@ -594,31 +592,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
         })
-
-        rtcEngine.registerAudioFrameObserver(object : CovAudioFrameObserver() {
-            override fun onPlaybackAudioFrameBeforeMixing(
-                channelId: String?,
-                uid: Int,
-                type: Int,
-                samplesPerChannel: Int,
-                bytesPerSample: Int,
-                channels: Int,
-                samplesPerSec: Int,
-                buffer: ByteBuffer?,
-                renderTimeMs: Long,
-                avsync_type: Int,
-                rtpTimestamp: Int,
-                presentationMs: Long
-            ): Boolean {
-                // Pass render time to subtitle controller
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "onPlaybackAudioFrameBeforeMixing $presentationMs")
-                }
-                subRenderController.onPlaybackAudioFrameBeforeMixing(presentationMs)
-                return false
-            }
-        })
-        rtcEngine.setPlaybackAudioFrameBeforeMixingParameters(44100, 1);
         return rtcEngine
     }
 

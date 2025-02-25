@@ -18,7 +18,7 @@ class SelfMessageListView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr) {
+) : LinearLayout(context, attrs, defStyleAttr), ISelfMessageListView {
 
     val TAG = "SelfMessageListView"
 
@@ -72,14 +72,6 @@ class SelfMessageListView @JvmOverloads constructor(
 
     fun updateAgentName(str: String) {
         messageAdapter.updateFromTitle(str)
-    }
-
-    fun updateStreamContent(isMe: Boolean, turnId: Long, text: String, isFinal: Boolean = false) {
-        if (isMe) {
-            handleUserMessage(turnId, text, isFinal)
-        } else {
-            handleAgentMessage(turnId, text, isFinal)
-        }
     }
 
     private fun handleUserMessage(turnId: Long, text: String, isFinal: Boolean) {
@@ -262,6 +254,19 @@ class SelfMessageListView @JvmOverloads constructor(
         fun updateFromTitle(title: String) {
             fromTitle = title
             notifyDataSetChanged()
+        }
+    }
+
+    override fun onUpdateStreamContent(
+        isMe: Boolean,
+        turnId: Long,
+        text: String,
+        isFinal: Boolean
+    ) {
+        if (isMe) {
+            handleUserMessage(turnId, text, isFinal)
+        } else {
+            handleAgentMessage(turnId, text, isFinal)
         }
     }
 }
