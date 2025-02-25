@@ -29,8 +29,8 @@ public class ChatViewController: UIViewController {
         return coordinator
     }()
 
-    private lazy var messageAdapter: MessageAdapter = {
-        let adapter = MessageAdapter()
+    private lazy var subRenderController: CovSubRenderController = {
+        let adapter = CovSubRenderController()
         adapter.delegate = self
         return adapter
     }()
@@ -439,11 +439,11 @@ extension ChatViewController {
     }
     
     private func startMessageAdapter() {
-        messageAdapter.start()
+        subRenderController.start()
     }
     
     private func stopMessageAdapter() {
-        messageAdapter.stop()
+        subRenderController.stop()
     }
     
     private func startAgentRequest() {
@@ -615,7 +615,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
         
     public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
-        messageAdapter.inputStreamMessageData(data: data)
+        subRenderController.inputStreamMessageData(data: data)
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
@@ -650,7 +650,7 @@ extension ChatViewController: AgoraAudioFrameDelegate {
     
     public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
         if uid == agentUid {
-            messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
+            subRenderController.updateAudioTimestamp(timestamp: frame.presentationMs)
         }
         return true
     }
