@@ -61,7 +61,7 @@ public class ChatViewController: UIViewController {
     
     private lazy var welcomeMessageView: TypewriterLabel = {
         let view = TypewriterLabel()
-        view.font = UIFont.systemFont(ofSize: 20)
+        view.font = UIFont.boldSystemFont(ofSize: 20)
         view.startAnimation()
         return view
     }()
@@ -127,7 +127,7 @@ public class ChatViewController: UIViewController {
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
         return button
     }()
-        
+    
     deinit {
         print("liveing view controller deinit")
         deregisterDelegate()
@@ -202,12 +202,13 @@ public class ChatViewController: UIViewController {
     private func setupViews() {
         view.backgroundColor = .black
         
-        [upperBackgroundView, lowerBackgroundView, topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        [upperBackgroundView, lowerBackgroundView, animateContentView, topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
         devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
         
-        contentView.addSubview(animateContentView)
+//        contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
         view.addSubview(messageView)
+        
         
         animateView.setupMediaPlayer(rtcManager.getRtcEntine())
         animateView.updateAgentState(.idle)
@@ -220,6 +221,10 @@ public class ChatViewController: UIViewController {
             make.height.equalTo(48)
         }
         
+        animateContentView.snp.makeConstraints { make in
+            make.left.right.top.bottom.equalTo(0)
+        }
+        
         contentView.snp.makeConstraints { make in
             make.left.equalTo(0)
             make.right.equalTo(0)
@@ -227,12 +232,12 @@ public class ChatViewController: UIViewController {
             make.bottom.equalTo(bottomBar.snp.top).offset(-20)
         }
         
-        animateContentView.snp.makeConstraints { make in
-            make.height.equalTo(animateContentView.snp.width).multipliedBy(1080.0/1142.0)
-            make.width.equalTo(contentView.snp.width).multipliedBy(0.7)
-            make.centerX.equalTo(contentView)
-            make.centerY.equalTo(contentView)
-        }
+//        animateContentView.snp.makeConstraints { make in
+//            make.height.equalTo(animateContentView.snp.width).multipliedBy(1080.0/1142.0)
+//            make.width.equalTo(contentView.snp.width).multipliedBy(0.7)
+//            make.centerX.equalTo(contentView)
+//            make.centerY.equalTo(contentView)
+//        }
         
         messageView.snp.makeConstraints { make in
             make.top.left.right.equalTo(0)
@@ -262,10 +267,12 @@ public class ChatViewController: UIViewController {
             make.right.equalTo(-20)
             make.size.equalTo(CGSize(width: 44, height: 44))
         }
+        
         upperBackgroundView.snp.makeConstraints { make in
             make.top.left.right.equalToSuperview()
             make.bottom.equalTo(animateContentView.snp.top)
         }
+        
         lowerBackgroundView.snp.makeConstraints { make in
             make.top.equalTo(animateContentView.snp.top)
             make.left.right.bottom.equalToSuperview()

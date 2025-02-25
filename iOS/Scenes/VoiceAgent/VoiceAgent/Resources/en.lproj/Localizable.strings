@@ -20,6 +20,8 @@
 "join.start.agent.name" = "Agent";
 "join.start.tips" = "Chats limited to 10 minutes each";
 
+"conversation.ai.welcome.title" = "Hey, I'm Conversational AI Engine.";
+"conversation.ai.welcome.description" = "Have you ever questioned the nature of your reality?";
 "conversation.ai.app.name" = "Conversational AI Engine";
 "conversation.agent.name" = "Agent";
 "conversation.button.end.call" = "End Call";

@@ -19,6 +19,8 @@
 "join.start.agent.name" = "智能体";
 "join.start.tips" = "每次对话限时10分钟";
 
+"conversation.ai.welcome.title" = "你好，欢迎体验声网对话式 AI 引擎";
+"conversation.ai.welcome.description" = "秒应智答，零滞畅聊";
 "conversation.ai.app.name" = "对话式 AI 引擎体验";
 "conversation.agent.name" = "智能体";
 "conversation.button.end.call" = "结束通话";

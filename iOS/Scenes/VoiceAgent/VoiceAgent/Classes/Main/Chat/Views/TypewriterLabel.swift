@@ -6,24 +6,21 @@
 //
 
 import UIKit
+import Common
 
 class TypewriterLabel: UILabel {
-    // 文本内容
-    private var text1 = "你好，欢迎体验声网对话式 AI 引擎"
-    private var text2 = "秒应智答，零滞畅聊"
+    private var text1 = ResourceManager.L10n.Conversation.appWelcomeTitle
+    private var text2 = ResourceManager.L10n.Conversation.appWelcomeDescription
     private let cursor = "●"
     
-    // 动画参数
-    private let speed: Double = 12 // 每秒字符数
-    private let pauseTime1: Double = 0.5 // 第一次停顿时间
-    private let pauseTime2: Double = 1.5 // 第二次停顿时间
-    private let blinkSpeed: Double = 1 // 光标闪烁速度
+    private let speed: Double = 12
+    private let pauseTime1: Double = 0.5
+    private let pauseTime2: Double = 1.5
+    private let blinkSpeed: Double = 1
     
-    // 动画控制
     private var displayLink: CADisplayLink?
     private var startTime: CFTimeInterval = 0
     
-    // 计算时间
     private var typeTime1: Double { Double(text1.count) / speed }
     private var typeTime2: Double { Double(text2.count) / speed }
     private var deleteTime1: Double { Double(text1.count) / speed }
@@ -32,6 +29,13 @@ class TypewriterLabel: UILabel {
         typeTime1 + pauseTime2 + deleteTime1 + pauseTime1 +
         typeTime2 + pauseTime2 + deleteTime2 + pauseTime1
     }
+    
+    private var gradientColors: [UIColor] = [
+        UIColor(hex: "#1787FF")!,
+        UIColor(hex: "#5A6BFF")!,
+        UIColor(hex: "#17B2FF")!,
+        UIColor(hex: "#446CFF")!
+    ]
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -65,40 +69,32 @@ class TypewriterLabel: UILabel {
         
         var visibleText = ""
         
-        // 第一次打字
         if cycleTime < typeTime1 {
             let charCount = Int(cycleTime * speed)
             visibleText = String(text1.prefix(charCount))
         }
-        // 第一次打字后的停顿
         else if cycleTime < typeTime1 + pauseTime2 {
             visibleText = text1
         }
-        // 第一次删除
         else if cycleTime < typeTime1 + pauseTime2 + deleteTime1 {
             let charCount = text1.count - Int((cycleTime - typeTime1 - pauseTime2) * speed)
             visibleText = String(text1.prefix(max(0, charCount)))
         }
-        // 第一次删除后的停顿
         else if cycleTime < typeTime1 + pauseTime2 + deleteTime1 + pauseTime1 {
             visibleText = ""
         }
-        // 第二次打字
         else if cycleTime < typeTime1 + pauseTime2 + deleteTime1 + pauseTime1 + typeTime2 {
             let charCount = Int((cycleTime - typeTime1 - pauseTime2 - deleteTime1 - pauseTime1) * speed)
             visibleText = String(text2.prefix(charCount))
         }
-        // 第二次打字后的停顿
         else if cycleTime < typeTime1 + pauseTime2 + deleteTime1 + pauseTime1 + typeTime2 + pauseTime2 {
             visibleText = text2
         }
-        // 第二次删除
         else if cycleTime < typeTime1 + pauseTime2 + deleteTime1 + pauseTime1 + typeTime2 + pauseTime2 + deleteTime2 {
             let charCount = text2.count - Int((cycleTime - typeTime1 - pauseTime2 - deleteTime1 - pauseTime1 - typeTime2 - pauseTime2) * speed)
             visibleText = String(text2.prefix(max(0, charCount)))
         }
         
-        // 添加光标
         if cycleTime < typeTime1 ||
             (cycleTime >= typeTime1 && cycleTime < typeTime1 + pauseTime2) ||
             (cycleTime >= typeTime1 + pauseTime2 && cycleTime < typeTime1 + pauseTime2 + deleteTime1) ||
@@ -112,7 +108,64 @@ class TypewriterLabel: UILabel {
             }
         }
         
-        text = visibleText
+        let attributedText = createGradientAttributedString(from: visibleText)
+        self.attributedText = attributedText
+    }
+    
+    private func createGradientAttributedString(from text: String) -> NSAttributedString {
+        let attributedString = NSMutableAttributedString(string: text)
+        
+        guard text.count > 0 else { return attributedString }
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+        attributedString.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: text.count))
+        
+        for i in 0..<text.count {
+            let percent = CGFloat(i) / CGFloat(max(1, text.count - 1))
+            let color = interpolateColor(percent: percent)
+            
+            let range = NSRange(location: i, length: 1)
+            attributedString.addAttribute(.foregroundColor, value: color, range: range)
+        }
+        
+        return attributedString
+    }
+    
+    private func interpolateColor(percent: CGFloat) -> UIColor {
+        guard !gradientColors.isEmpty else { return .white }
+        
+        if gradientColors.count == 1 {
+            return gradientColors[0]
+        }
+        
+        let segmentCount = gradientColors.count - 1
+        let segmentPercent = percent * CGFloat(segmentCount)
+        let segmentIndex = Int(floor(segmentPercent))
+        let segmentOffset = segmentPercent - CGFloat(segmentIndex)
+        
+        let startIndex = min(segmentIndex, segmentCount)
+        let endIndex = min(startIndex + 1, gradientColors.count - 1)
+        
+        let startColor = gradientColors[startIndex]
+        let endColor = gradientColors[endIndex]
+        
+        return interpolateColor(from: startColor, to: endColor, with: segmentOffset)
+    }
+    
+    private func interpolateColor(from: UIColor, to: UIColor, with percent: CGFloat) -> UIColor {
+        var fromR: CGFloat = 0, fromG: CGFloat = 0, fromB: CGFloat = 0, fromA: CGFloat = 0
+        var toR: CGFloat = 0, toG: CGFloat = 0, toB: CGFloat = 0, toA: CGFloat = 0
+        
+        from.getRed(&fromR, green: &fromG, blue: &fromB, alpha: &fromA)
+        to.getRed(&toR, green: &toG, blue: &toB, alpha: &toA)
+        
+        let r = fromR + (toR - fromR) * percent
+        let g = fromG + (toG - fromG) * percent
+        let b = fromB + (toB - fromB) * percent
+        let a = fromA + (toA - fromA) * percent
+        
+        return UIColor(red: r, green: g, blue: b, alpha: a)
     }
     
     deinit {

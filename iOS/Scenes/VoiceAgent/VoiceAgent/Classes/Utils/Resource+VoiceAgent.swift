@@ -59,6 +59,8 @@ extension ResourceManager {
         }
 
         public enum Conversation {
+            public static let appWelcomeTitle = ResourceManager.localizedString("conversation.ai.welcome.title")
+            public static let appWelcomeDescription = ResourceManager.localizedString("conversation.ai.welcome.description")
             public static let appName = ResourceManager.localizedString("conversation.ai.app.name")
             public static let agentName = ResourceManager.localizedString("conversation.agent.name")
             public static let buttonEndCall = ResourceManager.localizedString("conversation.button.end.call")
