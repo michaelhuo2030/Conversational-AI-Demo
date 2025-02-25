@@ -93,7 +93,7 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
                             if (err == null) {
                                 ToastUtil.show(getString(io.agora.scene.common.R.string.common_upload_time_success))
                             } else {
-                                ToastUtil.show(getString(io.agora.scene.common.R.string.common_upload_time_success))
+                                ToastUtil.show(getString(io.agora.scene.common.R.string.common_upload_time_failed))
                             }
                             updateUploadingStatus(false)
                         }

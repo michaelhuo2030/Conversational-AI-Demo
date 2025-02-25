@@ -35,7 +35,6 @@ import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.ui.SSOWebViewActivity
 import io.agora.scene.common.ui.TermsActivity
 import io.agora.scene.common.ui.vm.LoginViewModel
-import io.agora.scene.common.ui.widget.TypingEffect
 import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.dp
@@ -137,6 +136,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         pingJob = null
                         waitingAgentJob?.cancel()
                         waitingAgentJob = null
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
                     }
 
                     AgentConnectionState.ERROR -> {
@@ -145,6 +145,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         pingJob = null
                         waitingAgentJob?.cancel()
                         waitingAgentJob = null
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
                     }
 
                     AgentConnectionState.CONNECTED_INTERRUPT -> {
@@ -245,9 +246,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun onPause() {
         super.onPause()
-        if (connectionState == AgentConnectionState.CONNECTED) {
-            startRecordingService()
-        }
         // Clear debug callback when activity is paused
         DebugButton.setDebugCallback(null)
     }
@@ -257,17 +255,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // Set debug callback when page is resumed
         DebugButton.setDebugCallback {
             showCovAiDebugDialog()
-        }
-    }
-
-    private fun startRecordingService() {
-        if (mPermissionHelp.hasMicPerm()){
-            val intent = Intent(this, CovRtcForegroundService::class.java)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
         }
     }
 
@@ -352,8 +339,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         }
                     }
                 } else {
+                    stopAgentAndLeaveChannel()
                     connectionState = AgentConnectionState.IDLE
-                    CovRtcManager.leaveChannel()
                     CovLogger.e(TAG, "Agent start error")
                     ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
                 }
@@ -401,7 +388,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             return
         }
         connectionState = AgentConnectionState.IDLE
-        mCovBallAnim?.updateAgentState(AgentState.STATIC)
         CovAgentApiManager.stopAgent(CovAgentManager.channelName, CovAgentManager.getPreset()?.name) {}
         resetSceneState()
     }
@@ -475,7 +461,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 runOnUiThread {
                     if (uid == CovAgentManager.agentUID) {
                         connectionState = AgentConnectionState.ERROR
-                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
                         if (isUserEndCall) {
                             isUserEndCall = false
                         } else {
@@ -1067,7 +1052,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private var typingEffect:TypingEffect?=null
     private fun updateLoginStatus(isLogin: Boolean) {
         mBinding?.apply {
             if (isLogin) {
@@ -1076,18 +1060,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 clBottomLogged.root.visibility = View.VISIBLE
                 clBottomNotLogged.root.visibility = View.INVISIBLE
 
-                typingEffect?.stop()
+                clBottomNotLogged.tvTyping.stopAnimation()
             } else {
                 clTop.btnSettings.visibility = View.INVISIBLE
                 clTop.btnInfo.visibility = View.INVISIBLE
                 clBottomLogged.root.visibility = View.INVISIBLE
                 clBottomNotLogged.root.visibility = View.VISIBLE
 
-                typingEffect?.stop()
-                typingEffect = TypingEffect(clBottomNotLogged.tvTyping,
-                    getString(io.agora.scene.common.R.string.common_login_typing_text1),
-                    getString(io.agora.scene.common.R.string.common_login_typing_text2))
-                typingEffect?.startTypingAnimation()
+                clBottomNotLogged.tvTyping.stopAnimation()
+                clBottomNotLogged.tvTyping.startAnimation()
             }
         }
     }

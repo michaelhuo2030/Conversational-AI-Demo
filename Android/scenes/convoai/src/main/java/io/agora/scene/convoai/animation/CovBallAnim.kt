@@ -71,6 +71,7 @@ class CovBallAnim constructor(
     fun setupView() {
         rtcMediaPlayer.apply {
             setView(videoView)
+            setRenderMode(Constants.PLAYER_RENDER_MODE_FIT)
             registerPlayerObserver(mediaPlayerObserver)
             val source = MediaPlayerSource().apply {
                 url = getVideoSrc(VIDEO_START_NAME)

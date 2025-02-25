@@ -7,17 +7,18 @@
     android:layout_gravity="bottom"
     android:background="@android:color/transparent">
 
-    <TextView
+    <io.agora.scene.common.ui.widget.TypewriterTextView
         android:id="@+id/tvTyping"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
         android:textColor="@color/ai_icontext1"
         android:textSize="18sp"
-        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/btnStartWithoutLogin"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="88dp"
+        android:textStyle="bold"/>
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStartWithoutLogin"
