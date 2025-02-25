@@ -318,7 +318,7 @@ class AgentControlToolbar: UIView {
     }
     
     private func setTintColor(state: Bool) {
-        captionsButton.tintColor = state ? UIColor.themColor(named: "ai_brand_main6") : UIColor.themColor(named: "ai_icontext1")
+        captionsButton.tintColor = state ? UIColor.themColor(named: "ai_brand_lightbrand6") : UIColor.themColor(named: "ai_icontext1")
     }
     
     override func layoutSubviews() {

@@ -33,6 +33,8 @@ class AgentSettingViewController: UIViewController {
     private lazy var backgroundView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.themColor(named: "ai_fill2")
+        view.layer.cornerRadius = 16
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         return view
     }()
     

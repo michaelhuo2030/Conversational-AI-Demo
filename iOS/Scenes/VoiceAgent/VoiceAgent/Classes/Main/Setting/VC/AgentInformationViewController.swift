@@ -244,6 +244,7 @@ class AgentInformationViewController: UIViewController {
                             confirmTitle: ResourceManager.L10n.Login.logoutAlertConfirm,
                             onConfirm:  {
             AppContext.loginManager()?.logout()
+            self.animateBackgroundViewOut()
         })
     }
 }
