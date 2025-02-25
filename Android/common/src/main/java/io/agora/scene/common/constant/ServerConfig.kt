@@ -25,12 +25,22 @@ object ServerConfig {
 //        }
 
     @JvmStatic
-    val siteUrl: String
+    val termsOfServicesUrl: String
         get() {
             return if (isMainlandVersion) {
                 "https://www.agora.io/en/terms-of-service/"
             } else {
                 "https://www.agora.io/en/terms-of-service/"
+            }
+        }
+
+    @JvmStatic
+    val privacyPolicyUrl: String
+        get() {
+            return if (isMainlandVersion) {
+                "https://www.agora.io/en/terms-of-service/"
+            } else {
+                "https://www.agora.io/en/privacy-policy/"
             }
         }
 

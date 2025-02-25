@@ -1,5 +1,7 @@
 package io.agora.scene.common.ui
 
+import android.app.Activity
+import android.content.Intent
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
 import android.webkit.WebViewClient
@@ -7,11 +9,23 @@ import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.databinding.CommonTermsActivityBinding
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getStatusBarHeight
+import retrofit2.http.Url
 
 class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
 
+    companion object {
+        private const val URL_KEY = "url_key"
+
+        fun startActivity(activity: Activity, url: String) {
+            val intent = Intent(activity, TermsActivity::class.java).apply {
+                putExtra(URL_KEY, url)
+            }
+            activity.startActivity(intent)
+        }
+    }
+
     override fun getViewBinding(): CommonTermsActivityBinding {
-        return  CommonTermsActivityBinding.inflate(layoutInflater)
+        return CommonTermsActivityBinding.inflate(layoutInflater)
     }
 
     override fun initView() {
@@ -26,7 +40,11 @@ class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
             }
             webView.settings.javaScriptEnabled = true
             webView.webViewClient = WebViewClient()
-            webView.loadUrl(ServerConfig.siteUrl)
+
+
+            intent.getStringExtra(URL_KEY)?.let {
+                webView.loadUrl(it)
+            }
 
             webView.webChromeClient = object : WebChromeClient() {
                 override fun onProgressChanged(view: android.webkit.WebView, newProgress: Int) {

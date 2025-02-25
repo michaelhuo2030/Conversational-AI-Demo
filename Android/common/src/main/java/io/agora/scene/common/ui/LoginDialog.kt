@@ -12,7 +12,8 @@ import io.agora.scene.common.databinding.CommonLoginDialogBinding
 interface LoginDialogCallback {
     fun onDialogDismiss() = Unit
     fun onClickStartSSO() = Unit
-    fun onClickTerms() = Unit
+    fun onTermsOfServices() = Unit
+    fun onPrivacyPolicy() = Unit
 }
 
 class LoginDialog constructor() : BaseSheetDialog<CommonLoginDialogBinding>() {
@@ -53,12 +54,12 @@ class LoginDialog constructor() : BaseSheetDialog<CommonLoginDialogBinding>() {
             })
             tvTermsOfServices.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    onLoginDialogCallback?.onClickTerms()
+                    onLoginDialogCallback?.onTermsOfServices()
                 }
             })
             tvPrivacyPolicy.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    onLoginDialogCallback?.onClickTerms()
+                    onLoginDialogCallback?.onPrivacyPolicy()
                 }
             })
         }

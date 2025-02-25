@@ -19,6 +19,7 @@ import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.SSOUserManager
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.DebugDialog
@@ -1072,8 +1073,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         showLoginLoading(true)
                     }
 
-                    override fun onClickTerms() {
-                        onClickTermsDetail()
+                    override fun onTermsOfServices() {
+                        TermsActivity.startActivity(this@CovLivingActivity, ServerConfig.termsOfServicesUrl)
+                    }
+
+                    override fun onPrivacyPolicy() {
+                        TermsActivity.startActivity(this@CovLivingActivity, ServerConfig.privacyPolicyUrl)
                     }
                 }
             }
@@ -1093,11 +1098,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         cookieManager.flush()
         activityResultLauncher.launch(Intent(this, SSOWebViewActivity::class.java))
-    }
-
-    private fun onClickTermsDetail() {
-        val intent = Intent(this, TermsActivity::class.java)
-        startActivity(intent)
     }
 
     private fun showLogoutConfirmDialog(onLogout: () -> Unit) {
