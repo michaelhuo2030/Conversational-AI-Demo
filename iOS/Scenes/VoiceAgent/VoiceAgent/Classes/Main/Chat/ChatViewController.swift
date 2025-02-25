@@ -29,8 +29,8 @@ public class ChatViewController: UIViewController {
         return coordinator
     }()
 
-    private lazy var messageAdapter: MessageAdapter = {
-        let adapter = MessageAdapter()
+    private lazy var subRenderController: CovSubRenderController = {
+        let adapter = CovSubRenderController()
         adapter.delegate = self
         return adapter
     }()
@@ -286,7 +286,7 @@ public class ChatViewController: UIViewController {
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
-            startMessageAdapter()
+            startCovSubRenderController()
             startAgentRequest()
             joinChannel()
         } catch {
@@ -352,7 +352,7 @@ public class ChatViewController: UIViewController {
         messageView.isHidden = true
         bottomBar.resetState()
         timerCoordinator.stopAllTimer()
-        stopMessageAdapter()
+        stopCovSubRenderController()
         stopAgentRequest()
         leaveChannel()
         AppContext.preferenceManager()?.resetAgentInformation()
@@ -445,12 +445,12 @@ extension ChatViewController {
         SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
     }
     
-    private func startMessageAdapter() {
-        messageAdapter.start()
+    private func startCovSubRenderController() {
+        subRenderController.start()
     }
     
-    private func stopMessageAdapter() {
-        messageAdapter.stop()
+    private func stopCovSubRenderController() {
+        subRenderController.stop()
     }
     
     private func startAgentRequest() {
@@ -622,7 +622,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
         
     public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
-        messageAdapter.inputStreamMessageData(data: data)
+        subRenderController.inputStreamMessageData(data: data)
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
@@ -657,7 +657,7 @@ extension ChatViewController: AgoraAudioFrameDelegate {
     
     public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
         if uid == agentUid {
-            messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
+            subRenderController.updateAudioTimestamp(timestamp: frame.presentationMs)
         }
         return true
     }
@@ -809,7 +809,11 @@ extension ChatViewController: AnimateViewDelegate {
     }
 }
 
-extension ChatViewController: MessageAdapterDelegate {
+extension ChatViewController: ICovMessageListView {
+    func onUpdateStreamContent(subtitle: SubtitleMessage) {
+        messageView.viewModel.messageFlush(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isFinished: (subtitle.status == .end || subtitle.status == .interrupt), isInterrupted: subtitle.status == .interrupt)
+    }
+    
     func messageFlush(turnId: Int, message: String, owner: MessageOwner, timestamp: Int64, isFinished: Bool, isInterrupted: Bool) {
         messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished, isInterrupted: isInterrupted)
     }
