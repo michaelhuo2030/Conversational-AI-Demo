@@ -41,19 +41,23 @@ class AgentTimerCoordinator: NSObject {
     private func initDurationLimitTimer() {
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
             useDuration = preset.callTimeLimitSecond
+            deinitDurationLimitTimer()
+            
             usageDurationLimitTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
                 guard let self = self else {
+                    timer.invalidate()
                     return
                 }
                 
                 if self.useDuration <= 0 {
+                    timer.invalidate()
+                    self.usageDurationLimitTimer = nil
                     self.delegate?.agentUseLimitedTimerEnd()
-                    self.deinitDurationLimitTimer()
+                    self.delegate?.agentUseLimitedTimerClosed()
                 } else {
                     self.delegate?.agentUseLimitedTimerUpdated(duration: self.useDuration)
                     self.useDuration -= 1
                 }
-                
             })
         }
         
@@ -61,10 +65,11 @@ class AgentTimerCoordinator: NSObject {
     }
     
     private func deinitDurationLimitTimer() {
-        self.delegate?.agentUseLimitedTimerClosed()
-        useDuration = 0
-        usageDurationLimitTimer?.invalidate()
-        usageDurationLimitTimer = nil
+        if usageDurationLimitTimer != nil {
+            usageDurationLimitTimer?.invalidate()
+            usageDurationLimitTimer = nil
+            self.delegate?.agentUseLimitedTimerClosed()
+        }
     }
     
     private func initPingTimer() {

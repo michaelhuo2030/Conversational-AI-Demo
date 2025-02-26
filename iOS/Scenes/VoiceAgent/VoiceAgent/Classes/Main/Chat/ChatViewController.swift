@@ -68,6 +68,7 @@ public class ChatViewController: UIViewController {
     
     private lazy var animateContentView: UIView = {
         let view = UIView()
+        view.backgroundColor = UIColor.themColor(named: "ai_fill4")
         return view
     }()
     
@@ -84,7 +85,6 @@ public class ChatViewController: UIViewController {
     
     private let lowerBackgroundView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.themColor(named: "ai_fill4")
         return view
     }()
     
@@ -159,13 +159,33 @@ public class ChatViewController: UIViewController {
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // set gradient color from #23248399 to #242439
+        
+        upperBackgroundView.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+        lowerBackgroundView.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+        
         let gradientLayer = CAGradientLayer()
         gradientLayer.frame = upperBackgroundView.bounds
-        let startColor = UIColor(argbHexString: "#1D1D56") ?? .black
-        let endColor = UIColor(argbHexString: "#242439") ?? .black
-        gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+        var startColor = UIColor.themColor(named: "ai_fill4")
+        let middleColor = UIColor.themColor(named: "ai_fill4").withAlphaComponent(0.7)
+        var endColor = UIColor.clear
+        gradientLayer.colors = [startColor.cgColor, middleColor.cgColor, endColor.cgColor]
+        
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+        gradientLayer.locations = [0.0, 0.2, 0.7]
         upperBackgroundView.layer.insertSublayer(gradientLayer, at: 0)
+        
+        let bottomGradientLayer = CAGradientLayer()
+        startColor = UIColor.clear
+        endColor = UIColor.themColor(named: "ai_fill4")
+        bottomGradientLayer.frame = lowerBackgroundView.bounds
+        bottomGradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+        
+        bottomGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        bottomGradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+        bottomGradientLayer.locations = [0.0, 0.7]
+        
+        lowerBackgroundView.layer.insertSublayer(bottomGradientLayer, at: 0)
     }
     
     private func registerDelegate() {
@@ -182,12 +202,27 @@ public class ChatViewController: UIViewController {
             return
         }
 
-        Task {
-            do {
-                try await fetchPresetsIfNeeded()
-                try await fetchTokenIfNeeded()
-            } catch {
-                addLog("[PreloadData error]: \(error)")
+        LoginApiService.getUserInfo { [weak self] error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                self.addLog("[PreloadData error - userInfo]: \(error)")
+            }
+            
+            Task {
+                do {
+                    try await self.fetchPresetsIfNeeded()
+                } catch {
+                    self.addLog("[PreloadData error - presets]: \(error)")
+                }
+            }
+                
+            Task {
+                do {
+                    try await self.fetchTokenIfNeeded()
+                } catch {
+                    self.addLog("[PreloadData error - token]: \(error)")
+                }
             }
         }
     }
@@ -206,10 +241,9 @@ public class ChatViewController: UIViewController {
     
     private func setupViews() {
         view.backgroundColor = .black
-        [upperBackgroundView, lowerBackgroundView, animateContentView, topBar, contentView, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
+        [animateContentView, upperBackgroundView, lowerBackgroundView, topBar, contentView, messageView, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
         
         contentView.addSubview(aiNameLabel)
-        view.addSubview(messageView)
     }
     
     private func setupConstraints() {
@@ -230,16 +264,9 @@ public class ChatViewController: UIViewController {
             make.bottom.equalTo(bottomBar.snp.top).offset(-20)
         }
         
-//        animateContentView.snp.makeConstraints { make in
-//            make.height.equalTo(animateContentView.snp.width).multipliedBy(1080.0/1142.0)
-//            make.width.equalTo(contentView.snp.width).multipliedBy(0.7)
-//            make.centerX.equalTo(contentView)
-//            make.centerY.equalTo(contentView)
-//        }
-        
         messageView.snp.makeConstraints { make in
             make.top.left.right.equalTo(0)
-            make.bottom.equalTo(bottomBar.snp.top)
+            make.bottom.equalTo(0)
         }
         
         annotationView.snp.makeConstraints { make in
@@ -268,11 +295,11 @@ public class ChatViewController: UIViewController {
         
         upperBackgroundView.snp.makeConstraints { make in
             make.top.left.right.equalToSuperview()
-            make.bottom.equalTo(animateContentView.snp.top)
+            make.bottom.equalTo(view.snp.centerY)
         }
         
         lowerBackgroundView.snp.makeConstraints { make in
-            make.top.equalTo(animateContentView.snp.top)
+            make.top.equalTo(view.snp.centerY)
             make.left.right.bottom.equalToSuperview()
         }
     }
@@ -404,6 +431,10 @@ public class ChatViewController: UIViewController {
 
 // MARK: - Agent Request
 extension ChatViewController {
+    private func fetchUserInfo() async throws {
+        
+    }
+    
     private func fetchPresetsIfNeeded() async throws {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
