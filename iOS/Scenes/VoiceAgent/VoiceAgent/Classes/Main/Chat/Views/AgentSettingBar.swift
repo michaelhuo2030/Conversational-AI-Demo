@@ -106,10 +106,10 @@ class AgentSettingBar: UIView {
     }
     
     public func updateRestTime(_ seconds: Int) {
-        if seconds < 59 {
+        if seconds < 20 {
+            countDownLabel.textColor = UIColor.themColor(named: "ai_red6")
+        } else if seconds < 59 {
             countDownLabel.textColor = UIColor.themColor(named: "ai_green6")
-        } else if seconds < 20 {
-            countDownLabel.textColor = UIColor.themColor(named: "ai_yellow6")
         } else {
             countDownLabel.textColor = UIColor.themColor(named: "ai_brand_white10")
         }
