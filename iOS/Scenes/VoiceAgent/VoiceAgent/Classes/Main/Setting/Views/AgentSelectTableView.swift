@@ -49,6 +49,8 @@ class AgentSelectTableView: UIView {
         tableView.register(cellWithClass: AgentSettingSubOptionCell.self)
         tableView.separatorStyle = .none
         tableView.backgroundColor = .clear
+        tableView.rowHeight = 44
+        tableView.bounces = false
         addSubview(tableView)
         tableView.snp.makeConstraints { make in
             make.left.right.top.bottom.equalToSuperview()
@@ -70,6 +72,8 @@ extension AgentSelectTableView: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withClass: AgentSettingSubOptionCell.self)
         let title = dataSource[indexPath.row]
         cell.configure(with: title, isSelected: indexPath.row == selectedIndex)
+        // if the cell is last cell, hide the bottom line
+        cell.bottomLine.isHidden = (indexPath.row == dataSource.count - 1)
         return cell
     }
 
