@@ -52,7 +52,8 @@
 "settings.microphone" = "麦克风";
 "settings.speaker" = "扬声器";
 "settings.noise.cancellation" = "噪声取消";
-"settings.noise.aiVad" = "启用 优雅打断";
+"settings.noise.aiVad.nomal" = "启用 ";
+"settings.noise.aiVad.highlight" = "优雅打断";
 "settings.noise.forceResponse" = "Force Response";
 "settings.noise.bhvs" = "启用 对话人声锁定";
 

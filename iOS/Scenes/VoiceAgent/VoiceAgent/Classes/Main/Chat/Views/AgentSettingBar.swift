@@ -53,6 +53,7 @@ class AgentSettingBar: UIView {
         label.textColor = UIColor.themColor(named: "ai_brand_white10")
         return label
     }()
+    let centerTitleButton = UIButton()
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -203,7 +204,7 @@ class AgentSettingBar: UIView {
     
     private func setupViews() {
         [titleContentView, infoListButton, netStateView, settingButton, countDownLabel].forEach { addSubview($0) }
-        [centerTipsLabel, centerTitleView].forEach { titleContentView.addSubview($0) }
+        [centerTipsLabel, centerTitleView, centerTitleButton].forEach { titleContentView.addSubview($0) }
         [netTrackView, netRenderView].forEach { netStateView.addSubview($0) }
         
         let titleImageView = UIImageView()
@@ -244,6 +245,9 @@ class AgentSettingBar: UIView {
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
             make.top.equalTo(self.snp.bottom)
+        }
+        centerTitleButton.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
         settingButton.snp.makeConstraints { make in
             make.right.equalTo(-10)

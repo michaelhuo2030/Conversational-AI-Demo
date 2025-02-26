@@ -49,6 +49,7 @@ public class ChatViewController: UIViewController {
         let view = AgentSettingBar()
         view.infoListButton.addTarget(self, action: #selector(onClickInformationButton), for: .touchUpInside)
         view.settingButton.addTarget(self, action: #selector(onClickSettingButton), for: .touchUpInside)
+        view.centerTitleButton.addTarget(self, action: #selector(onClickLogo), for: .touchUpInside)
         return view
     }()
 
@@ -124,8 +125,12 @@ public class ChatViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onLongPressDevMode(_:)))
+        button.addGestureRecognizer(longPressGesture)
         return button
     }()
+    var clickCount = 0
+    var lastClickTime: Date?
     
     deinit {
         print("liveing view controller deinit")
@@ -764,6 +769,35 @@ private extension ChatViewController {
             let pasteboard = UIPasteboard.general
             pasteboard.string = messageContents
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
+        }
+    }
+    
+    @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
+        if DeveloperModeViewController.getDeveloperMode() {
+            devModeButton.isHidden = true
+            DeveloperModeViewController.setDeveloperMode(false)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+    }
+    
+    @objc private func onClickLogo(_ sender: UIButton) {
+        let currentTime = Date()
+        if let lastTime = lastClickTime, currentTime.timeIntervalSince(lastTime) > 1.0 {
+            clickCount = 0
+        }
+        lastClickTime = currentTime
+        clickCount += 1
+        if clickCount >= 5 {
+            onThresholdReached()
+            clickCount = 0
+        }
+    }
+    
+    func onThresholdReached() {
+        if !DeveloperModeViewController.getDeveloperMode() {
+            devModeButton.isHidden = false
+            DeveloperModeViewController.setDeveloperMode(true)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
 }
