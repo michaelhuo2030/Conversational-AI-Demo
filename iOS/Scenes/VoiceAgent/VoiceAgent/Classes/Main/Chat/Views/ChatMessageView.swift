@@ -228,11 +228,11 @@ class ChatView: UIView {
         tableView.snp.makeConstraints { make in
             make.top.equalTo(102)
             make.left.right.equalTo(0)
-            make.bottom.equalTo(self.safeAreaLayoutGuide.snp.bottom).offset(-106)
+            make.bottom.equalTo(self.safeAreaLayoutGuide.snp.bottom).offset(-116)
         }
         
         arrowButton.snp.makeConstraints { make in
-            make.bottom.equalTo(tableView).offset(-10)
+            make.bottom.equalTo(tableView)
             make.width.height.equalTo(44)
             make.centerX.equalTo(self)
         }
