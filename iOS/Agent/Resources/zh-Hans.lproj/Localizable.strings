@@ -2,11 +2,8 @@
 "main.agree.to" = "我同意";
 "main.terms.vc.title" = "服务条款";
 "main.terms.service" = "声网 服务条款";
-"scene.ai.card.title" = "对话式 AI 引擎";
 "scene.ai.card.des" = "与 AI 进行实时语音互动体验";
 "scene.v2v.card.title" = "声网 V2V";
 "scene.v2v.card.des" = "创建AI驱动的实时语音、视频和聊天体验。";
 "scene.dig.card.title" = "数字人";
 "scene.dig.card.des" = "创建AI驱动的实时语音、视频和聊天体验。";
-"scene.title" = "选择演示";
-

@@ -33,7 +33,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_fill1").withAlphaComponent(0.8))
         SVProgressHUD.setForegroundColor(.white)
         SVProgressHUD.setImageViewSize(CGSize.zero)
-        SVProgressHUD.setDefaultMaskType(.custom)
         
         return true
     }

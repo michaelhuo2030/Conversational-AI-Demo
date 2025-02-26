@@ -25,11 +25,6 @@ class AgentInformationViewController: UIViewController {
     private var panGesture: UIPanGestureRecognizer?
     private var moreItems: [UIView] = []
     private var channelInfoItems: [UIView] = []
-    private let loadingMaskView = {
-        let view = UIView()
-        view.isHidden = true
-        return view
-    }()
     
     private lazy var feedBackPresenter = FeedBackPresenter()
         
@@ -216,25 +211,22 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickFeedbackItem() {
+        
         guard let channelName = AppContext.preferenceManager()?.information.roomId,
               let rtcManager = rtcManager
         else {
             return
         }
         let agentId = AppContext.preferenceManager()?.information.agentId
-        feedbackItem.startLoading()
-        
-        SVProgressHUD.show(withStatus: ResourceManager.L10n.ChannelInfo.feedbackLoading)
+        feedbackItem.startLoading()        
         rtcManager.predump {
-            self.feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { error, result in
-                SVProgressHUD.dismiss()
+            self.feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { [weak self] error, result in
                 if error == nil {
                     SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.feedbackSuccess)
                 } else {
                     SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.feedbackFailed)
                 }
-                self.loadingMaskView.isHidden = true
-                self.feedbackItem.stopLoading()
+                self?.feedbackItem.stopLoading()
             }
         }
     }
@@ -272,8 +264,6 @@ extension AgentInformationViewController {
         
         moreItems.forEach { moreInfoView.addSubview($0) }
         channelInfoItems.forEach { channelInfoView.addSubview($0) }
-        
-        contentView.addSubview(loadingMaskView)
     }
     
     private func createConstrains() {
@@ -354,9 +344,6 @@ extension AgentInformationViewController {
                     make.bottom.equalToSuperview()
                 }
             }
-        }
-        loadingMaskView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
         }
     }
     
