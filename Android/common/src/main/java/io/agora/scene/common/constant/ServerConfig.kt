@@ -66,6 +66,8 @@ object ServerConfig {
 
     private val buildEnvConfig: EnvConfig = EnvConfig()
 
+    val isBuildEnv: Boolean get() = buildEnvConfig.toolboxServerHost == toolBoxUrl
+
     fun initBuildConfig(
         isMainland: Boolean, envName: String, toolboxHost: String, rtcAppId: String, rtcAppCert: String
     ) {
@@ -84,6 +86,7 @@ object ServerConfig {
         this.toolBoxUrl = debugConfig.toolboxServerHost
         this.rtcAppId = debugConfig.rtcAppId
         this.rtcAppCert = debugConfig.rtcAppCertificate
+        ApiManager.setBaseURL(toolBoxUrl)
     }
 
     fun reset() {

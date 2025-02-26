@@ -34,7 +34,7 @@ interface DebugDialogCallback {
 
     fun onSeamlessPlayMode(enable: Boolean) = Unit  // Default implementation
 
-    fun onEnvConfigChange(config: EnvConfig) = Unit  // Default implementation
+    fun onEnvConfigChange() = Unit  // Default implementation
 
     fun getConvoAiHost(): String = ""
 }
@@ -144,10 +144,12 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
     }
 
     private fun onCloseDebug() {
+        if (!ServerConfig.isBuildEnv){
+            onDebugDialogCallback?.onEnvConfigChange()
+            ServerConfig.reset()
+        }
         DebugButton.getInstance(AgentApp.instance()).hide()
         DebugConfigSettings.reset()
-        ServerConfig.reset()
-        onDebugDialogCallback?.onCloseDebug()
         onDebugDialogCallback = null
     }
 
@@ -183,7 +185,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                 val selectConfig = serverConfigList[index]
                 if (selectConfig.toolboxServerHost == selectedEnvConfig?.toolboxServerHost) return@updateOptions
                 ServerConfig.updateDebugConfig(selectConfig)
-                onDebugDialogCallback?.onEnvConfigChange(selectConfig)
+                onDebugDialogCallback?.onEnvConfigChange()
                 updateEnvConfig()
                 vOptionsMask.visibility = View.INVISIBLE
                 ToastUtil.show(

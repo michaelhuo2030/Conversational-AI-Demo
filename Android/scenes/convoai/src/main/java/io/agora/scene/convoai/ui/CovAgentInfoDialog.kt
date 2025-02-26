@@ -91,9 +91,9 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
                     tvUploader.postDelayed({
                         LogUploader.uploadLog(CovAgentApiManager.agentId ?: "",CovAgentManager.channelName) { err ->
                             if (err == null) {
-                                ToastUtil.show(getString(io.agora.scene.common.R.string.common_upload_time_success))
+                                ToastUtil.show(io.agora.scene.common.R.string.common_upload_time_success)
                             } else {
-                                ToastUtil.show(getString(io.agora.scene.common.R.string.common_upload_time_failed))
+                                ToastUtil.show(io.agora.scene.common.R.string.common_upload_time_failed)
                             }
                             updateUploadingStatus(false)
                         }
@@ -171,25 +171,13 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
         context ?: return
         mBinding?.apply {
             if (isUploading) {
-                tvLogout.isEnabled = false
-                tvLogout.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext3), PorterDuff.Mode.SRC_IN)
                 tvUploader.startAnimation(uploadAnimation)
                 tvUploader.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext3), PorterDuff.Mode.SRC_IN)
                 tvUploader.isEnabled = false
-                btnClose.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext3), PorterDuff.Mode.SRC_IN)
-                btnClose.isEnabled = false
-                // 禁用返回键
-                dialog?.setCancelable(false)
             } else {
                 tvUploader.clearAnimation()
                 tvUploader.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
                 tvUploader.isEnabled = true
-                btnClose.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
-                btnClose.isEnabled = true
-                tvLogout.setColorFilter(requireContext().getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
-                tvLogout.isEnabled = true
-                // 恢复返回键
-                dialog?.setCancelable(true)
             }
         }
     }

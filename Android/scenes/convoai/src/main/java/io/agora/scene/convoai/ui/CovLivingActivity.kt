@@ -18,6 +18,7 @@ import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.constant.AgentScenes
+import io.agora.scene.common.constant.EnvConfig
 import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugButton
@@ -980,8 +981,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                 }
 
-                override fun onSeamlessPlayMode(enable: Boolean) {
-                    // TODO:  
+                override fun onEnvConfigChange() {
+                    stopAgentAndLeaveChannel()
+                    SSOUserManager.logout()
+                    updateLoginStatus(false)
                 }
             }
             mDebugDialog?.show(supportFragmentManager, "covAidebugSettings")
