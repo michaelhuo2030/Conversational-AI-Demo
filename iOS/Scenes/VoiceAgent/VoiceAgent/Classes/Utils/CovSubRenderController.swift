@@ -79,7 +79,6 @@ struct SubtitleMessage {
 private typealias TurnState = SubtitleStatus
 
 protocol CovSubRenderDelegate: AnyObject {
-    func onUpdateTextMessageContent(subtitle: SubtitleMessage, timestamp: Int64)
     func onUpdateStreamContent(subtitle: SubtitleMessage)
 }
 
@@ -128,7 +127,7 @@ class CovSubRenderController: NSObject {
             return
         }
         let string = String(data: jsonData, encoding: .utf8) ?? ""
-//        addLog("✅[CovSubRenderController] json: \(string)")
+        addLog("✅[CovSubRenderController] json: \(string)")
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
@@ -170,21 +169,37 @@ class CovSubRenderController: NSObject {
         guard let text = message.text, !text.isEmpty else {
             return
         }
-        let isFinal = message.is_final ?? false
-        if message.stream_id == 0 {
-            let subtitleMessage = SubtitleMessage(turnId: -1,
-                                                  isMe: false,
-                                                  text: text,
-                                                  status: isFinal ? .end : .inprogress)
-            self.delegate?.onUpdateTextMessageContent(subtitle: subtitleMessage, timestamp: message.start_ms ?? 0)
-            print("🌍[CovSubRenderController] send agent text: \(text), final: \(isFinal)")
+        let messageState: SubtitleStatus
+        if let turnStatus = message.turn_status {
+            messageState = SubtitleStatus(rawValue: turnStatus) ?? .inprogress
         } else {
-            let subtitleMessage = SubtitleMessage(turnId: -1,
-                                                  isMe: true,
-                                                  text: text,
-                                                  status: isFinal ? .end : .inprogress)
-            self.delegate?.onUpdateTextMessageContent(subtitle: subtitleMessage, timestamp: message.start_ms ?? 0)
-            print("🙋🏻‍♀️[CovSubRenderController] send user text: \(text), final: \(isFinal)")
+            let isFinal = message.is_final ?? message.final ?? false
+            messageState = isFinal ? .end : .inprogress
+        }
+        let isMe: Bool
+        if let messageObject = message.object {
+            if messageObject == MessageType.user.rawValue {
+                isMe = true
+            } else {
+                isMe = false
+            }
+        } else {
+            if message.stream_id == 0 {
+                isMe = false
+            } else {
+                isMe = true
+            }
+        }
+        let turnId = message.turn_id ?? -1
+        let subtitleMessage = SubtitleMessage(turnId: turnId,
+                                              isMe: isMe,
+                                              text: text,
+                                              status: messageState)
+        self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
+        if isMe {
+            print("🙋🏻‍♀️[CovSubRenderController] send user text: \(text), state: \(messageState)")
+        } else {
+            print("🌍[CovSubRenderController] send agent text: \(text), state: \(messageState)")
         }
     }
     

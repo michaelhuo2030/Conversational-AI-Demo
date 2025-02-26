@@ -834,12 +834,13 @@ extension ChatViewController: AnimateViewDelegate {
 }
 
 extension ChatViewController: CovSubRenderDelegate {
-    func onUpdateTextMessageContent(subtitle: SubtitleMessage, timestamp: Int64) {
-        messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: timestamp, owner: subtitle.isMe ? .me : .agent, isFinished: subtitle.status == .end)
-    }
     
     func onUpdateStreamContent(subtitle: SubtitleMessage) {
-        messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isInterrupted: subtitle.status == .interrupt)
+        if (subtitle.turnId == -1) {
+            messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isFinished: subtitle.status == .end)
+        } else {
+            messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isInterrupted: subtitle.status == .interrupt)
+        }
     }
 }
 
