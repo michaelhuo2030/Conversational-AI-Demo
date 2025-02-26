@@ -84,7 +84,7 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
                     dismiss()
                 }
             })
-            tvUploader.setOnClickListener(object : OnFastClickListener() {
+            layoutUploader.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     updateUploadingStatus(true)
                     CovRtcManager.generatePredumpFile()
@@ -100,7 +100,7 @@ class CovAgentInfoDialog : BaseDialogFragment<CovInfoDialogBinding>() {
                     }, 5000L)
                 }
             })
-            tvLogout.setOnClickListener {
+            layoutLogout.setOnClickListener {
                 onLogout?.invoke()
             }
             updateView()

@@ -29,7 +29,7 @@ class CommonDialog : BaseDialogFragment<CommonDialogLayoutBinding>() {
         mBinding?.apply {
             // Set dialog width to 80% of screen width
             root.layoutParams = FrameLayout.LayoutParams(
-                (resources.displayMetrics.widthPixels * 0.8).toInt(),
+                (resources.displayMetrics.widthPixels * 0.84).toInt(),
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
 

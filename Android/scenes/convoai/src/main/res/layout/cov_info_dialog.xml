@@ -245,6 +245,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
+            android:id="@+id/layout_uploader"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:paddingHorizontal="16dp"
@@ -277,6 +278,7 @@
             android:background="@color/ai_line1" />
 
         <LinearLayout
+            android:id="@+id/layout_logout"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:paddingHorizontal="16dp"

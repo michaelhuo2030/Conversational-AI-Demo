@@ -35,28 +35,36 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/tvLoginForChat"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/common_login_chat"
-        android:textColor="@color/ai_icontext1"
-        android:textSize="20sp"
-        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@+id/btnLoginSSO"
-        app:layout_constraintTop_toTopOf="@+id/ivAppLogin" />
+        app:layout_constraintTop_toTopOf="@+id/ivAppLogin"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        app:layout_constraintEnd_toStartOf="@+id/ivAppLogin"
+        app:layout_constraintBottom_toBottomOf="@+id/ivAppLogin">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/tvLoginForChatTips"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/common_login_chat_tips"
-        android:textColor="@color/ai_icontext1"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/tvLoginForChat"
-        app:layout_constraintTop_toBottomOf="@+id/tvLoginForChat"
-        app:layout_constraintBottom_toBottomOf="@+id/ivAppLogin"/>
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvLoginForChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/common_login_chat"
+            android:textColor="@color/ai_icontext1"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvLoginForChatTips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/common_login_chat_tips"
+            android:textColor="@color/ai_icontext1"
+            android:lineSpacingExtra="5dp"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnLoginSSO"
@@ -96,13 +104,14 @@
 
     <LinearLayout
         android:id="@+id/layoutAgreeTerms"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
-        android:gravity="center"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/tvCheckTips"
-        app:layout_constraintStart_toStartOf="@+id/btnLoginSSO">
+        app:layout_constraintStart_toStartOf="@+id/btnLoginSSO"
+        app:layout_constraintEnd_toEndOf="@+id/btnLoginSSO">
 
         <CheckBox
             android:id="@+id/cb_terms"
@@ -113,37 +122,13 @@
             android:drawableStart="@drawable/agent_terms_cb_selector" />
 
         <TextView
-            android:id="@+id/tv_accept"
-            android:layout_width="wrap_content"
+            android:id="@+id/tv_terms_rich_text"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="@string/common_acceept"
             android:textColor="@color/ai_icontext1"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_terms_of_services"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/common_terms_of_services"
-            android:textColor="@color/ai_icontext1"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_and"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/common_and"
-            android:textColor="@color/ai_icontext1"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_privacy_policy"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="5dp"
-            android:gravity="center"
-            android:text="@string/common_privacy_policy"
-            android:textColor="@color/ai_icontext1"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:lineSpacingExtra="2dp"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

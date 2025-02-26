@@ -34,9 +34,9 @@
         android:layout_marginTop="20dp"
         android:gravity="center"
         android:paddingHorizontal="24dp"
+        android:lineSpacingExtra="5dp"
         android:textColor="@color/ai_icontext1"
         android:textSize="14sp"
-        android:textStyle="bold"
         tools:text="Content" />
 
     <LinearLayout
@@ -49,7 +49,7 @@
             android:id="@+id/btnNegative"
             android:layout_width="0dp"
             android:layout_height="44dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:insetTop="0dp"
             android:insetBottom="0dp"
@@ -65,7 +65,7 @@
             android:id="@+id/btnPositive"
             android:layout_width="0dp"
             android:layout_height="44dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:insetTop="0dp"
             android:insetBottom="0dp"

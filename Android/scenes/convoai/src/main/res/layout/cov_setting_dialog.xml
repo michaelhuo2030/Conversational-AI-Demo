@@ -200,12 +200,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_device">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0.5dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/ai_line1" />
-
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/cl_ai_vad"
                     android:layout_width="match_parent"
@@ -250,13 +244,6 @@
                         app:layout_constraintTop_toTopOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0.5dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/ai_line1" />
-
             </LinearLayout>
 
             <View
