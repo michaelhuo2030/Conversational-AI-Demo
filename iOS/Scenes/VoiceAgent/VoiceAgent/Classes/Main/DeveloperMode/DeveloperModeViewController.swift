@@ -181,7 +181,7 @@ extension DeveloperModeViewController {
         
         // Environment
         let enviroimentTitleLabel = UILabel()
-        enviroimentTitleLabel.text = "Convo AI服务器"
+        enviroimentTitleLabel.text = "服务器"
         enviroimentTitleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         enviroimentTitleLabel.font = UIFont.systemFont(ofSize: 14)
                 
