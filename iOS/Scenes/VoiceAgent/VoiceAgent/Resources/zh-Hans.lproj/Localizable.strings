@@ -74,6 +74,7 @@
 "channel.network.poor" = "较差";
 "channel.more.title" = "更多操作";
 "channel.more.feedback" = "一键上报";
+"channel.more.feedback.uploading" = "上传中...";
 "channel.more.feedback.success" = "提交成功，感谢反馈";
 "channel.more.feedback.failed" = "提交失败，请稍后重试";
 "channel.more.logout" = "退出登录";

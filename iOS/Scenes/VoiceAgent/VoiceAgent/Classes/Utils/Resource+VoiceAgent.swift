@@ -133,6 +133,7 @@ extension ResourceManager {
             public static let networkFair = ResourceManager.localizedString("channel.network.fair")
             public static let moreInfo = ResourceManager.localizedString("channel.more.title")
             public static let feedback = ResourceManager.localizedString("channel.more.feedback")
+            public static let feedbackLoading = ResourceManager.localizedString("channel.more.feedback.uploading")
             public static let feedbackSuccess = ResourceManager.localizedString("channel.more.feedback.success")
             public static let feedbackFailed = ResourceManager.localizedString("channel.more.feedback.failed")
             public static let logout = ResourceManager.localizedString("channel.more.logout")

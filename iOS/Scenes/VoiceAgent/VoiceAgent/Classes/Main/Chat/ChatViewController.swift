@@ -511,7 +511,7 @@ extension ChatViewController {
                 self.stopLoading()
                 self.stopAgent()
                 addLog("start agent failed : \(error.message)")
-            }            
+            }
         }
     }
     
