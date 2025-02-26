@@ -504,7 +504,7 @@ extension ChatViewController {
                 self.timerCoordinator.startJoinChannelTimer()
                 return
             }
-            if (error.code == 1410) {
+            if (error.code == 1412) {
                 SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.resouceLimit)
             } else {
                 SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
