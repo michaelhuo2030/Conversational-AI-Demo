@@ -42,8 +42,8 @@ android {
             buildConfigField("Boolean", "IS_MAINLAND", "false")
             buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("GLOBAL_AG_APP_ID")}\"")
             buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("GLOBAL_AG_APP_CERTIFICATE")}\"")
-            buildConfigField("String", "AG_APP_ID_DEV", "\"${project.getProperty("CN_AG_APP_ID_DEV")}\"")
-            buildConfigField("String", "AG_APP_CERTIFICATE_DEV", "\"${project.getProperty("CN_AG_APP_CERTIFICATE_DEV")}\"")
+            buildConfigField("String", "AG_APP_ID_DEV", "\"${project.getProperty("GLOBAL_AG_APP_ID_DEV")}\"")
+            buildConfigField("String", "AG_APP_CERTIFICATE_DEV", "\"${project.getProperty("GLOBAL_AG_APP_CERTIFICATE_DEV")}\"")
         }
     }
 
