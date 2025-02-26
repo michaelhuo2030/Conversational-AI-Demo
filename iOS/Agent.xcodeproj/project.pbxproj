@@ -42,6 +42,8 @@
 		F7D294C02D6C6F9C00583343 /* Agora_AiLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = F7D294BE2D6C6F9C00583343 /* Agora_AiLogo.png */; };
 		F7D294E12D6F01EA00583343 /* ball_small_video_first.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294DF2D6F019E00583343 /* ball_small_video_first.mp4 */; };
 		F7D294E22D6F01EA00583343 /* ball_small_video.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294E02D6F019E00583343 /* ball_small_video.mp4 */; };
+		F7D294E32D6F2EFE00583343 /* ball_small_video_first.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294DF2D6F019E00583343 /* ball_small_video_first.mp4 */; };
+		F7D294E42D6F2EFE00583343 /* ball_small_video.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = F7D294E02D6F019E00583343 /* ball_small_video.mp4 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -286,6 +288,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F7D294E32D6F2EFE00583343 /* ball_small_video_first.mp4 in Resources */,
+				F7D294E42D6F2EFE00583343 /* ball_small_video.mp4 in Resources */,
 				F7D294BF2D6C6F9C00583343 /* Agora_AiLogo.png in Resources */,
 				AB7A7DA92D43B145000B3034 /* Localizable.strings in Resources */,
 				F7D294B92D6C5D9900583343 /* Launch Screen.storyboard in Resources */,
@@ -632,7 +636,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.agora.convoai;
+				PRODUCT_BUNDLE_IDENTIFIER = agora.convoai.test;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -676,7 +680,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.agora.convoai;
+				PRODUCT_BUNDLE_IDENTIFIER = agora.convoai.test;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -721,7 +725,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_SWIFT_FLAGS = "-D MainLand";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.shengwang.convoai;
+				PRODUCT_BUNDLE_IDENTIFIER = shengwang.convoai.test;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -766,7 +770,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				OTHER_SWIFT_FLAGS = "-D MainLand";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.shengwang.convoai;
+				PRODUCT_BUNDLE_IDENTIFIER = shengwang.convoai.test;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
