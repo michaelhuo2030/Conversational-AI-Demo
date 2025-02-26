@@ -15,6 +15,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.debugMode.DebugConfigSettings
 
 class AgentApp : Application() {
 
@@ -28,15 +30,30 @@ class AgentApp : Application() {
         }
     }
 
+    private fun fetchAppData() {
+        DataProviderLoader.getDataProvider() ?.let {
+            DebugConfigSettings.init(this, it.isMainland())
+            ServerConfig.initBuildConfig(
+                isMainland = it.isMainland(),
+                envName = it.envName(),
+                toolboxHost = it.toolboxHost(),
+                rtcAppId = it.rtcAppId(),
+                rtcAppCert = it.rtcAppCert())
+        }?: run {
+            CommonLogger.d(TAG,"No data provider found")
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        fetchAppData()
         app = this
         AgoraLogger.initXLog(this)
         initMMKV()
         try {
             extractResourceToCache("common_resource.zip")
-            initFile("ball_video_start.mp4")
-            initFile("ball_video_rotating.mp4")
+            initFile("ball_video_start.mov")
+            initFile("ball_video_rotating.mov")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init files", e)
         }

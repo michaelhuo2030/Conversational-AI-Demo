@@ -63,15 +63,15 @@ class CovBallAnim constructor(
         private const val DURATION_MEDIUM = 500L
         private const val DURATION_LOW = 600L
 
-        private const val VIDEO_START_NAME = "ball_video_start.mp4"
-        private const val VIDEO_ROTATING_NAME = "ball_video_rotating.mp4"
+        private const val VIDEO_START_NAME = "ball_video_start.mov"
+        private const val VIDEO_ROTATING_NAME = "ball_video_rotating.mov"
         private const val BOUNCE_SCALE = 0.02f  // Additional scale factor during bounce
     }
 
     fun setupView() {
         rtcMediaPlayer.apply {
             setView(videoView)
-            setRenderMode(Constants.PLAYER_RENDER_MODE_FIT)
+//            setRenderMode(Constants.PLAYER_RENDER_MODE_FIT)
             registerPlayerObserver(mediaPlayerObserver)
             val source = MediaPlayerSource().apply {
                 url = getVideoSrc(VIDEO_START_NAME)

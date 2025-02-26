@@ -854,7 +854,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
             })
-            clTop.tvTopTitle.setOnClickListener {
+            clTop.ivTop.setOnClickListener {
                 DebugConfigSettings.checkClickDebug()
             }
             clBottomLogged.btnJoinCall.setOnClickListener(object : OnFastClickListener() {

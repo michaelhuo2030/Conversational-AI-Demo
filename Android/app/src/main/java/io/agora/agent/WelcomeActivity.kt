@@ -26,14 +26,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        DebugConfigSettings.init(this, BuildConfig.IS_MAINLAND)
-        ServerConfig.initBuildConfig(
-            BuildConfig.IS_MAINLAND,
-            "",
-            BuildConfig.TOOLBOX_SERVER_HOST,
-            BuildConfig.AG_APP_ID,
-            BuildConfig.AG_APP_CERTIFICATE
-        )
         setupLocale()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             handleSplashScreenExit()
