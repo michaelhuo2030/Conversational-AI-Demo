@@ -326,8 +326,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (channelName != CovAgentManager.channelName) {
                     return@withContext
                 }
-                val isAgentOK = startRet.second
-                if (isAgentOK) {
+                val errorCode = startRet.second
+                if (errorCode == 0) {
                     // Startup timeout check
                     waitingAgentJob = launch {
                         delay(10000)
@@ -340,16 +340,20 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 } else {
                     stopAgentAndLeaveChannel()
                     connectionState = AgentConnectionState.IDLE
-                    CovLogger.e(TAG, "Agent start error")
-                    ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
+                    CovLogger.e(TAG, "Agent start error: $errorCode")
+                    if (errorCode == CovAgentApiManager.ERROR_RESOURCE_LIMIT_EXCEEDED) {
+                        ToastUtil.show(getString(R.string.cov_detail_start_agent_limit_error), Toast.LENGTH_LONG)
+                    } else {
+                        ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
+                    }
                 }
             }
         }
     }
 
-    private suspend fun startAgentAsync(): Pair<String, Boolean> = suspendCoroutine { cont ->
+    private suspend fun startAgentAsync(): Pair<String, Int> = suspendCoroutine { cont ->
         CovAgentApiManager.startAgent(getAgentParams()) { err, channelName ->
-            cont.resume(Pair(channelName, err == null))
+            cont.resume(Pair(channelName, err?.errorCode ?: 0))
         }
     }
 

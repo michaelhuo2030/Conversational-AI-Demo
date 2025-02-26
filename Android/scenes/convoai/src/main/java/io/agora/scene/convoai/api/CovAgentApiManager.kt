@@ -8,6 +8,7 @@ import io.agora.scene.common.net.AuthorizationInterceptor
 import io.agora.scene.common.net.HttpLogger
 import io.agora.scene.common.net.SecureOkHttpClient
 import io.agora.scene.common.util.GsonTools
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,9 @@ import kotlin.time.Duration.Companion.seconds
 
 object CovAgentApiManager {
 
-    private val TAG = "CovServerManager"
+    private const val TAG = "CovServerManager"
+
+    const val ERROR_RESOURCE_LIMIT_EXCEEDED = 1412
 
     private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -49,7 +52,7 @@ object CovAgentApiManager {
 
     private const val SERVICE_VERSION = "v3"
 
-    fun startAgent(params: AgentRequestParams, completion: (error: Exception?, channelName: String) -> Unit) {
+    fun startAgent(params: AgentRequestParams, completion: (error: ApiException?, channelName: String) -> Unit) {
         val channelName = params.channelName
         val requestURL = "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/start"
         val postBody = JSONObject()
@@ -114,7 +117,7 @@ object CovAgentApiManager {
                 val httpCode = response.code
                 if (httpCode != 200) {
                     runOnMainThread {
-                        completion.invoke(Exception("httpCode: $httpCode"), channelName)
+                        completion.invoke(ApiException(httpCode, "Http error"), channelName)
                     }
                 } else {
                     try {
@@ -130,13 +133,13 @@ object CovAgentApiManager {
                             }
                         } else {
                             runOnMainThread {
-                                completion.invoke(Exception("responseCode: $code"), channelName)
+                                completion.invoke(ApiException(code), channelName)
                             }
                         }
                     } catch (e: JSONException) {
                         CovLogger.e(TAG, "JSON parse error: ${e.message}")
                         runOnMainThread {
-                            completion.invoke(e, channelName)
+                            completion.invoke(ApiException(-1), channelName)
                         }
                     }
                 }
@@ -145,7 +148,7 @@ object CovAgentApiManager {
             override fun onFailure(call: Call, e: IOException) {
                 CovLogger.e(TAG, "Start agent failed: $e")
                 runOnMainThread {
-                    completion.invoke(e, channelName)
+                    completion.invoke(ApiException(-1), channelName)
                 }
             }
         })

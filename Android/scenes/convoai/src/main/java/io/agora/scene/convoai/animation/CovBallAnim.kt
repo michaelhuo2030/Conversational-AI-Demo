@@ -16,6 +16,7 @@ import io.agora.mediaplayer.data.MediaPlayerSource
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.convoai.rtc.CovMediaPlayerObserver
 import io.agora.mediaplayer.Constants
+import io.agora.scene.common.constant.AgentConstant
 import io.agora.scene.convoai.CovLogger
 import java.io.File
 
@@ -63,8 +64,6 @@ class CovBallAnim constructor(
         private const val DURATION_MEDIUM = 500L
         private const val DURATION_LOW = 600L
 
-        private const val VIDEO_START_NAME = "ball_video_start.mov"
-        private const val VIDEO_ROTATING_NAME = "ball_video_rotating.mov"
         private const val BOUNCE_SCALE = 0.02f  // Additional scale factor during bounce
     }
 
@@ -74,8 +73,9 @@ class CovBallAnim constructor(
 //            setRenderMode(Constants.PLAYER_RENDER_MODE_FIT)
             registerPlayerObserver(mediaPlayerObserver)
             val source = MediaPlayerSource().apply {
-                url = getVideoSrc(VIDEO_START_NAME)
+                url = getVideoSrc(AgentConstant.VIDEO_START_NAME)
             }
+
             openWithMediaSource(source)
         }
     }
@@ -176,6 +176,7 @@ class CovBallAnim constructor(
     }
 
     private fun getVideoSrc(fileName: String): String {
+//        return "assets/${fileName}"
         try {
             return context.filesDir.absolutePath + File.separator + fileName
         } catch (e: Exception) {
@@ -192,13 +193,13 @@ class CovBallAnim constructor(
                     mute(true)
                     play()
                     if (!isRotatingVideoPreload) {
-                        preloadSrc(getVideoSrc(VIDEO_ROTATING_NAME), 0)
+                        preloadSrc(getVideoSrc(AgentConstant.VIDEO_ROTATING_NAME), 0)
                     }
                 }
             } else if (state == MediaPlayerState.PLAYER_STATE_PLAYBACK_ALL_LOOPS_COMPLETED) {
                 rtcMediaPlayer.apply {
                     if (isRotatingVideoPreload) {
-                        playPreloadedSrc(getVideoSrc(VIDEO_ROTATING_NAME))
+                        playPreloadedSrc(getVideoSrc(AgentConstant.VIDEO_ROTATING_NAME))
                         mute(true)
                         setLoopCount(-1)
                     } else {
@@ -222,7 +223,7 @@ class CovBallAnim constructor(
                 }
 
                 Constants.MediaPlayerPreloadEvent.PLAYER_PRELOAD_EVENT_COMPLETE -> {
-                    if (src.contains(VIDEO_ROTATING_NAME)) {
+                    if (src.contains(AgentConstant.VIDEO_ROTATING_NAME)) {
                         isRotatingVideoPreload = true
                     }
                 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="common_app_name">对话式 AI 引擎</string>
+    <string name="common_app_name">对话式 AI 引擎体验</string>
     <string name="common_detail_message_list_you">你</string>
     <string name="common_debug_mode_enable">开发者模式已开</string>
     <string name="common_debug_mode_disable">开发者模式已关闭</string>
