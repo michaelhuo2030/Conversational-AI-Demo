@@ -18,7 +18,7 @@
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";
-"join.start.tips" = "Chats limited to 10 minutes each";
+"join.start.tips" = "Session Limit: %d minutes.";
 
 "conversation.ai.welcome.title" = "Hey, I'm Conversational AI Engine.";
 "conversation.ai.welcome.description" = "Have you ever questioned the nature of your reality?";
@@ -54,7 +54,8 @@
 "settings.microphone" = "Microphone";
 "settings.speaker" = "Speaker";
 "settings.noise.cancellation" = "Noise Cancellation";
-"settings.noise.aiVad" = "Intelligent Interruption Handling";
+"settings.noise.aiVad.nomal" = "Intelligent Interruption Handling";
+"settings.noise.aiVad.highlight" = "";
 "settings.noise.forceResponse" = "Force Response";
 "settings.noise.bhvs" = "Background Human Voice Suppression";
 
@@ -76,6 +77,7 @@
 "channel.network.fair" = "Fair";
 "channel.more.title" = "More Actions";
 "channel.more.feedback" = "Quick Report";
+"channel.more.feedback.uploading" = "Uploading...";
 "channel.more.feedback.success" = "We've received your report. Thanks for helping us improve!";
 "channel.more.feedback.failed" = "Opps! Something went wrong. Please try reporting again";
 
@@ -87,6 +89,7 @@
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";
 "error.join.error" = "Failed to join. Please try again.";
+"error.join.error.resource.limit" = "The current preset resources are out of limit. Please try again later";
 "error.network.disconnect" = "Network is unstable, please exit and try again.";
 
 "error.microphone.permission.alert.title" = "No microphone permission";

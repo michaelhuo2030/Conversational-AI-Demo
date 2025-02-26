@@ -36,7 +36,7 @@ class AgentSettingBar: UIView {
     private let centerTitleView = UIView()
     private lazy var centerTipsLabel: UILabel = {
         let label = UILabel()
-        label.text = ResourceManager.L10n.Join.tips
+        label.text = String(format: ResourceManager.L10n.Join.tips, 10)
         label.font = .systemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         return label
@@ -53,6 +53,10 @@ class AgentSettingBar: UIView {
         label.textColor = UIColor.themColor(named: "ai_brand_white10")
         return label
     }()
+    let centerTitleButton = UIButton()
+    
+    var showTipsTimer: Timer?
+    var isShowTips = false
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -84,7 +88,7 @@ class AgentSettingBar: UIView {
     }
     
     public func startWithRestTime(_ seconds: Int) {
-        showTips()
+        showTips(seconds: seconds)
         countDownLabel.isHidden = false
         updateRestTime(seconds)
     }
@@ -116,9 +120,17 @@ class AgentSettingBar: UIView {
     
     public func stop() {
         countDownLabel.isHidden = true
+        hideTips()
     }
     
-    public func showTips() {
+    public func showTips(seconds: Int = 10 * 60) {
+        if isShowTips {
+            return
+        }
+        let minutes = seconds / 60
+        centerTipsLabel.text = String(format: ResourceManager.L10n.Join.tips, minutes)
+        isShowTips = true
+        showTipsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(hideTips), userInfo: nil, repeats: false)
         self.centerTitleView.snp.remakeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
@@ -139,11 +151,16 @@ class AgentSettingBar: UIView {
             }
             self.layoutIfNeeded()
         }
-        Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(hideTips), userInfo: nil, repeats: false)
     }
     
     // MARK: - Private Methods
     @objc private func hideTips() {
+        if !isShowTips {
+            return
+        }
+        isShowTips = false
+        showTipsTimer?.invalidate()
+        showTipsTimer = nil
         self.centerTipsLabel.snp.remakeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
@@ -203,7 +220,7 @@ class AgentSettingBar: UIView {
     
     private func setupViews() {
         [titleContentView, infoListButton, netStateView, settingButton, countDownLabel].forEach { addSubview($0) }
-        [centerTipsLabel, centerTitleView].forEach { titleContentView.addSubview($0) }
+        [centerTipsLabel, centerTitleView, centerTitleButton].forEach { titleContentView.addSubview($0) }
         [netTrackView, netRenderView].forEach { netStateView.addSubview($0) }
         
         let titleImageView = UIImageView()
@@ -244,6 +261,9 @@ class AgentSettingBar: UIView {
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
             make.top.equalTo(self.snp.bottom)
+        }
+        centerTitleButton.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
         settingButton.snp.makeConstraints { make in
             make.right.equalTo(-10)

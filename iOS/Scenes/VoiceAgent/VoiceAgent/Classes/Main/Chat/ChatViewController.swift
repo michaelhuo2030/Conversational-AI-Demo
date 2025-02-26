@@ -49,6 +49,7 @@ public class ChatViewController: UIViewController {
         let view = AgentSettingBar()
         view.infoListButton.addTarget(self, action: #selector(onClickInformationButton), for: .touchUpInside)
         view.settingButton.addTarget(self, action: #selector(onClickSettingButton), for: .touchUpInside)
+        view.centerTitleButton.addTarget(self, action: #selector(onClickLogo), for: .touchUpInside)
         return view
     }()
 
@@ -87,7 +88,7 @@ public class ChatViewController: UIViewController {
         return view
     }()
     
-    private lazy var toastView: ToastView = {
+    private lazy var annotationView: ToastView = {
         let view = ToastView()
         view.isHidden = true
         return view
@@ -124,8 +125,12 @@ public class ChatViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onLongPressDevMode(_:)))
+        button.addGestureRecognizer(longPressGesture)
         return button
     }()
+    var clickCount = 0
+    var lastClickTime: Date?
     
     deinit {
         print("liveing view controller deinit")
@@ -236,10 +241,9 @@ public class ChatViewController: UIViewController {
     
     private func setupViews() {
         view.backgroundColor = .black
-        [animateContentView, upperBackgroundView, lowerBackgroundView, topBar, contentView, messageView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        [animateContentView, upperBackgroundView, lowerBackgroundView, topBar, contentView, messageView, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
         
         contentView.addSubview(aiNameLabel)
-//        view.addSubview(messageView)
     }
     
     private func setupConstraints() {
@@ -265,7 +269,7 @@ public class ChatViewController: UIViewController {
             make.bottom.equalTo(0)
         }
         
-        toastView.snp.makeConstraints { make in
+        annotationView.snp.makeConstraints { make in
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
             make.left.right.equalTo(0)
             make.height.equalTo(44)
@@ -328,21 +332,21 @@ public class ChatViewController: UIViewController {
     }
     
     private func showErrorToast(text: String) {
-        toastView.showToast(text: text)
+        annotationView.showToast(text: text)
     }
     
     private func dismissErrorToast() {
-        toastView.dismiss()
+        annotationView.dismiss()
     }
     
     private func startLoading() {
         bottomBar.style = .controlButtons
-        toastView.showLoading()
+        annotationView.showLoading()
     }
     
     private func stopLoading() {
         bottomBar.style = .startButton
-        toastView.dismiss()
+        annotationView.dismiss()
     }
     
     private func joinChannel() {
@@ -531,11 +535,14 @@ extension ChatViewController {
                 self.timerCoordinator.startJoinChannelTimer()
                 return
             }
-
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
-            self.stopLoading()
-            self.stopAgent()
-            addLog("start agent failed : \(error.message)")
+            if (error.code == 1412) {
+                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.resouceLimit)
+            } else {
+                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+                self.stopLoading()
+                self.stopAgent()
+                addLog("start agent failed : \(error.message)")
+            }
         }
     }
     
@@ -613,7 +620,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
-        toastView.dismiss()
+        annotationView.dismiss()
         remoteIsJoined = true
         timerCoordinator.startUsageDurationLimitTimer()
         addLog("[RTC Call Back] didJoinedOfUid uid: \(uid)")
@@ -796,6 +803,35 @@ private extension ChatViewController {
             let pasteboard = UIPasteboard.general
             pasteboard.string = messageContents
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
+        }
+    }
+    
+    @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
+        if DeveloperModeViewController.getDeveloperMode() {
+            devModeButton.isHidden = true
+            DeveloperModeViewController.setDeveloperMode(false)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+    }
+    
+    @objc private func onClickLogo(_ sender: UIButton) {
+        let currentTime = Date()
+        if let lastTime = lastClickTime, currentTime.timeIntervalSince(lastTime) > 1.0 {
+            clickCount = 0
+        }
+        lastClickTime = currentTime
+        clickCount += 1
+        if clickCount >= 5 {
+            onThresholdReached()
+            clickCount = 0
+        }
+    }
+    
+    func onThresholdReached() {
+        if !DeveloperModeViewController.getDeveloperMode() {
+            devModeButton.isHidden = false
+            DeveloperModeViewController.setDeveloperMode(true)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
 }

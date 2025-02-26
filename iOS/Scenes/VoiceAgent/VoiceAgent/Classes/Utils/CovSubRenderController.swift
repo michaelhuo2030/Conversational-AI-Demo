@@ -38,15 +38,15 @@ private struct Word: Codable {
     let word: String?
 }
 
-private class TurnObj {
+private class TurnBuffer {
     var turnId = 0
     var text: String = ""
     var start_ms: Int64 = 0
-    var words: [WordObj] = []
+    var words: [WordBuffer] = []
     var bufferState: SubtitleStatus = .inprogress
 }
 
-private struct WordObj {
+private struct WordBuffer {
     let text: String
     let start_ms: Int64
     var status: SubtitleStatus = .inprogress
@@ -111,7 +111,7 @@ class CovSubRenderController: NSObject {
     private var messageParser = MessageParser()
     
     private weak var delegate: CovSubRenderDelegate?
-    private var messageQueue: [TurnObj] = []
+    private var messageQueue: [TurnBuffer] = []
     private var renderMode: SubRenderMode = .idle
     
     private var lastMessage: SubtitleMessage? = nil
@@ -128,7 +128,7 @@ class CovSubRenderController: NSObject {
             return
         }
         let string = String(data: jsonData, encoding: .utf8) ?? ""
-        addLog("✅[CovSubRenderController] json: \(string)")
+//        addLog("✅[CovSubRenderController] json: \(string)")
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
@@ -198,7 +198,6 @@ class CovSubRenderController: NSObject {
             self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
             return
         }
-        
         queue.async(flags: .barrier) {
             // handle new agent message
             if message.object == MessageType.assistant.rawValue {
@@ -213,12 +212,13 @@ class CovSubRenderController: NSObject {
                 guard let turnStatus = TurnState(rawValue: message.turn_status ?? 0) else {
                     return
                 }
-                print("🌍[CovSubRenderController] message turn_id: \(message.turn_id ?? 0), status: \(turnStatus)")
-                let curBuffer: TurnObj = self.messageQueue.first { $0.turnId == message.turn_id } ?? {
-                    let newTurn = TurnObj()
+                print("🔔[CovSubRenderController] turn_id: \(message.turn_id ?? 0), status: \(turnStatus)")
+                print("🔔[CovSubRenderController] words: \(message.words?.map { $0.word ?? "" }.joined(separator: "|") ?? "[]")")
+                let curBuffer: TurnBuffer = self.messageQueue.first { $0.turnId == message.turn_id } ?? {
+                    let newTurn = TurnBuffer()
                     newTurn.turnId = message.turn_id ?? 0
                     self.messageQueue.append(newTurn)
-                    print("🌍[CovSubRenderController] add new turn")
+                    print("[CovSubRenderController] new turn")
                     return newTurn
                 }()
                 // if this message time is later than current buffer time, update buffer
@@ -227,12 +227,12 @@ class CovSubRenderController: NSObject {
                 {
                     curBuffer.start_ms = message.start_ms ?? 0
                     curBuffer.text = message.text ?? ""
-                    print("🌍[CovSubRenderController] update turn")
+                    print("[CovSubRenderController] update turn")
                 }
                 // update buffer
                 if let words = message.words, !words.isEmpty
                 {
-                    print("🌍[CovSubRenderController] update words: \(words.map { $0.word ?? "" }.joined())")
+//                    print("🌍[CovSubRenderController] update words: \(words.map { $0.word ?? "" }.joined())")
                     let bufferWords = curBuffer.words
                     let uniqueWords = words.filter { newWord in
                         return !bufferWords.contains { firstWord in firstWord.start_ms == newWord.start_ms}
@@ -248,11 +248,11 @@ class CovSubRenderController: NSObject {
                             curBuffer.words.append(lastWord)
                         }
                         // add new words to buffer and resort
-                        let addWords = uniqueWords.compactMap { word -> WordObj? in
+                        let addWords = uniqueWords.compactMap { word -> WordBuffer? in
                             guard let wordText = word.word, let startTime = word.start_ms else {
                                 return nil
                             }
-                            return WordObj(text: wordText,
+                            return WordBuffer(text: wordText,
                                            start_ms: startTime)
                         }
                         curBuffer.words.append(contentsOf: addWords)
@@ -269,7 +269,7 @@ class CovSubRenderController: NSObject {
                 }
             } else if (message.object == MessageType.interrupt.rawValue) {// handle interrupt
                 if let interruptTime = message.start_ms,
-                   let buffer: TurnObj = self.messageQueue.first(where: { $0.turnId == message.turn_id })
+                   let buffer: TurnBuffer = self.messageQueue.first(where: { $0.turnId == message.turn_id })
                 {
                     print("🚧[CovSubRenderController] interrupt: \(buffer.turnId) after \(buffer.words.first(where: {$0.start_ms > interruptTime})?.text ?? "")")
                     for index in buffer.words.indices {

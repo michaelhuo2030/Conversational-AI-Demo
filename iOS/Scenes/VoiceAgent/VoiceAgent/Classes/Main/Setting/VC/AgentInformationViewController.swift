@@ -223,9 +223,11 @@ class AgentInformationViewController: UIViewController {
         }
         let agentId = AppContext.preferenceManager()?.information.agentId
         feedbackItem.startLoading()
-        loadingMaskView.isHidden = false
+        
+        SVProgressHUD.show(withStatus: ResourceManager.L10n.ChannelInfo.feedbackLoading)
         rtcManager.predump {
             self.feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { error, result in
+                SVProgressHUD.dismiss()
                 if error == nil {
                     SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.feedbackSuccess)
                 } else {
