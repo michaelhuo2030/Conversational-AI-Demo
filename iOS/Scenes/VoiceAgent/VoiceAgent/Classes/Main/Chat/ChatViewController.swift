@@ -504,11 +504,14 @@ extension ChatViewController {
                 self.timerCoordinator.startJoinChannelTimer()
                 return
             }
-
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
-            self.stopLoading()
-            self.stopAgent()
-            addLog("start agent failed : \(error.message)")
+            if (error.code == 1410) {
+                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.resouceLimit)
+            } else {
+                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+                self.stopLoading()
+                self.stopAgent()
+                addLog("start agent failed : \(error.message)")
+            }            
         }
     }
     

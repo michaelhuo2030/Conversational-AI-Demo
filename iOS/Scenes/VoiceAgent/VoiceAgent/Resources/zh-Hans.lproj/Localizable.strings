@@ -17,7 +17,7 @@
 "join.start.state" = "未加入";
 "join.start.button.title" = "连接 AI 引擎";
 "join.start.agent.name" = "智能体";
-"join.start.tips" = "每次对话限时10分钟";
+"join.start.tips" = "每次对话限时%d分钟";
 
 "conversation.ai.welcome.title" = "你好，欢迎体验声网对话式 AI 引擎";
 "conversation.ai.welcome.description" = "秒应智答，零滞畅聊";
@@ -84,6 +84,7 @@
 "error.network" = "请求失败：";
 "error.room.error" = "房间已经不存在了。请发起一个新的会话。";
 "error.join.error" = "智能体加入失败，请稍后重试。";
+"error.join.error.resource.limit" = "当前预设资源超限，请稍后再试";
 "error.network.disconnect" = "网络异常，请检查网络设置";
 "error.microphone.permission.alert.title" = "没有麦克风权限";
 "error.microphone.permission.alert.description" = "请在设置中打开麦克风权限";
