@@ -88,7 +88,7 @@ public class ChatViewController: UIViewController {
         return view
     }()
     
-    private lazy var toastView: ToastView = {
+    private lazy var annotationView: ToastView = {
         let view = ToastView()
         view.isHidden = true
         return view
@@ -206,7 +206,7 @@ public class ChatViewController: UIViewController {
     
     private func setupViews() {
         view.backgroundColor = .black
-        [upperBackgroundView, lowerBackgroundView, animateContentView, topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
+        [upperBackgroundView, lowerBackgroundView, animateContentView, topBar, contentView, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
         
         contentView.addSubview(aiNameLabel)
         view.addSubview(messageView)
@@ -242,7 +242,7 @@ public class ChatViewController: UIViewController {
             make.bottom.equalTo(bottomBar.snp.top)
         }
         
-        toastView.snp.makeConstraints { make in
+        annotationView.snp.makeConstraints { make in
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
             make.left.right.equalTo(0)
             make.height.equalTo(44)
@@ -305,21 +305,21 @@ public class ChatViewController: UIViewController {
     }
     
     private func showErrorToast(text: String) {
-        toastView.showToast(text: text)
+        annotationView.showToast(text: text)
     }
     
     private func dismissErrorToast() {
-        toastView.dismiss()
+        annotationView.dismiss()
     }
     
     private func startLoading() {
         bottomBar.style = .controlButtons
-        toastView.showLoading()
+        annotationView.showLoading()
     }
     
     private func stopLoading() {
         bottomBar.style = .startButton
-        toastView.dismiss()
+        annotationView.dismiss()
     }
     
     private func joinChannel() {
@@ -589,7 +589,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
-        toastView.dismiss()
+        annotationView.dismiss()
         remoteIsJoined = true
         timerCoordinator.startUsageDurationLimitTimer()
         addLog("[RTC Call Back] didJoinedOfUid uid: \(uid)")
