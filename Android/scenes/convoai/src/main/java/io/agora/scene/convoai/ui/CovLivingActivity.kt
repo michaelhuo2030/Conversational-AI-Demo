@@ -1003,7 +1003,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         updateLoginStatus(tempToken.isNotEmpty())
         mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
             if (userInfo != null) {
-                // TODO: 已经登录
                 mLoginDialog?.dismiss()
                 mLoginDialog = null
                 showLoginLoading(false)
@@ -1011,7 +1010,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 getPresetTokenConfig()
             } else {
                 showLoginLoading(false)
-                ToastUtil.show("Get user info error")
             }
         }
     }
@@ -1069,7 +1067,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
 
                     override fun onClickStartSSO() {
-                        onClickLoginSSO()
+                        activityResultLauncher.launch(Intent(this@CovLivingActivity, SSOWebViewActivity::class.java))
                         showLoginLoading(true)
                     }
 
@@ -1084,20 +1082,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             mLoginDialog?.show(supportFragmentManager, "mainDebugDialog")
         }
-    }
-
-    private fun onClickLoginSSO() {
-        // TODO: clean cookie?
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.removeAllCookies { success ->
-            if (success) {
-                Log.d("clearCookies", "Cookies successfully removed")
-            } else {
-                Log.d("clearCookies", "Failed to remove cookies")
-            }
-        }
-        cookieManager.flush()
-        activityResultLauncher.launch(Intent(this, SSOWebViewActivity::class.java))
     }
 
     private fun showLogoutConfirmDialog(onLogout: () -> Unit) {

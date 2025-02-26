@@ -30,7 +30,7 @@
     <string name="common_logout_confirm_text">You\'ll need to sign in again to use all features. Log out now?</string>
     <string name="common_logout_confirm_known">Log out</string>
     <string name="common_logout_confirm_cancel">Cancel</string>
-    <string name="common_limit_time">Chats limited to %d minutes each.</string>
+    <string name="common_limit_time">Session Limit: %d minutes.</string>
     <string name="common_upload_time_success">We\'ve received your report. Thanks for helping us improve!</string>
     <string name="common_upload_time_failed">Opps! Something went wrong. Please try reporting again.</string>
     <string name="common_login_expired">Your session has expired. Please log in again.</string>

@@ -172,7 +172,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clPreset.isEnabled = false
                 clLanguage.isEnabled = false
                 cbAiVad.isEnabled = false
-                tvTitleConnectedTips.isVisible = true
+                tvTitleConnectedTips.isVisible = ServerConfig.isMainlandVersion
             }
         }
     }
