@@ -17,7 +17,7 @@
     <string name="common_call_time_is_up_tips">Each session is limited to %1s minutes. Start a new conversation after closing this window.</string>
     <string name="common_i_known">Got it.</string>
 
-    <string name="common_login_chat">Unlock \u267E\uFE0F Free Chat</string>
+    <string name="common_login_chat">Unlock \u221E Free Chat</string>
     <string name="common_login_chat_tips">""</string>
     <string name="common_login_with_agora_sso">Log in with Agora account</string>
     <string name="common_acceept">I accept the&#160;</string>

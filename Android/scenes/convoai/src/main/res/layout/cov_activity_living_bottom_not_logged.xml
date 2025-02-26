@@ -9,10 +9,11 @@
 
     <io.agora.scene.common.ui.widget.TypewriterTextView
         android:id="@+id/tvTyping"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/ai_icontext1"
-        android:textSize="18sp"
+        android:textSize="20sp"
+        app:layout_constraintWidth_percent="0.9"
         app:layout_constraintBottom_toTopOf="@+id/btnStartWithoutLogin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
