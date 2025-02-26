@@ -130,11 +130,14 @@ class ChatMessageCell: UITableViewCell {
             make.top.equalTo(avatarView.snp.bottom).offset(8)
             make.right.equalToSuperview().offset(-20)
             make.left.greaterThanOrEqualToSuperview().offset(20)
-            make.bottom.equalToSuperview().offset(-8)
+            make.bottom.lessThanOrEqualToSuperview().offset(-8)
         }
         
         messageLabel.snp.remakeConstraints { make in
-            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16))
+            make.top.equalToSuperview().offset(12)
+            make.left.equalToSuperview().offset(16)
+            make.right.equalToSuperview().offset(-16)
+            make.bottom.equalToSuperview().offset(-12)
         }
     }
     
@@ -159,11 +162,14 @@ class ChatMessageCell: UITableViewCell {
             make.top.equalTo(avatarView.snp.bottom).offset(8)
             make.left.equalToSuperview().offset(20)
             make.right.equalTo(-20)
-            make.bottom.equalToSuperview().offset(-8)
+            make.bottom.lessThanOrEqualToSuperview().offset(-8)
         }
         
         messageLabel.snp.remakeConstraints { make in
-            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 5, left: 0, bottom: 12, right: 0))
+            make.top.equalToSuperview().offset(5)
+            make.left.equalToSuperview()
+            make.right.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-12)
         }
     }
 }
@@ -222,7 +228,7 @@ class ChatView: UIView {
         tableView.snp.makeConstraints { make in
             make.top.equalTo(102)
             make.left.right.equalTo(0)
-            make.bottom.equalTo(self.safeAreaLayoutGuide.snp.bottom).offset(-106)
+            make.bottom.equalTo(self.safeAreaLayoutGuide.snp.bottom).offset(-116)
         }
         
         arrowButton.snp.makeConstraints { make in
@@ -283,6 +289,14 @@ extension ChatView: UITableViewDelegate, UITableViewDataSource {
             shouldAutoScroll = true
             arrowButton.isHidden = true
         }
+    }
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 72
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
 }
 
