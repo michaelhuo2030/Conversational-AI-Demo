@@ -427,6 +427,13 @@ public class ChatViewController: UIViewController {
         }
         self.navigationController?.pushViewController(ssoWebVC, animated: false)
     }
+    
+    private func switchEnvironment() {
+        stopLoading()
+        stopAgent()
+        AppContext.preferenceManager()?.deleteAllPresets()
+        AppContext.loginManager()?.logout()
+    }
 }
 
 // MARK: - Agent Request
@@ -695,16 +702,6 @@ extension ChatViewController: AgoraRtcEngineDelegate {
 
 // MARK: - Actions
 private extension ChatViewController {
-    private func clickTheBackButton() {
-        addLog("[Call] clickTheBackButton()")
-        stopAgent()
-        animateView.releaseView()
-        AppContext.destory()
-        destoryRtc()
-        UIApplication.shared.isIdleTimerDisabled = false
-        self.navigationController?.popViewController(animated: true)
-    }
-    
     @objc private func onClickInformationButton() {
         AgentInformationViewController.show(in: self, rtcManager: rtcManager)
     }
@@ -788,13 +785,13 @@ private extension ChatViewController {
         DeveloperModeViewController.show(
             from: self,
             audioDump: rtcManager.getAudioDump(),
-            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "") 
+            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "")
         {
             self.devModeButton.isHidden = true
         } onAudioDump: { isOn in
             self.rtcManager.enableAudioDump(enabled: isOn)
         } onSwitchServer: {
-            self.clickTheBackButton()
+            self.switchEnvironment()
         } onCopy: {
             let messageContents = self.messageView.getAllMessages()
                 .filter { $0.isMine }
@@ -805,13 +802,13 @@ private extension ChatViewController {
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
         }
     }
-    
+
     @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
-        if DeveloperModeViewController.getDeveloperMode() {
-            devModeButton.isHidden = true
-            DeveloperModeViewController.setDeveloperMode(false)
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-        }
+//        if DeveloperModeViewController.getDeveloperMode() {
+//            devModeButton.isHidden = true
+//            DeveloperModeViewController.setDeveloperMode(false)
+//            UINotificationFeedbackGenerator().notificationOccurred(.success)
+//        }
     }
     
     @objc private func onClickLogo(_ sender: UIButton) {
@@ -828,11 +825,11 @@ private extension ChatViewController {
     }
     
     func onThresholdReached() {
-        if !DeveloperModeViewController.getDeveloperMode() {
-            devModeButton.isHidden = false
-            DeveloperModeViewController.setDeveloperMode(true)
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-        }
+//        if !DeveloperModeViewController.getDeveloperMode() {
+//            devModeButton.isHidden = false
+//            DeveloperModeViewController.setDeveloperMode(true)
+//            UINotificationFeedbackGenerator().notificationOccurred(.success)
+//        }
     }
 }
 
