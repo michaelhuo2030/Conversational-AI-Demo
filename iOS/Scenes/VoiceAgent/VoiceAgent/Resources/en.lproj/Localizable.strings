@@ -14,7 +14,7 @@
 "logout.alert.confirm.title" = "Cancel";
 "logout.alert.cancel.title" = "Log out";
 
-"join.start.title" = "Conversational AI Engine";
+"join.start.title" = "Conversational AI";
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";

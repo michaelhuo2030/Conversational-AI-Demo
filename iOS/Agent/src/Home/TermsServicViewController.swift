@@ -58,7 +58,7 @@ class TermsServiceWebViewController: UIViewController {
         
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        self.title = ResourceManager.L10n.Scene.aiCardTitle
+        self.title = ResourceManager.L10n.Scene.title
         
         view.addSubview(webView)
         view.addSubview(progressView)
