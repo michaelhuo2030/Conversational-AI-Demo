@@ -30,7 +30,7 @@ class CustomNavigationView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 64)
+        self.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0)
         setupUI()
     }
     
@@ -126,6 +126,12 @@ class CustomNavigationView: UIView {
         view.addSubview(naviBar)
         view.addSubview(ssoWebView)
         view.addSubview(emptyView)
+        
+        let topInset = UIWindow.safeAreaInsets.top
+        naviBar.snp.makeConstraints { make in
+            make.height.equalTo(topInset + 64)
+            make.left.right.top.equalTo(0)
+        }
         
         ssoWebView.snp.makeConstraints { make in
             make.left.right.bottom.equalTo(0)
@@ -231,6 +237,19 @@ extension SSOWebViewController: WKScriptMessageHandler {
                     completionHandler?(nil)
                 }
             }
+        }
+    }
+}
+
+extension UIWindow {
+    static var safeAreaInsets: UIEdgeInsets {
+        if #available(iOS 15.0, *) {
+            let scene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            let window = scene?.windows.first(where: { $0.isKeyWindow })
+            return window?.safeAreaInsets ?? .zero
+        } else {
+            return UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
         }
     }
 }
