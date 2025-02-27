@@ -59,7 +59,7 @@ class AgentManager: AgentAPI {
     }
     
     func fetchAgentPresets(appId: String, completion: @escaping ((AgentError?, [AgentPreset]?) -> Void)) {
-        let url = AgentServiceUrl.stopAgentPath("v3/convoai/presetAgents").toHttpUrlSting()
+        let url = AgentServiceUrl.fetchAgentPresetsPath("v3/convoai/presetAgents").toHttpUrlSting()
         VoiceAgentLogger.info("request agent preset api: \(url)")
         let requesetBody: [String: Any] = [
             "app_id": appId
@@ -105,38 +105,64 @@ class AgentManager: AgentAPI {
                     language: String,
                     completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("v3/convoai/start").toHttpUrlSting()
-        let graphId = AppContext.shared.graphId
-        var parameters:[String: Any] = [:]
-        if graphId.isEmpty {
-            parameters = [
-                "app_id": appId,
-                "preset_name": presetName,
-                "channel_name": channelName,
-                "agent_rtc_uid": agentUid,
-                "remote_rtc_uid": uid,
-                "advanced_features": [
-                    "enable_aivad": aiVad,
-                    "enable_bhvs": bhvs
-                ],
-                "asr": [
-                    "language": language
-                ]
+        
+        // 基础参数
+        let baseParameters: [String: Any] = [
+            "app_id": appId,
+            "preset_name": presetName,
+            "channel_name": channelName,
+            "agent_rtc_uid": agentUid,
+            "remote_rtc_uid": uid,
+            "advanced_features": [
+                "enable_aivad": aiVad,
+                "enable_bhvs": bhvs
+            ],
+            "asr": [
+                "language": language
             ]
-        } else {
-            parameters = [
-                "app_id": appId,
-                "preset_name": presetName,
-                "channel_name": channelName,
-                "agent_rtc_uid": agentUid,
-                "remote_rtc_uid": uid,
-                "graph_id": graphId,
-                "advanced_features": [
-                    "enable_aivad": aiVad,
-                    "enable_bhvs": bhvs
-                ],
-                "asr": [
-                    "language": language
-                ]
+        ]
+        
+        var parameters = baseParameters
+        if !AppContext.shared.graphId.isEmpty {
+            parameters["graph_id"] = AppContext.shared.graphId
+        }
+        
+        if !AppContext.shared.certificate.isEmpty {
+            parameters["app_cert"] = AppContext.shared.certificate  
+        }
+        
+        if !AppContext.shared.basicAuthKey.isEmpty {
+            parameters["basic_auth_username"] = AppContext.shared.basicAuthKey
+        }
+        
+        if !AppContext.shared.basicAuthSecret.isEmpty {
+            parameters["basic_auth_password"] = AppContext.shared.basicAuthSecret
+        }
+        
+        if !AppContext.shared.llmUrl.isEmpty {
+            var llmConfig: [String: Any] = [
+                "url": AppContext.shared.llmUrl
+            ]
+
+            if !AppContext.shared.llmApiKey.isEmpty {
+                llmConfig["api_key"] = AppContext.shared.llmApiKey
+            }
+
+            if !AppContext.shared.llmSystemMessages.isEmpty {
+                llmConfig["system_messages"] = AppContext.shared.llmSystemMessages
+            }
+
+            if !AppContext.shared.llmModel.isEmpty {
+                llmConfig["model"] = AppContext.shared.llmModel
+            }
+            
+            parameters["custom_llm"] = llmConfig
+        }
+        
+        if !AppContext.shared.ttsVendor.isEmpty {
+            parameters["tts"] = [
+                "vendor": AppContext.shared.ttsVendor,
+                "params": AppContext.shared.ttsParams
             ]
         }
         
@@ -226,6 +252,8 @@ enum AgentServiceUrl {
     case startAgentPath(String)
     case updateAgentPath(String)
     case stopAgentPath(String)
+    case fetchAgentPresetsPath(String)
+
     
     public func toHttpUrlSting() -> String {
         switch self {
@@ -234,6 +262,8 @@ enum AgentServiceUrl {
         case .stopAgentPath(let path):
             return baseUrl + path
         case .updateAgentPath(let path):
+            return baseUrl + path
+        case .fetchAgentPresetsPath(let path):
             return baseUrl + path
         }
     }

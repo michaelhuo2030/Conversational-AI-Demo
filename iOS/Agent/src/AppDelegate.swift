@@ -15,6 +15,24 @@ import SSZipArchive
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
+    private func loadEnvironmentConfig() {
+        guard let path = Bundle.main.path(forResource: "env", ofType: "plist"),
+              let dict = NSDictionary(contentsOfFile: path) as? [String: Any] else {
+            return
+        }
+        
+        AppContext.shared.appId = dict["app_id"] as? String ?? ""
+        AppContext.shared.certificate = dict["app_cert"] as? String ?? ""
+        AppContext.shared.basicAuthKey = dict["basic_auth_key"] as? String ?? ""
+        AppContext.shared.basicAuthSecret = dict["basic_auth_secret"] as? String ?? ""
+        AppContext.shared.llmUrl = dict["llm_url"] as? String ?? ""
+        AppContext.shared.llmApiKey = dict["llm_api_key"] as? String ?? ""
+        AppContext.shared.llmSystemMessages = dict["llm_system_messages"] as? String ?? ""
+        AppContext.shared.llmModel = dict["llm_model"] as? String ?? ""
+        AppContext.shared.ttsVendor = dict["tts_vendor"] as? String ?? ""
+        AppContext.shared.ttsParams = dict["tts_params"] as? [String: Any] ?? [:]
+    }
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 #if MainLand
         AppContext.shared.appArea = .mainland
@@ -22,11 +40,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppContext.shared.appArea = .global
 #endif
         
-        AppContext.shared.appId = KeyCenter.AppId
-        AppContext.shared.certificate = KeyCenter.Certificate ?? ""
-        AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
-        AppContext.shared.loadEnvironment()
+        loadEnvironmentConfig()
         
+        if AppContext.shared.appId.isEmpty {
+            AppContext.shared.appId = KeyCenter.AppId
+        }
+        if AppContext.shared.certificate.isEmpty {
+            AppContext.shared.certificate = KeyCenter.Certificate ?? ""
+        }
+        if AppContext.shared.baseServerUrl.isEmpty {
+            AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
+        }
+        
+        if AppContext.shared.appId.isEmpty {
+            AppContext.shared.loadInnerEnvironment()
+        }
+                
         copyResource()
         
         SVProgressHUD.setMaximumDismissTimeInterval(2)
@@ -92,7 +121,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
-
-
 }
 
