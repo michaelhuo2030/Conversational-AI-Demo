@@ -703,7 +703,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     messageListViewV2.visibility = View.VISIBLE
                 }
                 clBottomLogged.btnCc.setColorFilter(
-                    getColor(io.agora.scene.common.R.color.ai_brand_main6),
+                    getColor(io.agora.scene.common.R.color.ai_brand_lightbrand6),
                     PorterDuff.Mode.SRC_IN
                 )
             } else {
