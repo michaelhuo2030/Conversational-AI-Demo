@@ -934,7 +934,7 @@ extension ChatViewController: LoginManagerDelegate {
         welcomeMessageView.isHidden = loginState
         topBar.updateButtonVisible(loginState)
         if !loginState {
-//            SSOWebViewController.clearWebViewCache()
+            SSOWebViewController.clearWebViewCache()
             stopLoading()
             stopAgent()
         }
