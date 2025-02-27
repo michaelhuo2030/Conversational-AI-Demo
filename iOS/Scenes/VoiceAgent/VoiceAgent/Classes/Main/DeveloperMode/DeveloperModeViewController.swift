@@ -42,10 +42,38 @@ public class DeveloperModeViewController: UIViewController {
     private let rtcVersionValueLabel = UILabel()
     private let serverHostValueLabel = UILabel()
     private let graphTextField = UITextField()
-    private let segmentCtrl = UISegmentedControl(items: AppContext.shared.environments.map { ($0["name"]) ?? "" })
     private let audioDumpSwitch = UISwitch()
     
     private let feedbackPresenter = FeedBackPresenter()
+    
+    private lazy var menuButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle(AppContext.shared.environments.first?["name"] ?? "", for: .normal)
+        button.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 14)
+        button.showsMenuAsPrimaryAction = true
+        button.menu = createEnvironmentMenu()
+        return button
+    }()
+    
+    private var selectedEnvironmentIndex: Int = 0 {
+        didSet {
+            let environments = AppContext.shared.environments
+            if selectedEnvironmentIndex < environments.count {
+                menuButton.setTitle(environments[selectedEnvironmentIndex]["name"], for: .normal)
+            }
+        }
+    }
+    
+    private func createEnvironmentMenu() -> UIMenu {
+        let environments = AppContext.shared.environments
+        let actions = environments.enumerated().map { index, env in
+            UIAction(title: env["name"] ?? "") { [weak self] _ in
+                self?.selectedEnvironmentIndex = index
+            }
+        }
+        return UIMenu(children: actions)
+    }
     
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -62,7 +90,7 @@ public class DeveloperModeViewController: UIViewController {
         for (index, envi) in AppContext.shared.environments.enumerated() {
             let host = envi["host"]
             if host == AppContext.shared.baseServerUrl {
-                segmentCtrl.selectedSegmentIndex = index
+                selectedEnvironmentIndex = index
                 break
             }
         }
@@ -116,17 +144,19 @@ extension DeveloperModeViewController {
     }
     
     @objc private func onSwitchButtonClicked(_ sender: UIButton) {
-        let index = segmentCtrl.selectedSegmentIndex
         let environments = AppContext.shared.environments
-        if index >= 0 && index < environments.count {
-            let envi = environments[index]
+        if selectedEnvironmentIndex >= 0 && selectedEnvironmentIndex < environments.count {
+            let envi = environments[selectedEnvironmentIndex]
             let host = envi["host"]
+            if AppContext.shared.baseServerUrl == host {
+                return
+            }
             AppContext.shared.baseServerUrl = host ?? ""
             AppContext.shared.appId = envi["appId"] ?? ""
             SVProgressHUD.showInfo(withStatus: host)
+            onSwitchServer?()
         }
         self.dismiss(animated: true)
-        onSwitchServer?()
     }
 }
 
@@ -241,13 +271,12 @@ extension DeveloperModeViewController {
         enviroimentTitleLabel.text = "服务器"
         enviroimentTitleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         enviroimentTitleLabel.font = UIFont.systemFont(ofSize: 14)
-                
-        // 添加切换按钮
+        
         let switchButton = UIButton(type: .system)
         switchButton.setTitle("Switch", for: .normal)
         switchButton.addTarget(self, action: #selector(onSwitchButtonClicked(_:)), for: .touchUpInside)
         
-        let enviroimentStack = UIStackView(arrangedSubviews: [enviroimentTitleLabel, segmentCtrl, switchButton])
+        let enviroimentStack = UIStackView(arrangedSubviews: [enviroimentTitleLabel, menuButton, switchButton])
         enviroimentStack.axis = .horizontal
         enviroimentStack.spacing = 12
         enviroimentStack.alignment = .center
