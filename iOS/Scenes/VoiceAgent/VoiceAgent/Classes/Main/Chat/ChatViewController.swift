@@ -563,14 +563,15 @@ extension ChatViewController {
     }
     
     private func stopAgentRequest() {
-        guard let preset = AppContext.preferenceManager()?.preference.preset else {
-            return
+        var presetName = ""
+        if let preset = AppContext.preferenceManager()?.preference.preset {
+            presetName = preset.name
         }
         
         if remoteAgentId.isEmpty {
             return
         }
-        agentManager.stopAgent(appId: AppContext.shared.appId, agentId: remoteAgentId, channelName: channelName, presetName: preset.name) { _, _ in }
+        agentManager.stopAgent(appId: AppContext.shared.appId, agentId: remoteAgentId, channelName: channelName, presetName: presetName) { _, _ in }
     }
 }
 
