@@ -515,7 +515,7 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
                 aiVadEnable = false
             }
         } else {
-            if (preset.name == "spoken_english_practice") {
+            if (preset.presetType.contains("independent")) {
                 aiVadEnable = false
             }
         }

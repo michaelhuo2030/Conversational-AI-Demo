@@ -102,7 +102,7 @@ class ChatMessageCell: UITableViewCell {
         if message.isInterrupted {
             let attachment = NSTextAttachment()
             attachment.image = UIImage.ag_named("ic_interrput_icon")
-            attachment.bounds = CGRect(x: 0, y: -3, width: 22, height: 16)
+            attachment.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
             let imageString = NSAttributedString(attachment: attachment)
             attributedString.append(imageString)
         }

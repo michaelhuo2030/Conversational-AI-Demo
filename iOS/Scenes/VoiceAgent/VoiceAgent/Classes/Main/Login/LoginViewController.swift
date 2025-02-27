@@ -64,60 +64,6 @@ class LoginViewController: UIViewController {
         return button
     }()
     
-    private lazy var termsLabel: UILabel = {
-        let label = UILabel()
-        label.text = ResourceManager.L10n.Login.termsServicePrefix
-        label.font = .systemFont(ofSize: 14)
-        label.textColor = UIColor.themColor(named: "ai_icontext1")
-        return label
-    }()
-    
-    private lazy var termsButton: UIButton = {
-        let button = UIButton(type: .system)
-        let attributedString = NSAttributedString(
-            string: ResourceManager.L10n.Login.termsServiceName,
-            attributes: [
-                .underlineStyle: NSUnderlineStyle.single.rawValue,
-                .font: UIFont.systemFont(ofSize: 14),
-                .foregroundColor: UIColor.themColor(named: "ai_icontext1")
-            ]
-        )
-        button.setAttributedTitle(attributedString, for: .normal)
-        button.addTarget(self, action: #selector(termsButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var andLabel: UILabel = {
-        let label = UILabel()
-        label.text = ResourceManager.L10n.Login.termsServiceAndWord
-        label.font = .systemFont(ofSize: 14)
-        label.textColor = UIColor.themColor(named: "ai_icontext1")
-        return label
-    }()
-    
-    private lazy var privacyPolicyButton: UIButton = {
-        let button = UIButton(type: .system)
-        let attributedString = NSAttributedString(
-            string: ResourceManager.L10n.Login.termsPrivacyName,
-            attributes: [
-                .underlineStyle: NSUnderlineStyle.single.rawValue,
-                .font: UIFont.systemFont(ofSize: 14),
-                .foregroundColor: UIColor.themColor(named: "ai_icontext1")
-            ]
-        )
-        button.setAttributedTitle(attributedString, for: .normal)
-        button.addTarget(self, action: #selector(privacyPolicyTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var closeButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage.ag_named("ic_login_close"), for: .normal)
-        button.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
-        button.tintColor = UIColor.themColor(named: "ai_icontext4")
-        return button
-    }()
-    
     private lazy var warningButton: UIButton = {
         let button = UIButton()
         button.setTitle(ResourceManager.L10n.Login.termsServiceTips, for: .normal)
@@ -128,6 +74,79 @@ class LoginViewController: UIViewController {
         button.isHidden = true
         button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 33, bottom: 0, right: 21)
+        return button
+    }()
+    
+    private lazy var termsTextLabel: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0
+        
+        let attributedString = NSMutableAttributedString()
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 2
+        
+        let prefixString = NSAttributedString(
+            string: ResourceManager.L10n.Login.termsServicePrefix,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 14),
+                .foregroundColor: UIColor.themColor(named: "ai_icontext1"),
+                .init(rawValue: "LinkType"): "checkbox",
+                .paragraphStyle: paragraphStyle
+            ]
+        )
+        attributedString.append(prefixString)
+        
+        let termsString = NSAttributedString(
+            string: ResourceManager.L10n.Login.termsServiceName,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 14),
+                .foregroundColor: UIColor.themColor(named: "ai_icontext1"),
+                .underlineStyle: NSUnderlineStyle.single.rawValue,
+                .underlineColor: UIColor.themColor(named: "ai_icontext1"),
+                .init(rawValue: "LinkType"): "service",
+                .paragraphStyle: paragraphStyle
+            ]
+        )
+        attributedString.append(termsString)
+        
+        let andString = NSAttributedString(
+            string: ResourceManager.L10n.Login.termsServiceAndWord,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 14),
+                .foregroundColor: UIColor.themColor(named: "ai_icontext1"),
+                .paragraphStyle: paragraphStyle
+            ]
+        )
+        attributedString.append(andString)
+        
+        let privacyString = NSAttributedString(
+            string: ResourceManager.L10n.Login.termsPrivacyName,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 14),
+                .foregroundColor: UIColor.themColor(named: "ai_icontext1"),
+                .underlineStyle: NSUnderlineStyle.single.rawValue,
+                .underlineColor: UIColor.themColor(named: "ai_icontext1"),
+                .init(rawValue: "LinkType"): "privacy",
+                .paragraphStyle: paragraphStyle
+            ]
+        )
+        attributedString.append(privacyString)
+        
+        label.attributedText = attributedString
+        label.isUserInteractionEnabled = true
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTermsTap(_:)))
+        label.addGestureRecognizer(tapGesture)
+        
+        return label
+    }()
+    
+    private lazy var closeButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage.ag_named("ic_login_close"), for: .normal)
+        button.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        button.tintColor = UIColor.themColor(named: "ai_icontext4")
         return button
     }()
     
@@ -153,10 +172,7 @@ class LoginViewController: UIViewController {
         containerView.addSubview(phoneLoginButton)
         containerView.addSubview(warningButton)
         containerView.addSubview(termsCheckbox)
-        containerView.addSubview(termsLabel)
-        containerView.addSubview(termsButton)
-        containerView.addSubview(andLabel)
-        containerView.addSubview(privacyPolicyButton)
+        containerView.addSubview(termsTextLabel)
         containerView.addSubview(closeButton)
     }
     
@@ -170,10 +186,18 @@ class LoginViewController: UIViewController {
             make.height.equalTo(319)
         }
         
-        titleLabel.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(32)
-            make.left.equalToSuperview().offset(30)
-            make.right.equalTo(logoView.snp.left).offset(-10)
+        if AppContext.shared.appArea == .global {
+            titleLabel.snp.makeConstraints { make in
+                make.left.equalToSuperview().offset(30)
+                make.right.equalTo(logoView.snp.left).offset(-10)
+                make.centerY.equalTo(logoView)
+            }
+        } else {
+            titleLabel.snp.makeConstraints { make in
+                make.top.equalToSuperview().offset(40)
+                make.left.equalToSuperview().offset(30)
+                make.right.equalTo(logoView.snp.left).offset(-10)
+            }
         }
         
         subtitleLabel.snp.makeConstraints { make in
@@ -182,7 +206,7 @@ class LoginViewController: UIViewController {
         }
         
         logoView.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel)
+            make.top.equalTo(40)
             make.right.equalTo(-33)
             make.width.height.equalTo(64)
         }
@@ -200,24 +224,10 @@ class LoginViewController: UIViewController {
             make.width.height.equalTo(20)
         }
         
-        termsLabel.snp.makeConstraints { make in
-            make.centerY.equalTo(termsCheckbox)
+        termsTextLabel.snp.makeConstraints { make in
+            make.top.equalTo(termsCheckbox)
             make.left.equalTo(termsCheckbox.snp.right).offset(8)
-        }
-        
-        termsButton.snp.makeConstraints { make in
-            make.centerY.equalTo(termsCheckbox)
-            make.left.equalTo(termsLabel.snp.right)
-        }
-        
-        andLabel.snp.makeConstraints { make in
-            make.centerY.equalTo(termsCheckbox)
-            make.left.equalTo(termsButton.snp.right)
-        }
-        
-        privacyPolicyButton.snp.makeConstraints { make in
-            make.centerY.equalTo(termsCheckbox)
-            make.left.equalTo(andLabel.snp.right)
+            make.right.equalTo(-30)
         }
         
         warningButton.snp.makeConstraints { make in
@@ -274,9 +284,46 @@ class LoginViewController: UIViewController {
         }
     }
     
+    @objc private func handleTermsTap(_ gesture: UITapGestureRecognizer) {
+        let label = gesture.view as! UILabel
+        let text = label.attributedText!
+        let layoutManager = NSLayoutManager()
+        let textContainer = NSTextContainer(size: label.bounds.size)
+        let textStorage = NSTextStorage(attributedString: text)
+        
+        layoutManager.addTextContainer(textContainer)
+        textStorage.addLayoutManager(layoutManager)
+        
+        let locationOfTouchInLabel = gesture.location(in: label)
+        let indexOfCharacter = layoutManager.characterIndex(for: locationOfTouchInLabel,
+                                                          in: textContainer,
+                                                          fractionOfDistanceBetweenInsertionPoints: nil)
+        
+        text.enumerateAttribute(.init(rawValue: "LinkType"), in: NSRange(location: 0, length: text.length)) { value, range, _ in
+            if range.contains(indexOfCharacter) {
+                if let linkType = value as? String {
+                    switch linkType {
+                    case "service":
+                        termsButtonTapped()
+                    case "privacy":
+                        privacyPolicyTapped()
+                    case "checkbox":
+                        termsCheckboxTapped()
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+    }
+    
     @objc private func termsButtonTapped() {
         let vc = TermsServiceWebViewController()
-        vc.url = AppContext.shared.termsOfServiceUrl
+        if AppContext.shared.appArea == .mainland {
+            vc.url = AppContext.shared.mainlandTermsOfServiceUrl
+        } else {
+            vc.url = AppContext.shared.globalTermsOfServiceUrl
+        }
         let termsServiceVC = UINavigationController(rootViewController: vc)
         termsServiceVC.modalPresentationStyle = .fullScreen
         self.present(termsServiceVC, animated: true)
@@ -284,7 +331,11 @@ class LoginViewController: UIViewController {
     
     @objc private func privacyPolicyTapped() {
         let vc = TermsServiceWebViewController()
-        vc.url = AppContext.shared.termsOfServiceUrl
+        if AppContext.shared.appArea == .mainland {
+            vc.url = AppContext.shared.mainlandPrivacyUrl
+        } else {
+            vc.url = AppContext.shared.globalPrivacyUrl
+        }
         let termsServiceVC = UINavigationController(rootViewController: vc)
         termsServiceVC.modalPresentationStyle = .fullScreen
         self.present(termsServiceVC, animated: true)

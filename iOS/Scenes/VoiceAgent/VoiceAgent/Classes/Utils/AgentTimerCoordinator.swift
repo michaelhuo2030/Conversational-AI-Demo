@@ -85,7 +85,7 @@ class AgentTimerCoordinator: NSObject {
     }
     
     private func initJoinChannelTimer() {
-        joinChannelTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { [weak self] timer in
+        joinChannelTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true, block: { [weak self] timer in
             guard let self = self else { return }
             self.delegate?.agentNotJoinedWithinTheScheduledTime()
         })
