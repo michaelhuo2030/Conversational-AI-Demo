@@ -55,7 +55,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
         binding?.apply {
             setOnApplyWindowInsets(root)
-            tvAiVad.text = Html.fromHtml(getString(R.string.cov_setting_ai_vad))
             rcOptions.adapter = optionsAdapter
             rcOptions.layoutManager = LinearLayoutManager(context)
             rcOptions.context.getDrawable(io.agora.scene.common.R.drawable.shape_divider_line)?.let {
@@ -87,6 +86,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
         updatePageEnable()
         updateBaseSettings()
+        setAiVadBySelectLanguage()
     }
 
     override fun disableDragging(): Boolean {

@@ -31,6 +31,8 @@ interface DebugDialogCallback {
 
     fun onClickCopy() = Unit
 
+    fun onAudioDumpEnable(enable: Boolean) = Unit
+
     fun onSeamlessPlayMode(enable: Boolean) = Unit  // Default implementation
 
     fun onEnvConfigChange() = Unit  // Default implementation
@@ -57,18 +59,21 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                 AgentScenes.Common -> {
                     layoutSwitchEnv.isVisible = true
                     layoutConvoaiHost.isVisible = false
+                    layoutAudioDump.isVisible = false
                     layoutCopyUserQuestion.isVisible = false
                 }
 
                 AgentScenes.ConvoAi -> {
                     layoutSwitchEnv.isVisible = true
                     layoutConvoaiHost.isVisible = true
+                    layoutAudioDump.isVisible = true
                     layoutCopyUserQuestion.isVisible = true
                 }
 
                 AgentScenes.DigitalHuman -> {
                     layoutSwitchEnv.isVisible = true
                     layoutConvoaiHost.isVisible = false
+                    layoutAudioDump.isVisible = true
                     layoutCopyUserQuestion.isVisible = false
                 }
             }
@@ -92,6 +97,14 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                     onClickSwitchEnv()
                 }
             })
+
+            cbAudioDump.setChecked(DebugConfigSettings.isAudioDumpEnabled)
+            cbAudioDump.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (buttonView.isPressed) {
+                    DebugConfigSettings.enableAudioDump(isChecked)
+                    onDebugDialogCallback?.onAudioDumpEnable(isChecked)
+                }
+            }
             cbSeamlessPlayMode.setChecked(DebugConfigSettings.isSeamlessPlayMode)
             cbSeamlessPlayMode.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (buttonView.isPressed) {

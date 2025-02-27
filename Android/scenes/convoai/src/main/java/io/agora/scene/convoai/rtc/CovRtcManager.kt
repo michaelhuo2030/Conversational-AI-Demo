@@ -108,9 +108,9 @@ object CovRtcManager {
 
     fun onAudioDump(enable: Boolean) {
         if (enable) {
-//            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
+            rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
         } else {
-//            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
+            rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
         }
     }
 

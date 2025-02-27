@@ -938,6 +938,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
                 override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
 
+                override fun onAudioDumpEnable(enable: Boolean) {
+                    CovRtcManager.onAudioDump(enable)
+                }
+
                 override fun onClickCopy() {
                     mBinding?.apply {
                         val messageContents = if (isSelfSubRender) {

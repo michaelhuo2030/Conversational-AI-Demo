@@ -46,7 +46,13 @@ object LogUploader {
                 }
                 
                 when {
-                    file.isFile -> paths.add(file.absolutePath)
+                    file.isFile -> {
+                        // Only collect .log files and .wav files with "predump" in the name
+                        if (file.name.endsWith(".log") || 
+                            (file.name.endsWith(".wav") && file.name.contains("predump"))) {
+                            paths.add(file.absolutePath)
+                        }
+                    }
                     file.isDirectory -> collectFiles(file, paths)
                 }
             }
