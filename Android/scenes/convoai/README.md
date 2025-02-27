@@ -2,7 +2,7 @@
 
 *__其他语言版本：__  [__简体中文__](README.zh.md)*
 
-The Conversational AI Agent ...
+The Conversational AI Agent redefines the human-machine interaction interface, breaking through traditional text-based interactions to achieve highly realistic and naturally flowing real-time voice conversations, enabling AI to truly "speak." It is suitable for innovative scenarios such as intelligent assistants, emotional companionship, oral language practice, intelligent customer service, smart hardware, and immersive game NPCs.
 
 ### 1. Quick Start
 
@@ -21,19 +21,23 @@ This section mainly describes how to quickly run the Conversational AI Agent Dem
 3. Open the `Android` project and fill in properties got above to the root [**gradle.properties**](../../gradle.properties) file.
 
 ```
-# RTC SDK key Config
-#----------- AppKey --------------
-GLOBAL_AG_APP_ID=<Your Agora App ID>
-GLOBAL_AG_APP_CERTIFICATE=<Your Agora App Certificate>
+#----------- AppId --------------
+CN_AG_APP_ID=<Agora App ID>
+CN_AG_APP_CERTIFICATE=<Agora App Certificate>
 
-GLOBAL_AG_APP_ID_DEV=<Your Agora App ID>
-GLOBAL_AG_APP_CERTIFICATE_DEV=<Your Agora App Certificate>
+#----------- Basic Auth ---------------
+BASIC_AUTH_KEY=<Agora RESTful API KEY>
+BASIC_AUTH_SECRET=<Agora RESTful API SECRET>
 
-CN_AG_APP_ID=<Your Agora App ID>
-CN_AG_APP_CERTIFICATE=<Your Agora App Certificate>
+#----------- LLM -----------
+LLM_URL=<LLM Vendor API BASE URL>
+LLM_API_KEY=<LLM Vendor API KEY>
+LLM_SYSTEM_MESSAGES=<LLM Prompt>
+LLM_MODEL=<LLM Model>
 
-CN_AG_APP_ID_DEV<Your Agora App ID>
-CN_AG_APP_CERTIFICATE_DEV=<Your Agora App Certificate>
+#----------- TTS -----------
+TTS_VENDOR=<TTS Vendor>
+TTS_PARAMS=<TTS Parameters>
 ```
 
 ### 2. Source Code Sitemap
@@ -43,7 +47,7 @@ CN_AG_APP_CERTIFICATE_DEV=<Your Agora App Certificate>
 | [api/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/api) | Conversational AI API implementation and models. |
 | [animation/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/animation) | Animation effects for agent interaction. |
 | [constant/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/constant) | Constants and enums definition. |
-| [debug/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/debug) | Debug tools and settings UI. |
+| [subRender/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/subRender/v2) | Subtitle rendering component. |
 | [rtc/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/rtc) | RTC related implementations. |
 | [ui/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/ui) | UI components and activities. |
 | [utils/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/utils) | Utility classes and helper functions. |
