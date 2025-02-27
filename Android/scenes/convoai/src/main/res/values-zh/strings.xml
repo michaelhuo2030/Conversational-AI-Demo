@@ -51,7 +51,7 @@
     <string name="cov_setting_microphone">麦克风</string>
     <string name="cov_setting_speaker">扬声器</string>
     <string name="cov_setting_bhvs">启用 对话人声锁定</string>
-    <string name="cov_setting_ai_vad">启用</string>
+    <string name="cov_setting_ai_vad">启用&#160;&#160;</string>
     <string name="cov_setting_ai_vad_high">优雅打断</string>
     <string name="cov_setting_network_error">请求失败：</string>
     <string name="cov_agent_connecting">连接中...</string>

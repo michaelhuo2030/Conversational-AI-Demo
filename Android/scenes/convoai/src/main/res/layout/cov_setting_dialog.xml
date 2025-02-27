@@ -211,6 +211,7 @@
                         android:text="@string/cov_setting_ai_vad"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
+                        app:layout_constraintEnd_toStartOf="@+id/tv_ai_vad_high"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent" />
@@ -219,7 +220,6 @@
                         android:id="@+id/tv_ai_vad_high"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
                         android:text="@string/cov_setting_ai_vad_high"
                         android:textColor="@color/ai_brand_lightbrand6"
                         android:textSize="14sp"

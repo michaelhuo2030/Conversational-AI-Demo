@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.webkit.CookieManager
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -338,7 +339,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (errorCode == 0) {
                     // Startup timeout check
                     waitingAgentJob = launch {
-                        delay(10000)
+                        delay(30000)
                         if (connectionState == AgentConnectionState.CONNECTING) {
                             stopAgentAndLeaveChannel()
                             CovLogger.e(TAG, "Agent connection timeout")
@@ -1068,6 +1069,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .setTitle(getString(io.agora.scene.common.R.string.common_logout_confirm_title))
             .setContent(getString(io.agora.scene.common.R.string.common_logout_confirm_text))
             .setPositiveButton(getString(io.agora.scene.common.R.string.common_logout_confirm_known), {
+                cleanCookie()
                 stopAgentAndLeaveChannel()
                 SSOUserManager.logout()
                 updateLoginStatus(false)
@@ -1077,6 +1079,18 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .hideTopImage()
             .build()
             .show(supportFragmentManager, "logout_dialog_tag")
+    }
+
+    private fun cleanCookie() {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies { success ->
+            if (success) {
+                CovLogger.d(TAG, "Cookies successfully removed")
+            } else {
+                Log.d(TAG, "Failed to remove cookies")
+            }
+        }
+        cookieManager.flush()
     }
 
     private fun checkMicrophonePermission(granted: (Boolean) -> Unit, force: Boolean) {
