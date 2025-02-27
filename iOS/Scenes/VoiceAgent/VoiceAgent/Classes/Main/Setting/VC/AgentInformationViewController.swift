@@ -105,42 +105,37 @@ class AgentInformationViewController: UIViewController {
         return view
     }()
     
-    private lazy var agentItem: AgentSettingTableItemView = {
-        let view = AgentSettingTableItemView(frame: .zero)
+    private lazy var agentItem: AgentSettingTextItemView = {
+        let view = AgentSettingTextItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentStatus
         view.detailLabel.textColor = UIColor.themColor(named: "ai_block2")
-        view.setImageViewHiddenState(state: true)
         return view
     }()
     
-    private lazy var agentIDItem: AgentSettingTableItemView = {
-        let view = AgentSettingTableItemView(frame: .zero)
+    private lazy var agentIDItem: AgentSettingTextItemView = {
+        let view = AgentSettingTextItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentId
         view.enableLongPressCopy = true
-        view.setImageViewHiddenState(state: true)
         return view
     }()
     
-    private lazy var roomItem: AgentSettingTableItemView = {
-        let view = AgentSettingTableItemView(frame: .zero)
+    private lazy var roomItem: AgentSettingTextItemView = {
+        let view = AgentSettingTextItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomStatus
         view.detailLabel.textColor = UIColor.themColor(named: "ai_green6")
-        view.setImageViewHiddenState(state: true)
         return view
     }()
     
-    private lazy var roomIDItem: AgentSettingTableItemView = {
-        let view = AgentSettingTableItemView(frame: .zero)
+    private lazy var roomIDItem: AgentSettingTextItemView = {
+        let view = AgentSettingTextItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomId
-        view.setImageViewHiddenState(state: true)
         return view
     }()
     
-    private lazy var idItem: AgentSettingTableItemView = {
-        let view = AgentSettingTableItemView(frame: .zero)
+    private lazy var idItem: AgentSettingTextItemView = {
+        let view = AgentSettingTextItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
         view.bottomLine.isHidden = true
-        view.setImageViewHiddenState(state: true)
         return view
     }()
         
@@ -247,7 +242,6 @@ extension AgentInformationViewController {
     private func createViews() {
         view.backgroundColor = UIColor(white: 0, alpha: 0.5)
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
-        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
         
         view.addSubview(backgroundView)
         backgroundView.addSubview(topView)
@@ -379,9 +373,14 @@ extension AgentInformationViewController {
     }
     
     @objc func onClickBackground(_ sender: UIGestureRecognizer) {
+        let point = sender.location(in: self.view)
+        if topView.frame.contains(point) {
+            return
+        }
+        if scrollView.frame.contains(point) {
+            return
+        }
         animateBackgroundViewOut()
-    }
-    @objc func onClickContent(_ sender: UIGestureRecognizer) {
     }
 }
 

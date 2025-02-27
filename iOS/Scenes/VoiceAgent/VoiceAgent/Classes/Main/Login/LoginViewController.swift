@@ -32,7 +32,7 @@ class LoginViewController: UIViewController {
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
         label.text = ResourceManager.L10n.Login.description
-        label.font = .systemFont(ofSize: 20)
+        label.font = .systemFont(ofSize: 20, weight: .bold)
         label.numberOfLines = 0
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.isHidden = AppContext.shared.appArea == .global

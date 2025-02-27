@@ -56,8 +56,6 @@ class AgentAlertView: UIView {
         button.setTitleColor(UIColor.themColor(named: "ai_icontext2"), for: .normal)
         button.backgroundColor = UIColor.themColor(named: "ai_line2")
         button.layer.cornerRadius = 12
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         button.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         return button
     }()
