@@ -118,9 +118,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 settingDialog?.updateConnectStatus(value)
                 when (connectionState) {
                     AgentConnectionState.CONNECTED -> {
-                        waitingAgentJob?.cancel()
-                        waitingAgentJob = null
-
+                        innerCancelJob()
                         pingJob = coroutineScope.launch {
                             while (isActive) {
                                 val presetName = CovAgentManager.getPreset()?.name ?: return@launch
@@ -132,19 +130,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
                     AgentConnectionState.IDLE -> {
                         // cancel ping
-                        pingJob?.cancel()
-                        pingJob = null
-                        waitingAgentJob?.cancel()
-                        waitingAgentJob = null
+                        innerCancelJob()
                         mCovBallAnim?.updateAgentState(AgentState.STATIC)
                     }
 
                     AgentConnectionState.ERROR -> {
                         // cancel ping
-                        pingJob?.cancel()
-                        pingJob = null
-                        waitingAgentJob?.cancel()
-                        waitingAgentJob = null
+                        innerCancelJob()
                         mCovBallAnim?.updateAgentState(AgentState.STATIC)
                     }
 
@@ -153,10 +145,18 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
 
                     AgentConnectionState.CONNECTING -> {
+                        innerCancelJob()
                     }
                 }
             }
         }
+
+    private fun innerCancelJob(){
+        pingJob?.cancel()
+        pingJob = null
+        waitingAgentJob?.cancel()
+        waitingAgentJob = null
+    }
 
     // Add a flag to indicate whether the call was ended by the user
     private var isUserEndCall = false
@@ -762,7 +762,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         mLoginViewModel.getUserInfoByToken(token)
                     } else {
                         showLoginLoading(false)
-                        ToastUtil.show("Login error")
                     }
                 }else{
                     showLoginLoading(false)
