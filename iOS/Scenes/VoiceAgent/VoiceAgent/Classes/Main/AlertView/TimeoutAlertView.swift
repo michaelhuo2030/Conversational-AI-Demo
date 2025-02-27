@@ -19,12 +19,19 @@ class TimeoutAlertView: UIView {
     
     private lazy var containerView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(red: 0.16, green: 0.16, blue: 0.18, alpha: 1)
+        view.backgroundColor = UIColor.themColor(named: "ai_fill2")
         view.layer.cornerRadius = 16
+        view.layer.masksToBounds = true
         return view
     }()
     
-    private lazy var cardView: UIImageView = {
+    private lazy var imageContentView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(hexString: "#3393B9FF")
+        return view
+    }()
+    
+    private lazy var imageView: UIImageView = {
         let view = UIImageView()
         view.image = UIImage.ag_named("ic_alert_timeout_icon")
         return view
@@ -71,7 +78,9 @@ class TimeoutAlertView: UIView {
         addSubview(backgroundView)
         addSubview(containerView)
         
-        containerView.addSubview(cardView)
+        containerView.addSubview(imageContentView)
+        imageContentView.addSubview(imageView)
+        
         containerView.addSubview(titleLabel)
         containerView.addSubview(contentLabel)
         containerView.addSubview(confirmButton)
@@ -86,15 +95,19 @@ class TimeoutAlertView: UIView {
             make.right.equalTo(-30)
         }
         
-        cardView.snp.makeConstraints { make in
-            make.top.equalTo(containerView)
-            make.left.equalTo(containerView).offset(17)
-            make.right.equalTo(containerView).offset(-18)
+        imageContentView.snp.makeConstraints { make in
+            make.top.left.right.equalToSuperview()
             make.height.equalTo(180)
         }
         
+        imageView.snp.makeConstraints { make in
+            make.bottom.equalToSuperview()
+            make.left.equalTo(18)
+            make.right.equalTo(-18)
+        }
+        
         titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(cardView.snp.bottom).offset(20)
+            make.top.equalTo(imageView.snp.bottom).offset(20)
             make.left.equalTo(containerView).offset(20)
             make.right.equalTo(containerView).offset(-20)
         }
