@@ -60,27 +60,33 @@ public class FeedBackPresenter {
     }
     
     private func zipFiles(fileURLs: [URL], destinationURL: URL, completion: @escaping (FeedbackError?, URL?) -> Void) {
-        let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("AgentLogs")
-        // delete exist files
-        try? FileManager.default.removeItem(at: tempDirectory)
-        do {
-            try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true, attributes: nil)
-            
-            for fileURL in fileURLs {
-                let destinationFileURL = tempDirectory.appendingPathComponent(fileURL.lastPathComponent)
-                try FileManager.default.copyItem(at: fileURL, to: destinationFileURL)
+        DispatchQueue.global(qos: .utility).async {
+            let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("AgentLogs")
+            // delete exist files
+            try? FileManager.default.removeItem(at: tempDirectory)
+            do {
+                try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true, attributes: nil)
+                
+                for fileURL in fileURLs {
+                    let destinationFileURL = tempDirectory.appendingPathComponent(fileURL.lastPathComponent)
+                    try FileManager.default.copyItem(at: fileURL, to: destinationFileURL)
+                }
+                try? FileManager.default.removeItem(at: destinationURL)
+                
+                let success = SSZipArchive.createZipFile(atPath: destinationURL.path,
+                                                         withContentsOfDirectory: tempDirectory.path)
+                DispatchQueue.main.async {
+                    if success {
+                        completion(nil, destinationURL)
+                    } else {
+                        completion(FeedbackError(code: -1, message: "zip log error"), nil)
+                    }
+                }
+            } catch let err {
+                DispatchQueue.main.async {
+                    completion(FeedbackError(code: -1, message: err.localizedDescription), nil)
+                }
             }
-            try? FileManager.default.removeItem(at: destinationURL)
-            
-            let success = SSZipArchive.createZipFile(atPath: destinationURL.path,
-                                                     withContentsOfDirectory: tempDirectory.path)
-            if success {
-                completion(nil, destinationURL)
-            } else {
-                completion(FeedbackError(code: -1, message: "zip log error"), nil)
-            }
-        } catch let err {
-            completion(FeedbackError(code: -1, message: err.localizedDescription), nil)
         }
     }
     
