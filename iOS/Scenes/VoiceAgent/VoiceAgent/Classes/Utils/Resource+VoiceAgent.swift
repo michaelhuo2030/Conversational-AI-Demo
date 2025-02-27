@@ -22,8 +22,6 @@ extension ResourceManager {
         }
 
         public enum Scene {
-            public static let title = ResourceManager.localizedString("scene.title")
-            public static let aiCardTitle = ResourceManager.localizedString("scene.ai.card.title")
             public static let aiCardDes = ResourceManager.localizedString("scene.ai.card.des")
             public static let v2vCardTitle = ResourceManager.localizedString("scene.v2v.card.title")
             public static let v2vCardDes = ResourceManager.localizedString("scene.v2v.card.des")
@@ -36,8 +34,17 @@ extension ResourceManager {
             public static let description = ResourceManager.localizedString("login.description")
             public static let buttonTitle = ResourceManager.localizedString("login.start.button.title")
             public static let termsServicePrefix = ResourceManager.localizedString("login.terms.service.prefix")
-            public static let termsServiceSuffix = ResourceManager.localizedString("login.terms.service.suffix")
+            public static let termsServiceName = ResourceManager.localizedString("login.terms.service.name")
+            public static let termsServiceAndWord = ResourceManager.localizedString("login.terms.service.and")
+            public static let termsPrivacyName = ResourceManager.localizedString("login.privacy.policy.name")
             public static let termsServiceTips = ResourceManager.localizedString("login.terms.service.tips")
+            public static let sessionExpired = ResourceManager.localizedString("login.session.expired")
+            
+            public static let logoutAlertTitle = ResourceManager.localizedString("logout.alert.title")
+            public static let logoutAlertDescription = ResourceManager.localizedString("logout.alert.description")
+            public static let logoutAlertConfirm = ResourceManager.localizedString("logout.alert.cancel.title")
+            public static let logoutAlertCancel = ResourceManager.localizedString("logout.alert.confirm.title")
+
         }
 
         public enum Join {
@@ -50,6 +57,8 @@ extension ResourceManager {
         }
 
         public enum Conversation {
+            public static let appWelcomeTitle = ResourceManager.localizedString("conversation.ai.welcome.title")
+            public static let appWelcomeDescription = ResourceManager.localizedString("conversation.ai.welcome.description")
             public static let appName = ResourceManager.localizedString("conversation.ai.app.name")
             public static let agentName = ResourceManager.localizedString("conversation.agent.name")
             public static let buttonEndCall = ResourceManager.localizedString("conversation.button.end.call")
@@ -76,11 +85,17 @@ extension ResourceManager {
             public static let networkError = ResourceManager.localizedString("error.network")
             public static let roomError = ResourceManager.localizedString("error.room.error")
             public static let joinError = ResourceManager.localizedString("error.join.error")
+            public static let resouceLimit = ResourceManager.localizedString("error.join.error.resource.limit")
             public static let networkDisconnected = ResourceManager.localizedString("error.network.disconnect")
+            public static let microphonePermissionTitle = ResourceManager.localizedString("error.microphone.permission.alert.title")
+            public static let microphonePermissionDescription = ResourceManager.localizedString("error.microphone.permission.alert.description")
+            public static let permissionCancel = ResourceManager.localizedString("error.permission.alert.cancel")
+            public static let permissionConfirm = ResourceManager.localizedString("error.permission.alert.confirm")
         }
 
         public enum Settings {
             public static let title = ResourceManager.localizedString("settings.title")
+            public static let tips = ResourceManager.localizedString("settings.connected.tips")
             public static let preset = ResourceManager.localizedString("settings.preset")
             public static let advanced = ResourceManager.localizedString("settings.advanced")
             public static let device = ResourceManager.localizedString("settings.device")
@@ -90,7 +105,8 @@ extension ResourceManager {
             public static let microphone = ResourceManager.localizedString("settings.microphone")
             public static let speaker = ResourceManager.localizedString("settings.speaker")
             public static let noiseCancellation = ResourceManager.localizedString("settings.noise.cancellation")
-            public static let aiVad = ResourceManager.localizedString("settings.noise.aiVad")
+            public static let aiVadNormal = ResourceManager.localizedString("settings.noise.aiVad.nomal")
+            public static let aiVadLight = ResourceManager.localizedString("settings.noise.aiVad.highlight")
             public static let bhvs = ResourceManager.localizedString("settings.noise.bhvs")
             public static let forceResponse = ResourceManager.localizedString("settings.noise.forceResponse")
             public static let agentConnected = ResourceManager.localizedString("settings.agent.connected")
@@ -115,7 +131,13 @@ extension ResourceManager {
             public static let networkFair = ResourceManager.localizedString("channel.network.fair")
             public static let moreInfo = ResourceManager.localizedString("channel.more.title")
             public static let feedback = ResourceManager.localizedString("channel.more.feedback")
+            public static let feedbackLoading = ResourceManager.localizedString("channel.more.feedback.uploading")
+            public static let feedbackSuccess = ResourceManager.localizedString("channel.more.feedback.success")
+            public static let feedbackFailed = ResourceManager.localizedString("channel.more.feedback.failed")
             public static let logout = ResourceManager.localizedString("channel.more.logout")
+            public static let timeLimitdAlertTitle = ResourceManager.localizedString("channel.time.limited.alert.title")
+            public static let timeLimitdAlertDescription = ResourceManager.localizedString("channel.time.limited.alert.description")
+            public static let timeLimitdAlertConfim = ResourceManager.localizedString("channel.time.limited.alert.confim")
         }
         
         public enum DevMode {

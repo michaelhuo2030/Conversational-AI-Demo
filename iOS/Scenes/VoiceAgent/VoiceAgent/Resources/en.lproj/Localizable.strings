@@ -1,17 +1,27 @@
 
-"login.title" = "Login for Chat free";
+"login.title" = "Unlock ♾️ Free Chat";
 "login.description" = "Power your business future at once";
-"login.start.button.title" = "login with phone number";
-"login.terms.service.prefix" = "I agree to the ";
-"login.terms.service.suffix" = "Agora Terms of Service";
+"login.start.button.title" = "Log in with Agora account";
+"login.terms.service.prefix" = "I accept the ";
+"login.terms.service.name" = "Terms of Services";
+"login.terms.service.and" = "and";
+"login.privacy.policy.name" = "Privacy Policy";
 "login.terms.service.tips" = "Read me first";
+"login.session.expired" = "Your session has expired. Please log in again";
 
-"join.start.title" = "Conversational AI Engine";
+"logout.alert.title" = "You will be logged out";
+"logout.alert.description" = "You'll need to sign in again to use all features. Log out now?";
+"logout.alert.confirm.title" = "Cancel";
+"logout.alert.cancel.title" = "Log out";
+
+"join.start.title" = "Conversational AI";
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";
-"join.start.tips" = "Limited to 10 minutes";
+"join.start.tips" = "Session Limit: %d minutes.";
 
+"conversation.ai.welcome.title" = "Hey, I'm Conversational AI Engine.";
+"conversation.ai.welcome.description" = "Have you ever questioned the nature of your reality?";
 "conversation.ai.app.name" = "Conversational AI Engine";
 "conversation.agent.name" = "Agent";
 "conversation.button.end.call" = "End Call";
@@ -34,6 +44,7 @@
 
 // Settings View
 "settings.title" = "Settings";
+"settings.connected.tips" = "(Connected, cannot be modified)";
 "settings.preset" = "Preset";
 "settings.advanced" = "Advanced Settings";
 "settings.device" = "DEVICE";
@@ -43,7 +54,8 @@
 "settings.microphone" = "Microphone";
 "settings.speaker" = "Speaker";
 "settings.noise.cancellation" = "Noise Cancellation";
-"settings.noise.aiVad" = "Intelligent Interruption Handling";
+"settings.noise.aiVad.nomal" = "Intelligent Interruption Handling";
+"settings.noise.aiVad.highlight" = "";
 "settings.noise.forceResponse" = "Force Response";
 "settings.noise.bhvs" = "Background Human Voice Suppression";
 
@@ -63,14 +75,27 @@
 "channel.network.good" = "Good";
 "channel.network.poor" = "Poor";
 "channel.network.fair" = "Fair";
-"channel.more.title" = "More";
-"channel.more.feedback" = "Feed Back";
-"channel.more.logout" = "Logout";
+"channel.more.title" = "More Actions";
+"channel.more.feedback" = "Quick Report";
+"channel.more.feedback.uploading" = "Uploading...";
+"channel.more.feedback.success" = "We've received your report. Thanks for helping us improve!";
+"channel.more.feedback.failed" = "Opps! Something went wrong. Please try reporting again";
+
+"channel.more.logout" = "Log Out";
+"channel.time.limited.alert.title" = "Time's Up!";
+"channel.time.limited.alert.description" = "Each session is limited to 10 minutes. Start a new conversation after closing this window";
+"channel.time.limited.alert.confim" = "Got it";
 
 "error.network" = "request failed:";
 "error.room.error" = "Room no longer exists. Please join a new call.";
 "error.join.error" = "Failed to join. Please try again.";
+"error.join.error.resource.limit" = "The current preset resources are out of limit. Please try again later";
 "error.network.disconnect" = "Network is unstable, please exit and try again.";
+
+"error.microphone.permission.alert.title" = "No microphone permission";
+"error.microphone.permission.alert.description" = "Please enable microphone permissions in the settings";
+"error.permission.alert.cancel" = "Cancel";
+"error.permission.alert.confirm" = "Setting";
 
 "devmode.title" = "Developer Mode";
 "devmode.rtc" = "RTC Version";

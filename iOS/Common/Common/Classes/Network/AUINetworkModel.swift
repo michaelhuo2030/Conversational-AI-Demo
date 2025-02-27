@@ -77,8 +77,7 @@ open class AUINetworkModel: NSObject {
     open func tokenExpired() {
         DispatchQueue.main.async {
             UserCenter.shared.logout()
-            // TODO: token expired
-//            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "AGORAENTTOKENEXPIRED") , object: nil)
+            NotificationCenter.default.post(name: .TokenExpired, object: nil)
         }
     }
     
@@ -96,12 +95,6 @@ open class AUINetworkModel: NSObject {
 @objcMembers
 open class AUIUploadNetworkModel: AUINetworkModel {
     
-    public var appId: String?
-    public var channelName: String?
-    public var agentId: String?
-    public var payload: [String: Any]?
-    public var fileData: Data?
-    
     public lazy var  boundary: String = {
         UUID().uuidString
     }()
@@ -114,19 +107,8 @@ open class AUIUploadNetworkModel: AUINetworkModel {
         return headers
     }
     
-    public func multipartData() -> Data {
-        // 创建HTTP请求体
+    open func multipartData() -> Data {
         var data = Data()
-        guard let appId = appId, let channelName = channelName, let agentId = agentId, let fileData = fileData else {
-            return data
-        }
-        // 添加数据
-        data.append("\r\n--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; appId=\"\(appId)\"; channelName=\"\(channelName)\"; agentId=\"\(agentId)\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: application/zip\r\n\r\n".data(using: .utf8)!)
-        data.append(fileData)
-        // Multipart结束标记
-        data.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
         return data
     }
     

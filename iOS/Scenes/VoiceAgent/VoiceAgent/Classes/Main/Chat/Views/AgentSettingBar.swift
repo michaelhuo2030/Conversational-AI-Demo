@@ -36,7 +36,7 @@ class AgentSettingBar: UIView {
     private let centerTitleView = UIView()
     private lazy var centerTipsLabel: UILabel = {
         let label = UILabel()
-        label.text = ResourceManager.L10n.Join.tips
+        label.text = String(format: ResourceManager.L10n.Join.tips, 10)
         label.font = .systemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         return label
@@ -53,6 +53,10 @@ class AgentSettingBar: UIView {
         label.textColor = UIColor.themColor(named: "ai_brand_white10")
         return label
     }()
+    let centerTitleButton = UIButton()
+    
+    var showTipsTimer: Timer?
+    var isShowTips = false
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -71,8 +75,6 @@ class AgentSettingBar: UIView {
         unregisterDelegate()
     }
     
-    // MARK: - Private Methods
-    
     func registerDelegate() {
         if let manager = AppContext.preferenceManager() {
             manager.addDelegate(self)
@@ -86,22 +88,49 @@ class AgentSettingBar: UIView {
     }
     
     public func startWithRestTime(_ seconds: Int) {
-        showTips()
+        showTips(seconds: seconds)
         countDownLabel.isHidden = false
         updateRestTime(seconds)
     }
     
+    public func updateButtonVisible(_ visible: Bool) {
+        if (visible) {
+            infoListButton.isHidden = false
+            settingButton.isHidden = false
+            updateNetWorkView()
+        } else {
+            infoListButton.isHidden = true
+            settingButton.isHidden = true
+            netStateView.isHidden = true
+        }
+    }
+    
     public func updateRestTime(_ seconds: Int) {
+        if seconds < 20 {
+            countDownLabel.textColor = UIColor.themColor(named: "ai_red6")
+        } else if seconds < 59 {
+            countDownLabel.textColor = UIColor.themColor(named: "ai_green6")
+        } else {
+            countDownLabel.textColor = UIColor.themColor(named: "ai_brand_white10")
+        }
         let minutes = seconds / 60
-        let seconds = seconds % 60
-        countDownLabel.text = String(format: "%02d:%02d", minutes, seconds)
+        let s = seconds % 60
+        countDownLabel.text = String(format: "%02d:%02d", minutes, s)
     }
     
     public func stop() {
         countDownLabel.isHidden = true
+        hideTips()
     }
     
-    public func showTips() {
+    public func showTips(seconds: Int = 10 * 60) {
+        if isShowTips {
+            return
+        }
+        let minutes = seconds / 60
+        centerTipsLabel.text = String(format: ResourceManager.L10n.Join.tips, minutes)
+        isShowTips = true
+        showTipsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(hideTips), userInfo: nil, repeats: false)
         self.centerTitleView.snp.remakeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
@@ -122,10 +151,16 @@ class AgentSettingBar: UIView {
             }
             self.layoutIfNeeded()
         }
-        Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(hideTips), userInfo: nil, repeats: false)
     }
     
+    // MARK: - Private Methods
     @objc private func hideTips() {
+        if !isShowTips {
+            return
+        }
+        isShowTips = false
+        showTipsTimer?.invalidate()
+        showTipsTimer = nil
         self.centerTipsLabel.snp.remakeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
@@ -150,6 +185,7 @@ class AgentSettingBar: UIView {
     
     private func updateNetWorkView() {
         guard let manager = AppContext.preferenceManager() else {
+            netStateView.isHidden = true
             return
         }
         let roomState = manager.information.rtcRoomState
@@ -184,7 +220,7 @@ class AgentSettingBar: UIView {
     
     private func setupViews() {
         [titleContentView, infoListButton, netStateView, settingButton, countDownLabel].forEach { addSubview($0) }
-        [centerTipsLabel, centerTitleView].forEach { titleContentView.addSubview($0) }
+        [centerTipsLabel, centerTitleView, centerTitleButton].forEach { titleContentView.addSubview($0) }
         [netTrackView, netRenderView].forEach { netStateView.addSubview($0) }
         
         let titleImageView = UIImageView()
@@ -226,20 +262,26 @@ class AgentSettingBar: UIView {
             make.height.equalToSuperview()
             make.top.equalTo(self.snp.bottom)
         }
+        centerTitleButton.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
         settingButton.snp.makeConstraints { make in
             make.right.equalTo(-10)
             make.width.height.equalTo(42)
             make.centerY.equalToSuperview()
         }
         netStateView.snp.remakeConstraints { make in
-            make.right.equalTo(settingButton.snp.left).offset(-10)
+            make.right.equalTo(settingButton.snp.left)
+            make.width.height.equalTo(42)
             make.centerY.equalToSuperview()
         }
         netTrackView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.center.equalToSuperview()
+            make.width.height.equalTo(22)
         }
         netRenderView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.center.equalToSuperview()
+            make.width.height.equalTo(22)
         }
         countDownLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()

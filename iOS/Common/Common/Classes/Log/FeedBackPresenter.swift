@@ -13,37 +13,48 @@ public struct FeedbackError: Error {
     public var message: String
 }
 
-public typealias FeedbackCompletion = (FeedbackError?, [String : Any]?) -> Void
+public typealias FeedbackCompletion = (FeedbackError?, String?) -> Void
 
 public class FeedBackPresenter {
     
-    private let kURLPathUploadImage = "/api-login/upload"
     private let kURLPathUploadLog = "/v1/convoai/upload/log"
-    private let kURLPathFeedback = "/api-login/feedback/upload"
-    
-    private var images = [UIImage]()
-    private var imageUrls: [String]?
     
     public init() {
     }
     
-    public func feedback(isSendLog: Bool, title: String, feedback: String = "", completion: @escaping FeedbackCompletion) {
-        var logUrl: String? = nil
-        let group = DispatchGroup()
-        if isSendLog {
-            group.enter()
-            zipAndSendLog(fileName: title, completion: { error, url in
-                logUrl = url
-                group.leave()
-            })
+    public func feedback(isSendLog: Bool, channel: String, agentId: String?, feedback: String = "", completion: @escaping FeedbackCompletion) {
+        var fileName = channel
+        if let agentId = agentId {
+            let processedAgentId = agentId.split(separator: ":").first.map(String.init) ?? ""
+            fileName = "\(processedAgentId)_\(channel)"
         }
-        group.notify(queue: .main) {
-            guard logUrl != nil else {
-                completion(FeedbackError(code: -1, message: "zip log error"), nil)
+        var fileURLs = [URL]()
+        fileURLs.append(contentsOf: AgoraEntLog.allLogsUrls())
+        fileURLs.append(contentsOf: getAgoraFiles())
+        let tempFile = NSTemporaryDirectory() + "/\(fileName).zip"
+        zipFiles(fileURLs: fileURLs, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
+            if let err = err {
+                completion(err, nil)
                 return
             }
-            self.submitFeedbackData(feedback: feedback, imageUrls: self.imageUrls, logUrl: logUrl) { errot, result in
-                completion(errot, result)
+            guard let url = url, let data = try? Data.init(contentsOf: url) else {
+                return
+            }
+            let req = FeedbackNetworkModel()
+            req.fileName = fileName
+            req.interfaceName = self.kURLPathUploadLog
+            req.fileData = data
+            req.appId = AppContext.shared.appId
+            req.channelName = channel
+            req.agentId = agentId ?? ""
+            req.upload { progress in
+                print("upload log progress: \(progress)")
+            } completion: { err, content in
+                if let content = content as? [String: Any], let code = content["code"] as? Int, code == 0 {
+                    completion(nil, "upload log success")
+                } else {
+                    completion(FeedbackError(code: -1, message: "upload log error"), nil)
+                }
             }
         }
     }
@@ -68,68 +79,8 @@ public class FeedBackPresenter {
             } else {
                 completion(FeedbackError(code: -1, message: "zip log error"), nil)
             }
-        } catch {
-            completion(FeedbackError(code: -1, message: "zip log error"), nil)
-        }
-    }
-    
-    private func submitFeedbackData(feedback: String, imageUrls: [String]?, logUrl: String?, completion: @escaping FeedbackCompletion) {
-        var images: [String: String] = [:]
-        imageUrls?.enumerated().forEach({
-            images["\($0.offset + 1)"] = $0.element
-        })
-        
-        let url = AppContext.shared.baseServerUrl + kURLPathFeedback
-        let parameters = ["screenshotURLs": images,
-                          "tags": [],
-                          "description": feedback,
-                          "logURL": logUrl ?? ""] as [String : Any]
-        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            if let code = result["code"] as? Int, code != 0 {
-                let msg = result["msg"] as? String ?? "Unknown error"
-                let error = FeedbackError(code: code, message: msg)
-                completion(error, nil)
-            } else {
-                completion(nil, result)
-            }
-        } failure: { msg in
-            let error = FeedbackError(code: -1, message: msg)
-            completion(error, nil)
-        }
-    }
-    
-    private func zipAndSendLog(fileName: String, completion: @escaping (FeedbackError?, String?) -> Void) {
-        var fileURLs = [URL]()
-        fileURLs.append(contentsOf: AgoraEntLog.allLogsUrls())
-        fileURLs.append(contentsOf: getAgoraFiles())
-        let fileName = "/\(fileName).zip"
-        let tempFile = NSTemporaryDirectory() + fileName
-        zipFiles(fileURLs: fileURLs, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
-            if let err = err {
-                completion(err, nil)
-                return
-            }
-            guard let url = url, let data = try? Data.init(contentsOf: url) else {
-                return
-            }
-            let req = AUIUploadNetworkModel()
-            req.interfaceName = self.kURLPathUploadLog
-            req.fileData = data
-            req.appId = AppContext.shared.appId
-            req.channelName = "agora"
-            req.agentId = "1213"
-//            req.name = "file"
-//            req.mimeType = "application/zip"
-//            req.fileName = fileName
-            req.upload { progress in
-                
-            } completion: { err, content in
-                var logUrl: String? = nil
-                if let content = content as? [String: Any], let data = content["data"] as? [String: Any], let url = data["url"] as? String {
-                    logUrl = url
-                }
-                completion(FeedbackError(code: -1, message: "upload log error"), logUrl)
-            }
+        } catch let err {
+            completion(FeedbackError(code: -1, message: err.localizedDescription), nil)
         }
     }
     
@@ -142,15 +93,51 @@ public class FeedBackPresenter {
             let files = try fileManager.contentsOfDirectory(at: documentsDirectory, includingPropertiesForKeys: nil)
             let agoraFiles = files.filter {
                 ($0.lastPathComponent.hasPrefix("agora")) ||
-                ($0.lastPathComponent.hasPrefix("aec_farin")) ||
-                ($0.lastPathComponent.hasPrefix("aec_linear")) ||
-                ($0.lastPathComponent.hasPrefix("aec_nearin")) ||
-                ($0.lastPathComponent.hasPrefix("af_ns")) ||
-                ($0.lastPathComponent.hasPrefix("af_sfnlp"))
+                ($0.lastPathComponent.contains("predump"))
             }
             return agoraFiles
         } catch {
             return []
         }
+    }
+}
+
+class FeedbackNetworkModel: AUIUploadNetworkModel {
+    public var appId: String?
+    public var channelName: String?
+    public var fileName: String?
+    public var agentId: String?
+    public var payload: [String: Any] = [String: Any]()
+    public var fileData: Data?
+    
+    public override func multipartData() -> Data {
+        var data = Data()
+        guard let appId = appId, let channelName = channelName, let agentId = agentId, let fileData = fileData, let fileName = fileName else {
+            return data
+        }
+        let contentDict: [String: Any] = [
+            "appId": appId,
+            "channelName": channelName,
+            "agentId": agentId,
+            "payload": payload
+        ]
+        print("upload log with \(contentDict)" )
+        guard let contentData = try? JSONSerialization.data(withJSONObject: contentDict) else {
+            return data
+        }
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"content\"\r\n\r\n".data(using: .utf8)!)
+        data.append(contentData)
+        data.append("\r\n".data(using: .utf8)!)
+        // add part of file
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName).zip\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(fileData)
+        data.append("\r\n".data(using: .utf8)!)
+        
+        // add end sign
+        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        return data
     }
 }

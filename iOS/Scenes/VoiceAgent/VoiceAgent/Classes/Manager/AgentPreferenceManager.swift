@@ -49,6 +49,7 @@ protocol AgentPreferenceManagerProtocol {
     func updateUserId(_ userId: String)
     func updateTargetServer(_ host: String)
     
+    func deleteAllPresets()
     func resetAgentInformation()
     func allPresets() -> [AgentPreset]?
     func setPresets(presets: [AgentPreset])
@@ -139,6 +140,10 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
         updateRoomId("")
         updateUserId("")
         updateTargetServer("")
+    }
+    
+    func deleteAllPresets() {
+        presets = nil
     }
     
     func allPresets() -> [AgentPreset]? {

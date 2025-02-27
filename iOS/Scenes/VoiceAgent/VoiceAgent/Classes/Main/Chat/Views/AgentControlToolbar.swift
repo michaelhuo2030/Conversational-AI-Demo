@@ -16,7 +16,7 @@ enum AgentControlStyle {
 protocol AgentControlToolbarDelegate: AnyObject {
     func hangUp()
     func getStart() async
-    func mute(selectedState: Bool)
+    func mute(selectedState: Bool) -> Bool
     func switchCaptions(selectedState: Bool)
 }
 
@@ -26,8 +26,9 @@ class AgentControlToolbar: UIView {
     private let buttonHeight = 76.0
     private let startButtonHeight = 68.0
     private var _style: AgentControlStyle = .startButton
-    private var gradientLayer: CAGradientLayer?
-    
+    private var startButtonGradientLayer: CAGradientLayer?
+    private var loadingViewGradientLayer: CAGradientLayer?
+
     var style: AgentControlStyle {
         get {
             return _style
@@ -64,6 +65,15 @@ class AgentControlToolbar: UIView {
         return button
     }()
     
+    private lazy var pointAnimateView: PointAnimationView = {
+        let view = PointAnimationView()
+        view.layer.cornerRadius = 15
+        view.clipsToBounds = true
+        setupPointAnimateView(view: view)
+        view.isHidden = true
+        return view
+    }()
+    
     lazy var closeButton: UIButton = {
         let button = UIButton(type: .custom)
         button.addTarget(self, action: #selector(hangUpAction), for: .touchUpInside)
@@ -75,7 +85,7 @@ class AgentControlToolbar: UIView {
         return button
     }()
     
-    lazy var muteButton: UIButton = {
+    private lazy var muteButton: UIButton = {
         let button = UIButton(type: .custom)
         button.addTarget(self, action: #selector(muteAction(_ :)), for: .touchUpInside)
         button.titleLabel?.textAlignment = .center
@@ -133,26 +143,13 @@ class AgentControlToolbar: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        registerDelegate()
         setupViews()
         setupConstraints()
         style = .startButton
     }
     
-    deinit {
-        unregisterDelegate()
-    }
-    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func registerDelegate() {
-        AppContext.preferenceManager()?.addDelegate(self)
-    }
-    
-    private func unregisterDelegate() {
-        AppContext.preferenceManager()?.removeDelegate(self)
     }
     
     func resetState() {
@@ -181,6 +178,21 @@ class AgentControlToolbar: UIView {
         micProgressView.progress = value/255
     }
     
+    func setMircophoneButtonSelectState(state: Bool) {
+        muteButton.isSelected = state
+        micProgressView.isHidden = state
+    }
+    
+    func startLoadingAnimation() {
+        pointAnimateView.isHidden = false
+        pointAnimateView.startAnimating()
+    }
+    
+    func stopLoadingAnimation() {
+        pointAnimateView.stopAnimating()
+        pointAnimateView.isHidden = true
+    }
+    
     private func setupViews() {
         addSubview(buttonControlContentView)
         [captionsButton, muteButton, micProgressView, closeButton].forEach { button in
@@ -189,6 +201,7 @@ class AgentControlToolbar: UIView {
 
         addSubview(startButtonContentView)
         startButtonContentView.addSubview(startButton)
+        startButtonContentView.addSubview(pointAnimateView)
     }
     
     private func setupConstraints() {
@@ -204,6 +217,12 @@ class AgentControlToolbar: UIView {
         }
         
         startButton.layoutIfNeeded()
+        
+        pointAnimateView.snp.makeConstraints { make in
+            make.left.right.bottom.top.equalTo(startButton)
+        }
+        
+        pointAnimateView.layoutIfNeeded()
         
         buttonControlContentView.snp.makeConstraints { make in
             make.edges.equalTo(UIEdgeInsets.zero)
@@ -235,6 +254,26 @@ class AgentControlToolbar: UIView {
         }
     }
     
+    private func setupPointAnimateView(view: UIView) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [
+            UIColor(hexString: "#1186B2")?.cgColor as Any,
+            UIColor(hexString: "#2342B2")?.cgColor as Any,
+            UIColor(hexString: "#223FA7")?.cgColor as Any
+        ]
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        gradientLayer.frame = CGRectMake(0, 0, UIScreen.main.bounds.width - 40, startButtonHeight)
+        view.layer.addSublayer(gradientLayer)
+        gradientLayer.zPosition = -0.1
+        self.loadingViewGradientLayer = gradientLayer
+        
+        CATransaction.commit()
+    }
+    
     private func setupStartButton(button: UIButton) {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -250,7 +289,7 @@ class AgentControlToolbar: UIView {
         gradientLayer.frame = CGRectMake(0, 0, UIScreen.main.bounds.width - 40, startButtonHeight)
         button.layer.addSublayer(gradientLayer)
         gradientLayer.zPosition = -0.1
-        self.gradientLayer = gradientLayer
+        self.startButtonGradientLayer = gradientLayer
         
         CATransaction.commit()
     }
@@ -266,10 +305,10 @@ class AgentControlToolbar: UIView {
         delegate?.hangUp()
     }
     
-    @objc private func muteAction(_ sender: UIButton) {
-        sender.isSelected = !sender.isSelected
+    @objc func muteAction(_ sender: UIButton) {
+        let result = delegate?.mute(selectedState: sender.isSelected) ?? false
+        sender.isSelected = result
         micProgressView.isHidden = sender.isSelected
-        delegate?.mute(selectedState: sender.isSelected)
     }
 
     @objc private func switchCaptionsAction(_ sender: UIButton) {
@@ -279,7 +318,7 @@ class AgentControlToolbar: UIView {
     }
     
     private func setTintColor(state: Bool) {
-        captionsButton.tintColor = state ? UIColor.themColor(named: "ai_brand_main6") : UIColor.themColor(named: "ai_icontext1")
+        captionsButton.tintColor = state ? UIColor.themColor(named: "ai_brand_lightbrand6") : UIColor.themColor(named: "ai_icontext1")
     }
     
     override func layoutSubviews() {
@@ -288,9 +327,8 @@ class AgentControlToolbar: UIView {
         if startButtonContentView.frame.width > 0 {
             CATransaction.begin()
             CATransaction.setDisableActions(true)
-            
-            gradientLayer?.frame = startButton.bounds
-            
+            startButtonGradientLayer?.frame = startButton.bounds
+            loadingViewGradientLayer?.frame = pointAnimateView.bounds
             CATransaction.commit()
         }
     }
@@ -305,10 +343,3 @@ class AgentControlToolbar: UIView {
         }
     }
 }
-
-extension AgentControlToolbar: AgentPreferenceManagerDelegate {
-    func preferenceManager(_ manager: AgentPreferenceManager, presetDidUpdated preset: AgentPreset) {
-        
-    }
-}
-

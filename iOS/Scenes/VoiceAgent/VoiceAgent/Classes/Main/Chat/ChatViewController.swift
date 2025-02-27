@@ -29,14 +29,13 @@ public class ChatViewController: UIViewController {
         return coordinator
     }()
 
-    private lazy var messageAdapter: MessageAdapter = {
-        let adapter = MessageAdapter()
-        adapter.delegate = self
-        return adapter
+    private lazy var subRenderController: CovSubRenderController = {
+        let renderCtrl = CovSubRenderController()
+        return renderCtrl
     }()
     
     private lazy var rtcManager: RTCManager = {
-        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self, audioFrameDelegate: self)
+        let manager = RTCManager(appId: AppContext.shared.appId, delegate: self)
         addLog("rtc sdk version: \(AgoraRtcEngineKit.getSdkVersion())")
         return manager
     }()
@@ -50,6 +49,7 @@ public class ChatViewController: UIViewController {
         let view = AgentSettingBar()
         view.infoListButton.addTarget(self, action: #selector(onClickInformationButton), for: .touchUpInside)
         view.settingButton.addTarget(self, action: #selector(onClickSettingButton), for: .touchUpInside)
+        view.centerTitleButton.addTarget(self, action: #selector(onClickLogo), for: .touchUpInside)
         return view
     }()
 
@@ -59,22 +59,16 @@ public class ChatViewController: UIViewController {
         return view
     }()
     
-    private lazy var welcomeMessageView: UIImageView = {
-        let view = UIImageView()
-        let label = UILabel()
-        label.font = UIFont.boldSystemFont(ofSize: 24)
-        label.textColor = .white
-        label.text = "hi, i’m Convo aI agents"
-        label.textAlignment = .center
-        view.addSubview(label)
-        label.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
-        }
+    private lazy var welcomeMessageView: TypewriterLabel = {
+        let view = TypewriterLabel()
+        view.font = UIFont.boldSystemFont(ofSize: 20)
+        view.startAnimation()
         return view
     }()
     
     private lazy var animateContentView: UIView = {
         let view = UIView()
+        view.backgroundColor = UIColor.themColor(named: "ai_fill4")
         return view
     }()
     
@@ -91,11 +85,10 @@ public class ChatViewController: UIViewController {
     
     private let lowerBackgroundView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.themColor(named: "ai_fill4")
         return view
     }()
     
-    private lazy var toastView: ToastView = {
+    private lazy var annotationView: ToastView = {
         let view = ToastView()
         view.isHidden = true
         return view
@@ -132,9 +125,13 @@ public class ChatViewController: UIViewController {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
         button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(onLongPressDevMode(_:)))
+        button.addGestureRecognizer(longPressGesture)
         return button
     }()
-        
+    var clickCount = 0
+    var lastClickTime: Date?
+    
     deinit {
         print("liveing view controller deinit")
         deregisterDelegate()
@@ -146,6 +143,7 @@ public class ChatViewController: UIViewController {
 
         let isLogin = UserCenter.shared.isLogin()
         welcomeMessageView.isHidden = isLogin
+        topBar.updateButtonVisible(isLogin)
     }
     
     public override func viewDidLoad() {
@@ -156,17 +154,38 @@ public class ChatViewController: UIViewController {
         preloadData()
         setupViews()
         setupConstraints()
+        setupSomeNecessaryConfig()
     }
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // set gradient color from #23248399 to #242439
+        
+        upperBackgroundView.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+        lowerBackgroundView.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+        
         let gradientLayer = CAGradientLayer()
         gradientLayer.frame = upperBackgroundView.bounds
-        let startColor = UIColor(argbHexString: "#1D1D56") ?? .black
-        let endColor = UIColor(argbHexString: "#242439") ?? .black
-        gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+        var startColor = UIColor.themColor(named: "ai_fill4")
+        let middleColor = UIColor.themColor(named: "ai_fill4").withAlphaComponent(0.7)
+        var endColor = UIColor.clear
+        gradientLayer.colors = [startColor.cgColor, middleColor.cgColor, endColor.cgColor]
+        
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+        gradientLayer.locations = [0.0, 0.2, 0.7]
         upperBackgroundView.layer.insertSublayer(gradientLayer, at: 0)
+        
+        let bottomGradientLayer = CAGradientLayer()
+        startColor = UIColor.clear
+        endColor = UIColor.themColor(named: "ai_fill4")
+        bottomGradientLayer.frame = lowerBackgroundView.bounds
+        bottomGradientLayer.colors = [startColor.cgColor, endColor.cgColor]
+        
+        bottomGradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+        bottomGradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+        bottomGradientLayer.locations = [0.0, 0.7]
+        
+        lowerBackgroundView.layer.insertSublayer(bottomGradientLayer, at: 0)
     }
     
     private func registerDelegate() {
@@ -183,28 +202,48 @@ public class ChatViewController: UIViewController {
             return
         }
 
-        Task {
-            do {
-                try await fetchPresetsIfNeeded()
-                try await fetchTokenIfNeeded()
-            } catch {
-                addLog("[PreloadData error]: \(error)")
+        LoginApiService.getUserInfo { [weak self] error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                self.addLog("[PreloadData error - userInfo]: \(error)")
+            }
+            
+            Task {
+                do {
+                    try await self.fetchPresetsIfNeeded()
+                } catch {
+                    self.addLog("[PreloadData error - presets]: \(error)")
+                }
+            }
+                
+            Task {
+                do {
+                    try await self.fetchTokenIfNeeded()
+                } catch {
+                    self.addLog("[PreloadData error - token]: \(error)")
+                }
             }
         }
     }
     
+    private func showMicroPhonePermissionAlert() {
+        let title = ResourceManager.L10n.Error.microphonePermissionTitle
+        let description = ResourceManager.L10n.Error.microphonePermissionDescription
+        let cancel = ResourceManager.L10n.Error.permissionCancel
+        let confirm = ResourceManager.L10n.Error.permissionConfirm
+        AgentAlertView.show(in: view, title: title, content: description, cancelTitle: cancel, confirmTitle: confirm, onConfirm: {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        })
+    }
+    
     private func setupViews() {
         view.backgroundColor = .black
+        [animateContentView, upperBackgroundView, lowerBackgroundView, topBar, contentView, messageView, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
         
-        [upperBackgroundView, lowerBackgroundView, topBar, contentView, welcomeMessageView, bottomBar, toastView, devModeButton].forEach { view.addSubview($0) }
-        devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
-        
-        contentView.addSubview(animateContentView)
         contentView.addSubview(aiNameLabel)
-        contentView.addSubview(messageView)
-        
-        animateView.setupMediaPlayer(rtcManager.getRtcEntine())
-        animateView.updateAgentState(.idle)
     }
     
     private func setupConstraints() {
@@ -214,6 +253,10 @@ public class ChatViewController: UIViewController {
             make.height.equalTo(48)
         }
         
+        animateContentView.snp.makeConstraints { make in
+            make.left.right.top.bottom.equalTo(0)
+        }
+        
         contentView.snp.makeConstraints { make in
             make.left.equalTo(0)
             make.right.equalTo(0)
@@ -221,18 +264,12 @@ public class ChatViewController: UIViewController {
             make.bottom.equalTo(bottomBar.snp.top).offset(-20)
         }
         
-        animateContentView.snp.makeConstraints { make in
-            make.height.equalTo(animateContentView.snp.width).multipliedBy(1080.0/1142.0)
-            make.width.equalTo(contentView.snp.width).multipliedBy(0.7)
-            make.centerX.equalTo(contentView)
-            make.centerY.equalTo(contentView)
-        }
-        
         messageView.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
+            make.top.left.right.equalTo(0)
+            make.bottom.equalTo(0)
         }
         
-        toastView.snp.makeConstraints { make in
+        annotationView.snp.makeConstraints { make in
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
             make.left.right.equalTo(0)
             make.height.equalTo(44)
@@ -255,15 +292,29 @@ public class ChatViewController: UIViewController {
             make.right.equalTo(-20)
             make.size.equalTo(CGSize(width: 44, height: 44))
         }
+        
         upperBackgroundView.snp.makeConstraints { make in
             make.top.left.right.equalToSuperview()
-            make.bottom.equalTo(animateContentView.snp.top)
+            make.bottom.equalTo(view.snp.centerY)
         }
+        
         lowerBackgroundView.snp.makeConstraints { make in
-            make.top.equalTo(animateContentView.snp.top)
+            make.top.equalTo(view.snp.centerY)
             make.left.right.bottom.equalToSuperview()
         }
     }
+    
+    private func setupSomeNecessaryConfig() {
+        let rtcEngine = rtcManager.getRtcEntine()
+        animateView.setupMediaPlayer(rtcEngine)
+        animateView.updateAgentState(.idle)
+        
+        let subRenderConfig = SubRenderConfig(rtcEngine: rtcEngine, renderMode: nil, delegate: self)
+        subRenderController.setupWithConfig(subRenderConfig)
+        
+        devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
+    }
+
     
     @MainActor
     private func prepareToStartAgent() async {
@@ -272,7 +323,7 @@ public class ChatViewController: UIViewController {
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
-            startMessageAdapter()
+            startCovSubRenderController()
             startAgentRequest()
             joinChannel()
         } catch {
@@ -281,25 +332,24 @@ public class ChatViewController: UIViewController {
     }
     
     private func showErrorToast(text: String) {
-        toastView.showToast(text: text)
+        annotationView.showToast(text: text)
     }
     
     private func dismissErrorToast() {
-        toastView.dismiss()
+        annotationView.dismiss()
     }
     
     private func startLoading() {
         bottomBar.style = .controlButtons
-        toastView.showLoading()
+        annotationView.showLoading()
     }
     
     private func stopLoading() {
         bottomBar.style = .startButton
-        toastView.dismiss()
+        annotationView.dismiss()
     }
     
     private func joinChannel() {
-        
         addLog("[Call] joinChannel()")
         if channelName.isEmpty {
             addLog("cancel to join channel")
@@ -339,7 +389,7 @@ public class ChatViewController: UIViewController {
         messageView.isHidden = true
         bottomBar.resetState()
         timerCoordinator.stopAllTimer()
-        stopMessageAdapter()
+        stopCovSubRenderController()
         stopAgentRequest()
         leaveChannel()
         AppContext.preferenceManager()?.resetAgentInformation()
@@ -353,15 +403,50 @@ public class ChatViewController: UIViewController {
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
     }
+    
+    private func goToSSOViewController() {
+        let ssoWebVC = SSOWebViewController()
+        let baseUrl = AppContext.shared.baseServerUrl
+        ssoWebVC.urlString = "\(baseUrl)/v1/convoai/sso/login"
+        ssoWebVC.completionHandler = { [weak self] token in
+            guard let self = self else { return }
+            if let token = token {
+                self.addLog("SSO token: \(token)")
+                let model = LoginModel()
+                model.token = token
+                AppContext.loginManager()?.updateUserInfo(userInfo: model)
+                self.bottomBar.startLoadingAnimation()
+                LoginApiService.getUserInfo { [weak self] error in
+                    self?.bottomBar.stopLoadingAnimation()                    
+                    if let err = error {
+                        AppContext.loginManager()?.logout()
+                        SVProgressHUD.showInfo(withStatus: err.localizedDescription)
+                    }
+                }
+            }
+        }
+        self.navigationController?.pushViewController(ssoWebVC, animated: false)
+    }
+    
+    private func switchEnvironment() {
+        stopLoading()
+        stopAgent()
+        AppContext.preferenceManager()?.deleteAllPresets()
+        AppContext.loginManager()?.logout()
+    }
 }
 
 // MARK: - Agent Request
 extension ChatViewController {
+    private func fetchUserInfo() async throws {
+        
+    }
+    
     private func fetchPresetsIfNeeded() async throws {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
         return try await withCheckedThrowingContinuation { continuation in
-            agentManager.fetchAgentPresets { error, result in
+            agentManager.fetchAgentPresets(appId: AppContext.shared.appId) { error, result in
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
@@ -408,12 +493,12 @@ extension ChatViewController {
         SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
     }
     
-    private func startMessageAdapter() {
-        messageAdapter.start()
+    private func startCovSubRenderController() {
+        subRenderController.start()
     }
     
-    private func stopMessageAdapter() {
-        messageAdapter.stop()
+    private func stopCovSubRenderController() {
+        subRenderController.stop()
     }
     
     private func startAgentRequest() {
@@ -457,11 +542,14 @@ extension ChatViewController {
                 self.timerCoordinator.startJoinChannelTimer()
                 return
             }
-
-            SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
-            self.stopLoading()
-            self.stopAgent()
-            addLog("start agent failed : \(error.message)")
+            if (error.code == 1412) {
+                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.resouceLimit)
+            } else {
+                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+                self.stopLoading()
+                self.stopAgent()
+                addLog("start agent failed : \(error.message)")
+            }
         }
     }
     
@@ -539,7 +627,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
-        toastView.dismiss()
+        annotationView.dismiss()
         remoteIsJoined = true
         timerCoordinator.startUsageDurationLimitTimer()
         addLog("[RTC Call Back] didJoinedOfUid uid: \(uid)")
@@ -583,10 +671,6 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         addLog("[RTC Call Back] networkQuality: \(rxQuality)")
         AppContext.preferenceManager()?.updateNetworkState(NetworkStatus(agoraQuality: rxQuality))
     }
-        
-    public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
-        messageAdapter.inputStreamMessageData(data: data)
-    }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, reportAudioVolumeIndicationOfSpeakers speakers: [AgoraRtcAudioVolumeInfo], totalVolume: Int) {
         speakers.forEach { info in
@@ -594,7 +678,6 @@ extension ChatViewController: AgoraRtcEngineDelegate {
                 var currentVolume: CGFloat = 0
                 currentVolume = CGFloat(info.volume)
                 if currentVolume > 0 {
-                    addLog("agent speak volume : \(currentVolume)")
                     animateView.updateAgentState(.speaking, volume: Int(currentVolume))
                 } else {
                     animateView.updateAgentState(.listening, volume: Int(currentVolume))
@@ -616,37 +699,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
         }
     }
 }
-// MARK: - AgoraAudioFrameDelegate
-extension ChatViewController: AgoraAudioFrameDelegate {
-    
-    public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
-        if uid == agentUid {
-            messageAdapter.updateAudioTimestamp(timestamp: frame.presentationMs)
-        }
-        return true
-    }
-    
-    public func getObservedAudioFramePosition() -> AgoraAudioFramePosition {
-        return .beforeMixing
-    }
-}
 
 // MARK: - Actions
 private extension ChatViewController {
-    private func clickTheBackButton() {
-        addLog("[Call] clickTheBackButton()")
-        stopAgent()
-        animateView.releaseView()
-        AppContext.destory()
-        destoryRtc()
-        UIApplication.shared.isIdleTimerDisabled = false
-        self.navigationController?.popViewController(animated: true)
-    }
-    
     @objc private func onClickInformationButton() {
-        let settingVC = AgentInformationViewController()
-        settingVC.modalPresentationStyle = .overFullScreen
-        present(settingVC, animated: false)
+        AgentInformationViewController.show(in: self, rtcManager: rtcManager)
     }
     
     @objc private func onClickSettingButton() {
@@ -668,14 +725,35 @@ private extension ChatViewController {
     private func clickTheStartButton() async {
         addLog("[Call] clickTheStartButton()")
         let loginState = UserCenter.shared.isLogin()
+
         if loginState {
-            await prepareToStartAgent()
+            await MainActor.run {
+                let needsShowMicrophonePermissionAlert = PermissionManager.getMicrophonePermission() == .denied
+                if needsShowMicrophonePermissionAlert {
+                    self.bottomBar.setMircophoneButtonSelectState(state: true)
+                }
+            }
+            
+            PermissionManager.checkMicrophonePermission { res in
+                Task {
+                    await self.prepareToStartAgent()
+                    await MainActor.run {
+                        if !res {
+                            self.bottomBar.setMircophoneButtonSelectState(state: true)
+                        }
+                    }
+                }
+            }
+            
             return
         }
         
         await MainActor.run {
             let loginVC = LoginViewController()
             loginVC.modalPresentationStyle = .overFullScreen
+            loginVC.loginAction = { [weak self] in
+                self?.goToSSOViewController()
+            }
             self.present(loginVC, animated: false)
         }
     }
@@ -684,21 +762,36 @@ private extension ChatViewController {
         messageView.isHidden = !state
     }
     
-    private func clickMuteButton(state: Bool) {
-        setupMuteState(state: state)
+    private func clickMuteButton(state: Bool) -> Bool{
+        if state {
+            let needsShowMicrophonePermissionAlert = PermissionManager.getMicrophonePermission() == .denied
+            if needsShowMicrophonePermissionAlert {
+                showMicroPhonePermissionAlert()
+                let selectedState = true
+                return selectedState
+            } else {
+                let selectedState = !state
+                setupMuteState(state: selectedState)
+                return selectedState
+            }
+        } else {
+            let selectedState = !state
+            setupMuteState(state: selectedState)
+            return selectedState
+        }
     }
     
     @objc private func onClickDevMode() {
         DeveloperModeViewController.show(
             from: self,
             audioDump: rtcManager.getAudioDump(),
-            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "") 
+            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "")
         {
             self.devModeButton.isHidden = true
         } onAudioDump: { isOn in
             self.rtcManager.enableAudioDump(enabled: isOn)
         } onSwitchServer: {
-            self.clickTheBackButton()
+            self.switchEnvironment()
         } onCopy: {
             let messageContents = self.messageView.getAllMessages()
                 .filter { $0.isMine }
@@ -708,6 +801,35 @@ private extension ChatViewController {
             pasteboard.string = messageContents
             SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
         }
+    }
+
+    @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
+//        if DeveloperModeViewController.getDeveloperMode() {
+//            devModeButton.isHidden = true
+//            DeveloperModeViewController.setDeveloperMode(false)
+//            UINotificationFeedbackGenerator().notificationOccurred(.success)
+//        }
+    }
+    
+    @objc private func onClickLogo(_ sender: UIButton) {
+        let currentTime = Date()
+        if let lastTime = lastClickTime, currentTime.timeIntervalSince(lastTime) > 1.0 {
+            clickCount = 0
+        }
+        lastClickTime = currentTime
+        clickCount += 1
+        if clickCount >= 5 {
+            onThresholdReached()
+            clickCount = 0
+        }
+    }
+    
+    func onThresholdReached() {
+//        if !DeveloperModeViewController.getDeveloperMode() {
+//            devModeButton.isHidden = false
+//            DeveloperModeViewController.setDeveloperMode(true)
+//            UINotificationFeedbackGenerator().notificationOccurred(.success)
+//        }
     }
 }
 
@@ -721,8 +843,8 @@ extension ChatViewController: AgentControlToolbarDelegate {
         await clickTheStartButton()
     }
     
-    func mute(selectedState: Bool) {
-        clickMuteButton(state: selectedState)
+    func mute(selectedState: Bool) -> Bool{
+        return clickMuteButton(state: selectedState)
     }
     
     func switchCaptions(selectedState: Bool) {
@@ -739,13 +861,23 @@ extension ChatViewController: AnimateViewDelegate {
     }
 }
 
-extension ChatViewController: MessageAdapterDelegate {
-    func messageFlush(turnId: Int, message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool) {
-        messageView.viewModel.messageFlush(turnId: turnId, message: message, timestamp: timestamp, owner: owner, isFinished: isFinished)
+extension ChatViewController: CovSubRenderDelegate {
+    
+    func onUpdateStreamContent(subtitle: SubtitleMessage) {
+        if (subtitle.turnId == -1) {
+            messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isFinished: subtitle.status == .end)
+        } else {
+            messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isInterrupted: subtitle.status == .interrupt)
+        }
     }
 }
 
 extension ChatViewController: AgentTimerCoordinatorDelegate {
+    func agentUseLimitedTimerClosed() {
+        addLog("[Call] agentUseLimitedTimerClosed")
+        topBar.stop()
+    }
+    
     func agentUseLimitedTimerStarted(duration: Int) {
         addLog("[Call] agentUseLimitedTimerStarted")
         topBar.startWithRestTime(duration)
@@ -759,6 +891,13 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
     func agentUseLimitedTimerEnd() {
         addLog("[Call] agentUseLimitedTimerEnd")
         topBar.stop()
+        stopLoading()
+        stopAgent()
+        let title = ResourceManager.L10n.ChannelInfo.timeLimitdAlertTitle
+        if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
+            let min = preset.callTimeLimitSecond / 60
+            TimeoutAlertView.show(in: view, title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min))
+        }
     }
     
     func agentStartPing() {
@@ -794,6 +933,20 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
 extension ChatViewController: LoginManagerDelegate {
     func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
         welcomeMessageView.isHidden = loginState
+        topBar.updateButtonVisible(loginState)
+        if !loginState {
+            stopLoading()
+            stopAgent()
+        }
+    }
+    
+    func userLoginSessionExpired() {
+        welcomeMessageView.isHidden = false
+        topBar.updateButtonVisible(false)
+        stopLoading()
+        stopAgent()
+        
+        SVProgressHUD.showError(withStatus: ResourceManager.L10n.Login.sessionExpired)
     }
 }
 

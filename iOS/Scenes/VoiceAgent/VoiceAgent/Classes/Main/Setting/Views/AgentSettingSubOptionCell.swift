@@ -17,9 +17,15 @@ class AgentSettingSubOptionCell: UITableViewCell {
 
     lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.textColor = UIColor.themColor(named: "ai_icontext3")
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.font = .systemFont(ofSize: 15)
         return label
+    }()
+    
+    let bottomLine: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.themColor(named: "ai_line1")
+        return view
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -28,21 +34,23 @@ class AgentSettingSubOptionCell: UITableViewCell {
     }
 
     private func setupViews() {
-        backgroundColor = UIColor.themColor(named: "ai_line1")
+        backgroundColor = UIColor.themColor(named: "ai_block3")
         selectionStyle = .none
+        [titleLabel, bottomLine, checkImageView].forEach { contentView.addSubview($0) }
         
-        contentView.addSubview(titleLabel)
         titleLabel.snp.makeConstraints { make in
             make.left.equalTo(16)
             make.centerY.equalToSuperview()
         }
-
-        contentView.addSubview(checkImageView)
         checkImageView.snp.makeConstraints { make in
-            make.right.equalTo(-16)
+            make.right.equalTo(-12)
             make.centerY.equalToSuperview()
-            make.width.equalTo(16)
-            make.height.equalTo(16)
+            make.width.equalTo(24)
+            make.height.equalTo(24)
+        }
+        bottomLine.snp.makeConstraints { make in
+            make.left.right.bottom.equalToSuperview()
+            make.height.equalTo(0.5)
         }
     }
     

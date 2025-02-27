@@ -30,6 +30,9 @@ protocol RTCManagerProtocol {
     /// Enables or disables audio dump
     func getAudioDump() -> Bool
     
+    // Start predump, generate log files
+    func predump(completion: @escaping () -> Void)
+    
     /// Enables or disables audio dump
     func enableAudioDump(enabled: Bool)
     
@@ -42,13 +45,12 @@ class RTCManager: NSObject {
     private weak var delegate: AgoraRtcEngineDelegate?
     private var appId: String = ""
     private var audioDumpEnabled: Bool = false
-    init(appId: String, delegate: AgoraRtcEngineDelegate?, audioFrameDelegate: AgoraAudioFrameDelegate?) {
+    init(appId: String, delegate: AgoraRtcEngineDelegate?) {
         self.appId = appId
         self.delegate = delegate
         super.init()
         
         initRtcEngine()
-        rtcEngine.setAudioFrameDelegate(audioFrameDelegate)
     }
     
     private func initRtcEngine() {
@@ -99,6 +101,13 @@ extension RTCManager: RTCManagerProtocol {
     
     func muteVoice(state: Bool) {
         rtcEngine.adjustRecordingSignalVolume(state ? 0 : 100)
+    }
+    
+    func predump(completion: @escaping () -> Void) {
+        rtcEngine.setParameters("{\"che.audio.start.predump\":true}")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            completion()
+        }
     }
     
     func enableAudioDump(enabled: Bool) {

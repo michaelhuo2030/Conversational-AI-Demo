@@ -14,6 +14,7 @@ protocol AgentTimerCoordinatorDelegate: AnyObject {
     func agentUseLimitedTimerStarted(duration: Int)
     func agentUseLimitedTimerUpdated(duration: Int)
     func agentUseLimitedTimerEnd()
+    func agentUseLimitedTimerClosed()
 }
 
 protocol AgentTimerCoordinatorProtocol {
@@ -36,21 +37,27 @@ class AgentTimerCoordinator: NSObject {
     private var usageDurationLimitTimer: Timer?
     private var useDuration = 600
     private let pingTimeInterval = 10.0
-
+    
     private func initDurationLimitTimer() {
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
             useDuration = preset.callTimeLimitSecond
+            deinitDurationLimitTimer()
+            
             usageDurationLimitTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
                 guard let self = self else {
+                    timer.invalidate()
                     return
                 }
                 
                 if self.useDuration <= 0 {
-                    self.deinitDurationLimitTimer()
+                    timer.invalidate()
+                    self.usageDurationLimitTimer = nil
+                    self.delegate?.agentUseLimitedTimerEnd()
+                    self.delegate?.agentUseLimitedTimerClosed()
+                } else {
+                    self.delegate?.agentUseLimitedTimerUpdated(duration: self.useDuration)
+                    self.useDuration -= 1
                 }
-                
-                self.delegate?.agentUseLimitedTimerUpdated(duration: self.useDuration)
-                self.useDuration -= 1
             })
         }
         
@@ -58,11 +65,11 @@ class AgentTimerCoordinator: NSObject {
     }
     
     private func deinitDurationLimitTimer() {
-        self.delegate?.agentUseLimitedTimerEnd()
-
-        useDuration = 0
-        usageDurationLimitTimer?.invalidate()
-        usageDurationLimitTimer = nil
+        if usageDurationLimitTimer != nil {
+            usageDurationLimitTimer?.invalidate()
+            usageDurationLimitTimer = nil
+            self.delegate?.agentUseLimitedTimerClosed()
+        }
     }
     
     private func initPingTimer() {

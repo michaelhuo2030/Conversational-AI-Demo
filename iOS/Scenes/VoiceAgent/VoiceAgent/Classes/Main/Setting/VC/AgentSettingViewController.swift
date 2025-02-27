@@ -10,6 +10,11 @@ import Common
 import SVProgressHUD
 
 class AgentSettingViewController: UIViewController {
+    
+    private let grabberView = UIView()
+    private let titleLabel = UILabel()
+    private let connectTipsLabel = UILabel()
+    private let closeButton = UIButton(type: .custom)
     private let backgroundViewHeight: CGFloat = 454
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
@@ -18,14 +23,7 @@ class AgentSettingViewController: UIViewController {
     weak var agentManager: AgentManager!
     var channelName = ""
     
-    private lazy var topView: AgentSettingTopView = {
-        let view = AgentSettingTopView()
-        view.setTitle(title: ResourceManager.L10n.Settings.title)
-        view.onCloseButtonTapped = { [weak self] in
-            self?.animateBackgroundViewOut()
-        }
-        return view
-    }()
+    private let topView = UIView()
     
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
@@ -35,6 +33,8 @@ class AgentSettingViewController: UIViewController {
     private lazy var backgroundView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.themColor(named: "ai_fill2")
+        view.layer.cornerRadius = 16
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         return view
     }()
     
@@ -105,7 +105,14 @@ class AgentSettingViewController: UIViewController {
     
     private lazy var aiVadItem: AgentSettingSwitchItemView = {
         let view = AgentSettingSwitchItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.Settings.aiVad
+        let string1 = ResourceManager.L10n.Settings.aiVadNormal
+        let string2 = ResourceManager.L10n.Settings.aiVadLight
+        let attributedString = NSMutableAttributedString()
+        let attrString1 = NSAttributedString(string: string1, attributes: [.foregroundColor: UIColor.themColor(named: "ai_icontext1")])
+        attributedString.append(attrString1)
+        let attrString2 = NSAttributedString(string: string2, attributes: [.foregroundColor: UIColor.themColor(named: "ai_brand_lightbrand6")])
+        attributedString.append(attrString2)
+        view.titleLabel.attributedText = attributedString
         view.addtarget(self, action: #selector(onClickAiVad(_:)), for: .touchUpInside)
         if let manager = AppContext.preferenceManager() {
             view.setOn(manager.preference.aiVad)
@@ -159,7 +166,7 @@ class AgentSettingViewController: UIViewController {
         
         SVProgressHUD.show()
         VoiceAgentLogger.info("request presets in setting page")
-        agentManager.fetchAgentPresets { error, result in
+        agentManager.fetchAgentPresets(appId: AppContext.shared.appId) { error, result in
             SVProgressHUD.dismiss()
             if let error = error {
                 SVProgressHUD.showError(withStatus: error.message)
@@ -298,7 +305,7 @@ class AgentSettingViewController: UIViewController {
         selectTableMask.isHidden = true
     }
 }
-
+// MARK: - Creations
 extension AgentSettingViewController {
     private func createViews() {
         view.backgroundColor = UIColor(white: 0, alpha: 0.5)
@@ -307,6 +314,23 @@ extension AgentSettingViewController {
         view.addGestureRecognizer(tapGesture)
         
         view.addSubview(backgroundView)
+        
+        grabberView.backgroundColor = UIColor(hex: "#404548")
+        grabberView.layerCornerRadius = 1.5
+        
+        titleLabel.textColor = .white
+        titleLabel.text = ResourceManager.L10n.Settings.title
+        titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        
+        connectTipsLabel.textColor = .white
+        connectTipsLabel.text = ResourceManager.L10n.Settings.tips
+        connectTipsLabel.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        connectTipsLabel.textColor = UIColor.themColor(named: "ai_icontext3")
+        
+        closeButton.setImage(UIImage.ag_named("ic_agent_setting_close"), for: .normal)
+        closeButton.addTarget(self, action: #selector(onClickClose(_:)), for: .touchUpInside)
+        [grabberView, titleLabel, connectTipsLabel, closeButton].forEach { topView.addSubview($0) }
+        
         backgroundView.addSubview(topView)
         backgroundView.addSubview(scrollView)
         scrollView.addSubview(contentView)
@@ -323,7 +347,8 @@ extension AgentSettingViewController {
         
         view.addSubview(selectTableMask)
         
-//        let agentState = AppContext.preferenceManager()?.information.agentState
+        let agentState = AppContext.preferenceManager()?.information.agentState
+        connectTipsLabel.isHidden = (agentState == .unload)
 //        maskView.isHidden = agentState == .unload
     }
     
@@ -332,12 +357,29 @@ extension AgentSettingViewController {
             make.left.right.bottom.equalToSuperview()
             make.height.equalTo(backgroundViewHeight)
         }
-        
         topView.snp.makeConstraints { make in
             make.top.left.right.equalToSuperview()
             make.height.equalTo(56)
         }
-        
+        grabberView.snp.makeConstraints { make in
+            make.top.equalTo(8)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(36)
+            make.height.equalTo(3)
+        }
+        titleLabel.snp.makeConstraints { make in
+            make.centerY.equalToSuperview()
+            make.left.equalTo(20)
+        }
+        connectTipsLabel.snp.makeConstraints { make in
+            make.centerY.equalTo(titleLabel)
+            make.left.equalTo(titleLabel.snp.right).offset(5)
+        }
+        closeButton.snp.makeConstraints { make in
+            make.right.equalTo(-20)
+            make.centerY.equalToSuperview()
+            make.size.equalTo(CGSize(width: 48, height: 48))
+        }
         scrollView.snp.makeConstraints { make in
             make.top.equalTo(topView.snp.bottom)
             make.left.right.bottom.equalToSuperview()
@@ -349,7 +391,7 @@ extension AgentSettingViewController {
         }
         
         basicSettingView.snp.makeConstraints { make in
-            make.top.equalTo(16)
+            make.top.equalTo(10)
             make.left.equalTo(20)
             make.right.equalTo(-20)
         }
@@ -386,7 +428,7 @@ extension AgentSettingViewController {
         for (index, item) in advancedSettingItems.enumerated() {
             item.snp.makeConstraints { make in
                 make.left.right.equalToSuperview()
-                make.height.equalTo(70)
+                make.height.equalTo(62)
                 
                 if index == 0 {
                     make.top.equalTo(0)

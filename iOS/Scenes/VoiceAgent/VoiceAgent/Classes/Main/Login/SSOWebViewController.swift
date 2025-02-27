@@ -15,14 +15,14 @@ class CustomNavigationView: UIView {
     
     private lazy var backButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.ag_named("ic_sso_back_icon"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_agent_setting_back"), for: .normal)
         button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         return button
     }()
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.textColor = .black
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.font = UIFont.boldSystemFont(ofSize: 16)
         label.textAlignment = .center
         return label
@@ -30,7 +30,7 @@ class CustomNavigationView: UIView {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 64)
+        self.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 0)
         setupUI()
     }
     
@@ -52,7 +52,7 @@ class CustomNavigationView: UIView {
         
         titleLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.bottom.equalTo(-12)
+            make.bottom.equalTo(-22)
         }
     }
     
@@ -69,9 +69,9 @@ class CustomNavigationView: UIView {
     private lazy var naviBar: CustomNavigationView = {
         let view = CustomNavigationView()
         view.setTitle(ResourceManager.L10n.Conversation.appName)
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor.themColor(named: "ai_fill4")
         view.onBackButtonTapped = { [weak self] in
-            self?.dismiss(animated: true)
+            self?.navigationController?.popViewController(animated: false)
         }
         return view
     }()
@@ -127,6 +127,12 @@ class CustomNavigationView: UIView {
         view.addSubview(ssoWebView)
         view.addSubview(emptyView)
         
+        let topInset = UIWindow.safeAreaInsets.top
+        naviBar.snp.makeConstraints { make in
+            make.height.equalTo(topInset + 64)
+            make.left.right.top.equalTo(0)
+        }
+        
         ssoWebView.snp.makeConstraints { make in
             make.left.right.bottom.equalTo(0)
             make.top.equalTo(naviBar.snp.bottom)
@@ -145,26 +151,22 @@ class CustomNavigationView: UIView {
     private func injectJavaScript() {
         let jsCode = """
         (function() {
-            var jsonResponse = document.body.innerText;
-            console.log('Raw Response:', jsonResponse);
+            // Get the text content of the page
+            var jsonResponse = document.body.innerText; // Assume JSON data is in the body of the page
+            // Parse the JSON data
             try {
-                var jsonData = JSON.parse(jsonResponse);
+                var jsonData = JSON.parse(jsonResponse); // Parse it into a JSON object
+                // Check if the code is 0
                 if (jsonData.code === 0) {
-                    window.webkit.messageHandlers.handleResponse.postMessage({
-                        token: jsonData.data.token,
-                        error: null
-                    });
+                    // Call the iOS interface and pass the token
+                    window.webkit.messageHandlers.handleResponse.postMessage(jsonData.data.token);
                 } else {
-                    window.webkit.messageHandlers.handleResponse.postMessage({
-                        token: null,
-                        error: jsonData.msg
-                    });
+                    // If the code is not 0, return the error message
+                    window.webkit.messageHandlers.handleResponse.postMessage("Error " + jsonData.msg);
                 }
             } catch (e) {
-                window.webkit.messageHandlers.handleResponse.postMessage({
-                    token: null,
-                    error: e.message
-                });
+                // Handle JSON parsing errors
+                window.webkit.messageHandlers.handleResponse.postMessage("Error " + e.message);
             }
         })();
         """
@@ -224,14 +226,30 @@ extension SSOWebViewController: WKNavigationDelegate {
 extension SSOWebViewController: WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "handleResponse" {
-            guard let dict = message.body as? [String: Any] else { return }
-            
-            if let token = dict["token"] as? String {
-                completionHandler?(token)
-            } else if let error = dict["error"] as? String {
-                print("Error: \(error)")
-                completionHandler?(nil)
+            if let response = message.body as? String {
+                if !response.hasPrefix("Error") {
+                    // Process the token
+                    completionHandler?(response)
+                    self.navigationController?.popViewController(animated: false)
+                } else {
+                    // Handle error
+                    print("Error: \(response)")
+                    completionHandler?(nil)
+                }
             }
+        }
+    }
+}
+
+extension UIWindow {
+    static var safeAreaInsets: UIEdgeInsets {
+        if #available(iOS 15.0, *) {
+            let scene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            let window = scene?.windows.first(where: { $0.isKeyWindow })
+            return window?.safeAreaInsets ?? .zero
+        } else {
+            return UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
         }
     }
 }

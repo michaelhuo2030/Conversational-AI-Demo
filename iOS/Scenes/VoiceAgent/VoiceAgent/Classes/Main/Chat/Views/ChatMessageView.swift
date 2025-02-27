@@ -38,6 +38,7 @@ class ChatMessageCell: UITableViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 18)
         label.numberOfLines = 0
+        label.attributedText = NSAttributedString(string: "")
         return label
     }()
     
@@ -81,16 +82,31 @@ class ChatMessageCell: UITableViewCell {
             messageBubble.backgroundColor = .clear
         }
         
-        messageLabel.text = message.content
-        
+        let paragraphStyle = NSMutableParagraphStyle()
         let detector = NSLinguisticTagger(tagSchemes: [.language], options: 0)
         detector.string = message.content
         if let language = detector.dominantLanguage {
             let rtlLanguages = ["ar", "fa", "he", "ur"]
-            messageLabel.textAlignment = rtlLanguages.contains(language) ? .right : .left
+            paragraphStyle.alignment = rtlLanguages.contains(language) ? .right : .left
         } else {
-            messageLabel.textAlignment = .left
+            paragraphStyle.alignment = .left
         }
+        
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 18),
+            .foregroundColor: message.isMine ? UIColor.themColor(named: "ai_icontext1") : UIColor.themColor(named: "ai_icontext1"),
+            .paragraphStyle: paragraphStyle
+        ]
+        
+        let attributedString = NSMutableAttributedString(string: message.content, attributes: attributes)
+        if message.isInterrupted {
+            let attachment = NSTextAttachment()
+            attachment.image = UIImage.ag_named("ic_interrput_icon")
+            attachment.bounds = CGRect(x: 0, y: -3, width: 22, height: 16)
+            let imageString = NSAttributedString(attachment: attachment)
+            attributedString.append(imageString)
+        }
+        messageLabel.attributedText = attributedString
     }
     
     private func setupUserLayout() {
@@ -114,11 +130,14 @@ class ChatMessageCell: UITableViewCell {
             make.top.equalTo(avatarView.snp.bottom).offset(8)
             make.right.equalToSuperview().offset(-20)
             make.left.greaterThanOrEqualToSuperview().offset(20)
-            make.bottom.equalToSuperview().offset(-8)
+            make.bottom.lessThanOrEqualToSuperview().offset(-8)
         }
         
         messageLabel.snp.remakeConstraints { make in
-            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16))
+            make.top.equalToSuperview().offset(12)
+            make.left.equalToSuperview().offset(16)
+            make.right.equalToSuperview().offset(-16)
+            make.bottom.equalToSuperview().offset(-12)
         }
     }
     
@@ -143,11 +162,14 @@ class ChatMessageCell: UITableViewCell {
             make.top.equalTo(avatarView.snp.bottom).offset(8)
             make.left.equalToSuperview().offset(20)
             make.right.equalTo(-20)
-            make.bottom.equalToSuperview().offset(-8)
+            make.bottom.lessThanOrEqualToSuperview().offset(-8)
         }
         
         messageLabel.snp.remakeConstraints { make in
-            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 5, left: 0, bottom: 12, right: 0))
+            make.top.equalToSuperview().offset(5)
+            make.left.equalToSuperview()
+            make.right.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-12)
         }
     }
 }
@@ -197,19 +219,20 @@ class ChatView: UIView {
     
     // MARK: - Setup
     private func setupViews() {
-        backgroundColor = UIColor.black.withAlphaComponent(0.85)
+        backgroundColor = UIColor.themColor(named: "ai_mask1")
         addSubview(tableView)
         addSubview(arrowButton)
     }
     
     private func setupConstraints() {
         tableView.snp.makeConstraints { make in
-            make.top.left.right.equalTo(0)
-            make.bottom.equalTo(0)
+            make.top.equalTo(102)
+            make.left.right.equalTo(0)
+            make.bottom.equalTo(self.safeAreaLayoutGuide.snp.bottom).offset(-116)
         }
         
         arrowButton.snp.makeConstraints { make in
-            make.bottom.equalTo(-10)
+            make.bottom.equalTo(tableView)
             make.width.height.equalTo(44)
             make.centerX.equalTo(self)
         }
@@ -266,6 +289,14 @@ extension ChatView: UITableViewDelegate, UITableViewDataSource {
             shouldAutoScroll = true
             arrowButton.isHidden = true
         }
+    }
+    
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 72
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
 }
 

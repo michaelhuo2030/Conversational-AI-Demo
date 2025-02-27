@@ -7,8 +7,19 @@
 
 import UIKit
 import Common
+import SVProgressHUD
 
 class AgentInformationViewController: UIViewController {
+    
+    static func show(in viewController: UIViewController, rtcManager: RTCManager?) {
+        let settingVC = AgentInformationViewController()
+        settingVC.rtcManager = rtcManager
+        settingVC.modalPresentationStyle = .overFullScreen
+        viewController.present(settingVC, animated: false)
+    }
+    
+    public var rtcManager: RTCManager?
+    
     private let backgroundViewWidth: CGFloat = 315
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
@@ -177,16 +188,15 @@ class AgentInformationViewController: UIViewController {
     
     @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: view)
-        
         switch gesture.state {
         case .began:
             initialCenter = backgroundView.center
         case .changed:
-            let newX = max(translation.x, 0)
-            backgroundView.transform = CGAffineTransform(translationX:newX, y: 0)
+            let newX = min(max(translation.x, -backgroundViewWidth), 0)
+            backgroundView.transform = CGAffineTransform(translationX: newX, y: 0)
         case .ended:
             let velocity = gesture.velocity(in: view)
-            let shouldDismiss = translation.x > backgroundViewWidth / 2 || velocity.x > 500
+            let shouldDismiss = abs(translation.x) > backgroundViewWidth / 2 || abs(velocity.x) > 500
             
             if shouldDismiss {
                 animateBackgroundViewOut()
@@ -201,23 +211,43 @@ class AgentInformationViewController: UIViewController {
     }
     
     @objc private func onClickFeedbackItem() {
-        feedbackItem.startLoading()
-        feedBackPresenter.feedback(isSendLog: true, title: "") { error, result in
-            self.feedbackItem.stopLoading()
-            
+        
+        guard let channelName = AppContext.preferenceManager()?.information.roomId,
+              let rtcManager = rtcManager
+        else {
+            return
+        }
+        let agentId = AppContext.preferenceManager()?.information.agentId
+        feedbackItem.startLoading()        
+        rtcManager.predump {
+            self.feedBackPresenter.feedback(isSendLog: true, channel: channelName, agentId: agentId) { [weak self] error, result in
+                if error == nil {
+                    SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.feedbackSuccess)
+                } else {
+                    SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.ChannelInfo.feedbackFailed)
+                }
+                self?.feedbackItem.stopLoading()
+            }
         }
     }
     
     @objc private func onClickLogoutItem() {
-        AppContext.loginManager()?.logout()
+        AgentAlertView.show(in: view, title: ResourceManager.L10n.Login.logoutAlertTitle,
+                            content: ResourceManager.L10n.Login.logoutAlertDescription,
+                            cancelTitle: ResourceManager.L10n.Login.logoutAlertCancel,
+                            confirmTitle: ResourceManager.L10n.Login.logoutAlertConfirm,
+                            onConfirm:  {
+            AppContext.loginManager()?.logout()
+            self.animateBackgroundViewOut()
+        })
     }
 }
 
 extension AgentInformationViewController {
     private func createViews() {
         view.backgroundColor = UIColor(white: 0, alpha: 0.5)
-//        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
-//        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickBackground(_:))))
+        contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(onClickContent(_:))))
         
         view.addSubview(backgroundView)
         backgroundView.addSubview(topView)
@@ -266,7 +296,6 @@ extension AgentInformationViewController {
             make.top.equalTo(channelInfoTitle.snp.bottom).offset(8)
             make.left.equalTo(16)
             make.right.equalTo(-16)
-            make.bottom.equalToSuperview()
         }
 
         for (index, item) in channelInfoItems.enumerated() {
@@ -297,6 +326,7 @@ extension AgentInformationViewController {
             make.top.equalTo(moreInfoTitle.snp.bottom).offset(8)
             make.left.equalTo(16)
             make.right.equalTo(-16)
+            make.bottom.equalToSuperview()
         }
 
         for (index, item) in moreItems.enumerated() {
@@ -343,6 +373,9 @@ extension AgentInformationViewController {
         
         // Update Feedback Item
         feedbackItem.setEnabled(isEnabled: manager.information.agentState != .unload)
+        
+        //Update Logout Item
+        logoutItem.setEnabled(isEnabled: true)
     }
     
     @objc func onClickBackground(_ sender: UIGestureRecognizer) {
