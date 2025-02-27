@@ -266,7 +266,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             enableBHVS = CovAgentManager.enableBHVS,
             presetName = CovAgentManager.getPreset()?.name,
             asrLanguage = CovAgentManager.language?.language_code,
-            graphId = DebugConfigSettings.graphId,
+            graphId = DebugConfigSettings.graphId.takeIf { it.isNotEmpty() },
             parameters = JSONObject().apply {
                 put("transcript", JSONObject().apply {
                     put("enable", true)

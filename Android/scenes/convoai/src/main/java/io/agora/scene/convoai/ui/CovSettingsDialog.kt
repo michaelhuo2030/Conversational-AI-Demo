@@ -188,9 +188,18 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * presets.size).coerceIn(itemHeight, finalMaxHeight)
-
+            
             params.height = finalHeight
             cvOptions.layoutParams = params
+            
+            // Enable scrolling if needed
+//            val contentHeight = itemHeight * presets.size
+//            if (contentHeight > finalHeight) {
+//                rcOptions.isVerticalScrollBarEnabled = true
+//                rcOptions.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+//            } else {
+//                rcOptions.isVerticalScrollBarEnabled = false
+//            }
 
             // Update options and handle selection
             optionsAdapter.updateOptions(
@@ -224,9 +233,19 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * languages.size).coerceIn(itemHeight, finalMaxHeight)
-
+            
             params.height = finalHeight
             cvOptions.layoutParams = params
+            
+            // Enable scrolling if needed
+//            val contentHeight = itemHeight * languages.size
+//            if (contentHeight > finalHeight) {
+//                rcOptions.isVerticalScrollBarEnabled = true
+//                rcOptions.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+//                rcOptions.layoutManager = LinearLayoutManager(root.context)
+//            } else {
+//                rcOptions.isVerticalScrollBarEnabled = false
+//            }
 
             // Update options and handle selection
             optionsAdapter.updateOptions(
