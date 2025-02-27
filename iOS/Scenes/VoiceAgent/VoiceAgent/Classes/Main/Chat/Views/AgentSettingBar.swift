@@ -42,17 +42,6 @@ class AgentSettingBar: UIView {
         return label
     }()
     
-    private let countDownLabel: UILabel = {
-        let label = UILabel()
-        label.text = "00:00"
-        label.font = .systemFont(ofSize: 12)
-        label.textAlignment = .center
-        label.layerCornerRadius = 11
-        label.isHidden = true
-        label.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        label.textColor = UIColor.themColor(named: "ai_brand_white10")
-        return label
-    }()
     let centerTitleButton = UIButton()
     
     var showTipsTimer: Timer?
@@ -89,8 +78,6 @@ class AgentSettingBar: UIView {
     
     public func startWithRestTime(_ seconds: Int) {
         showTips(seconds: seconds)
-        countDownLabel.isHidden = false
-        updateRestTime(seconds)
     }
     
     public func updateButtonVisible(_ visible: Bool) {
@@ -105,21 +92,7 @@ class AgentSettingBar: UIView {
         }
     }
     
-    public func updateRestTime(_ seconds: Int) {
-        if seconds < 20 {
-            countDownLabel.textColor = UIColor.themColor(named: "ai_red6")
-        } else if seconds < 59 {
-            countDownLabel.textColor = UIColor.themColor(named: "ai_green6")
-        } else {
-            countDownLabel.textColor = UIColor.themColor(named: "ai_brand_white10")
-        }
-        let minutes = seconds / 60
-        let s = seconds % 60
-        countDownLabel.text = String(format: "%02d:%02d", minutes, s)
-    }
-    
     public func stop() {
-        countDownLabel.isHidden = true
         hideTips()
     }
     
@@ -219,7 +192,7 @@ class AgentSettingBar: UIView {
     }
     
     private func setupViews() {
-        [titleContentView, infoListButton, netStateView, settingButton, countDownLabel].forEach { addSubview($0) }
+        [titleContentView, infoListButton, netStateView, settingButton].forEach { addSubview($0) }
         [centerTipsLabel, centerTitleView, centerTitleButton].forEach { titleContentView.addSubview($0) }
         [netTrackView, netRenderView].forEach { netStateView.addSubview($0) }
         
@@ -282,12 +255,6 @@ class AgentSettingBar: UIView {
         netRenderView.snp.makeConstraints { make in
             make.center.equalToSuperview()
             make.width.height.equalTo(22)
-        }
-        countDownLabel.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.width.equalTo(49)
-            make.height.equalTo(22)
-            make.top.equalTo(self.snp.bottom)
         }
     }
 }
