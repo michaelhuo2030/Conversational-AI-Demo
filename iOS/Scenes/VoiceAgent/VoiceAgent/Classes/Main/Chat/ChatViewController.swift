@@ -265,7 +265,8 @@ public class ChatViewController: UIViewController {
         }
         
         messageView.snp.makeConstraints { make in
-            make.top.left.right.equalTo(0)
+            make.top.equalTo(topBar.snp.bottom)
+            make.left.right.equalTo(0)
             make.bottom.equalTo(0)
         }
         
@@ -429,8 +430,6 @@ public class ChatViewController: UIViewController {
     }
     
     private func switchEnvironment() {
-        stopLoading()
-        stopAgent()
         AppContext.preferenceManager()?.deleteAllPresets()
         AppContext.loginManager()?.logout()
     }
@@ -804,11 +803,11 @@ private extension ChatViewController {
     }
 
     @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
-//        if DeveloperModeViewController.getDeveloperMode() {
-//            devModeButton.isHidden = true
-//            DeveloperModeViewController.setDeveloperMode(false)
-//            UINotificationFeedbackGenerator().notificationOccurred(.success)
-//        }
+        if DeveloperModeViewController.getDeveloperMode() {
+            devModeButton.isHidden = true
+            DeveloperModeViewController.setDeveloperMode(false)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
     }
     
     @objc private func onClickLogo(_ sender: UIButton) {
@@ -825,11 +824,11 @@ private extension ChatViewController {
     }
     
     func onThresholdReached() {
-//        if !DeveloperModeViewController.getDeveloperMode() {
-//            devModeButton.isHidden = false
-//            DeveloperModeViewController.setDeveloperMode(true)
-//            UINotificationFeedbackGenerator().notificationOccurred(.success)
-//        }
+        if !DeveloperModeViewController.getDeveloperMode() {
+            devModeButton.isHidden = false
+            DeveloperModeViewController.setDeveloperMode(true)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
     }
 }
 
@@ -935,6 +934,7 @@ extension ChatViewController: LoginManagerDelegate {
         welcomeMessageView.isHidden = loginState
         topBar.updateButtonVisible(loginState)
         if !loginState {
+//            SSOWebViewController.clearWebViewCache()
             stopLoading()
             stopAgent()
         }
@@ -943,6 +943,7 @@ extension ChatViewController: LoginManagerDelegate {
     func userLoginSessionExpired() {
         welcomeMessageView.isHidden = false
         topBar.updateButtonVisible(false)
+        SSOWebViewController.clearWebViewCache()
         stopLoading()
         stopAgent()
         
