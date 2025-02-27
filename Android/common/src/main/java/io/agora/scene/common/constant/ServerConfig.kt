@@ -25,12 +25,22 @@ object ServerConfig {
 //        }
 
     @JvmStatic
-    val siteUrl: String
+    val termsOfServicesUrl: String
         get() {
             return if (isMainlandVersion) {
                 "https://www.agora.io/en/terms-of-service/"
             } else {
                 "https://www.agora.io/en/terms-of-service/"
+            }
+        }
+
+    @JvmStatic
+    val privacyPolicyUrl: String
+        get() {
+            return if (isMainlandVersion) {
+                "https://www.agora.io/en/terms-of-service/"
+            } else {
+                "https://www.agora.io/en/privacy-policy/"
             }
         }
 
@@ -56,6 +66,8 @@ object ServerConfig {
 
     private val buildEnvConfig: EnvConfig = EnvConfig()
 
+    val isBuildEnv: Boolean get() = buildEnvConfig.toolboxServerHost == toolBoxUrl
+
     fun initBuildConfig(
         isMainland: Boolean, envName: String, toolboxHost: String, rtcAppId: String, rtcAppCert: String
     ) {
@@ -74,6 +86,7 @@ object ServerConfig {
         this.toolBoxUrl = debugConfig.toolboxServerHost
         this.rtcAppId = debugConfig.rtcAppId
         this.rtcAppCert = debugConfig.rtcAppCertificate
+        ApiManager.setBaseURL(toolBoxUrl)
     }
 
     fun reset() {

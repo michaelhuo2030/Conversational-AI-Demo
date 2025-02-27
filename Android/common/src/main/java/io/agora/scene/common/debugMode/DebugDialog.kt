@@ -5,10 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.rtc2.RtcEngine
 import io.agora.scene.common.AgentApp
+import io.agora.scene.common.R
 import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.EnvConfig
 import io.agora.scene.common.constant.ServerConfig
@@ -16,6 +18,7 @@ import io.agora.scene.common.databinding.CommonDebugDialogBinding
 import io.agora.scene.common.databinding.CommonDebugOptionItemBinding
 import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.ui.widget.LastItemDividerDecoration
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getDistanceFromScreenEdges
 import io.agora.scene.common.util.toast.ToastUtil
@@ -29,7 +32,9 @@ interface DebugDialogCallback {
 
     fun onAudioDumpEnable(enable: Boolean) = Unit  // Default implementation
 
-    fun onEnvConfigChange(config: EnvConfig) = Unit  // Default implementation
+    fun onSeamlessPlayMode(enable: Boolean) = Unit  // Default implementation
+
+    fun onEnvConfigChange() = Unit  // Default implementation
 
     fun getConvoAiHost(): String = ""
 }
@@ -73,6 +78,13 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
             }
             rcOptions.adapter = OptionsAdapter()
             rcOptions.layoutManager = LinearLayoutManager(context)
+            val divider = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+            rcOptions.context.getDrawable(R.drawable.shape_divider_line)?.let {
+                rcOptions.addItemDecoration(LastItemDividerDecoration(it))
+            }
+            divider.setDrawable(resources.getDrawable(R.drawable.shape_divider_line, null))
+            rcOptions.addItemDecoration(divider)
+
             mtvRtcVersion.text = RtcEngine.getSdkVersion()
 
             btnClose.setOnClickListener {
@@ -92,6 +104,14 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                     onDebugDialogCallback?.onAudioDumpEnable(isChecked)
                 }
             }
+            cbSeamlessPlayMode.setChecked(DebugConfigSettings.isSeamlessPlayMode)
+            cbSeamlessPlayMode.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (buttonView.isPressed) {
+                    DebugConfigSettings.enableSeamlessPlayMode(isChecked)
+                    onDebugDialogCallback?.onSeamlessPlayMode(isChecked)
+                }
+            }
+
 
             btnCopy.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
@@ -99,7 +119,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                 }
             })
 
-            layoutCloseDebug.setOnClickListener {
+            btnCloseDebug.setOnClickListener {
                 onCloseDebug()
                 dismiss()
             }
@@ -124,10 +144,12 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
     }
 
     private fun onCloseDebug() {
+        if (!ServerConfig.isBuildEnv){
+            onDebugDialogCallback?.onEnvConfigChange()
+            ServerConfig.reset()
+        }
         DebugButton.getInstance(AgentApp.instance()).hide()
         DebugConfigSettings.reset()
-        ServerConfig.reset()
-        onDebugDialogCallback?.onCloseDebug()
         onDebugDialogCallback = null
     }
 
@@ -163,7 +185,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                 val selectConfig = serverConfigList[index]
                 if (selectConfig.toolboxServerHost == selectedEnvConfig?.toolboxServerHost) return@updateOptions
                 ServerConfig.updateDebugConfig(selectConfig)
-                onDebugDialogCallback?.onEnvConfigChange(selectConfig)
+                onDebugDialogCallback?.onEnvConfigChange()
                 updateEnvConfig()
                 vOptionsMask.visibility = View.INVISIBLE
                 ToastUtil.show(

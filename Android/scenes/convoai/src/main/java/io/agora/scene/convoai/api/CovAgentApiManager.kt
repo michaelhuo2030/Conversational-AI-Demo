@@ -1,13 +1,14 @@
 package io.agora.scene.convoai.api
 
 import android.util.Log
-import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.net.AuthorizationInterceptor
 import io.agora.scene.common.net.HttpLogger
 import io.agora.scene.common.net.SecureOkHttpClient
+import io.agora.scene.common.util.GsonTools
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,9 @@ import kotlin.time.Duration.Companion.seconds
 
 object CovAgentApiManager {
 
-    private val TAG = "CovServerManager"
+    private const val TAG = "CovServerManager"
+
+    const val ERROR_RESOURCE_LIMIT_EXCEEDED = 1412
 
     private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -36,6 +39,7 @@ object CovAgentApiManager {
             connectTimeout = 120.seconds
         )
             .addInterceptor(HttpLogger())
+            .addInterceptor(AuthorizationInterceptor())
             .build()
     }
 
@@ -48,7 +52,7 @@ object CovAgentApiManager {
 
     private const val SERVICE_VERSION = "v3"
 
-    fun startAgent(params: AgentRequestParams, completion: (error: Exception?, channelName: String) -> Unit) {
+    fun startAgent(params: AgentRequestParams, completion: (error: ApiException?, channelName: String) -> Unit) {
         val channelName = params.channelName
         val requestURL = "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/start"
         val postBody = JSONObject()
@@ -103,17 +107,17 @@ object CovAgentApiManager {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }
         Log.d(TAG, postBody.toString())
-        
+
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = buildRequest(requestURL, "POST", requestBody)
-        
+
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
                 val httpCode = response.code
                 if (httpCode != 200) {
                     runOnMainThread {
-                        completion.invoke(Exception("httpCode: $httpCode"), channelName)
+                        completion.invoke(ApiException(httpCode, "Http error"), channelName)
                     }
                 } else {
                     try {
@@ -129,13 +133,13 @@ object CovAgentApiManager {
                             }
                         } else {
                             runOnMainThread {
-                                completion.invoke(Exception("responseCode: $code"), channelName)
+                                completion.invoke(ApiException(code), channelName)
                             }
                         }
                     } catch (e: JSONException) {
                         CovLogger.e(TAG, "JSON parse error: ${e.message}")
                         runOnMainThread {
-                            completion.invoke(e, channelName)
+                            completion.invoke(ApiException(-1), channelName)
                         }
                     }
                 }
@@ -144,7 +148,7 @@ object CovAgentApiManager {
             override fun onFailure(call: Call, e: IOException) {
                 CovLogger.e(TAG, "Start agent failed: $e")
                 runOnMainThread {
-                    completion.invoke(e, channelName)
+                    completion.invoke(ApiException(-1), channelName)
                 }
             }
         })
@@ -154,11 +158,7 @@ object CovAgentApiManager {
         val builder = Request.Builder()
             .url(url)
             .addHeader("Content-Type", "application/json")
-
-        // Add authorization header for v3 and v4
-        if (SERVICE_VERSION.startsWith("v3") || SERVICE_VERSION.startsWith("v4")) {
-            builder.addHeader("Authorization", "Bearer ${SSOUserManager.getToken()}")
-        }
+            .addHeader("Authorization", "Bearer ${SSOUserManager.getToken()}")
 
         when (method.uppercase()) {
             "POST" -> builder.post(body ?: RequestBody.create(null, ""))
@@ -170,24 +170,32 @@ object CovAgentApiManager {
     }
 
     fun fetchPresets(completion: (error: Exception?, List<CovAgentPreset>) -> Unit) {
-        val requestURL = "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/presetAgents"
+        val requestURL =
+            "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/convoai/presetAgents?app_id=${ServerConfig.rtcAppId}"
         val request = buildRequest(requestURL)
-        
+
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
-                val gson = Gson()
-                val jsonObject = gson.fromJson(json, JsonObject::class.java)
-                val code = jsonObject.get("code").asInt
-                if (code == 0) {
-                    val data =
-                        gson.fromJson(jsonObject.getAsJsonArray("data"), Array<CovAgentPreset>::class.java).toList()
-                    runOnMainThread {
-                        completion.invoke(null, data)
+                try {
+                    val jsonObject = GsonTools.toBean(json, JsonObject::class.java)
+                    if (jsonObject?.get("code")?.asInt == 0) {
+                        val data = GsonTools.toList(
+                            jsonObject.getAsJsonArray("data").toString(),
+                            CovAgentPreset::class.java
+                        ) ?: emptyList()
+                        runOnMainThread {
+                            completion.invoke(null, data)
+                        }
+                    } else {
+                        runOnMainThread {
+                            completion.invoke(null, emptyList())
+                        }
                     }
-                } else {
+                } catch (e: Exception) {
+                    CovLogger.e(TAG, "Parse presets failed: $e")
                     runOnMainThread {
-                        completion.invoke(null, emptyList())
+                        completion.invoke(e, emptyList())
                     }
                 }
             }
@@ -213,10 +221,21 @@ object CovAgentApiManager {
         }
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = buildRequest(requestURL, "POST", requestBody)
-        
+
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
+                try {
+                    val jsonObject = GsonTools.toBean(json, JsonObject::class.java)
+                    val code = jsonObject?.get("code")?.asInt ?: -1
+                    if (code == 0) {
+                        // success
+                    } else {
+                        CovLogger.e(TAG, "ping failed code = $code")
+                    }
+                } catch (e: Exception) {
+                    CovLogger.e(TAG, "Parse ping failed: $e")
+                }
             }
 
             override fun onFailure(call: Call, e: IOException) {
@@ -244,13 +263,32 @@ object CovAgentApiManager {
         }
         val requestBody = RequestBody.create(null, postBody.toString())
         val request = buildRequest(requestURL, "POST", requestBody)
-        
+
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body.string()
                 runOnMainThread {
                     agentId = null
-                    completion.invoke(null)
+
+                }
+                try {
+                    val jsonObject = GsonTools.toBean(json, JsonObject::class.java)
+                    val code = jsonObject?.get("code")?.asInt ?: -1
+                    if (code == 0) {
+                        // success
+                    } else {
+                        runOnMainThread {
+                            completion.invoke(Exception("stopAgent failed:$json"))
+                        }
+                        CovLogger.e(TAG, "stopAgent failed $json")
+                    }
+                } catch (e: Exception) {
+                    CovLogger.e(TAG, "Parse stopAgent failed: $e")
+                    runOnMainThread {
+                        completion.invoke(e)
+                    }
+                } finally {
+                    agentId = null
                 }
             }
 

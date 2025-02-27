@@ -41,6 +41,7 @@ public class DeveloperModeViewController: UIViewController {
     private var isAudioDumpEnabled: Bool = false
     private let rtcVersionValueLabel = UILabel()
     private let serverHostValueLabel = UILabel()
+    private let graphTextField = UITextField()
     private let segmentCtrl = UISegmentedControl(items: AppContext.shared.environments.map { ($0["name"]) ?? "" })
     private let audioDumpSwitch = UISwitch()
     
@@ -50,6 +51,9 @@ public class DeveloperModeViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black.withAlphaComponent(0.7)
         setupViews()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
         
         audioDumpSwitch.isOn = isAudioDumpEnabled
         rtcVersionValueLabel.text = AgoraRtcEngineKit.getSdkVersion()
@@ -63,16 +67,42 @@ public class DeveloperModeViewController: UIViewController {
             }
         }
     }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
+    private func resetEnvironment() {
+        DeveloperModeViewController.setDeveloperMode(false)
+        AppContext.shared.graphId = ""
+        let environments = AppContext.shared.environments
+        if environments.isEmpty {
+            return
+        }
+        
+        for env in environments {
+            if let host = env["host"] {
+                AppContext.shared.baseServerUrl = host
+            }
+            
+            if let appid = env["appId"] {
+                AppContext.shared.appId = appid
+            }
+            
+            break
+        }
+    }
 }
 
 // MARK: - Actions
 extension DeveloperModeViewController {
     @objc private func onClickClosePage(_ sender: UIButton) {
+        AppContext.shared.graphId = graphTextField.text ?? ""
         self.dismiss(animated: true)
     }
     
     @objc private func onClickCloseMode(_ sender: UIButton) {
-        DeveloperModeViewController.setDeveloperMode(false)
+        resetEnvironment()
         onCloseDevModeCallback?()
         self.dismiss(animated: true)
     }
@@ -109,7 +139,7 @@ extension DeveloperModeViewController {
         view.addSubview(cotentView)
         cotentView.snp.makeConstraints { make in
             make.left.right.bottom.equalToSuperview()
-            make.height.equalTo(380)
+            make.height.equalTo(424)
         }
         
         // Title Grabber
@@ -156,6 +186,33 @@ extension DeveloperModeViewController {
             make.height.equalTo(1)
         }
         
+        let graphLabel = UILabel()
+        graphLabel.text = ResourceManager.L10n.DevMode.graph
+        graphLabel.textColor = UIColor.themColor(named: "ai_icontext1")
+        graphLabel.font = UIFont.systemFont(ofSize: 14)
+        
+        graphTextField.borderStyle = .roundedRect
+        graphTextField.backgroundColor = UIColor.themColor(named: "ai_block2")
+        graphTextField.textColor = UIColor.themColor(named: "ai_icontext4")
+        graphTextField.text = AppContext.shared.graphId
+        
+        let graphStackView = UIStackView()
+        graphStackView.axis = .horizontal
+        graphStackView.alignment = .center
+        graphStackView.spacing = 12
+        graphStackView.addArrangedSubview(graphLabel)
+        graphStackView.addArrangedSubview(graphTextField)
+        cotentView.addSubview(graphStackView)
+        graphStackView.snp.makeConstraints { make in
+            make.top.equalTo(dividerLine.snp.bottom).offset(10)
+            make.leading.trailing.equalToSuperview().inset(16)
+            make.height.equalTo(44)
+        }
+        
+        graphTextField.snp.makeConstraints { make in
+            make.width.equalTo(200)
+        }
+        
         // RTC Version
         let rtcVersionLabel = UILabel()
         rtcVersionLabel.text = ResourceManager.L10n.DevMode.rtc
@@ -174,7 +231,7 @@ extension DeveloperModeViewController {
         rtcStackView.addArrangedSubview(rtcVersionValueLabel)
         cotentView.addSubview(rtcStackView)
         rtcStackView.snp.makeConstraints { make in
-            make.top.equalTo(dividerLine.snp.bottom).offset(10)
+            make.top.equalTo(graphStackView.snp.bottom)
             make.leading.trailing.equalToSuperview().inset(16)
             make.height.equalTo(44)
         }

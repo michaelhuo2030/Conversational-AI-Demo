@@ -7,7 +7,6 @@ import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.ApiManager
 import io.agora.scene.common.net.ApiManagerService
 import io.agora.scene.common.net.BaseResponse
-import io.agora.scene.common.net.UploadLogResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,36 +27,6 @@ object LogUploader {
     }
 
     private val scope = CoroutineScope(Job() + Dispatchers.Main)
-
-    fun <T> request(
-        block: suspend () -> BaseResponse<T>,
-        onSuccess: (T) -> Unit,
-        onError: (Exception) -> Unit = {},
-    ): Job {
-        return scope.launch(Dispatchers.Main) {
-            runCatching {
-                block()
-            }.onSuccess { response ->
-                runCatching {
-                    if (response.isSuccess) {
-                        response.data?.let {
-                            onSuccess(it)
-                        } ?: run {
-                            onError(Exception("Response data is null"))
-                        }
-                    } else {
-                        onError(Exception("Error: ${response.message} (Code: ${response.code})"))
-                    }
-                }.onFailure { exception ->
-                    Log.e(TAG, "Request failed: ${exception.localizedMessage}", exception)
-                    onError(Exception("Request failed due to: ${exception.localizedMessage}"))
-                }
-            }.onFailure { exception ->
-                Log.e(TAG, "Request failed: ${exception.localizedMessage}", exception)
-                onError(Exception("Request failed due to: ${exception.localizedMessage}"))
-            }
-        }
-    }
 
     // Get all log file paths
     private fun getAllLogFiles(): List<String> {
@@ -118,7 +87,7 @@ object LogUploader {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
                         completion?.invoke(null)
                         isUploading = false
-                        Log.d(TAG, "Upload log success: ${it.logId}")
+                        Log.d(TAG, "Upload log success")
                     },
                     onError = {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
@@ -141,7 +110,7 @@ object LogUploader {
         agentId: String,
         channelName: String,
         file: File,
-        onSuccess: (UploadLogResponse) -> Unit,
+        onSuccess: () -> Unit,
         onError: (Exception) -> Unit
     ) {
         if (!file.exists()) {
@@ -171,8 +140,7 @@ object LogUploader {
 
             // Get token for authorization
             val token = "Bearer ${SSOUserManager.getToken()}"
-
-            request(
+            requestNoData(
                 block = {
                     apiService.requestUploadLog(token, contentBody, filePart)
                 },
@@ -182,6 +150,64 @@ object LogUploader {
         } catch (e: Exception) {
             onError(e)
             Log.e(TAG, "Failed to prepare upload request: ${e.message}")
+        }
+    }
+
+    // 处理有返回数据的 API 请求
+    fun <T : Any> requestWithData(
+        block: suspend () -> BaseResponse<T>,
+        onSuccess: (T) -> Unit,
+        onError: (Exception) -> Unit = {},
+    ): Job {
+        return scope.launch(Dispatchers.Main) {
+            runCatching {
+                block()
+            }.onSuccess { response ->
+                runCatching {
+                    if (response.isSuccess) {
+                        response.data?.let {
+                            onSuccess(it)
+                        } ?: run {
+                            onError(Exception("Response data is null"))
+                        }
+                    } else {
+                        onError(Exception("Error: ${response.message} (Code: ${response.code})"))
+                    }
+                }.onFailure { exception ->
+                    Log.e(TAG, "Request failed: ${exception.localizedMessage}", exception)
+                    onError(Exception("Request failed due to: ${exception.localizedMessage}"))
+                }
+            }.onFailure { exception ->
+                Log.e(TAG, "Request failed: ${exception.localizedMessage}", exception)
+                onError(Exception("Request failed due to: ${exception.localizedMessage}"))
+            }
+        }
+    }
+
+    // 处理无返回数据的 API 请求
+    fun requestNoData(
+        block: suspend () -> BaseResponse<Unit>,
+        onSuccess: () -> Unit,
+        onError: (Exception) -> Unit = {},
+    ): Job {
+        return scope.launch(Dispatchers.Main) {
+            runCatching {
+                block()
+            }.onSuccess { response ->
+                runCatching {
+                    if (response.isSuccess) {
+                        onSuccess()
+                    } else {
+                        onError(Exception("Error: ${response.message} (Code: ${response.code})"))
+                    }
+                }.onFailure { exception ->
+                    Log.e(TAG, "Request failed: ${exception.localizedMessage}", exception)
+                    onError(Exception("Request failed due to: ${exception.localizedMessage}"))
+                }
+            }.onFailure { exception ->
+                Log.e(TAG, "Request failed: ${exception.localizedMessage}", exception)
+                onError(Exception("Request failed due to: ${exception.localizedMessage}"))
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -14,6 +15,8 @@ import androidx.core.view.isVisible
 import io.agora.scene.common.constant.ServerConfig.toolBoxUrl
 import io.agora.scene.common.databinding.CommonActivitySsoBinding
 import io.agora.scene.common.util.CommonLogger
+import io.agora.scene.common.util.dp
+import io.agora.scene.common.util.getStatusBarHeight
 
 class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
 
@@ -29,14 +32,19 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
         private const val ssoCallbackPath = "v1/convoai/sso/callback"
     }
 
+    private var mLoadingDialog: LoadingDialog? = null
+
     override fun initView() {
         mBinding?.apply {
-            setOnApplyWindowInsetsListener(root)
+            val statusBarHeight = getStatusBarHeight() ?: 25.dp.toInt()
+            val layoutParams = layoutTitle.layoutParams as ViewGroup.MarginLayoutParams
+            layoutParams.topMargin = statusBarHeight
+            layoutTitle.layoutParams = layoutParams
+
+            mLoadingDialog = LoadingDialog(this@SSOWebViewActivity)
             ivBackIcon.setOnClickListener {
                 onHandleOnBackPressed()
             }
-            webView.clearCache(true)
-            webView.clearHistory()
             webView.settings.apply {
                 setJavaScriptEnabled(true)
                 useWideViewPort = false
@@ -69,7 +77,9 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                     // Only handle callback URL without redirect_uri parameter
                     if (url.contains(ssoCallbackPath) && !url.contains("redirect_uri=")) {
                         CommonLogger.d(TAG, "start login url = $url")
-                        viewEmpty.isVisible = true
+                        runOnUiThread {
+                            mLoadingDialog?.show()
+                        }
                         return false
                     }
                     return super.shouldOverrideUrlLoading(view, request)
@@ -87,7 +97,9 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
 
                 override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                     super.onReceivedError(view, request, error)
-                    mBinding?.viewEmpty?.isVisible = false
+                    runOnUiThread {
+                        mLoadingDialog?.dismiss()
+                    }
                     CommonLogger.e(TAG, "onReceivedError ${error?.description}")
                 }
             }
@@ -140,10 +152,15 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
             } else {
                 // Handle error messages
                 runOnUiThread {
-                    mBinding?.viewEmpty?.isVisible = false
+                    mLoadingDialog?.dismiss()
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        mLoadingDialog?.dismiss()
+        super.onDestroy()
     }
 
     override fun onHandleOnBackPressed() {
@@ -153,7 +170,8 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
             } else {
                 super.onHandleOnBackPressed()
             }
+        } ?: run {
+            super.onHandleOnBackPressed()
         }
-        super.onHandleOnBackPressed()
     }
 }

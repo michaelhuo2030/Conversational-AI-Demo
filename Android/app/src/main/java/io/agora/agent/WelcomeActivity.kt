@@ -1,60 +1,45 @@
 package io.agora.agent
 
-import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.ui.BaseActivity
-import java.util.Locale
-import android.annotation.SuppressLint
-import androidx.activity.viewModels
-import androidx.core.os.LocaleListCompat
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import io.agora.agent.databinding.WelcomeActivityBinding
 import io.agora.scene.common.constant.AgentScenes
-import io.agora.scene.common.constant.SSOUserManager
-import io.agora.scene.common.util.toast.ToastUtil
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugConfigSettings
-import io.agora.scene.common.debugMode.DebugButton
-import io.agora.scene.common.ui.vm.LoginViewModel
+import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.ui.CovLivingActivity
+import java.util.Locale
+import androidx.annotation.RequiresApi
+
 
 class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
-
-
-    private val mLoginViewModel: LoginViewModel by viewModels()
 
     override fun getViewBinding(): WelcomeActivityBinding {
         return WelcomeActivityBinding.inflate(layoutInflater)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        DebugConfigSettings.init(this, BuildConfig.IS_MAINLAND)
-        ServerConfig.initBuildConfig(
-            BuildConfig.IS_MAINLAND,
-            "",
-            BuildConfig.TOOLBOX_SERVER_HOST,
-            BuildConfig.AG_APP_ID,
-            BuildConfig.AG_APP_CERTIFICATE
-        )
         setupLocale()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            handleSplashScreenExit()
+        } else {
+            goScene(AgentScenes.ConvoAi)
+        }
         super.onCreate(savedInstanceState)
     }
 
+    override fun immersiveMode(): ImmersiveMode {
+        return ImmersiveMode.FULLY_IMMERSIVE
+    }
+
     override fun initView() {
-        setupView()
-        val tempToken = SSOUserManager.getToken()
-        if (tempToken.isNotEmpty()) {
-            mLoginViewModel.getUserInfoByToken(tempToken)
-            mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
-                goScene(AgentScenes.ConvoAi)
-            }
-        }else{
-            goScene(AgentScenes.ConvoAi)
-        }
     }
 
     private fun goScene(scene: AgentScenes) {
@@ -80,25 +65,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
         setupLocale()
     }
 
-    override fun onPause() {
-        super.onPause()
-        // Clear debug callback when activity is paused
-        DebugButton.setDebugCallback(null)
-    }
-
-    private fun setupView() {
-        mBinding?.apply {
-            setOnApplyWindowInsetsListener(root)
-            // Set logo based on region
-            if (ServerConfig.isMainlandVersion) {
-                ivLogo.setImageResource(R.drawable.app_main_logo_cn)
-                ivLogo.setColorFilter(Color.WHITE)
-            } else {
-                ivLogo.setImageResource(R.drawable.app_main_logo)
-                ivLogo.clearColorFilter()
-            }
-        }
-    }
 
     private fun setupLocale() {
         val lang = if (ServerConfig.isMainlandVersion) "zh" else "en"
@@ -122,5 +88,32 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
             @Suppress("DEPRECATION")
             resources.updateConfiguration(config, resources.displayMetrics)
         }
+    }
+
+    private val SPLASH_DURATION = 300L
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun handleSplashScreenExit() {
+        val splashScreen = installSplashScreen()
+        var keepSplashOnScreen = true
+        
+        splashScreen.setOnExitAnimationListener { provider ->
+            provider.iconView.animate()
+                .alpha(0f)
+                .setDuration(300L)
+                .scaleX(1f)
+                .scaleY(1f)
+                .withEndAction {
+                    provider.remove()
+                    goScene(AgentScenes.ConvoAi)
+                }.start()
+        }
+        
+        val handler = android.os.Handler(mainLooper)
+        handler.postDelayed({
+            keepSplashOnScreen = false
+        }, SPLASH_DURATION)
+        
+        splashScreen.setKeepOnScreenCondition { keepSplashOnScreen }
     }
 }

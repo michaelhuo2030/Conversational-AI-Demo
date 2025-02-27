@@ -1,18 +1,27 @@
 package io.agora.scene.common.ui
 
 import android.os.Bundle
+import android.text.Html
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.widget.CompoundButton
+import android.widget.TextView
+import io.agora.scene.common.R
 import io.agora.scene.common.databinding.CommonLoginDialogBinding
 
 interface LoginDialogCallback {
     fun onDialogDismiss() = Unit
     fun onClickStartSSO() = Unit
-    fun onClickTerms() = Unit
+    fun onTermsOfServices() = Unit
+    fun onPrivacyPolicy() = Unit
 }
 
 class LoginDialog constructor() : BaseSheetDialog<CommonLoginDialogBinding>() {
@@ -36,21 +45,74 @@ class LoginDialog constructor() : BaseSheetDialog<CommonLoginDialogBinding>() {
             btnLoginSSO.setOnClickListener { v: View? ->
                 if (cbTerms.isChecked) {
                     onLoginDialogCallback?.onClickStartSSO()
+                    dismiss()
                 } else {
                     animCheckTip()
                 }
             }
             cbTerms.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
-                if (isChecked && tvCheckTips.visibility == View.VISIBLE) {
+                if (tvCheckTips.visibility == View.VISIBLE) {
                     tvCheckTips.visibility = View.INVISIBLE
                 }
             }
-            tvTermsSelection.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    onLoginDialogCallback?.onClickTerms()
-                }
-            })
+            setupRichTextTerms(tvTermsRichText)
         }
+    }
+    
+    private fun setupRichTextTerms(textView: TextView) {
+        val acceptText = getString(R.string.common_acceept)
+        val termsText = getString(R.string.common_terms_of_services)
+        val andText = getString(R.string.common_and)
+        val privacyText = getString(R.string.common_privacy_policy)
+        
+        val fullText = acceptText + termsText + andText + privacyText
+                        
+        val htmlText = Html.fromHtml(fullText, Html.FROM_HTML_MODE_COMPACT)
+        
+        val spannable = SpannableString(htmlText)
+        
+        val acceptStart = 0
+        val acceptEnd = acceptText.length
+        
+        val termsOfServicesStart = acceptEnd
+        val termsOfServicesEnd = termsOfServicesStart + termsText.length
+        
+        val privacyPolicyStart = termsOfServicesEnd + andText.length
+        val privacyPolicyEnd = privacyPolicyStart + privacyText.length
+        
+        spannable.setSpan(object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                binding?.cbTerms?.isChecked = !(binding?.cbTerms?.isChecked ?: false)
+            }
+            
+            override fun updateDrawState(ds: TextPaint) {
+                ds.color = textView.currentTextColor
+                ds.isUnderlineText = false
+            }
+        }, acceptStart, acceptEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        
+        spannable.setSpan(object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                onLoginDialogCallback?.onTermsOfServices()
+            }
+            override fun updateDrawState(ds: TextPaint) {
+                ds.color = textView.currentTextColor
+                ds.isUnderlineText = true
+            }
+        }, termsOfServicesStart, termsOfServicesEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        
+        spannable.setSpan(object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                onLoginDialogCallback?.onPrivacyPolicy()
+            }
+            override fun updateDrawState(ds: TextPaint) {
+                ds.color = textView.currentTextColor
+                ds.isUnderlineText = true
+            }
+        }, privacyPolicyStart, privacyPolicyEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        
+        textView.movementMethod = LinkMovementMethod.getInstance()
+        textView.text = spannable
     }
 
     override fun disableDragging(): Boolean {

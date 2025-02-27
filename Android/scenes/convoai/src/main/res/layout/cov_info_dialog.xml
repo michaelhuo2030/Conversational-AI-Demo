@@ -245,6 +245,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
+            android:id="@+id/layout_uploader"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:paddingHorizontal="16dp"
@@ -277,6 +278,7 @@
             android:background="@color/ai_line1" />
 
         <LinearLayout
+            android:id="@+id/layout_logout"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:paddingHorizontal="16dp"
@@ -297,7 +299,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_gravity="center_vertical"
-                android:src="@drawable/icon_logout"/>
+                android:src="@drawable/icon_logout"
+                app:tint="@color/ai_icontext1" />
         </LinearLayout>
     </LinearLayout>
 

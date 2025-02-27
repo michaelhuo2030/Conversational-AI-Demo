@@ -58,4 +58,5 @@ public class UserCenter {
         loginModel = nil
         UserDefaults.standard.removeObject(forKey: UserCenter.kLocalLoginKey)
     }
+    
 }

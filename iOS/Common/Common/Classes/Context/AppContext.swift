@@ -22,6 +22,7 @@ import Foundation
     private var _baseServerUrl: String = ""
     private var _appArea: AppArea = .global
     private var _environments: [[String : String]] = []
+    private var _graphId: String = ""
     
     override init() {
         super.init()
@@ -85,6 +86,16 @@ import Foundation
                 _certificate = _environments.first?["certificate"] ?? ""
                 _baseServerUrl = _environments.first?["host"] ?? ""
             }
+        }
+    }
+    
+    @objc public var graphId: String {
+        get {
+            return _graphId
+        }
+        
+        set {
+            _graphId = newValue
         }
     }
 }

@@ -15,6 +15,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import io.agora.scene.common.constant.AgentConstant
+import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.debugMode.DebugConfigSettings
 
 class AgentApp : Application() {
 
@@ -28,15 +31,40 @@ class AgentApp : Application() {
         }
     }
 
+    private fun fetchAppData() {
+        DataProviderLoader.getDataProvider()?.let {
+            DebugConfigSettings.init(this, it.isMainland())
+            ServerConfig.initBuildConfig(
+                isMainland = it.isMainland(),
+                envName = it.envName(),
+                toolboxHost = it.toolboxHost(),
+                rtcAppId = it.rtcAppId(),
+                rtcAppCert = it.rtcAppCert()
+            )
+        } ?: run {
+            CommonLogger.d(TAG, "No data provider found")
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        fetchAppData()
         app = this
         AgoraLogger.initXLog(this)
         initMMKV()
+
         try {
-            extractResourceToCache("common_resource.zip")
-            initFile("ball_video_start.mov")
-            initFile("ball_video_rotating.mov")
+            extractResourceToCache(AgentConstant.RTC_COMMON_RESOURCE)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to init files", e)
+        }
+        try {
+            initFile(AgentConstant.VIDEO_START_NAME)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to init files", e)
+        }
+        try {
+            initFile(AgentConstant.VIDEO_ROTATING_NAME)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to init files", e)
         }
@@ -49,10 +77,12 @@ class AgentApp : Application() {
                         // App comes to foreground
                         DebugButton.getInstance(applicationContext).restoreVisibility()
                     }
+
                     Lifecycle.Event.ON_STOP -> {
                         // App goes to background
                         DebugButton.getInstance(applicationContext).temporaryHide()
                     }
+
                     else -> {}
                 }
             }
@@ -68,13 +98,12 @@ class AgentApp : Application() {
     private fun extractResourceToCache(zipFileName: String) {
         val dirName = zipFileName.substringBeforeLast(".zip")
         val resourceDir = File(cacheDir, dirName)
-        
+
         if (resourceDir.exists()) {
             CommonLogger.d(TAG, "Resources already exist at: ${resourceDir.absolutePath}")
             return
         }
 
-        // 先将 zip 文件复制到缓存目录
         val zipFile = File(cacheDir, zipFileName)
         assets.open(zipFileName).use { input ->
             FileOutputStream(zipFile).use { output ->
@@ -82,11 +111,10 @@ class AgentApp : Application() {
             }
         }
 
-        // 从缓存目录中的 zip 文件解压
         ZipInputStream(zipFile.inputStream()).use { zipIn ->
-            var entry: ZipEntry?=null
+            var entry: ZipEntry? = null
             val buffer = ByteArray(4096)
-            
+
             while (zipIn.nextEntry?.also { entry = it } != null) {
                 val newFile = File(cacheDir, entry!!.name)
 
@@ -103,15 +131,11 @@ class AgentApp : Application() {
                         fos.write(buffer, 0, len)
                     }
                 }
-                // 设置解压后文件的创建/修改时间为原文件的时间戳
-                val lastModified = entry!!.time // 获取原始文件的最后修改时间
-                newFile.setLastModified(lastModified) // 设置解压后文件的时间戳
+                val lastModified = entry!!.time
+                newFile.setLastModified(lastModified)
             }
         }
-
-        // 删除临时 zip 文件
         zipFile.delete()
-        
         CommonLogger.d(TAG, "Extracted resources to: ${resourceDir.absolutePath}")
     }
 
@@ -123,7 +147,7 @@ class AgentApp : Application() {
             } else {
                 File(filesDir, fileName)
             }
-            
+
             FileOutputStream(outFile).use { outputStream ->
                 inputStream.copyTo(outputStream, bufferSize = 10240)
             }

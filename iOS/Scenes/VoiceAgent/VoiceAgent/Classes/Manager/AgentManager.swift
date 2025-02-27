@@ -105,31 +105,43 @@ class AgentManager: AgentAPI {
                     language: String,
                     completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("v3/convoai/start").toHttpUrlSting()
-        var requesetBody: [String: Any] = [
-            "app_id": appId,
-            "preset_name": presetName,
-            "channel_name": channelName,
-            "agent_rtc_uid": agentUid,
-            "remote_rtc_uid": uid,
-            "advanced_features": [
-                "enable_aivad": aiVad,
-                "enable_bhvs": bhvs
-            ],
-            "asr": [
-                "language": language
+        let graphId = AppContext.shared.graphId
+        var parameters:[String: Any] = [:]
+        if graphId.isEmpty {
+            parameters = [
+                "app_id": appId,
+                "preset_name": presetName,
+                "channel_name": channelName,
+                "agent_rtc_uid": agentUid,
+                "remote_rtc_uid": uid,
+                "advanced_features": [
+                    "enable_aivad": aiVad,
+                    "enable_bhvs": bhvs
+                ],
+                "asr": [
+                    "language": language
+                ]
             ]
-        ]
-        requesetBody["parameters"] = [
-            "transcript": [
-                "enable": true,
-                "protocol_version": "v2",
-                "enable_words": true,
+        } else {
+            parameters = [
+                "app_id": appId,
+                "preset_name": presetName,
+                "channel_name": channelName,
+                "agent_rtc_uid": agentUid,
+                "remote_rtc_uid": uid,
+                "graph_id": graphId,
+                "advanced_features": [
+                    "enable_aivad": aiVad,
+                    "enable_bhvs": bhvs
+                ],
+                "asr": [
+                    "language": language
+                ]
             ]
-        ]
-//        requesetBody["graph_id"] = "0.9.0-166-g4be1977"
+        }
         
-        VoiceAgentLogger.info("request start api: \(url) parameters: \(requesetBody)")
-        NetworkManager.shared.postRequest(urlString: url, params: requesetBody) { result in
+        VoiceAgentLogger.info("request start api: \(url) parameters: \(parameters)")
+        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
             VoiceAgentLogger.info("start request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"

@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bottom_dialog_bg"
+    android:layout_gravity="bottom"
     tools:theme="@style/Theme.AppCompat">
 
     <ScrollView
@@ -199,12 +200,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_device">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0.5dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/ai_line1" />
-
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/cl_ai_vad"
                     android:layout_width="match_parent"
@@ -230,6 +225,7 @@
                         android:text="@string/cov_setting_ai_vad_high"
                         android:textColor="@color/ai_brand_lightbrand6"
                         android:textSize="14sp"
+                        android:textStyle="bold"
                         app:layout_constraintStart_toEndOf="@+id/tv_ai_vad"
                         app:layout_constraintTop_toTopOf="@+id/tv_ai_vad"
                         app:layout_constraintBottom_toBottomOf="@+id/tv_ai_vad" />
@@ -248,13 +244,6 @@
                         app:layout_constraintTop_toTopOf="parent" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="0.5dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/ai_line1" />
-
             </LinearLayout>
 
             <View

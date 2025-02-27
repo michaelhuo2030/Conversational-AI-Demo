@@ -227,8 +227,7 @@ class ChatView: UIView {
     
     private func setupConstraints() {
         tableView.snp.makeConstraints { make in
-            make.top.equalTo(102)
-            make.left.right.equalTo(0)
+            make.top.left.right.equalTo(0)
             make.bottom.equalTo(self.safeAreaLayoutGuide.snp.bottom).offset(-116)
         }
         

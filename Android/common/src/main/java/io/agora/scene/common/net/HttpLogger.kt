@@ -38,6 +38,7 @@ class HttpLogger : Interceptor {
         private val EXCLUDE_PATHS = setOf(
             "/heartbeat",  // Heartbeat API
             "/ping",       // Ping API
+            "/upload/log"
         )
 
 

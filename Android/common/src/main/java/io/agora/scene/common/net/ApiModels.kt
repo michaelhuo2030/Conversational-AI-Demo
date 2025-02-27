@@ -27,7 +27,3 @@ data class SSOUserInfo constructor(
     val companyName: String = "",
     val companyCountry: String = "",
 ) : BaseResponse<SSOUserInfo>()
-
-data class UploadLogResponse constructor(
-    val logId: String
-) : BaseResponse<UploadLogResponse>()
