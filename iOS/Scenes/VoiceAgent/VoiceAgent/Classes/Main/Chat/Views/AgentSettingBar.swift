@@ -37,7 +37,7 @@ class AgentSettingBar: UIView {
     private lazy var centerTipsLabel: UILabel = {
         let label = UILabel()
         label.text = String(format: ResourceManager.L10n.Join.tips, 10)
-        label.font = .boldSystemFont(ofSize: 14)
+        label.font = .systemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         return label
     }()
@@ -45,7 +45,9 @@ class AgentSettingBar: UIView {
     let centerTitleButton = UIButton()
     
     var showTipsTimer: Timer?
-    var isShowTips = false
+    private var isShowTips: Bool = false
+    
+    private var isAnimationInprogerss = false
     
     // MARK: - Initialization
     override init(frame: CGRect) {
@@ -76,10 +78,6 @@ class AgentSettingBar: UIView {
         }
     }
     
-    public func startWithRestTime(_ seconds: Int) {
-        showTips(seconds: seconds)
-    }
-    
     public func updateButtonVisible(_ visible: Bool) {
         if (visible) {
             infoListButton.isHidden = false
@@ -93,17 +91,33 @@ class AgentSettingBar: UIView {
     }
     
     public func stop() {
-        hideTips()
+        showTipsTimer?.invalidate()
+        showTipsTimer = nil
+        if isShowTips == true {
+            hideTips()
+        }
     }
     
-    public func showTips(seconds: Int = 10 * 60) {
-        if isShowTips {
-            return
-        }
+    public func showTips(seconds: Int = 10 * 60, onShowFinish: (() -> Void)? = nil) {
         let minutes = seconds / 60
         centerTipsLabel.text = String(format: ResourceManager.L10n.Join.tips, minutes)
+        showTips()
+        showTipsTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(10), repeats: false) { [weak self] _ in
+            if self?.isShowTips == true {
+                self?.hideTips()
+            }
+            onShowFinish?()
+            self?.showTipsTimer?.invalidate()
+            self?.showTipsTimer = nil
+        }
+    }
+    
+    private func showTips() {
         isShowTips = true
-        showTipsTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(hideTips), userInfo: nil, repeats: false)
+        if (isAnimationInprogerss) {
+            return
+        }
+        isAnimationInprogerss = true
         self.centerTitleView.snp.remakeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
@@ -114,26 +128,30 @@ class AgentSettingBar: UIView {
             make.height.equalToSuperview()
             make.bottom.equalToSuperview()
         }
-        UIView.animate(withDuration: 1.0, animations: {
+        UIView.animate(withDuration: 1.0) {
             self.layoutIfNeeded()
-        }) { _ in
+        } completion: { isFinish in
             self.centerTitleView.snp.remakeConstraints { make in
                 make.centerX.equalToSuperview()
                 make.height.equalToSuperview()
                 make.top.equalTo(self.snp.bottom)
             }
             self.layoutIfNeeded()
+            self.isAnimationInprogerss = false
+            if self.isShowTips == false {
+                self.hideTips()
+            }
         }
     }
     
     // MARK: - Private Methods
     @objc private func hideTips() {
-        if !isShowTips {
+        isShowTips = false
+        if (isAnimationInprogerss) {
             return
         }
-        isShowTips = false
-        showTipsTimer?.invalidate()
-        showTipsTimer = nil
+        isAnimationInprogerss = true
+        self.layer.removeAllAnimations()
         self.centerTipsLabel.snp.remakeConstraints { make in
             make.centerX.equalToSuperview()
             make.height.equalToSuperview()
@@ -144,15 +162,19 @@ class AgentSettingBar: UIView {
             make.height.equalToSuperview()
             make.bottom.equalToSuperview()
         }
-        UIView.animate(withDuration: 1.0, animations: {
+        UIView.animate(withDuration: 1.0) {
             self.layoutIfNeeded()
-        }) { _ in
+        } completion: { _ in
             self.centerTipsLabel.snp.remakeConstraints { make in
                 make.centerX.equalToSuperview()
                 make.height.equalToSuperview()
                 make.top.equalTo(self.snp.bottom)
             }
             self.layoutIfNeeded()
+            self.isAnimationInprogerss = false
+            if self.isShowTips == true {
+                self.showTips()
+            }
         }
     }
     
@@ -206,7 +228,7 @@ class AgentSettingBar: UIView {
         
         let titleLabel = UILabel()
         titleLabel.text = ResourceManager.L10n.Join.title
-        titleLabel.font = .systemFont(ofSize: 14)
+        titleLabel.font = .boldSystemFont(ofSize: 14)
         titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         centerTitleView.addSubview(titleLabel)
         titleLabel.snp.makeConstraints { make in

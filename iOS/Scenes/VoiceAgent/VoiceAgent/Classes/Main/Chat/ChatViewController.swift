@@ -909,8 +909,9 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
     
     func agentUseLimitedTimerStarted(duration: Int) {
         addLog("[Call] agentUseLimitedTimerStarted")
-        topBar.startWithRestTime(duration)
-        countDownLabel.isHidden = false
+        topBar.showTips(seconds: duration, onShowFinish: { [weak self] in
+            self?.countDownLabel.isHidden = false
+        })
         updateRestTime(duration)
     }
     
