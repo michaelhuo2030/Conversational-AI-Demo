@@ -62,6 +62,7 @@ object LogUploader {
         if (isUploading) return
         isUploading = true
 
+        CommonLogger.d(TAG,"start compress")
         val filesDir = AgentApp.instance().getExternalFilesDir("") ?: return
 
         // Delete all existing zip files in the directory
@@ -71,7 +72,7 @@ object LogUploader {
             }
         }
 
-        // 处理 agentId，如果包含冒号则只取冒号前的内容
+        // Handle agentId, if it contains a colon, only take the content before the colon.
         val processedAgentId = agentId.split(":").first()
         val zipFileName = "${processedAgentId}_${channelName}"
         val allLogZipFile = File(filesDir, "${zipFileName}.zip")
@@ -87,18 +88,17 @@ object LogUploader {
         // Compress all files
         FileUtils.compressFiles(logPaths, allLogZipFile.absolutePath, object : FileUtils.ZipCallback {
             override fun onSuccess(path: String) {
+                CommonLogger.d(TAG,"compress end")
                 requestUploadLog(agentId, channelName, File(path),
                     onSuccess = {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
                         completion?.invoke(null)
                         isUploading = false
-                        Log.d(TAG, "Upload log success")
                     },
                     onError = {
                         FileUtils.deleteFile(allLogZipFile.absolutePath)
                         isUploading = false
                         completion?.invoke(it)
-                        Log.e(TAG, "Upload log failed: ${it.message}")
                     })
             }
 
