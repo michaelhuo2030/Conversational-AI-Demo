@@ -153,6 +153,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
             onDebugDialogCallback?.onEnvConfigChange()
             ServerConfig.reset()
         }
+        onDebugDialogCallback?.onAudioDumpEnable(false)
         DebugButton.getInstance(AgentApp.instance()).hide()
         DebugConfigSettings.reset()
         onDebugDialogCallback = null
