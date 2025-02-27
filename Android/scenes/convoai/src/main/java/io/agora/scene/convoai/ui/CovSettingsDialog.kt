@@ -20,18 +20,11 @@ import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.constant.CovAgentManager
-import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.constant.AgentConnectionState
 
 class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private var onDismissCallback: (() -> Unit)? = null
-
-    interface Callback {
-        fun onPreset(preset: CovAgentPreset)
-    }
-
-    var onCallBack: Callback? = null
 
     companion object {
         private const val TAG = "AgentSettingsSheetDialog"
@@ -206,7 +199,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             ) { index ->
                 val preset = presets[index]
                 CovAgentManager.setPreset(preset)
-                onCallBack?.onPreset(preset)
                 updateBaseSettings()
                 setAiVadBySelectLanguage()
                 vOptionsMask.visibility = View.INVISIBLE
