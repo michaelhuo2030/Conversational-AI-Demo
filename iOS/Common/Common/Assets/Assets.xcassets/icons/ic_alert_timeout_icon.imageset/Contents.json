@@ -5,12 +5,12 @@
       "scale" : "1x"
     },
     {
-      "filename" : "fcr_leave2_png.png",
+      "filename" : "ai_end_background@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "fcr_leave2_png-1.png",
+      "filename" : "ai_end_background@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
