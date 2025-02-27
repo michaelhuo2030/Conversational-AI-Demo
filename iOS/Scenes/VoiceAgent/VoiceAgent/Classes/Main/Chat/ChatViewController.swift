@@ -337,9 +337,6 @@ public class ChatViewController: UIViewController {
     
     @MainActor
     private func prepareToStartAgent() async {
-        TimeoutAlertView.show(in: view, title: "title", description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, 10))
-        return
-        
         startLoading()
         
         do {
