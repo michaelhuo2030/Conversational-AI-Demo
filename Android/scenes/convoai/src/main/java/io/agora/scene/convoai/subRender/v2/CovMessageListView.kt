@@ -24,7 +24,7 @@ class CovMessageListView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr), ICovMessageListView {
+) : LinearLayout(context, attrs, defStyleAttr), IConversationSubtitleCallback {
 
     val TAG = "CovMessageListView"
 
@@ -82,7 +82,7 @@ class CovMessageListView @JvmOverloads constructor(
 
     private fun handleMessage(subtitleMessage: SubtitleMessage) {
         // Try to find existing message with same turnId
-        messageAdapter.getMessageByTurnId(subtitleMessage.turnId, subtitleMessage.isMe)?.let { existingMessage ->
+        messageAdapter.getMessageByTurnId(subtitleMessage.turnId, subtitleMessage.userId == 0)?.let { existingMessage ->
             // Update existing message
             existingMessage.apply {
                 content = subtitleMessage.text
@@ -92,7 +92,7 @@ class CovMessageListView @JvmOverloads constructor(
         } ?: run {
             // Create new message
             val newMessage = Message(
-                isMe = subtitleMessage.isMe,
+                isMe = subtitleMessage.userId == 0,
                 turnId = subtitleMessage.turnId,
                 content = subtitleMessage.text,
                 status = subtitleMessage.status
@@ -101,7 +101,7 @@ class CovMessageListView @JvmOverloads constructor(
             // Determine message insertion position
             when {
                 // User message: try to insert before corresponding agent message
-                subtitleMessage.isMe -> {
+                subtitleMessage.userId == 0 -> {
                     messageAdapter.getMessageByTurnId(subtitleMessage.turnId, false)?.let { agentMessage ->
                         val agentIndex = messageAdapter.getMessageIndex(agentMessage)
                         if (agentIndex != -1) {
@@ -307,7 +307,7 @@ class CovMessageListView @JvmOverloads constructor(
         }
     }
 
-    override fun onUpdateStreamContent(subtitle: SubtitleMessage) {
+    override fun onSubtitleUpdated(subtitle: SubtitleMessage) {
         handleMessage(subtitle)
     }
 }

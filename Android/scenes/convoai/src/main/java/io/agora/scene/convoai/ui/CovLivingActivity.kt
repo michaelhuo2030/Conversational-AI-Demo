@@ -55,9 +55,9 @@ import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.rtc.CovRtcManager
 import io.agora.scene.convoai.subRender.v1.SelfRenderConfig
 import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
-import io.agora.scene.convoai.subRender.v2.CovSubRenderController
-import io.agora.scene.convoai.subRender.v2.SubRenderConfig
-import io.agora.scene.convoai.subRender.v2.SubRenderMode
+import io.agora.scene.convoai.subRender.v2.ConversationSubtitleController
+import io.agora.scene.convoai.subRender.v2.SubtitleRenderConfig
+import io.agora.scene.convoai.subRender.v2.SubtitleRenderMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -166,7 +166,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private var isSelfSubRender = false
 
-    private var subRenderController: CovSubRenderController? = null
+    private var subRenderController: ConversationSubtitleController? = null
 
     private var selfRenderController: SelfSubRenderController? = null
 
@@ -197,11 +197,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             view = mBinding?.messageListViewV1
         ))
         // v2 Subtitle Rendering Controller
-        subRenderController = CovSubRenderController(SubRenderConfig(
-            rtcEngine = rtcEngine,
-            null,
-            mBinding?.messageListViewV2
-        ))
+        subRenderController = ConversationSubtitleController(
+            SubtitleRenderConfig(
+                rtcEngine = rtcEngine,
+                null,
+                mBinding?.messageListViewV2
+            )
+        )
         ApiManager.setOnUnauthorizedCallback {
             ToastUtil.show(getString(io.agora.scene.common.R.string.common_login_expired))
             stopAgentAndLeaveChannel()
@@ -288,7 +290,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
-        subRenderController?.setRenderMode(SubRenderMode.Idle)
+        subRenderController?.setRenderMode(SubtitleRenderMode.Idle)
         // Immediately show the connecting status
         isUserEndCall = false
         connectionState = AgentConnectionState.CONNECTING
@@ -394,7 +396,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun stopAgentAndLeaveChannel() {
         stopRoomCountDownTask()
         stopTitleAnim()
-        subRenderController?.setRenderMode(SubRenderMode.Idle)
+        subRenderController?.setRenderMode(SubtitleRenderMode.Idle)
         CovRtcManager.leaveChannel()
         if (connectionState == AgentConnectionState.IDLE) {
             return

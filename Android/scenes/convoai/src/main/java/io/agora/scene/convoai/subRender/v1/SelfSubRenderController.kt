@@ -5,12 +5,15 @@ import android.os.Looper
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.scene.convoai.CovLogger
-import io.agora.scene.convoai.subRender.MessageParser
 
 data class SelfRenderConfig (
     val rtcEngine: RtcEngine,
     val view: ISelfMessageListView?
 )
+
+interface ISelfMessageListView {
+    fun onUpdateStreamContent(isMe: Boolean, turnId: Long, text: String, isFinal: Boolean = false)
+}
 
 class SelfSubRenderController(
     private val config: SelfRenderConfig
