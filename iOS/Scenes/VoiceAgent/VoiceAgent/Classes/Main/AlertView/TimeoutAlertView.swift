@@ -19,8 +19,9 @@ class TimeoutAlertView: UIView {
     
     private lazy var containerView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(red: 0.16, green: 0.16, blue: 0.18, alpha: 1)
+        view.backgroundColor = UIColor.themColor(named: "ai_fill2")
         view.layer.cornerRadius = 16
+        view.layer.masksToBounds = true
         return view
     }()
     
@@ -88,8 +89,8 @@ class TimeoutAlertView: UIView {
         
         cardView.snp.makeConstraints { make in
             make.top.equalTo(containerView)
-            make.left.equalTo(containerView).offset(17)
-            make.right.equalTo(containerView).offset(-18)
+            make.left.equalTo(containerView)
+            make.right.equalTo(containerView)
             make.height.equalTo(180)
         }
         

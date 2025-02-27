@@ -43,7 +43,7 @@
 "conversation.alert.clear" = "Clear";
 
 // Settings View
-"settings.title" = "Settings";
+"settings.title" = "Agent Settings";
 "settings.connected.tips" = "(Connected, cannot be modified)";
 "settings.preset" = "Preset";
 "settings.advanced" = "Advanced Settings";

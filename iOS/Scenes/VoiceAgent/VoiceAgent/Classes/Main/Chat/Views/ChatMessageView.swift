@@ -188,9 +188,10 @@ class ChatView: UIView {
         let button = UIButton()
         button.setImage(UIImage.ag_named("ic_captions_arrow_icon"), for: .normal)
         button.addTarget(self, action: #selector(clickArrowButton), for: .touchUpInside)
-        button.setBackgroundColor(color: UIColor.themColor(named: "ai_line1"), forState: .normal)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_block3"), forState: .normal)
         button.layer.cornerRadius = 22
-        button.layer.masksToBounds = true
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
         button.isHidden = true
         return button
     }()
@@ -231,7 +232,7 @@ class ChatView: UIView {
         }
         
         arrowButton.snp.makeConstraints { make in
-            make.bottom.equalTo(tableView)
+            make.bottom.equalTo(tableView).offset(-10)
             make.width.height.equalTo(44)
             make.centerX.equalTo(self)
         }

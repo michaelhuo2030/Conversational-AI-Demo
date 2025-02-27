@@ -15,7 +15,7 @@ class LoginViewController: UIViewController {
     
     private lazy var containerView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.themColor(named: "ai_block2")
+        view.backgroundColor = UIColor.themColor(named: "ai_fill5")
         view.layer.cornerRadius = 16
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         return view
@@ -114,6 +114,7 @@ class LoginViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setImage(UIImage.ag_named("ic_login_close"), for: .normal)
         button.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        button.tintColor = UIColor.themColor(named: "ai_icontext4")
         return button
     }()
     
@@ -140,7 +141,7 @@ class LoginViewController: UIViewController {
     }
     
     private func setupUI() {
-        backgroundView.backgroundColor = UIColor(white: 0, alpha: 0.5)
+        backgroundView.backgroundColor = UIColor.themColor(named: "ai_mask1")
         backgroundView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(backgroundTapped)))
         
         view.addSubview(backgroundView)

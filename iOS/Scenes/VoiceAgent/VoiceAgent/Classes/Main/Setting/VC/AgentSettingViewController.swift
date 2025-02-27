@@ -14,8 +14,8 @@ class AgentSettingViewController: UIViewController {
     private let grabberView = UIView()
     private let titleLabel = UILabel()
     private let connectTipsLabel = UILabel()
-    private let closeButton = UIButton(type: .custom)
-    private let backgroundViewHeight: CGFloat = 454
+    private let closeButton = UIButton(type: .system)
+    private let backgroundViewHeight: CGFloat = 360
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
     private var basicSettingItems: [UIView] = []
@@ -318,16 +318,16 @@ extension AgentSettingViewController {
         grabberView.backgroundColor = UIColor(hex: "#404548")
         grabberView.layerCornerRadius = 1.5
         
-        titleLabel.textColor = .white
         titleLabel.text = ResourceManager.L10n.Settings.title
         titleLabel.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         
-        connectTipsLabel.textColor = .white
         connectTipsLabel.text = ResourceManager.L10n.Settings.tips
         connectTipsLabel.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
         connectTipsLabel.textColor = UIColor.themColor(named: "ai_icontext3")
         
         closeButton.setImage(UIImage.ag_named("ic_agent_setting_close"), for: .normal)
+        closeButton.tintColor = UIColor.themColor(named: "ai_icontext2")
         closeButton.addTarget(self, action: #selector(onClickClose(_:)), for: .touchUpInside)
         [grabberView, titleLabel, connectTipsLabel, closeButton].forEach { topView.addSubview($0) }
         
@@ -415,7 +415,7 @@ extension AgentSettingViewController {
         
         advancedSettingTitle.snp.makeConstraints { make in
             make.top.equalTo(basicSettingView.snp.bottom).offset(32)
-            make.left.equalTo(20)
+            make.left.equalTo(34)
         }
         
         advancedSettingView.snp.makeConstraints { make in
