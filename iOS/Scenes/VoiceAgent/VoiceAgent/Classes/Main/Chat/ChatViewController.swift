@@ -29,8 +29,8 @@ public class ChatViewController: UIViewController {
         return coordinator
     }()
 
-    private lazy var subRenderController: CovSubRenderController = {
-        let renderCtrl = CovSubRenderController()
+    private lazy var subRenderController: ConversationSubtitleController = {
+        let renderCtrl = ConversationSubtitleController()
         return renderCtrl
     }()
     
@@ -328,7 +328,7 @@ public class ChatViewController: UIViewController {
         animateView.setupMediaPlayer(rtcEngine)
         animateView.updateAgentState(.idle)
         
-        let subRenderConfig = SubRenderConfig(rtcEngine: rtcEngine, renderMode: nil, delegate: self)
+        let subRenderConfig = SubtitleRenderConfig(rtcEngine: rtcEngine, renderMode: nil, delegate: self)
         subRenderController.setupWithConfig(subRenderConfig)
         
         devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
@@ -889,7 +889,7 @@ extension ChatViewController: AnimateViewDelegate {
     }
 }
 
-extension ChatViewController: CovSubRenderDelegate {
+extension ChatViewController: ConversationSubtitleDelegate {
     
     func onUpdateStreamContent(subtitle: SubtitleMessage) {
         if (subtitle.turnId == -1) {
