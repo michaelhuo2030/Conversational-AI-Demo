@@ -108,17 +108,16 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 cbAiVad.isChecked = false
                 cbAiVad.isEnabled = false
             } else {
-                cbAiVad.isEnabled = true
-            }
-        }
-        if (!ServerConfig.isMainlandVersion) {
-            binding?.apply {
-                if (CovAgentManager.language?.language_code == "en-US") {
+                if (ServerConfig.isMainlandVersion){
                     cbAiVad.isEnabled = true
-                } else {
-                    CovAgentManager.enableAiVad = false
-                    cbAiVad.isChecked = false
-                    cbAiVad.isEnabled = false
+                }else{
+                    if (CovAgentManager.language?.englishEnvironment() == true) {
+                        cbAiVad.isEnabled = true
+                    } else {
+                        CovAgentManager.enableAiVad = false
+                        cbAiVad.isChecked = false
+                        cbAiVad.isEnabled = false
+                    }
                 }
             }
         }
