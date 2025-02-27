@@ -56,19 +56,39 @@ enum MessageOwner {
     case agent
     case me
 }
-
-enum SubRenderMode {
-    case idle
+/**
+ * Defines different modes for subtitle rendering
+ *
+ * Auto: auto detect mode
+ * Text: Full text subtitles are rendered
+ * Word: Word-by-word subtitles are rendered
+ */
+enum SubtitleRenderMode {
+    case auto
     case words
     case text
 }
-
+/**
+ * Represents the current status of a subtitle
+ *
+ * Progress: Subtitle is still being generated or spoken
+ * End: Subtitle has completed normally
+ * Interrupted: Subtitle was interrupted before completion
+ */
 enum SubtitleStatus: Int {
     case inprogress = 0
     case end = 1
     case interrupt = 2
 }
-
+/**
+ * Consumer-facing data class representing a complete subtitle message
+ * Used for rendering in the UI layer
+ *
+ * @property turnId Unique identifier for the conversation turn
+ * @property userId User identifier associated with this subtitle
+ * @property text The actual subtitle text content
+ * @property status Current status of the subtitle
+ */
 struct SubtitleMessage {
     let turnId: Int
     let isMe: Bool
@@ -77,25 +97,45 @@ struct SubtitleMessage {
 }
 
 private typealias TurnState = SubtitleStatus
-
-protocol CovSubRenderDelegate: AnyObject {
+/**
+ * Interface for receiving subtitle update events
+ * Implemented by UI components that need to display subtitles
+ */
+protocol ConversationSubtitleDelegate: AnyObject {
+    /**
+     * Called when a subtitle is updated and needs to be displayed
+     *
+     * @param subtitle The updated subtitle message
+     */
     func onUpdateStreamContent(subtitle: SubtitleMessage)
 }
-
-struct SubRenderConfig {
+/**
+ * Configuration class for subtitle rendering
+ *
+ * @property rtcEngine The RTC engine instance used for real-time communication
+ * @property renderMode The mode of subtitle rendering (Auto, Text, or Word)
+ * @property callback Callback interface for subtitle updates
+ */
+struct SubtitleRenderConfig {
     let rtcEngine: AgoraRtcEngineKit
-    let renderMode: SubRenderMode?
-    let delegate: CovSubRenderDelegate?
+    let renderMode: SubtitleRenderMode?
+    let delegate: ConversationSubtitleDelegate?
 }
 
-protocol CovSubRenderControllerProtocol {
-    func setupWithConfig(_ config: SubRenderConfig)
+protocol ConversationSubtitleControllerProtocol {
+    func setupWithConfig(_ config: SubtitleRenderConfig)
     func start()
     func stop()
 }
 
 // MARK: - CovSubRenderController
-class CovSubRenderController: NSObject {
+
+/**
+ * Subtitle Rendering Controller
+ * Manages the processing and rendering of subtitles in conversation
+ *
+ */
+class ConversationSubtitleController: NSObject {
     
     enum MessageType: String {
         case assistant = "assistant.transcription"
@@ -109,9 +149,9 @@ class CovSubRenderController: NSObject {
     private var audioTimestamp: Int64 = 0
     private var messageParser = MessageParser()
     
-    private weak var delegate: CovSubRenderDelegate?
+    private weak var delegate: ConversationSubtitleDelegate?
     private var messageQueue: [TurnBuffer] = []
-    private var renderMode: SubRenderMode = .idle
+    private var renderMode: SubtitleRenderMode = .auto
     
     private var lastMessage: SubtitleMessage? = nil
     private var lastFinishMessage: SubtitleMessage? = nil
@@ -146,11 +186,11 @@ class CovSubRenderController: NSObject {
         }
     }
     
-    private func getMessageMode(_ message: TranscriptionMessage) -> SubRenderMode {
-        if renderMode == .idle {
+    private func getMessageMode(_ message: TranscriptionMessage) -> SubtitleRenderMode {
+        if renderMode == .auto {
             let messageType = MessageType(rawValue: message.object ?? "string") ?? .unknown
             guard messageType == .string || messageType == .assistant else {
-                return .idle
+                return .auto
             }
             if let words = message.words, !words.isEmpty {
                 renderMode = .words
@@ -362,14 +402,14 @@ class CovSubRenderController: NSObject {
     }
 }
 // MARK: - AgoraRtcEngineDelegate
-extension CovSubRenderController: AgoraRtcEngineDelegate {
+extension ConversationSubtitleController: AgoraRtcEngineDelegate {
     public func rtcEngine(_ engine: AgoraRtcEngineKit, receiveStreamMessageFromUid uid: UInt, streamId: Int, data: Data) {
         inputStreamMessageData(data: data)
     }
 }
 
 // MARK: - AgoraAudioFrameDelegate
-extension CovSubRenderController: AgoraAudioFrameDelegate {
+extension ConversationSubtitleController: AgoraAudioFrameDelegate {
     
     public func onPlaybackAudioFrame(beforeMixing frame: AgoraAudioFrame, channelId: String, uid: UInt) -> Bool {
         audioTimestamp = frame.presentationMs
@@ -381,11 +421,11 @@ extension CovSubRenderController: AgoraAudioFrameDelegate {
     }
 }
 // MARK: - CovSubRenderControllerProtocol
-extension CovSubRenderController: CovSubRenderControllerProtocol {
+extension ConversationSubtitleController: ConversationSubtitleControllerProtocol {
     
-    func setupWithConfig(_ config: SubRenderConfig) {
+    func setupWithConfig(_ config: SubtitleRenderConfig) {
         self.delegate = config.delegate
-        self.renderMode = config.renderMode ?? .idle
+        self.renderMode = config.renderMode ?? .auto
         config.rtcEngine.setAudioFrameDelegate(self)
         config.rtcEngine.addDelegate(self)
     }
@@ -400,7 +440,7 @@ extension CovSubRenderController: CovSubRenderControllerProtocol {
     func stop() {
         timer?.invalidate()
         timer = nil
-        renderMode = .idle
+        renderMode = .auto
         lastMessage = nil
         lastFinishMessage = nil
         audioTimestamp = 0
