@@ -67,7 +67,7 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
 
 
     private fun setupLocale() {
-        val lang = if (ServerConfig.isMainlandVersion) "zh" else "en"
+        val lang = if (BuildConfig.IS_MAINLAND) "zh" else "en"
         val locale = Locale(lang)
 
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.create(locale))
