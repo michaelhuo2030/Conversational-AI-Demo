@@ -38,7 +38,13 @@ class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+//        setupUI()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        let vc = ChatViewController()
+        self.navigationController?.pushViewController(vc, animated: false)
     }
 
     private func setupUI() {

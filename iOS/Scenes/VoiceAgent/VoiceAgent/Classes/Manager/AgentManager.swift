@@ -107,7 +107,7 @@ class AgentManager: AgentAPI {
         let url = AgentServiceUrl.startAgentPath("v3/convoai/start").toHttpUrlSting()
         
         // 基础参数
-        let baseParameters: [String: Any] = [
+        var baseParameters: [String: Any] = [
             "app_id": appId,
             "preset_name": presetName,
             "channel_name": channelName,
@@ -119,6 +119,14 @@ class AgentManager: AgentAPI {
             ],
             "asr": [
                 "language": language
+            ]
+        ]
+        
+        baseParameters["parameters"] = [
+            "transcript": [
+                "enable": true,
+                "protocol_version": "v2",
+                "enable_words": true,
             ]
         ]
         

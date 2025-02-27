@@ -390,18 +390,9 @@ public class ChatViewController: UIViewController {
         }
         let ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
         addLog("Join channel: \(ret)")
-        if (ret == 0) {
-            self.addLog("Join success")
-            self.setupMuteState(state: false)
-            AppContext.preferenceManager()?.updateRoomState(.connected)
-            AppContext.preferenceManager()?.updateRoomId(channelName)
-        }else{
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Conversation.joinFailed + "\(ret)")
-            stopLoading()
-            stopAgent()
-            AppContext.preferenceManager()?.updateRoomState(.disconnected)
-            self.addLog("Join failed")
-        }
+        self.setupMuteState(state: false)
+        AppContext.preferenceManager()?.updateRoomState(.connected)
+        AppContext.preferenceManager()?.updateRoomId(channelName)
     }
     
     private func leaveChannel() {
@@ -464,6 +455,9 @@ public class ChatViewController: UIViewController {
     private func switchEnvironment() {
         AppContext.preferenceManager()?.deleteAllPresets()
         AppContext.loginManager()?.logout()
+        animateView.releaseView()
+        rtcManager.destroy()
+        self.navigationController?.popViewController(animated: false)
     }
 }
 
@@ -651,7 +645,9 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinChannel channel: String, withUid uid: UInt, elapsed: Int) {
-        addLog("[RTC Call Back] didJoinChannel uid: \(uid)")
+        addLog("[RTC Call Back] didJoinChannel uid: \(uid), channelName: \(channel)")
+        self.addLog("Join success")
+
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
