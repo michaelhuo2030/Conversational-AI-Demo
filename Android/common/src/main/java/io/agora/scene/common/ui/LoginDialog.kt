@@ -14,7 +14,9 @@ import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.widget.CompoundButton
 import android.widget.TextView
+import androidx.core.view.isVisible
 import io.agora.scene.common.R
+import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.databinding.CommonLoginDialogBinding
 
 interface LoginDialogCallback {
@@ -56,6 +58,7 @@ class LoginDialog constructor() : BaseSheetDialog<CommonLoginDialogBinding>() {
                 }
             }
             setupRichTextTerms(tvTermsRichText)
+            tvLoginForChatTips.isVisible = ServerConfig.isMainlandVersion
         }
     }
     

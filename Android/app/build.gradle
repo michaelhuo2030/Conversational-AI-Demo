@@ -58,13 +58,19 @@ android {
     applicationVariants.all {
         variant ->
             variant.outputs.all { output ->
-                def appName = variant.applicationId
+                def flavor = variant.productFlavors.isEmpty() ? "default" : variant.productFlavors[0].name
+                def flavorPrefix = ""
+                if (flavor == "china") {
+                    flavorPrefix = "ShengWang_Conversational_Al_Engine_Demo_for_Android"
+                } else if (flavor == "global") {
+                    flavorPrefix = "Agora_Conversational_Al_Engine_Demo_for_Android"
+                } else {
+                    flavorPrefix = "Conversational_Al_Engine_Demo_for_Android"
+                }
                 outputFileName = new File(
-                        rootProject.name + "_" +
+                        flavorPrefix + "_" +
                                 "v" + defaultConfig.versionName + "_" +
-                                buildType.name + "_" +
-                                new Date().format("yyyyMMddHHmm") + "_" +
-                                appName + ".apk")
+                                new Date().format("yyyyMMddHHmm") + ".apk")
             }
     }
 

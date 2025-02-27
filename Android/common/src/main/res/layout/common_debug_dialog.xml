@@ -88,7 +88,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="graph id"
+            android:text="Graph id"
             android:textColor="@color/ai_icontext1"
             android:textSize="16sp"
             android:layout_marginTop="4dp"
