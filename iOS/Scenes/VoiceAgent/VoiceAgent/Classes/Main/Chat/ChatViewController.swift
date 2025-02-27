@@ -468,10 +468,6 @@ public class ChatViewController: UIViewController {
 
 // MARK: - Agent Request
 extension ChatViewController {
-    private func fetchUserInfo() async throws {
-        
-    }
-    
     private func fetchPresetsIfNeeded() async throws {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
@@ -818,6 +814,7 @@ private extension ChatViewController {
             serverHost: AppContext.preferenceManager()?.information.targetServer ?? "")
         {
             self.devModeButton.isHidden = true
+            self.switchEnvironment()
         } onAudioDump: { isOn in
             self.rtcManager.enableAudioDump(enabled: isOn)
         } onSwitchServer: {
