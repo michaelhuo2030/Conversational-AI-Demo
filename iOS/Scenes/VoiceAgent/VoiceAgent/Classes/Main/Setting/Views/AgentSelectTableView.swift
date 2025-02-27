@@ -35,8 +35,8 @@ class AgentSelectTableView: UIView {
     }
     
     func getHeight() -> CGFloat {
-        if CGFloat(dataSource.count) * 44.0 > 300 {
-            return 300
+        if CGFloat(dataSource.count) * 44.0 > 200 {
+            return 200
         }
         return CGFloat(dataSource.count) * 44.0
     }

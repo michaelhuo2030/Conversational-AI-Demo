@@ -37,7 +37,7 @@ class AgentSettingBar: UIView {
     private lazy var centerTipsLabel: UILabel = {
         let label = UILabel()
         label.text = String(format: ResourceManager.L10n.Join.tips, 10)
-        label.font = .systemFont(ofSize: 14)
+        label.font = .boldSystemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         return label
     }()

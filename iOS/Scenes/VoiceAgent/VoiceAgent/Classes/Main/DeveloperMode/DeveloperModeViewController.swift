@@ -252,14 +252,15 @@ extension DeveloperModeViewController {
         copyUserQuestionLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         copyUserQuestionLabel.font = UIFont.systemFont(ofSize: 14)
         
-        let copyButton = UIButton()
+        let copyButton = UIButton(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
         copyButton.setImage(UIImage(systemName: "doc.on.doc"), for: .normal)
         copyButton.addTarget(self, action: #selector(onClickCopy(_ :)), for: .touchUpInside)
         
         let copyStackView = UIStackView()
         copyStackView.axis = .horizontal
         copyStackView.spacing = 12
-        copyStackView.alignment = .center
+        copyStackView.alignment = .fill
+        copyStackView.distribution = .fillProportionally
         copyStackView.addArrangedSubview(copyUserQuestionLabel)
         copyStackView.addArrangedSubview(copyButton)
         cotentView.addSubview(copyStackView)

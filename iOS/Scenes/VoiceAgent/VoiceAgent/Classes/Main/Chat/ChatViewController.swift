@@ -241,7 +241,7 @@ public class ChatViewController: UIViewController {
     
     private func setupViews() {
         view.backgroundColor = .black
-        [animateContentView, upperBackgroundView, lowerBackgroundView, topBar, contentView, messageView, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
+        [animateContentView, upperBackgroundView, lowerBackgroundView, contentView, messageView, topBar, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
         
         contentView.addSubview(aiNameLabel)
     }

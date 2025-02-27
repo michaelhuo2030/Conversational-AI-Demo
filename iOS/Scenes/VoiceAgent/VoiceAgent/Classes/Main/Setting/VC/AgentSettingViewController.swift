@@ -15,7 +15,7 @@ class AgentSettingViewController: UIViewController {
     private let titleLabel = UILabel()
     private let connectTipsLabel = UILabel()
     private let closeButton = UIButton(type: .custom)
-    private let backgroundViewHeight: CGFloat = 454
+    private let backgroundViewHeight: CGFloat = 360
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
     private var basicSettingItems: [UIView] = []
