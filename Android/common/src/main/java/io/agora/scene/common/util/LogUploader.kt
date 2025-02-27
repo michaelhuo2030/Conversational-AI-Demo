@@ -40,6 +40,11 @@ object LogUploader {
     private fun collectFiles(directory: File, paths: MutableList<String>) {
         try {
             directory.listFiles()?.forEach { file ->
+                // Skip files/compressed directory
+                if (file.absolutePath.contains("compressed")) {
+                    return@forEach // Skip this file/directory
+                }
+                
                 when {
                     file.isFile -> paths.add(file.absolutePath)
                     file.isDirectory -> collectFiles(file, paths)

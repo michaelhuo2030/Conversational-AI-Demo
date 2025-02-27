@@ -31,13 +31,6 @@ object DebugConfigSettings {
         this.isDebug = isDebug
     }
 
-    var isAudioDumpEnabled: Boolean = true
-        private set
-
-    fun enableAudioDump(isAudioDumpEnabled: Boolean) {
-        this.isAudioDumpEnabled = isAudioDumpEnabled
-    }
-
     var isSeamlessPlayMode: Boolean = false
         private set
 
@@ -66,7 +59,6 @@ object DebugConfigSettings {
     fun reset() {
         graphId = ""
         isDebug = false
-        isAudioDumpEnabled = false
     }
 
     // Counter for debug mode activation
