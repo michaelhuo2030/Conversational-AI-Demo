@@ -376,7 +376,7 @@ extension AgentSettingViewController {
             make.left.equalTo(titleLabel.snp.right).offset(5)
         }
         closeButton.snp.makeConstraints { make in
-            make.right.equalTo(-20)
+            make.right.equalTo(-5)
             make.centerY.equalToSuperview()
             make.size.equalTo(CGSize(width: 48, height: 48))
         }
