@@ -246,7 +246,7 @@ enum AgentServiceUrl {
     static let retryCount = 1
     static var host: String = ""
     var baseUrl: String {
-        return AgentServiceUrl.host + "/"
+        return AppContext.shared.baseServerUrl + "/"
     }
     
     case startAgentPath(String)

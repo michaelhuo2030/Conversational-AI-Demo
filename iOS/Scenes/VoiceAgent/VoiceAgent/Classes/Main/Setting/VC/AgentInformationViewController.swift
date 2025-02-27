@@ -109,15 +109,15 @@ class AgentInformationViewController: UIViewController {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentStatus
         view.detailLabel.textColor = UIColor.themColor(named: "ai_block2")
-        view.imageView.isHidden = true
+        view.setImageViewHiddenState(state: true)
         return view
     }()
     
     private lazy var agentIDItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.agentId
-        view.imageView.isHidden = true
         view.enableLongPressCopy = true
+        view.setImageViewHiddenState(state: true)
         return view
     }()
     
@@ -125,14 +125,14 @@ class AgentInformationViewController: UIViewController {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomStatus
         view.detailLabel.textColor = UIColor.themColor(named: "ai_green6")
-        view.imageView.isHidden = true
+        view.setImageViewHiddenState(state: true)
         return view
     }()
     
     private lazy var roomIDItem: AgentSettingTableItemView = {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.roomId
-        view.imageView.isHidden = true
+        view.setImageViewHiddenState(state: true)
         return view
     }()
     
@@ -140,7 +140,7 @@ class AgentInformationViewController: UIViewController {
         let view = AgentSettingTableItemView(frame: .zero)
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
         view.bottomLine.isHidden = true
-        view.imageView.isHidden = true
+        view.setImageViewHiddenState(state: true)
         return view
     }()
         

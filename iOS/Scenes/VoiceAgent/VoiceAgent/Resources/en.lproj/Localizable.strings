@@ -2,9 +2,9 @@
 "login.title" = "Unlock ♾️ Free Chat";
 "login.description" = "Power your business future at once";
 "login.start.button.title" = "Log in with Agora account";
-"login.terms.service.prefix" = "I accept the ";
+"login.terms.service.prefix" = " I accept the ";
 "login.terms.service.name" = "Terms of Services";
-"login.terms.service.and" = "and";
+"login.terms.service.and" = " and ";
 "login.privacy.policy.name" = "Privacy Policy";
 "login.terms.service.tips" = "Read me first";
 "login.session.expired" = "Your session has expired. Please log in again";
@@ -14,11 +14,12 @@
 "logout.alert.confirm.title" = "Cancel";
 "logout.alert.cancel.title" = "Log out";
 
-"join.start.title" = "Conversational AI";
+"join.start.title" = "ConvoAI";
 "join.start.state" = "Not Joined";
 "join.start.button.title" = "Call AI Agent";
 "join.start.agent.name" = "Agent";
 "join.start.tips" = "Session Limit: %d minutes.";
+"join.timeout.tips" = "Timeout. Please try again.";
 
 "conversation.ai.welcome.title" = "Hey, I'm Conversational AI Engine.";
 "conversation.ai.welcome.description" = "Have you ever questioned the nature of your reality?";
@@ -64,10 +65,10 @@
 "channel.info.subtitle" = "CHANNEL INFO";
 "channel.network.info.title" = "NETWORK INFO";
 "channel.info.agent.status" = "Agent Status";
-"channel.info.agent.id" = "Agent-ID";
+"channel.info.agent.id" = "Agent ID";
 "channel.info.room.status" = "Room Status";
-"channel.info.room.id" = "Room-ID";
-"channel.info.your.id" = "Your-ID";
+"channel.info.room.id" = "Room ID";
+"channel.info.your.id" = "Your ID";
 "channel.info.your.network" = "Your Network";
 "channel.disconnected.state" = "Disconnected";
 "channel.connected.state" = "Connected";

@@ -303,6 +303,7 @@ public class ChatViewController: UIViewController {
         welcomeMessageView.snp.makeConstraints { make in
             make.left.equalTo(29)
             make.right.equalTo(-29)
+            make.height.equalTo(60)
             make.bottom.equalTo(bottomBar.snp.top).offset(-41)
         }
         
@@ -953,6 +954,7 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
         
         if manager.information.agentState != .connected {
             addLog("agent is not joined in 10 seconds")
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Join.joinTimeoutTips)
             self.stopLoading()
             self.stopAgent()
         }

@@ -12,7 +12,7 @@ import SVProgressHUD
 class AgentSettingTableItemView: UIView {
     let titleLabel = UILabel()
     let detailLabel = UILabel()
-    let imageView = UIImageView(image: UIImage.ag_named("ic_agent_setting_tab"))
+    private let imageView = UIImageView(image: UIImage.ag_named("ic_agent_setting_tab"))
     let bottomLine = UIView()
     let button = UIButton(type: .custom)
     
@@ -39,6 +39,24 @@ class AgentSettingTableItemView: UIView {
     
     @objc func onClickButton(_ sender: UIButton) {
         print("click button")
+    }
+    
+    func setImageViewHiddenState(state: Bool) {
+        imageView.isHidden = state
+        
+        if state {
+            detailLabel.snp.remakeConstraints { make in
+                make.right.equalTo(-16)
+                make.left.equalTo(titleLabel.snp.right).offset(10)
+                make.centerY.equalToSuperview()
+            }
+        } else {
+            detailLabel.snp.remakeConstraints { make in
+                make.right.equalTo(imageView.snp.left).offset(-8)
+                make.left.equalTo(titleLabel.snp.right).offset(10)
+                make.centerY.equalToSuperview()
+            }
+        }
     }
     
     private func setupLongPressGesture() {

@@ -48,8 +48,23 @@ class TypewriterLabel: UILabel {
     }
     
     private func commonInit() {
-        textAlignment = .center
         numberOfLines = 0
+        textAlignment = .center
+    }
+    
+    override func drawText(in rect: CGRect) {
+        let actualRect = textRect(forBounds: rect, limitedToNumberOfLines: numberOfLines)
+        let topAlignedRect = CGRect(x: actualRect.origin.x,
+                                  y: rect.origin.y,
+                                  width: actualRect.width,
+                                  height: actualRect.height)
+        super.drawText(in: topAlignedRect)
+    }
+    
+    override func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
+        var textRect = super.textRect(forBounds: bounds, limitedToNumberOfLines: numberOfLines)
+        textRect.origin.y = bounds.origin.y
+        return textRect
     }
     
     func startAnimation() {
@@ -119,6 +134,9 @@ class TypewriterLabel: UILabel {
         
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = .center
+        paragraphStyle.lineBreakMode = .byWordWrapping
+        paragraphStyle.alignment = .center
+        
         attributedString.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: text.count))
         
         for i in 0..<text.count {
@@ -172,3 +190,4 @@ class TypewriterLabel: UILabel {
         stopAnimation()
     }
 }
+
