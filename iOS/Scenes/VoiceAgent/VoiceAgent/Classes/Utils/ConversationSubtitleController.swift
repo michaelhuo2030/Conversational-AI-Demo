@@ -29,6 +29,37 @@ private struct TranscriptionMessage: Codable {
     let send_ts: Int?
     let module: String?
     let metric_name: String?
+    
+    func description() -> String {
+        var dict: [String: Any] = [:]
+        
+        if let data_type = data_type { dict["data_type"] = data_type }
+        if let stream_id = stream_id { dict["stream_id"] = stream_id }
+        if let text = text { dict["text"] = text }
+        if let message_id = message_id { dict["message_id"] = message_id }
+        if let quiet = quiet { dict["quiet"] = quiet }
+        if let final = final { dict["final"] = final }
+        if let is_final = is_final { dict["is_final"] = is_final }
+        if let object = object { dict["object"] = object }
+        if let turn_id = turn_id { dict["turn_id"] = turn_id }
+        if let turn_seq_id = turn_seq_id { dict["turn_seq_id"] = turn_seq_id }
+        if let turn_status = turn_status { dict["turn_status"] = turn_status }
+        if let language = language { dict["language"] = language }
+        if let user_id = user_id { dict["user_id"] = user_id }
+        if let words = words { dict["words"] = words.map { $0.word ?? "" }.joined(separator: "|") }
+        if let duration_ms = duration_ms { dict["duration_ms"] = duration_ms }
+        if let start_ms = start_ms { dict["start_ms"] = start_ms }
+        if let latency_ms = latency_ms { dict["latency_ms"] = latency_ms }
+        if let send_ts = send_ts { dict["send_ts"] = send_ts }
+        if let module = module { dict["module"] = module }
+        if let metric_name = metric_name { dict["metric_name"] = metric_name }
+        
+        if let jsonData = try? JSONSerialization.data(withJSONObject: dict, options: []),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            return jsonString
+        }
+        return "{}"
+    }
 }
 
 private struct Word: Codable {
@@ -51,70 +82,54 @@ private struct WordBuffer {
     let start_ms: Int64
     var status: SubtitleStatus = .inprogress
 }
-
-enum MessageOwner {
-    case agent
-    case me
-}
-/**
- * Defines different modes for subtitle rendering
- *
- * Auto: auto detect mode
- * Text: Full text subtitles are rendered
- * Word: Word-by-word subtitles are rendered
- */
+/// Defines different modes for subtitle rendering
+///
+/// - Auto: auto detect mode
+/// - Text: Full text subtitles are rendered
+/// - Word: Word-by-word subtitles are rendered
 enum SubtitleRenderMode {
     case words
     case text
 }
-/**
- * Represents the current status of a subtitle
- *
- * Progress: Subtitle is still being generated or spoken
- * End: Subtitle has completed normally
- * Interrupted: Subtitle was interrupted before completion
- */
+/// Represents the current status of a subtitle
+///
+/// - Progress: Subtitle is still being generated or spoken
+/// - End: Subtitle has completed normally
+/// - Interrupted: Subtitle was interrupted before completion
 enum SubtitleStatus: Int {
     case inprogress = 0
     case end = 1
     case interrupt = 2
 }
-/**
- * Consumer-facing data class representing a complete subtitle message
- * Used for rendering in the UI layer
- *
- * @property turnId Unique identifier for the conversation turn
- * @property userId User identifier associated with this subtitle
- * @property text The actual subtitle text content
- * @property status Current status of the subtitle
- */
+private typealias TurnState = SubtitleStatus
+/// Consumer-facing data class representing a complete subtitle message
+/// Used for rendering in the UI layer
+///
+/// - Parameters:
+///   - turnId: Unique identifier for the conversation turn
+///   - userId: User identifier associated with this subtitle
+///   - text: The actual subtitle text content
+///   - status: Current status of the subtitle
 struct SubtitleMessage {
     let turnId: Int
     let userId: UInt
     let text: String
     var status: SubtitleStatus
 }
-
-private typealias TurnState = SubtitleStatus
-/**
- * Interface for receiving subtitle update events
- * Implemented by UI components that need to display subtitles
- */
+/// Interface for receiving subtitle update events
+/// Implemented by UI components that need to display subtitles
 protocol ConversationSubtitleDelegate: AnyObject {
-    /**
-     * Called when a subtitle is updated and needs to be displayed
-     *
-     * @param subtitle The updated subtitle message
-     */
-    func onUpdateStreamContent(subtitle: SubtitleMessage)
+    /// Called when a subtitle is updated and needs to be displayed
+    ///
+    /// - Parameter subtitle: The updated subtitle message
+    func onSubtitleUpdated(subtitle: SubtitleMessage)
 }
-/**
- * Configuration class for subtitle rendering
- *
- * @property rtcEngine The RTC engine instance used for real-time communication
- * @property renderMode The mode of subtitle rendering (Auto, Text, or Word)
- * @property callback Callback interface for subtitle updates
- */
+/// Configuration class for subtitle rendering
+///
+/// - Properties:
+///   - rtcEngine: The RTC engine instance used for real-time communication
+///   - renderMode: The mode of subtitle rendering (Auto, Text, or Word)
+///   - callback: Callback interface for subtitle updates
 struct SubtitleRenderConfig {
     let rtcEngine: AgoraRtcEngineKit
     let renderMode: SubtitleRenderMode
@@ -128,11 +143,9 @@ protocol ConversationSubtitleControllerProtocol {
 
 // MARK: - CovSubRenderController
 
-/**
- * Subtitle Rendering Controller
- * Manages the processing and rendering of subtitles in conversation
- *
- */
+/// Subtitle Rendering Controller
+/// Manages the processing and rendering of subtitles in conversation
+///
 class ConversationSubtitleController: NSObject {
     
     public static let localUserId: UInt = 0
@@ -170,13 +183,13 @@ class ConversationSubtitleController: NSObject {
         guard let jsonData = messageParser.parseToJsonData(data) else {
             return
         }
-        let string = String(data: jsonData, encoding: .utf8) ?? ""
-        addLog("✅[CovSubRenderController] json: \(string)")
         do {
             let transcription = try JSONDecoder().decode(TranscriptionMessage.self, from: jsonData)
             handleMessage(transcription)
+            addLog("✅[CovSubRenderController] input: \(transcription.description())")
         } catch {
-            print("⚠️[CovSubRenderController] Failed to parse JSON content \(string) error: \(error.localizedDescription)")
+            let string = String(data: jsonData, encoding: .utf8) ?? ""
+            addLog("⚠️[CovSubRenderController] input: Failed to parse JSON content \(string) error: \(error.localizedDescription)")
             return
         }
     }
@@ -247,7 +260,7 @@ class ConversationSubtitleController: NSObject {
                                               userId: userId,
                                               text: text,
                                               status: messageState)
-        self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
+        self.delegate?.onSubtitleUpdated(subtitle: subtitleMessage)
         if userId == 0 {
             print("🙋🏻‍♀️[CovSubRenderController] send user text: \(text), state: \(messageState)")
         } else {
@@ -262,7 +275,7 @@ class ConversationSubtitleController: NSObject {
                                                   userId: ConversationSubtitleController.localUserId,
                                                   text: text,
                                                   status: (message.final == true) ? .end : .inprogress)
-            self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
+            self.delegate?.onSubtitleUpdated(subtitle: subtitleMessage)
             return
         }
         queue.async(flags: .barrier) {
@@ -280,7 +293,6 @@ class ConversationSubtitleController: NSObject {
                     return
                 }
                 print("🔔[CovSubRenderController] turn_id: \(message.turn_id ?? 0), status: \(turnStatus)")
-                print("🔔[CovSubRenderController] words: \(message.words?.map { $0.word ?? "" }.joined(separator: "|") ?? "[]")")
                 let curBuffer: TurnBuffer = self.messageQueue.first { $0.turnId == message.turn_id } ?? {
                     let newTurn = TurnBuffer()
                     newTurn.turnId = message.turn_id ?? 0
@@ -366,7 +378,7 @@ class ConversationSubtitleController: NSObject {
                    buffer.turnId > lastMessage.turnId  {
                     // interrupte last turn
                     lastMessage.status = .interrupt
-                    self.delegate?.onUpdateStreamContent(subtitle: lastMessage)
+                    self.delegate?.onSubtitleUpdated(subtitle: lastMessage)
                     interrupte = true
                 }
                 // get turn sub range
@@ -406,7 +418,7 @@ class ConversationSubtitleController: NSObject {
 //                print("📊 [CovSubRenderController] turn: \(buffer.turnId) range \(buffer.words.count) Subrange: \(minRange) words: \(currentWords.map { $0.text }.joined())")
                 if !subtitleMessage.text.isEmpty {
                     lastMessage = subtitleMessage
-                    self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
+                    self.delegate?.onSubtitleUpdated(subtitle: subtitleMessage)
                 }
             }
         }

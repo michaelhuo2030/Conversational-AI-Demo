@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum MessageOwner {
+    case agent
+    case me
+}
+
 protocol MessageIndependent {
     func reduceIndependentMessage(message: String, timestamp: Int64, owner: MessageOwner, isFinished: Bool)
 }
