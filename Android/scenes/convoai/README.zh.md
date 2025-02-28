@@ -66,9 +66,9 @@ BASIC_AUTH_SECRET=<声网 RESTful API SECRET>
 
 #----------- LLM -----------
 LLM_URL=<LLM 厂商的 API BASE URL>
-LLM_API_KEY=<LLM 厂商的 API KEY>
-LLM_SYSTEM_MESSAGES=<LLM Prompt>
-LLM_MODEL=<LLM Model>
+LLM_API_KEY=<LLM 厂商的 API KEY>(可选)
+LLM_SYSTEM_MESSAGES=<LLM Prompt>(可选)
+LLM_MODEL=<LLM Model>(可选)
 
 #----------- TTS -----------
 TTS_VENDOR=<TTS 厂商>
