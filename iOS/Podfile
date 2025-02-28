@@ -39,3 +39,31 @@ target 'Agent-cn' do
   pod 'Kingfisher'
   
 end
+
+post_install do |installer|
+  resource_url = "https://accktvpic.oss-cn-beijing.aliyuncs.com/ConvoAI/Resource/Convo_AI_Demo_v1.0.0_Resource.zip"
+  download_path = "#{Dir.pwd}/Agent/Resources/Convo_AI_Demo_v1.0.0_Resource.zip"
+  extract_path = "#{Dir.pwd}/Agent/Resources"
+  
+  puts "Downloading Convo AI Demo resources..."
+  system "curl -L #{resource_url} -o #{download_path}"
+  
+  if File.exist?(download_path)
+    puts "Download completed successfully."
+    
+    puts "Extracting resources..."
+    system "unzip -j -o #{download_path} -d #{extract_path}"
+        
+    system "rm #{download_path}"
+    
+    puts "Resource settings completed."
+  else
+    puts "Resource download failed. Please check your network connection and try again."
+  end
+  
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Additional post-install configuration can be added here.
+    end
+  end
+end

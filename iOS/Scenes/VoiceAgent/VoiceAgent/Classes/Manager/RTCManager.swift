@@ -66,7 +66,7 @@ class RTCManager: NSObject {
         rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}")
         rtcEngine.setParameters("{\"che.audio.sf.stftType\":6}")
         rtcEngine.setParameters("{\"che.audio.sf.ainlpLowLatencyFlag\":1}")
-        rtcEngine.setParameters("{\"che.audio.sf.ainsLowLatencyFlag \":1}")
+        rtcEngine.setParameters("{\"che.audio.sf.ainsLowLatencyFlag\":1}")
         rtcEngine.setParameters("{\"che.audio.sf.procChainMode\":1}")
         rtcEngine.setParameters("{\"che.audio.sf.nlpDynamicMode\":1}")
         rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")

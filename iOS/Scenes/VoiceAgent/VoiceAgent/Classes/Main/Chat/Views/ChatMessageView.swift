@@ -52,13 +52,18 @@ class ChatMessageCell: UITableViewCell {
         button.layer.masksToBounds = true
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
         
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 3)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 3, bottom: 0, right: 0)
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -3, bottom: 0, right: 3)
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 3, bottom: 0, right: -3)
         
         button.semanticContentAttribute = .forceLeftToRight
         
         button.isHidden = true
         button.isUserInteractionEnabled = false
+        
+        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
+        button.sizeToFit()
+        
         return button
     }()
     
@@ -180,10 +185,9 @@ class ChatMessageCell: UITableViewCell {
         }
         
         interruptButton.snp.remakeConstraints { make in
-            make.left.equalTo(messageBubble).offset(0)
+            make.left.equalTo(messageBubble)
             make.top.equalTo(messageBubble.snp.bottom)
             make.bottom.equalTo(0)
-            make.width.equalTo(66)
             make.height.equalTo(22)
         }
     }
