@@ -2,7 +2,7 @@
     <string name="cov_login_for_chat">Call AI Engine</string>
     <string name="cov_detail_agent_title">Convo AI</string>
     <string name="cov_detail_not_joined">Not Joined</string>
-    <string name="cov_detail_join_call">Call AI Agent</string>
+    <string name="cov_detail_join_call">Call AI Engine</string>
     <string name="cov_detail_end_call">End Call</string>
     <string name="cov_detail_agent_joining">Joining</string>
     <string name="cov_detail_agent_ending">Ending</string>
@@ -56,6 +56,7 @@
     <string name="cov_setting_network_error">Network Error!</string>
     <string name="cov_agent_connecting">Connecting…</string>
     <string name="cov_copy_succeed">Copied</string>
+    <string name="cov_interrupted">Interrupted</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>Inbuilt Mic</item>

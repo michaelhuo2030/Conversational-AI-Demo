@@ -56,6 +56,7 @@
     <string name="cov_setting_network_error">请求失败：</string>
     <string name="cov_agent_connecting">连接中...</string>
     <string name="cov_copy_succeed">已复制</string>
+    <string name="cov_interrupted">已打断</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>内置麦克风</item>

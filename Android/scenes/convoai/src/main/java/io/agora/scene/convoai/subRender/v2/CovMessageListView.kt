@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.common.util.dp
@@ -200,32 +201,36 @@ class CovMessageListView @JvmOverloads constructor(
                 when (message.status) {
                     SubtitleStatus.End -> {
                         binding.tvMessageContent.text = message.content
+                        binding.layoutMessageInterrupt.isVisible = false
                     }
 
                     SubtitleStatus.Interrupted -> {
-                        val htmlText =
-                            "${message.content} <img src=\"${io.agora.scene.common.R.drawable.ai_interrupt}\"/>"
-                        binding.tvMessageContent.text = HtmlCompat.fromHtml(
-                            htmlText,
-                            HtmlCompat.FROM_HTML_MODE_COMPACT,
-                            object : Html.ImageGetter {
-                                override fun getDrawable(source: String?): Drawable {
-                                    val drawable = ContextCompat.getDrawable(
-                                        binding.root.context,
-                                        io.agora.scene.common.R.drawable.ai_interrupt
-                                    ) ?: return ColorDrawable(Color.TRANSPARENT)
-
-                                    val size = binding.tvMessageContent.textSize.toInt()
-                                    drawable.setBounds(0, 0, size, size)
-                                    return drawable
-                                }
-                            },
-                            null
-                        )
+                        binding.tvMessageContent.text = message.content
+                        binding.layoutMessageInterrupt.isVisible = true
+//                        val htmlText =
+//                            "${message.content} <img src=\"${io.agora.scene.common.R.drawable.ai_interrupt}\"/>"
+//                        binding.tvMessageContent.text = HtmlCompat.fromHtml(
+//                            htmlText,
+//                            HtmlCompat.FROM_HTML_MODE_COMPACT,
+//                            object : Html.ImageGetter {
+//                                override fun getDrawable(source: String?): Drawable {
+//                                    val drawable = ContextCompat.getDrawable(
+//                                        binding.root.context,
+//                                        io.agora.scene.common.R.drawable.ai_interrupt
+//                                    ) ?: return ColorDrawable(Color.TRANSPARENT)
+//
+//                                    val size = binding.tvMessageContent.textSize.toInt()
+//                                    drawable.setBounds(0, 0, size, size)
+//                                    return drawable
+//                                }
+//                            },
+//                            null
+//                        )
                     }
 
                     else -> {
                         binding.tvMessageContent.text = message.content
+                        binding.layoutMessageInterrupt.isVisible = false
                     }
                 }
             }

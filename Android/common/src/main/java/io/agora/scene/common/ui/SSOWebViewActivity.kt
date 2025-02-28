@@ -87,6 +87,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                         CommonLogger.d(TAG, "start login url = $url")
                         runOnUiThread {
                             mLoadingDialog?.show()
+                            mBinding?.emptyView?.isVisible = true
                         }
                         return false
                     }
@@ -107,6 +108,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                     super.onReceivedError(view, request, error)
                     runOnUiThread {
                         mLoadingDialog?.dismiss()
+                        mBinding?.emptyView?.isVisible = false
                     }
                     CommonLogger.e(TAG, "onReceivedError ${error?.description}")
                 }
@@ -161,6 +163,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                 // Handle error messages
                 runOnUiThread {
                     mLoadingDialog?.dismiss()
+                    mBinding?.emptyView?.isVisible = false
                 }
             }
         }
@@ -168,6 +171,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
 
     override fun onDestroy() {
         mLoadingDialog?.dismiss()
+        mBinding?.emptyView?.isVisible = false
         super.onDestroy()
     }
 
