@@ -16,7 +16,6 @@ import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.ui.widget.LastItemDividerDecoration
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getDistanceFromScreenEdges
-import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.constant.CovAgentManager
@@ -100,6 +99,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
     }
 
+    private val isIdle get() = connectionState == AgentConnectionState.IDLE
+
     // The non-English overseas version must disable AiVad.
     private fun setAiVadBySelectLanguage() {
         binding?.apply {
@@ -109,10 +110,10 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 cbAiVad.isEnabled = false
             } else {
                 if (ServerConfig.isMainlandVersion){
-                    cbAiVad.isEnabled = true
+                    cbAiVad.isEnabled = isIdle
                 }else{
                     if (CovAgentManager.language?.englishEnvironment() == true) {
-                        cbAiVad.isEnabled = true
+                        cbAiVad.isEnabled = isIdle
                     } else {
                         CovAgentManager.enableAiVad = false
                         cbAiVad.isChecked = false
@@ -132,7 +133,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun updatePageEnable() {
         val context = context ?: return
-        if (connectionState == AgentConnectionState.IDLE) {
+        if (isIdle) {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
