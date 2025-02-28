@@ -1,6 +1,6 @@
 # 🌟 Agora-AI-Scenarios 🌟
 
-*[English](README.md) | 中文* 
+*[English](README.md) | 中文*
 
 ## 🔮 概述
 
@@ -15,19 +15,19 @@
 
 ---
 
-## 🚀 快速集成
+## 🚀 快速开始
 
-| 平台 | 示例 |
-|:--------:|:-------:|
+|    平台    |                  示例                  |
+| :--------: | :-------------------------------------: |
 | 📱 Android | [ConvoAI(Android)](Android/scenes/convoai) |
-| 📱 iOS | [ConvoAI(iOS)](iOS/Scenes/VoiceAgent) |
-| 🌐 Web | [ConvoAI(Web)](Web/Scenes/VoiceAgent) |
+|   📱 iOS   |   [ConvoAI(iOS)](iOS/Scenes/VoiceAgent)   |
+|   🌐 Web   |   [ConvoAI(Web)](Web/Scenes/VoiceAgent)   |
 
 ---
 
-## ❓ 集成遇到困难，该如何联系声网获取协助
+## ❓ 遇到困难，该如何联系声网获取协助
 
-如果您在集成过程中遇到困难：
+如果您在运行过程中遇到困难：
 
 - 💬 **方案1**：可以从智能客服获取帮助或联系技术支持人员 [声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)
 - ✉️ **方案2**：发送邮件给 [support@agora.io](mailto:support@agora.io) 咨询
