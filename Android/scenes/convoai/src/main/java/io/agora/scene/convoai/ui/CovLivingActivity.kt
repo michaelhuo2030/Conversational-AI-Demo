@@ -205,10 +205,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             )
         )
         ApiManager.setOnUnauthorizedCallback {
-            ToastUtil.show(getString(io.agora.scene.common.R.string.common_login_expired))
-            stopAgentAndLeaveChannel()
-            SSOUserManager.logout()
-            updateLoginStatus(false)
+            runOnUiThread {
+                ToastUtil.show(getString(io.agora.scene.common.R.string.common_login_expired))
+                stopAgentAndLeaveChannel()
+                SSOUserManager.logout()
+                updateLoginStatus(false)
+            }
         }
     }
 
