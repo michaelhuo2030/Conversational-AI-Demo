@@ -74,26 +74,26 @@ object CovRtcManager {
         rtcEngine?.apply {
             //set audio scenario 10，open AI-QoS
             setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
-            setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}");
-            setParameters("{\"che.audio.sf.enabled\":true}");
-            // setParameters("{\"che.audio.sf.delayMode\":2}");
-            setParameters("{\"che.audio.sf.stftType\":6}");
-            setParameters("{\"che.audio.sf.ainlpLowLatencyFlag\":1}");
-            setParameters("{\"che.audio.sf.ainsLowLatencyFlag \":1}");
+            setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
+            setParameters("{\"che.audio.sf.enabled\":true}")
+            // setParameters("{\"che.audio.sf.delayMode\":2}")
+            setParameters("{\"che.audio.sf.stftType\":6}")
+            setParameters("{\"che.audio.sf.ainlpLowLatencyFlag\":1}")
+            setParameters("{\"che.audio.sf.ainsLowLatencyFlag\":1}")
 
-            setParameters("{\"che.audio.sf.procChainMode\":1}");
-            setParameters("{\"che.audio.sf.nlpDynamicMode\":1}");
+            setParameters("{\"che.audio.sf.procChainMode\":1}")
+            setParameters("{\"che.audio.sf.nlpDynamicMode\":1}")
 
-            setParameters("{\"che.audio.sf.nlpAlgRoute\":1}");
-            //setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}");
-            setParameters("{\"che.audio.sf.ainlpModelPref\":10}");
+            setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
+            //setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}")
+            setParameters("{\"che.audio.sf.ainlpModelPref\":10}")
 
-            setParameters("{\"che.audio.sf.nsngAlgRoute\":12}");
-            //setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}");
-            setParameters("{\"che.audio.sf.ainsModelPref\":10}");
-            setParameters("{\"che.audio.sf.nsngPredefAgg\":11}");
+            setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
+            //setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}")
+            setParameters("{\"che.audio.sf.ainsModelPref\":10}")
+            setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
 
-            setParameters("{\"che.audio.agc.enable\":false}");
+            setParameters("{\"che.audio.agc.enable\":false}")
 
             // audio predump default enable
             setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")

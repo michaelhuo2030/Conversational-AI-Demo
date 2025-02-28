@@ -184,7 +184,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
             // Calculate height with constraints
             val params = cvOptions.layoutParams
-            val itemHeight = 44.dp.toInt()
+            val itemHeight = 56.dp.toInt()
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * presets.size).coerceIn(itemHeight, finalMaxHeight)

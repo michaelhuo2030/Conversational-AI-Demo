@@ -174,7 +174,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
 
             // Calculate height with constraints
             val params = cvOptions.layoutParams
-            val itemHeight = 44.dp.toInt()
+            val itemHeight = 56.dp.toInt()
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * serverConfigList.size).coerceIn(itemHeight, finalMaxHeight)

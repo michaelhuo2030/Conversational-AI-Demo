@@ -47,6 +47,7 @@
         android:paddingStart="3dp"
         android:paddingEnd="6dp"
         android:paddingVertical="3dp"
+        android:visibility="gone"
         android:background="@drawable/agent_bg_interrupt"
         android:gravity="center_vertical">
 
