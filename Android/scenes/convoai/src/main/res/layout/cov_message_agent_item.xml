@@ -44,6 +44,10 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="8dp"
+        android:paddingStart="3dp"
+        android:paddingEnd="6dp"
+        android:paddingVertical="3dp"
+        android:background="@drawable/agent_bg_interrupt"
         android:gravity="center_vertical">
 
         <ImageView
