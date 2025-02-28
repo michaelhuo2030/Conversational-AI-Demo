@@ -25,10 +25,10 @@
     <string name="cov_info_agent_id">Agent ID</string>
     <string name="cov_info_agent_connected">Connected</string>
     <string name="cov_info_room_status">Room Status</string>
-    <string name="cov_info_room_id">Room-ID</string>
+    <string name="cov_info_room_id">Room ID</string>
     <string name="cov_info_empty">--</string>
     <string name="cov_info_participant_id">Participant-ID</string>
-    <string name="cov_info_your_id">Your-ID</string>
+    <string name="cov_info_your_id">Your ID</string>
     <string name="cov_info_your_network">Your Network</string>
     <string name="cov_info_your_network_disconnected">Disconnected</string>
     <string name="cov_info_your_network_good">Good</string>
