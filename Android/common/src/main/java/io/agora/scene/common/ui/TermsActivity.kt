@@ -2,8 +2,10 @@ package io.agora.scene.common.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.text.TextUtils
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
+import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.databinding.CommonTermsActivityBinding
@@ -54,6 +56,13 @@ class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
                         progressBar.visibility = android.view.View.GONE
                     } else {
                         progressBar.visibility = android.view.View.VISIBLE
+                    }
+                }
+
+                override fun onReceivedTitle(view: WebView, title: String) {
+                    super.onReceivedTitle(view, title)
+                    if (!TextUtils.isEmpty(title) && view.url?.contains(title) == false) {
+                        mBinding?.tvTitle?.text = title
                     }
                 }
             }

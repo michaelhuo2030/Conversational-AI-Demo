@@ -3,6 +3,7 @@ package io.agora.scene.common.ui;
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
@@ -67,6 +68,13 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                         mBinding?.progressBar?.progress = newProgress
                     }
                     super.onProgressChanged(view, newProgress)
+                }
+
+                override fun onReceivedTitle(view: WebView, title: String) {
+                    super.onReceivedTitle(view, title)
+                    if (!TextUtils.isEmpty(title) && view.url?.contains(title) == false) {
+                        mBinding?.tvTitle?.text = title
+                    }
                 }
             })
             webView.webViewClient = object : WebViewClient() {
