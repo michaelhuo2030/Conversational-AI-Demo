@@ -110,7 +110,7 @@ class AgentSettingViewController: UIViewController {
         let attributedString = NSMutableAttributedString()
         let attrString1 = NSAttributedString(string: string1, attributes: [.foregroundColor: UIColor.themColor(named: "ai_icontext1")])
         attributedString.append(attrString1)
-        let attrString2 = NSAttributedString(string: string2, attributes: [.foregroundColor: UIColor.themColor(named: "ai_brand_lightbrand6")])
+        let attrString2 = NSAttributedString(string: string2, attributes: [.foregroundColor: UIColor.themColor(named: "ai_brand_lightbrand6"), .font: UIFont.boldSystemFont(ofSize: 14)])
         attributedString.append(attrString2)
         view.titleLabel.attributedText = attributedString
         view.addtarget(self, action: #selector(onClickAiVad(_:)), for: .touchUpInside)
@@ -142,8 +142,12 @@ class AgentSettingViewController: UIViewController {
         createViews()
         createConstrains()
         setupPanGesture()
-        animateBackgroundViewIn()
         updateAiVADEnabelState()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        animateBackgroundViewIn()
     }
     
     override func viewDidAppear(_ animated: Bool) {

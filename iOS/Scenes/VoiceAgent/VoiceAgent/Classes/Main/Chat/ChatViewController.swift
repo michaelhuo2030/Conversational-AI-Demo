@@ -52,18 +52,6 @@ public class ChatViewController: UIViewController {
         view.centerTitleButton.addTarget(self, action: #selector(onClickLogo), for: .touchUpInside)
         return view
     }()
-    
-    private let countDownLabel: UILabel = {
-        let label = UILabel()
-        label.text = "00:00"
-        label.font = .systemFont(ofSize: 12)
-        label.textAlignment = .center
-        label.layerCornerRadius = 11
-        label.isHidden = true
-        label.backgroundColor = UIColor.white.withAlphaComponent(0.15)
-        label.textColor = UIColor.themColor(named: "ai_brand_white10")
-        return label
-    }()
 
     private lazy var bottomBar: AgentControlToolbar = {
         let view = AgentControlToolbar()
@@ -253,7 +241,7 @@ public class ChatViewController: UIViewController {
     
     private func setupViews() {
         view.backgroundColor = .black
-        [animateContentView, upperBackgroundView, lowerBackgroundView, contentView, countDownLabel, messageView, topBar, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
+        [animateContentView, upperBackgroundView, lowerBackgroundView, contentView, messageView, topBar, welcomeMessageView, bottomBar, annotationView, devModeButton].forEach { view.addSubview($0) }
         
         contentView.addSubview(aiNameLabel)
     }
@@ -264,13 +252,6 @@ public class ChatViewController: UIViewController {
             make.left.right.equalToSuperview()
             make.height.equalTo(48)
         }
-        countDownLabel.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.width.equalTo(49)
-            make.height.equalTo(22)
-            make.top.equalTo(topBar.snp.bottom)
-        }
-        
         animateContentView.snp.makeConstraints { make in
             make.left.right.top.bottom.equalTo(0)
         }
@@ -329,7 +310,7 @@ public class ChatViewController: UIViewController {
         animateView.setupMediaPlayer(rtcEngine)
         animateView.updateAgentState(.idle)
         
-        let subRenderConfig = SubtitleRenderConfig(rtcEngine: rtcEngine, renderMode: nil, delegate: self)
+        let subRenderConfig = SubtitleRenderConfig(rtcEngine: rtcEngine, renderMode: .words, delegate: self)
         subRenderController.setupWithConfig(subRenderConfig)
         
         devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
@@ -343,7 +324,6 @@ public class ChatViewController: UIViewController {
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
-            startCovSubRenderController()
             startAgentRequest()
             joinChannel()
         } catch {
@@ -367,19 +347,6 @@ public class ChatViewController: UIViewController {
     private func stopLoading() {
         bottomBar.style = .startButton
         annotationView.dismiss()
-    }
-    
-    public func updateRestTime(_ seconds: Int) {
-        if seconds < 20 {
-            countDownLabel.textColor = UIColor.themColor(named: "ai_red6")
-        } else if seconds < 59 {
-            countDownLabel.textColor = UIColor.themColor(named: "ai_green6")
-        } else {
-            countDownLabel.textColor = UIColor.themColor(named: "ai_brand_white10")
-        }
-        let minutes = seconds / 60
-        let s = seconds % 60
-        countDownLabel.text = String(format: "%02d:%02d", minutes, s)
     }
     
     private func joinChannel() {
@@ -506,12 +473,8 @@ extension ChatViewController {
         SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
     }
     
-    private func startCovSubRenderController() {
-        subRenderController.start()
-    }
-    
     private func stopCovSubRenderController() {
-        subRenderController.stop()
+        subRenderController.reset()
     }
     
     private func startAgentRequest() {
@@ -861,11 +824,12 @@ extension ChatViewController: AnimateViewDelegate {
 
 extension ChatViewController: ConversationSubtitleDelegate {
     
-    func onUpdateStreamContent(subtitle: SubtitleMessage) {
+    func onSubtitleUpdated(subtitle: SubtitleMessage) {
+        let owner: MessageOwner = (subtitle.userId == ConversationSubtitleController.localUserId) ? .me : .agent
         if (subtitle.turnId == -1) {
-            messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isFinished: subtitle.status == .end)
+            messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: owner, isFinished: subtitle.status == .end)
         } else {
-            messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isInterrupted: subtitle.status == .interrupt)
+            messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: owner, isInterrupted: subtitle.status == .interrupt)
         }
     }
 }
@@ -874,26 +838,22 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
     func agentUseLimitedTimerClosed() {
         addLog("[Call] agentUseLimitedTimerClosed")
         topBar.stop()
-        countDownLabel.isHidden = true
     }
     
     func agentUseLimitedTimerStarted(duration: Int) {
         addLog("[Call] agentUseLimitedTimerStarted")
-        topBar.showTips(seconds: duration, onShowFinish: { [weak self] in
-            self?.countDownLabel.isHidden = false
-        })
-        updateRestTime(duration)
+        topBar.showTips(seconds: duration)
+        topBar.updateRestTime(duration)
     }
     
     func agentUseLimitedTimerUpdated(duration: Int) {
         addLog("[Call] agentUseLimitedTimerUpdated")
-        updateRestTime(duration)
+        topBar.updateRestTime(duration)
     }
     
     func agentUseLimitedTimerEnd() {
         addLog("[Call] agentUseLimitedTimerEnd")
         topBar.stop()
-        countDownLabel.isHidden = true
         stopLoading()
         stopAgent()
         let title = ResourceManager.L10n.ChannelInfo.timeLimitdAlertTitle

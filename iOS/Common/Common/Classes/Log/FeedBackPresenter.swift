@@ -32,6 +32,7 @@ public class FeedBackPresenter {
         fileURLs.append(contentsOf: AgoraEntLog.allLogsUrls())
         fileURLs.append(contentsOf: getAgoraFiles())
         let tempFile = NSTemporaryDirectory() + "/\(fileName).zip"
+        print("[FeedBackPresenter] feedback dump: \(fileURLs)")
         zipFiles(fileURLs: fileURLs, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
             if let err = err {
                 completion(err, nil)

@@ -149,8 +149,12 @@ class AgentInformationViewController: UIViewController {
         createViews()
         createConstrains()
         setupPanGesture()
-        animateBackgroundViewIn()
         initStatus()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        animateBackgroundViewIn()
     }
     
     private func registerDelegate() {
