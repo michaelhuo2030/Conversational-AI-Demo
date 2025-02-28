@@ -1,23 +1,23 @@
-# Conversational AI Agent
+# 🌟 Conversational AI Agent
 
-*__其他语言版本：__  [__简体中文__](README.zh.md)*
+*__Other Languages:__  [__简体中文__](README.zh.md)*
 
 The Conversational AI Agent redefines the human-machine interaction interface, breaking through traditional text-based interactions to achieve highly realistic and naturally flowing real-time voice conversations, enabling AI to truly "speak." It is suitable for innovative scenarios such as intelligent assistants, emotional companionship, oral language practice, intelligent customer service, smart hardware, and immersive game NPCs.
 
-### 1. Quick Start
+## 🚀 1. Quick Start
 
 This section mainly describes how to quickly run the Conversational AI Agent Demo.
 
-#### 1.1 Environment Preparation
+### 📱 1.1 Environment Preparation
 
 - Minimum compatibility with Android 7.0 (SDK API Level 24)
 - Android Studio 3.5 or above
 - Android devices running Android 7.0 or above
 
-#### 1.2 Running the Sample
+### ⚙️ 1.2 Running the Sample
 
 1. Follow [The Account Document](https://docs.agora.io/en/video-calling/reference/manage-agora-account) to get the **App ID** and **App Certificate**.
-2. Please contact Agora technical support to grant conversational ai permission to your APPID. Only after granting permission can you properly experience the demo features.
+2. Please contact Agora technical support to grant conversational AI permission to your APPID. Only after granting permission can you properly experience the demo features.
 3. Open the `Android` project and fill in properties got above to the root [**gradle.properties**](../../gradle.properties) file.
 
 ```
@@ -40,7 +40,7 @@ TTS_VENDOR=<TTS Vendor>
 TTS_PARAMS=<TTS Parameters>
 ```
 
-### 2. Source Code Sitemap
+### ⚙️ 2. Source Code Sitemap
 
 | Path | Description |
 |------------------------------------------------------------------|-------------|
@@ -55,17 +55,17 @@ TTS_PARAMS=<TTS Parameters>
 | [CovSettingsDialog.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovSettingsDialog.kt) | Settings dialog for agent configuration. |
 | [CovAgentInfoDialog.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovAgentInfoDialog.kt) | Information dialog showing agent status. |
 
-### 3. Related Resources
+## 📚 3. Related Resources
 
-- Check our [Conversational AI Agent Document]() to see more about Conversational AI Agent.
-- Dive into [Agora SDK Samples](https://github.com/AgoraIO) to see more tutorials.
-- Repositories managed by developer communities can be found at [Agora Community](https://github.com/AgoraIO-Community).
-- If you encounter problems during integration, feel free to ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io).
+- Check our [Conversational AI Agent Document]() to learn more about Conversational AI Agent
+- Visit [Agora SDK Samples](https://github.com/AgoraIO) for more tutorials
+- Explore repositories managed by developer communities at [Agora Community](https://github.com/AgoraIO-Community)
+- If you encounter issues during integration, feel free to ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io)
 
-### 4. Feedback
+## 💬 4. Feedback
 
-If you have any problems or suggestions regarding the sample projects, feel free to file an issue.
+If you have any problems or suggestions regarding the sample projects, we welcome you to file an issue.
 
-### 5. License
+## 📜 5. License
 
 The sample projects are under the MIT license.
