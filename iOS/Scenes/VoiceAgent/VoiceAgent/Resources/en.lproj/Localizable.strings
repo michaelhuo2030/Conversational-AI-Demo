@@ -14,9 +14,9 @@
 "logout.alert.confirm.title" = "Cancel";
 "logout.alert.cancel.title" = "Log out";
 
-"join.start.title" = "ConvoAI";
+"join.start.title" = "Convo AI";
 "join.start.state" = "Not Joined";
-"join.start.button.title" = "Call AI Agent";
+"join.start.button.title" = "Call AI Engine";
 "join.start.agent.name" = "Agent";
 "join.start.tips" = "Session Limit: %d minutes.";
 "join.timeout.tips" = "Timeout. Please try again.";
