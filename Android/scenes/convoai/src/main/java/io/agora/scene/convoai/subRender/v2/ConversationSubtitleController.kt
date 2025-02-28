@@ -22,40 +22,38 @@ import java.util.concurrent.ConcurrentLinkedQueue
  */
 data class SubtitleRenderConfig (
     val rtcEngine: RtcEngine,
-    val renderMode: SubtitleRenderMode?,
+    val renderMode: SubtitleRenderMode,
     val callback: IConversationSubtitleCallback?
 )
 
 /**
  * Defines different modes for subtitle rendering
  * 
- * Idle: auto detect mode
  * Text: Full text subtitles are rendered
  * Word: Word-by-word subtitles are rendered
  */
 enum class SubtitleRenderMode {
-    Idle,
     Text,
     Word
 }
 
 /**
- * Represents the current status of a subtitle
- * 
- * Progress: Subtitle is still being generated or spoken
- * End: Subtitle has completed normally
- * Interrupted: Subtitle was interrupted before completion
+ * Interface for receiving subtitle update events
+ * Implemented by UI components that need to display subtitles
  */
-enum class SubtitleStatus {
-    Progress,
-    End,
-    Interrupted
+interface IConversationSubtitleCallback {
+    /**
+     * Called when a subtitle is updated and needs to be displayed
+     * 
+     * @param subtitle The updated subtitle message
+     */
+    fun onSubtitleUpdated(subtitle: SubtitleMessage)
 }
 
 /**
  * Consumer-facing data class representing a complete subtitle message
  * Used for rendering in the UI layer
- * 
+ *
  * @property turnId Unique identifier for the conversation turn
  * @property userId User identifier associated with this subtitle
  * @property text The actual subtitle text content
@@ -69,16 +67,16 @@ data class SubtitleMessage(
 )
 
 /**
- * Interface for receiving subtitle update events
- * Implemented by UI components that need to display subtitles
+ * Represents the current status of a subtitle
+ *
+ * Progress: Subtitle is still being generated or spoken
+ * End: Subtitle has completed normally
+ * Interrupted: Subtitle was interrupted before completion
  */
-interface IConversationSubtitleCallback {
-    /**
-     * Called when a subtitle is updated and needs to be displayed
-     * 
-     * @param subtitle The updated subtitle message
-     */
-    fun onSubtitleUpdated(subtitle: SubtitleMessage)
+enum class SubtitleStatus {
+    Progress,
+    End,
+    Interrupted
 }
 
 /**
@@ -142,6 +140,26 @@ class ConversationSubtitleController(
 
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
     private var mMessageParser = MessageParser()
+
+    @Volatile
+    private var mRenderMode: SubtitleRenderMode? = null
+        set(value) {
+            field = value
+            if (mRenderMode == SubtitleRenderMode.Word) {
+                mLastDequeuedTurn = null
+                mCurSubtitleMessage = null
+                startSubtitleTicker()
+            } else {
+                stopSubtitleTicker()
+            }
+        }
+
+    @Volatile
+    private var mPresentationMs: Long = 0
+    private val agentTurnQueue = ConcurrentLinkedQueue<TurnMessageInfo>()
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var tickerJob: Job? = null
+    private var enable = false
 
     init {
         config.rtcEngine.addHandler(this)
@@ -261,38 +279,17 @@ class ConversationSubtitleController(
         return wordsList.toList()
     }
 
-    @Volatile
-    private var mRenderMode: SubtitleRenderMode = SubtitleRenderMode.Idle
-        set(value) {
-            field = value
-            if (mRenderMode == SubtitleRenderMode.Word) {
-                mLastDequeuedTurn = null
-                mCurSubtitleMessage = null
-                startSubtitleTicker()
-            } else {
-                stopSubtitleTicker()
-            }
-        }
-
-    @Volatile
-    private var mPresentationMs: Long = 0
-
-    private val agentTurnQueue = ConcurrentLinkedQueue<TurnMessageInfo>()
-
-    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private var tickerJob: Job? = null
-    private var enable = false
-
     fun enable(enable: Boolean) {
         this.enable = enable
     }
 
-    fun setRenderMode(renderMode: SubtitleRenderMode) {
-        this.mRenderMode = renderMode
+    fun reset() {
+        this.mRenderMode = null
+        stopSubtitleTicker()
     }
 
     fun release() {
-        this.mRenderMode = SubtitleRenderMode.Idle
+        this.mRenderMode = null
         stopSubtitleTicker()
         coroutineScope.cancel()
     }
@@ -329,15 +326,20 @@ class ConversationSubtitleController(
         status: TurnStatus
     ) {
         // Auto detect mode
-        if (mRenderMode == SubtitleRenderMode.Idle) {
-            // TODO turn 0 interrupt ??
-            if (status == TurnStatus.INTERRUPTED) return
-            mRenderMode = if (words != null) {
-                SubtitleRenderMode.Word
+        if (mRenderMode == null) {
+            if (config.renderMode == SubtitleRenderMode.Word) {
+                // TODO turn 0 interrupt ??
+                if (status == TurnStatus.INTERRUPTED) return
+                mRenderMode = if (words != null) {
+                    SubtitleRenderMode.Word
+                } else {
+                    SubtitleRenderMode.Text
+                }
+                CovLogger.d(TAG, "Mode auto detected: $mRenderMode")
             } else {
-                SubtitleRenderMode.Text
+                mRenderMode = SubtitleRenderMode.Text
+                CovLogger.d(TAG, "Mode auto: $mRenderMode")
             }
-            CovLogger.d(TAG, "Mode auto detected: $mRenderMode")
         }
 
         if (mRenderMode == SubtitleRenderMode.Text && status != TurnStatus.INTERRUPTED) {

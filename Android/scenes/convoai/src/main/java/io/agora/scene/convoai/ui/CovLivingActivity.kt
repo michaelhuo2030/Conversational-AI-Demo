@@ -200,7 +200,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         subRenderController = ConversationSubtitleController(
             SubtitleRenderConfig(
                 rtcEngine = rtcEngine,
-                null,
+                SubtitleRenderMode.Word,
                 mBinding?.messageListViewV2
             )
         )
@@ -290,7 +290,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onClickStartAgent() {
-        subRenderController?.setRenderMode(SubtitleRenderMode.Idle)
+        subRenderController?.reset()
         // Immediately show the connecting status
         isUserEndCall = false
         connectionState = AgentConnectionState.CONNECTING
@@ -396,7 +396,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun stopAgentAndLeaveChannel() {
         stopRoomCountDownTask()
         stopTitleAnim()
-        subRenderController?.setRenderMode(SubtitleRenderMode.Idle)
+        subRenderController?.reset()
         CovRtcManager.leaveChannel()
         if (connectionState == AgentConnectionState.IDLE) {
             return
