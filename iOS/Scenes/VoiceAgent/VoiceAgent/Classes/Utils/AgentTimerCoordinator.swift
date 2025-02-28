@@ -31,52 +31,80 @@ protocol AgentTimerCoordinatorProtocol {
 }
 
 class AgentTimerCoordinator: NSObject {
+    // MARK: - Properties
     weak var delegate: AgentTimerCoordinatorDelegate?
+    
+    // MARK: - Private Properties
     private var pingTimer: Timer?
     private var joinChannelTimer: Timer?
     private var usageDurationLimitTimer: Timer?
     private var useDuration = 600
-    private let pingTimeInterval = 10.0
     
+    // Timer configuration constants
+    private let pingTimeInterval = 10.0
+    private let joinChannelTimeInterval = 30.0
+    
+    // MARK: - Duration Limit Timer
     private func initDurationLimitTimer() {
-        if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
-            useDuration = preset.callTimeLimitSecond
-            deinitDurationLimitTimer()
-            
-            usageDurationLimitTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
-                guard let self = self else {
-                    timer.invalidate()
-                    return
-                }
-                
-                if self.useDuration <= 0 {
-                    timer.invalidate()
-                    self.usageDurationLimitTimer = nil
-                    self.delegate?.agentUseLimitedTimerEnd()
-                    self.delegate?.agentUseLimitedTimerClosed()
-                } else {
-                    self.delegate?.agentUseLimitedTimerUpdated(duration: self.useDuration)
-                    self.useDuration -= 1
-                }
-            })
+        guard let manager = AppContext.preferenceManager(),
+              let preset = manager.preference.preset else {
+            self.delegate?.agentUseLimitedTimerStarted(duration: useDuration)
+            return
         }
+        
+        useDuration = preset.callTimeLimitSecond
+        deinitDurationLimitTimer()
+        
+        usageDurationLimitTimer = Timer.scheduledTimer(
+            timeInterval: 1,
+            target: self,
+            selector: #selector(handleDurationLimitTimerTick),
+            userInfo: nil,
+            repeats: true
+        )
+        
+        // Make sure timer runs even during UI interactions
+        RunLoop.current.add(usageDurationLimitTimer!, forMode: .common)
         
         self.delegate?.agentUseLimitedTimerStarted(duration: useDuration)
     }
     
-    private func deinitDurationLimitTimer() {
-        if usageDurationLimitTimer != nil {
+    @objc private func handleDurationLimitTimerTick() {
+        if useDuration <= 0 {
             usageDurationLimitTimer?.invalidate()
             usageDurationLimitTimer = nil
-            self.delegate?.agentUseLimitedTimerClosed()
+            delegate?.agentUseLimitedTimerEnd()
+            delegate?.agentUseLimitedTimerClosed()
+        } else {
+            delegate?.agentUseLimitedTimerUpdated(duration: useDuration)
+            useDuration -= 1
         }
     }
     
+    private func deinitDurationLimitTimer() {
+        guard usageDurationLimitTimer != nil else { return }
+        
+        usageDurationLimitTimer?.invalidate()
+        usageDurationLimitTimer = nil
+        delegate?.agentUseLimitedTimerClosed()
+    }
+    
+    // MARK: - Ping Timer
     private func initPingTimer() {
-        pingTimer = Timer.scheduledTimer(withTimeInterval: pingTimeInterval, repeats: true, block: { [weak self] timer in
-            guard let self = self else { return }
-            self.delegate?.agentStartPing()
-        })
+        pingTimer = Timer.scheduledTimer(
+            timeInterval: pingTimeInterval,
+            target: self,
+            selector: #selector(handlePingTimerTick),
+            userInfo: nil,
+            repeats: true
+        )
+        
+        // Make sure timer runs even during UI interactions
+        RunLoop.current.add(pingTimer!, forMode: .common)
+    }
+    
+    @objc private func handlePingTimerTick() {
+        delegate?.agentStartPing()
     }
     
     private func deinitPingTimer() {
@@ -84,21 +112,45 @@ class AgentTimerCoordinator: NSObject {
         pingTimer = nil
     }
     
+    // MARK: - Join Channel Timer
+    private var joinChannelCounter = 0
+    
     private func initJoinChannelTimer() {
-        joinChannelTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true, block: { [weak self] timer in
-            guard let self = self else { return }
-            self.delegate?.agentNotJoinedWithinTheScheduledTime()
-        })
+        deinitJoinChannelTimer()
+        
+        joinChannelCounter = 0
+        
+        joinChannelTimer = Timer.scheduledTimer(
+            timeInterval: 1.0,
+            target: self,
+            selector: #selector(handleJoinChannelTimerCountTick),
+            userInfo: nil,
+            repeats: true
+        )
+        
+        RunLoop.current.add(joinChannelTimer!, forMode: .common)
+    }
+    
+    @objc private func handleJoinChannelTimerCountTick() {
+        joinChannelCounter += 1
+        
+        if joinChannelCounter >= 30 {
+            joinChannelCounter = 0 
+            delegate?.agentNotJoinedWithinTheScheduledTime()
+        }
     }
     
     private func deinitJoinChannelTimer() {
         joinChannelTimer?.invalidate()
         joinChannelTimer = nil
+        joinChannelCounter = 0 
     }
 }
 
+// MARK: - AgentTimerCoordinatorProtocol
 extension AgentTimerCoordinator: AgentTimerCoordinatorProtocol {
     func startPingTimer() {
+        stopPingTimer() // Ensure no duplicate timers
         initPingTimer()
     }
     
@@ -107,6 +159,7 @@ extension AgentTimerCoordinator: AgentTimerCoordinatorProtocol {
     }
     
     func startJoinChannelTimer() {
+        stopJoinChannelTimer() // Ensure no duplicate timers
         initJoinChannelTimer()
     }
     

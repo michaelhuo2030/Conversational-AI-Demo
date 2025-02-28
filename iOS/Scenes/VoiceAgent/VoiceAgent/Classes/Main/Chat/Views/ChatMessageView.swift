@@ -38,8 +38,28 @@ class ChatMessageCell: UITableViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 18)
         label.numberOfLines = 0
-        label.attributedText = NSAttributedString(string: "")
+        label.text = ""
         return label
+    }()
+    
+    private lazy var interruptButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage.ag_named("ic_interrput_icon"), for: .normal)
+        button.setTitle(ResourceManager.L10n.Conversation.agentInterrputed, for: .normal)
+        button.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_block4_chat"), forState: .normal)
+        button.layer.cornerRadius = 5
+        button.layer.masksToBounds = true
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
+        
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 3)
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 3, bottom: 0, right: 0)
+        
+        button.semanticContentAttribute = .forceLeftToRight
+        
+        button.isHidden = true
+        button.isUserInteractionEnabled = false
+        return button
     }()
     
     // MARK: - Initialization
@@ -61,6 +81,7 @@ class ChatMessageCell: UITableViewCell {
         avatarView.addSubview(avatarImageView)
         contentView.addSubview(nameLabel)
         contentView.addSubview(messageBubble)
+        contentView.addSubview(interruptButton)
         messageBubble.addSubview(messageLabel)
     }
     
@@ -82,31 +103,18 @@ class ChatMessageCell: UITableViewCell {
             messageBubble.backgroundColor = .clear
         }
         
-        let paragraphStyle = NSMutableParagraphStyle()
+        messageLabel.text = message.content
+        
         let detector = NSLinguisticTagger(tagSchemes: [.language], options: 0)
         detector.string = message.content
         if let language = detector.dominantLanguage {
             let rtlLanguages = ["ar", "fa", "he", "ur"]
-            paragraphStyle.alignment = rtlLanguages.contains(language) ? .right : .left
+            messageLabel.textAlignment = rtlLanguages.contains(language) ? .right : .left
         } else {
-            paragraphStyle.alignment = .left
+            messageLabel.textAlignment = .left
         }
         
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 18),
-            .foregroundColor: message.isMine ? UIColor.themColor(named: "ai_icontext1") : UIColor.themColor(named: "ai_icontext1"),
-            .paragraphStyle: paragraphStyle
-        ]
-        
-        let attributedString = NSMutableAttributedString(string: message.content, attributes: attributes)
-        if message.isInterrupted {
-            let attachment = NSTextAttachment()
-            attachment.image = UIImage.ag_named("ic_interrput_icon")
-            attachment.bounds = CGRect(x: 0, y: -3, width: 16, height: 16)
-            let imageString = NSAttributedString(attachment: attachment)
-            attributedString.append(imageString)
-        }
-        messageLabel.attributedText = attributedString
+        interruptButton.isHidden = !message.isInterrupted
     }
     
     private func setupUserLayout() {
@@ -162,7 +170,6 @@ class ChatMessageCell: UITableViewCell {
             make.top.equalTo(avatarView.snp.bottom).offset(8)
             make.left.equalToSuperview().offset(20)
             make.right.equalTo(-20)
-            make.bottom.lessThanOrEqualToSuperview().offset(-8)
         }
         
         messageLabel.snp.remakeConstraints { make in
@@ -170,6 +177,14 @@ class ChatMessageCell: UITableViewCell {
             make.left.equalToSuperview()
             make.right.equalToSuperview()
             make.bottom.equalToSuperview().offset(-12)
+        }
+        
+        interruptButton.snp.remakeConstraints { make in
+            make.left.equalTo(messageBubble).offset(0)
+            make.top.equalTo(messageBubble.snp.bottom)
+            make.bottom.equalTo(0)
+            make.width.equalTo(66)
+            make.height.equalTo(22)
         }
     }
 }

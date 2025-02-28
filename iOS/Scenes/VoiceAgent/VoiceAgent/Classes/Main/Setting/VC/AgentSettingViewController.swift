@@ -470,11 +470,11 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
             manager.updateLanguage(language)
         }
         if AppContext.shared.appArea == .global {
-            if (preset.name == "amy") {
+            if (preset.presetType.contains("independent")) {
                 manager.updateAiVadState(false)
             }
         } else {
-            if (preset.name == "spoken_english_practice") {
+            if (preset.presetType.contains("independent")) {
                 manager.updateAiVadState(false)
             }
         }
@@ -508,7 +508,7 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         }
         var aiVadEnable = true
         if AppContext.shared.appArea == .global {
-            if (preset.name == "amy") {
+            if (preset.presetType.contains("independent")) {
                 aiVadEnable = false
             }
             if language.languageCode != "en-US" {

@@ -439,6 +439,8 @@ public class ChatViewController: UIViewController {
                 let model = LoginModel()
                 model.token = token
                 AppContext.loginManager()?.updateUserInfo(userInfo: model)
+                let localToken = UserCenter.user?.token ?? ""
+                self.addLog("local token: \(localToken)")
                 self.bottomBar.startLoadingAnimation()
                 LoginApiService.getUserInfo { [weak self] error in
                     self?.bottomBar.stopLoadingAnimation()                    
@@ -450,14 +452,6 @@ public class ChatViewController: UIViewController {
             }
         }
         self.navigationController?.pushViewController(ssoWebVC, animated: false)
-    }
-    
-    private func switchEnvironment() {
-        AppContext.preferenceManager()?.deleteAllPresets()
-        AppContext.loginManager()?.logout()
-        animateView.releaseView()
-        rtcManager.destroy()
-        self.navigationController?.popViewController(animated: false)
     }
 }
 
@@ -486,8 +480,6 @@ extension ChatViewController {
     }
     
     private func fetchTokenIfNeeded() async throws {
-        guard token.isEmpty else { return }
-        
         return try await withCheckedThrowingContinuation { continuation in
             NetworkManager.shared.generateToken(
                 channelName: "",
@@ -566,9 +558,12 @@ extension ChatViewController {
             if (error.code == 1412) {
                 SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.resouceLimit)
             } else {
-                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
-                self.stopLoading()
-                self.stopAgent()
+                if error.code != 401 {
+                    SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+                    self.stopLoading()
+                    self.stopAgent()
+                }
+                
                 addLog("start agent failed : \(error.message)")
             }
         }
@@ -653,6 +648,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         annotationView.dismiss()
         remoteIsJoined = true
+        timerCoordinator.stopJoinChannelTimer()
         timerCoordinator.startUsageDurationLimitTimer()
         addLog("[RTC Call Back] didJoinedOfUid uid: \(uid)")
         AppContext.preferenceManager()?.updateAgentState(.connected)
@@ -804,29 +800,6 @@ private extension ChatViewController {
             return selectedState
         }
     }
-    
-    @objc private func onClickDevMode() {
-        DeveloperModeViewController.show(
-            from: self,
-            audioDump: rtcManager.getAudioDump(),
-            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "")
-        {
-            self.devModeButton.isHidden = true
-            self.switchEnvironment()
-        } onAudioDump: { isOn in
-            self.rtcManager.enableAudioDump(enabled: isOn)
-        } onSwitchServer: {
-            self.switchEnvironment()
-        } onCopy: {
-            let messageContents = self.messageView.getAllMessages()
-                .filter { $0.isMine }
-                .map { $0.content }
-                .joined(separator: "\n")
-            let pasteboard = UIPasteboard.general
-            pasteboard.string = messageContents
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
-        }
-    }
 
     @objc private func onLongPressDevMode(_ sender: UILongPressGestureRecognizer) {
         if DeveloperModeViewController.getDeveloperMode() {
@@ -973,13 +946,50 @@ extension ChatViewController: LoginManagerDelegate {
     }
     
     func userLoginSessionExpired() {
+        addLog("[Call] userLoginSessionExpired")
         welcomeMessageView.isHidden = false
         topBar.updateButtonVisible(false)
         SSOWebViewController.clearWebViewCache()
         stopLoading()
         stopAgent()
         
-        SVProgressHUD.showError(withStatus: ResourceManager.L10n.Login.sessionExpired)
+        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Login.sessionExpired)
+    }
+}
+
+extension ChatViewController {
+    @objc private func onClickDevMode() {
+        DeveloperModeViewController.show(
+            from: self,
+            audioDump: rtcManager.getAudioDump(),
+            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "")
+        {
+            self.devModeButton.isHidden = true
+            self.switchEnvironment()
+        } onAudioDump: { isOn in
+            self.rtcManager.enableAudioDump(enabled: isOn)
+        } onSwitchServer: {
+            self.switchEnvironment()
+        } onCopy: {
+            let messageContents = self.messageView.getAllMessages()
+                .filter { $0.isMine }
+                .map { $0.content }
+                .joined(separator: "\n")
+            let pasteboard = UIPasteboard.general
+            pasteboard.string = messageContents
+            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
+        }
+    }
+    
+    
+    private func switchEnvironment() {
+        AppContext.preferenceManager()?.deleteAllPresets()
+        UserCenter.shared.logout()
+        stopLoading()
+        stopAgent()
+        animateView.releaseView()
+        rtcManager.destroy()
+        NotificationCenter.default.post(name: .EnvironmentChanged, object: nil, userInfo: nil)
     }
 }
 

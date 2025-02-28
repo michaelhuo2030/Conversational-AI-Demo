@@ -14,13 +14,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
-
+        NotificationCenter.default.addObserver(self, selector: #selector(environmentChanged), name: .EnvironmentChanged, object: nil)
         SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180))
 
         let window = UIWindow(windowScene: windowScene)
-//        window.rootViewController = setupTabbarController()
-        let navigationVC = UINavigationController(rootViewController: MainViewController())
-        window.rootViewController = navigationVC
+        window.configRootViewController()
         self.window = window
         window.makeKeyAndVisible()
     }
@@ -52,7 +50,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
-
-
+    
+    @objc private func environmentChanged() {
+        self.window?.configRootViewController()
+    }
 }
+
+extension UIWindow {
+    func configRootViewController() {
+        DispatchQueue.main.async {
+            self.rootViewController = nil
+            let navigationVC = UINavigationController(rootViewController: ChatViewController())
+            self.rootViewController = navigationVC
+        }
+    }
+}
+
 

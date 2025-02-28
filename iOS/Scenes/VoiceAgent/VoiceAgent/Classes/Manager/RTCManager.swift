@@ -64,7 +64,9 @@ class RTCManager: NSObject {
     private func setAudioParameter() {
         rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
         rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}")
-        rtcEngine.setParameters("{\"che.audio.sf.delayMode\":2}")
+        rtcEngine.setParameters("{\"che.audio.sf.stftType\":6}")
+        rtcEngine.setParameters("{\"che.audio.sf.ainlpLowLatencyFlag\":1}")
+        rtcEngine.setParameters("{\"che.audio.sf.ainsLowLatencyFlag \":1}")
         rtcEngine.setParameters("{\"che.audio.sf.procChainMode\":1}")
         rtcEngine.setParameters("{\"che.audio.sf.nlpDynamicMode\":1}")
         rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
@@ -72,8 +74,7 @@ class RTCManager: NSObject {
         rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
         rtcEngine.setParameters("{\"che.audio.sf.ainsModelPref\":10}")
         rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
-        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}");
-
+        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}")
     }
 }
 

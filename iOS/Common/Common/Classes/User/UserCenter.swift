@@ -23,26 +23,26 @@ public class UserCenter {
     public static let shared = UserCenter()
     public static var center: UserCenter { return shared }
     
-    private var loginModel: LoginModel?
-    
     private init() {}
     
     public class var user: LoginModel? {
-        return UserCenter.shared.loginModel
+        return shared.getUserFromDefaults()
+    }
+    
+    private func getUserFromDefaults() -> LoginModel? {
+        guard let jsonString = UserDefaults.standard.string(forKey: UserCenter.kLocalLoginKey),
+              let data = jsonString.data(using: .utf8) else {
+            return nil
+        }
+        
+        return try? JSONDecoder().decode(LoginModel.self, from: data)
     }
     
     public func isLogin() -> Bool {
-        if loginModel == nil {
-            if let jsonString = UserDefaults.standard.string(forKey: UserCenter.kLocalLoginKey),
-               let data = jsonString.data(using: .utf8) {
-                loginModel = try? JSONDecoder().decode(LoginModel.self, from: data)
-            }
-        }
-        return loginModel != nil
+        return getUserFromDefaults() != nil
     }
     
     public func storeUserInfo(_ user: LoginModel) {
-        loginModel = user
         if let data = try? JSONEncoder().encode(user),
            let jsonString = String(data: data, encoding: .utf8) {
             UserDefaults.standard.set(jsonString, forKey: UserCenter.kLocalLoginKey)
@@ -55,8 +55,7 @@ public class UserCenter {
     }
     
     private func cleanUserInfo() {
-        loginModel = nil
         UserDefaults.standard.removeObject(forKey: UserCenter.kLocalLoginKey)
+        UserDefaults.standard.synchronize()
     }
-    
 }

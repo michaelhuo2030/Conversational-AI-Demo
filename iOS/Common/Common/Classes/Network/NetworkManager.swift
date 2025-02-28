@@ -192,6 +192,6 @@ public extension URLRequest {
 }
 
 extension Notification.Name {
-    public static let TokenExpired =
-        Notification.Name("com.token.expired")
+    public static let TokenExpired = Notification.Name("com.token.expired")
+    public static let EnvironmentChanged = Notification.Name("com.environment.changed")
 }

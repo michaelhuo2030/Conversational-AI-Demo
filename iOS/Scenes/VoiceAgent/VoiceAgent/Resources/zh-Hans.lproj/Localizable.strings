@@ -37,6 +37,7 @@
 "conversation.message.alert.content" = "您确定要清除所有消息吗？";
 "conversation.agent.connecting" = "连接中...";
 "conversation.user.speak.toast" = "请在对话初期大声、清晰地说话，提升智能体对您的声音锁定效果。";
+"conversation.agent.interrputed" = "已打断";
 
 "conversation.alert.cancel" = "取消";
 "conversation.alert.confirm" = "确定";

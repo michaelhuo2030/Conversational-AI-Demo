@@ -106,7 +106,6 @@ class AgentManager: AgentAPI {
                     completion: @escaping ((AgentError?, String, String?, String?) -> Void)) {
         let url = AgentServiceUrl.startAgentPath("v3/convoai/start").toHttpUrlSting()
         
-        // 基础参数
         var baseParameters: [String: Any] = [
             "app_id": appId,
             "preset_name": presetName,
