@@ -52,7 +52,7 @@ class ChatMessageCell: UITableViewCell {
         button.layer.masksToBounds = true
         button.titleLabel?.font = UIFont.systemFont(ofSize: 12)
         
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
+        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
         button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -3, bottom: 0, right: 3)
         button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 3, bottom: 0, right: -3)
         
@@ -61,7 +61,6 @@ class ChatMessageCell: UITableViewCell {
         button.isHidden = true
         button.isUserInteractionEnabled = false
         
-        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
         button.sizeToFit()
         
         return button
