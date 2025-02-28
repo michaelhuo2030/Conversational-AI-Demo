@@ -299,7 +299,6 @@ class ConversationSubtitleController: NSObject {
                 // update buffer
                 if let words = message.words, !words.isEmpty
                 {
-//                    print("🌍[CovSubRenderController] update words: \(words.map { $0.word ?? "" }.joined())")
                     let bufferWords = curBuffer.words
                     let uniqueWords = words.filter { newWord in
                         return !bufferWords.contains { firstWord in firstWord.start_ms == newWord.start_ms}
@@ -438,7 +437,6 @@ extension ConversationSubtitleController: ConversationSubtitleControllerProtocol
     func setupWithConfig(_ config: SubtitleRenderConfig) {
         renderConfig = config
         self.delegate = config.delegate
-        self.renderMode = config.renderMode
         config.rtcEngine.setAudioFrameDelegate(self)
         config.rtcEngine.addDelegate(self)
     }
