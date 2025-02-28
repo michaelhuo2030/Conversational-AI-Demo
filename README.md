@@ -1,6 +1,6 @@
 # 🌟 Agora-AI-Scenarios 🌟
 
-*English | [中文](README.zh.md)* 
+*English | [中文](README.zh.md)*
 
 ## 🔮 Overview
 
@@ -15,13 +15,13 @@ The Conversational AI Agent redefines the human-machine interaction interface, b
 
 ---
 
-## 🚀 Quick Integration
+## 🚀 Quick Start
 
-| Platform | Example |
-|:--------:|:-------:|
+|  Platform  |                 Example                 |
+| :--------: | :-------------------------------------: |
 | 📱 Android | [ConvoAI(Android)](Android/scenes/convoai) |
-| 📱 iOS | [ConvoAI(iOS)](iOS/Scenes/VoiceAgent) |
-| 🌐 Web | [ConvoAI(Web)](Web/Scenes/VoiceAgent) |
+|   📱 iOS   |   [ConvoAI(iOS)](iOS/Scenes/VoiceAgent)   |
+|   🌐 Web   |   [ConvoAI(Web)](Web/Scenes/VoiceAgent)   |
 
 ---
 
