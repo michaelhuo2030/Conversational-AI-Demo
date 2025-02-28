@@ -72,8 +72,9 @@ class RTCManager: NSObject {
         rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
         rtcEngine.setParameters("{\"che.audio.sf.ainsModelPref\":10}")
         rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
-        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}");
-
+        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}")
+        // enable predump
+        rtcEngine.setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
     }
 }
 
@@ -99,6 +100,7 @@ extension RTCManager: RTCManagerProtocol {
     }
     
     func predump(completion: @escaping () -> Void) {
+        
         rtcEngine.setParameters("{\"che.audio.start.predump\":true}")
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             completion()
