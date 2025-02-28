@@ -64,7 +64,6 @@ enum MessageOwner {
  * Word: Word-by-word subtitles are rendered
  */
 enum SubtitleRenderMode {
-    case auto
     case words
     case text
 }
@@ -91,7 +90,7 @@ enum SubtitleStatus: Int {
  */
 struct SubtitleMessage {
     let turnId: Int
-    let isMe: Bool
+    let userId: UInt
     let text: String
     var status: SubtitleStatus
 }
@@ -118,14 +117,13 @@ protocol ConversationSubtitleDelegate: AnyObject {
  */
 struct SubtitleRenderConfig {
     let rtcEngine: AgoraRtcEngineKit
-    let renderMode: SubtitleRenderMode?
+    let renderMode: SubtitleRenderMode
     let delegate: ConversationSubtitleDelegate?
 }
 
 protocol ConversationSubtitleControllerProtocol {
     func setupWithConfig(_ config: SubtitleRenderConfig)
-    func start()
-    func stop()
+    func reset()
 }
 
 // MARK: - CovSubRenderController
@@ -137,6 +135,9 @@ protocol ConversationSubtitleControllerProtocol {
  */
 class ConversationSubtitleController: NSObject {
     
+    public static let localUserId: UInt = 0
+    public static let remoteUserId: UInt = 99
+    
     enum MessageType: String {
         case assistant = "assistant.transcription"
         case user = "user.transcription"
@@ -145,16 +146,19 @@ class ConversationSubtitleController: NSObject {
         case string = "string"
     }
     
+    
     private var timer: Timer?
     private var audioTimestamp: Int64 = 0
     private var messageParser = MessageParser()
     
     private weak var delegate: ConversationSubtitleDelegate?
     private var messageQueue: [TurnBuffer] = []
-    private var renderMode: SubtitleRenderMode = .auto
+    private var renderMode: SubtitleRenderMode? = nil
     
     private var lastMessage: SubtitleMessage? = nil
     private var lastFinishMessage: SubtitleMessage? = nil
+    
+    private var renderConfig: SubtitleRenderConfig? = nil
     
     private func addLog(_ txt: String) {
         VoiceAgentLogger.info(txt)
@@ -186,21 +190,29 @@ class ConversationSubtitleController: NSObject {
         }
     }
     
-    private func getMessageMode(_ message: TranscriptionMessage) -> SubtitleRenderMode {
-        if renderMode == .auto {
-            let messageType = MessageType(rawValue: message.object ?? "string") ?? .unknown
-            guard messageType == .string || messageType == .assistant else {
-                return .auto
-            }
+    private func getMessageMode(_ message: TranscriptionMessage) -> SubtitleRenderMode? {
+        if let mode = renderMode {
+            return mode
+        }
+        let messageType = MessageType(rawValue: message.object ?? "string") ?? .unknown
+        guard messageType == .string || messageType == .assistant else {
+            return nil
+        }
+        if renderConfig?.renderMode == .words {
             if let words = message.words, !words.isEmpty {
                 renderMode = .words
-                addLog("✅[CovSubRenderController] render mode: word")
+                timer?.invalidate()
+                timer = nil
+                timer = Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(eventLoop), userInfo: nil, repeats: true)
+                addLog("✅[CovSubRenderController] render mode: words")
             } else {
                 renderMode = .text
                 timer?.invalidate()
                 timer = nil
                 addLog("✅[CovSubRenderController] render mode: text")
             }
+        } else if (renderConfig?.renderMode == .text) {
+            renderMode = .text
         }
         return renderMode
     }
@@ -216,27 +228,27 @@ class ConversationSubtitleController: NSObject {
             let isFinal = message.is_final ?? message.final ?? false
             messageState = isFinal ? .end : .inprogress
         }
-        let isMe: Bool
+        var userId: UInt
         if let messageObject = message.object {
             if messageObject == MessageType.user.rawValue {
-                isMe = true
+                userId = ConversationSubtitleController.localUserId
             } else {
-                isMe = false
+                userId = ConversationSubtitleController.remoteUserId
             }
         } else {
             if message.stream_id == 0 {
-                isMe = false
+                userId = ConversationSubtitleController.remoteUserId
             } else {
-                isMe = true
+                userId = ConversationSubtitleController.localUserId
             }
         }
         let turnId = message.turn_id ?? -1
         let subtitleMessage = SubtitleMessage(turnId: turnId,
-                                              isMe: isMe,
+                                              userId: userId,
                                               text: text,
                                               status: messageState)
         self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
-        if isMe {
+        if userId == 0 {
             print("🙋🏻‍♀️[CovSubRenderController] send user text: \(text), state: \(messageState)")
         } else {
             print("🌍[CovSubRenderController] send agent text: \(text), state: \(messageState)")
@@ -247,7 +259,7 @@ class ConversationSubtitleController: NSObject {
         if message.object == MessageType.user.rawValue {
             let text = message.text ?? ""
             let subtitleMessage = SubtitleMessage(turnId: message.turn_id ?? 0,
-                                                  isMe: true,
+                                                  userId: ConversationSubtitleController.localUserId,
                                                   text: text,
                                                   status: (message.final == true) ? .end : .inprogress)
             self.delegate?.onUpdateStreamContent(subtitle: subtitleMessage)
@@ -371,7 +383,7 @@ class ConversationSubtitleController: NSObject {
                 var subtitleMessage: SubtitleMessage
                 if minRange == interruptSub {
                     subtitleMessage = SubtitleMessage(turnId: buffer.turnId,
-                                                      isMe: false,
+                                                      userId: ConversationSubtitleController.remoteUserId,
                                                       text: currentWords.map { $0.text }.joined(),
                                                       status: .interrupt)
                     // remove finished turn
@@ -379,7 +391,7 @@ class ConversationSubtitleController: NSObject {
                     lastFinishMessage = subtitleMessage
                 } else if minRange == endSub {
                     subtitleMessage = SubtitleMessage(turnId: buffer.turnId,
-                                                      isMe: false,
+                                                      userId: ConversationSubtitleController.remoteUserId,
                                                       text: buffer.text,
                                                       status: .end)
                     // remove finished turn
@@ -387,7 +399,7 @@ class ConversationSubtitleController: NSObject {
                     lastFinishMessage = subtitleMessage
                 } else {
                     subtitleMessage = SubtitleMessage(turnId: buffer.turnId,
-                                                      isMe: false,
+                                                      userId: ConversationSubtitleController.remoteUserId,
                                                       text: currentWords.map { $0.text }.joined(),
                                                       status: .inprogress)
                 }
@@ -424,23 +436,17 @@ extension ConversationSubtitleController: AgoraAudioFrameDelegate {
 extension ConversationSubtitleController: ConversationSubtitleControllerProtocol {
     
     func setupWithConfig(_ config: SubtitleRenderConfig) {
+        renderConfig = config
         self.delegate = config.delegate
-        self.renderMode = config.renderMode ?? .auto
+        self.renderMode = config.renderMode
         config.rtcEngine.setAudioFrameDelegate(self)
         config.rtcEngine.addDelegate(self)
     }
-    
-    func start() {
+        
+    func reset() {
         timer?.invalidate()
         timer = nil
-        
-        timer = Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(eventLoop), userInfo: nil, repeats: true)
-    }
-        
-    func stop() {
-        timer?.invalidate()
-        timer = nil
-        renderMode = .auto
+        renderMode = nil
         lastMessage = nil
         lastFinishMessage = nil
         audioTimestamp = 0

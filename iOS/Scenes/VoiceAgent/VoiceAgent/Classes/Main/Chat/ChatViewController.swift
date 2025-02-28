@@ -329,7 +329,7 @@ public class ChatViewController: UIViewController {
         animateView.setupMediaPlayer(rtcEngine)
         animateView.updateAgentState(.idle)
         
-        let subRenderConfig = SubtitleRenderConfig(rtcEngine: rtcEngine, renderMode: nil, delegate: self)
+        let subRenderConfig = SubtitleRenderConfig(rtcEngine: rtcEngine, renderMode: .words, delegate: self)
         subRenderController.setupWithConfig(subRenderConfig)
         
         devModeButton.isHidden = !DeveloperModeViewController.getDeveloperMode()
@@ -343,7 +343,6 @@ public class ChatViewController: UIViewController {
         do {
             try await fetchPresetsIfNeeded()
             try await fetchTokenIfNeeded()
-            startCovSubRenderController()
             startAgentRequest()
             joinChannel()
         } catch {
@@ -514,12 +513,8 @@ extension ChatViewController {
         SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
     }
     
-    private func startCovSubRenderController() {
-        subRenderController.start()
-    }
-    
     private func stopCovSubRenderController() {
-        subRenderController.stop()
+        subRenderController.reset()
     }
     
     private func startAgentRequest() {
@@ -889,10 +884,11 @@ extension ChatViewController: AnimateViewDelegate {
 extension ChatViewController: ConversationSubtitleDelegate {
     
     func onUpdateStreamContent(subtitle: SubtitleMessage) {
+        let owner: MessageOwner = (subtitle.userId == ConversationSubtitleController.localUserId) ? .me : .agent
         if (subtitle.turnId == -1) {
-            messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isFinished: subtitle.status == .end)
+            messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: owner, isFinished: subtitle.status == .end)
         } else {
-            messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: subtitle.isMe ? .me : .agent, isInterrupted: subtitle.status == .interrupt)
+            messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: owner, isInterrupted: subtitle.status == .interrupt)
         }
     }
 }
