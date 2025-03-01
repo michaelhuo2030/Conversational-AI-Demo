@@ -56,6 +56,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                 loadWithOverviewMode = true
                 setSupportZoom(false)
                 defaultTextEncodingName = "UTF-8"
+                userAgentString = "Mozilla/5.0 (Linux; Android10) AppleWebKit/537.36 (KHTML, likeGecko) Chrome/110.0.0.0 Mobile Safari/537.36"
             }
             webView.setWebChromeClient(object : WebChromeClient() {
                 override fun onProgressChanged(view: WebView, newProgress: Int) {
@@ -118,7 +119,6 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
             webView.loadUrl(ssoUrl)
         }
     }
-
 
     private fun injectJavaScript() {
         // Inject JavaScript code to retrieve JSON data
