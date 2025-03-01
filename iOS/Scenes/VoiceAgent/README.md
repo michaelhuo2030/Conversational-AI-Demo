@@ -1,59 +1,70 @@
-# Conversational AI Agent
+# 🌟 Conversational AI Agent
 
-*__其他语言版本：__  [__简体中文__](README.zh.md)*
+*__Other Languages:__  [__简体中文__](README.zh.md)*
 
-The Conversational AI Agent ...
+The Conversational AI Agent redefines the human-machine interaction interface, breaking through traditional text-based interactions to achieve highly realistic and naturally flowing real-time voice conversations, enabling AI to truly "speak." It is suitable for innovative scenarios such as intelligent assistants, emotional companionship, oral language practice, intelligent customer service, smart hardware, and immersive game NPCs.
 
-### 1. Quick Start
+## 🚀 1. Quick Start
 
 This section mainly describes how to quickly run the Conversational AI Agent Demo.
 
-#### 1.1 Environment Preparation
+### 📱 1.1 Environment Preparation
 
-- Xcode 15 or higher.
-- A mobile device that runs iPhone 15.0 or higher.
+- Xcode 15.0 or above
+- iOS devices running iOS 15.0 or above
 
-#### 1.2 Running the Sample
+### ⚙️ 1.2 Running the Sample
 
-1. Follow [The Account Document](https://docs.agora.io/en/video-calling/reference/manage-agora-account) to get the **App ID** and **App Certificate**.
-2. Please contact Agora technical support to grant conversational ai permission to your APPID. Only after granting permission can you properly experience the demo features.
-3. Open the `iOS` project and fill in properties got above to the root [KeyCenter.swift](../../KeyCenter.swift) file. 
+1. Follow [Get started with Agora](https://docs-preview.agora.io/en/conversational-ai/get-started/manage-agora-account) to get the **App ID** and **App Certificate** and enable the **Conversational AI** service.
+2. Follow [Generate Customer ID and Customer Secret](https://docs.agora.io/en/conversational-ai/rest-api/restful-authentication#generate-customer-id-and-customer-secret) to get the **Basic Auth Key** and **Basic Auth Secret**.
+3. Get LLM configuration information from LLM vendor.
+4. Get TTS configuration information from TTS vendor.
+5. Open the `iOS` project and fill in the configuration information obtained above in the [**KeyCenter.swift**](../KeyCenter.swift) file:
 
+``` Swift
+    #----------- AppId --------------
+    static let AppId: String = <Agora App ID>
+    static let Certificate: String? = <Agora App Certificate>
+    
+    #----------- Basic Auth ---------------
+    static let BASIC_AUTH_KEY: String = <Agora RESTful API KEY>
+    static let BASIC_AUTH_SECRET: String = <Agora RESTful API SECRET>
+    
+    #----------- LLM -----------
+    static let LLM_URL: String = <LLM Vendor API BASE URL>
+    static let LLM_API_KEY: String? = <LLM Vendor API KEY>(optional)
+    static let LLM_SYSTEM_MESSAGES: String? = <LLM Prompt>(optional)
+    static let LLM_MODEL: String? = <LLM Model>(optional)
+    
+    #----------- TTS -----------
+    static let TTS_VENDOR: String = <TTS Vendor>
+    static let TTS_PARAMS: [String : Any] = <TTS Parameters>
 ```
-# RTC SDK key Config
-#----------- AppKey --------------
-static let AppId: String = <Your Agora App ID>
-static let Certificate: String? = <Your Agora App Certificate>
-```
-4. Now you can run the project with Xcode to experience the application.
 
-### 2. Source Code Sitemap
+### ⚙️ 2. Source Code Sitemap
+| Path                                                                                                    | Description                                      |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| [AgentManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentManager.swift)               | Conversational AI API implementation and models  |
+| [RTCManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/RTCManager.swift)                   | RTC related implementations                      |
+| [AgentPreferenceManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentPreferenceManager.swift) | Agent state management                    |
+| [Main/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main)                                                  | UI components and activities                     |
+| [Main/Chat](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Chat)                                         | Chat view and controllers                        |
+| [AgentInformationViewController.swift](Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentInformationViewController.swift) | Information dialog showing agent status          |
+| [AgentSettingViewController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentSettingViewController.swift) | Settings dialog for agent configuration          |
+| [Utils/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils)                                                | Utility classes and helper functions             |
+| [ConversationSubtitleController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils/ConversationSubtitleController.swift) | Subtitle rendering component                     |
 
-| Path | Description |
-|------------------------------------------------------------------|-------------|
-| [VoiceAgent/Classes/APIService/](VoiceAgent/Classes/APIService/) | Network service implementation for AI agent communication. |
-| [VoiceAgent/Classes/Core/](VoiceAgent/Classes/Utils/) | Utility classes for message parsing, logging system, and localization. |
-| [VoiceAgent/Classes/Main/](VoiceAgent/Classes/Main/) | Main UI screens and view controllers. |
-| [VoiceAgent/Classes/Manager/](VoiceAgent/Classes/Manager/) | Manager classes for various functionalities, including RTC engine, Agent, configuration, and network. |
-| [VoiceAgent/Classes/Model/](VoiceAgent/Classes/Model/) | Data models and entities. |
-| [VoiceAgent/Classes/VoiceAgentContext.swift](VoiceAgent/Classes/VoiceAgentEntrance) | Voice agent module entry point. |
-| [VoiceAgent/Resources/](VoiceAgent/Resources/) | Resource files including images and localization. |
-| [ChatViewController.swift](ChatViewController.swift) | Agent interaction implementation class. |
-| [RTCManager.swift](RTCManager.swift) | RTC implementation class. |
-| [AgentAPI.swift](AgentAPI.swift) | Agent network request implementation class. |
-| [AgentPreferenceManager.swift](AgentPreferenceManager.swift) | Agent state management class. |
+## 📚 3. Related Resources
 
-### 3. Related Resources
+- Check our [Conversational AI Agent Document](https://docs.agora.io/en/conversational-ai/overview/product-overview) to learn more about Conversational AI Agent
+- Visit [Agora SDK Samples](https://github.com/AgoraIO) for more tutorials
+- Explore repositories managed by developer communities at [Agora Community](https://github.com/AgoraIO-Community)
+- If you encounter issues during integration, feel free to ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io)
 
-- Check our [Conversational AI Agent Document]() to see more about Conversational AI Agent.
-- Dive into [Agora SDK Samples](https://github.com/AgoraIO) to see more tutorials.
-- Repositories managed by developer communities can be found at [Agora Community](https://github.com/AgoraIO-Community).
-- If you encounter problems during integration, feel free to ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io).
+## 💬 4. Feedback
 
-### 4. Feedback
+If you have any problems or suggestions regarding the sample projects, we welcome you to file an issue.
 
-If you have any problems or suggestions regarding the sample projects, feel free to file an issue.
-
-### 5. License
+## 📜 5. License
 
 The sample projects are under the MIT license.
