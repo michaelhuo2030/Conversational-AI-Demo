@@ -1,21 +1,14 @@
 package io.agora.agent
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import io.agora.agent.databinding.WelcomeActivityBinding
 import io.agora.scene.common.constant.AgentScenes
-import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.ui.CovLivingActivity
-import java.util.Locale
 import androidx.annotation.RequiresApi
 
 
@@ -26,7 +19,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setupLocale()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             handleSplashScreenExit()
         } else {
@@ -52,41 +44,6 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
             finish()
         } catch (e: Exception) {
             ToastUtil.show(getString(R.string.scenes_coming_soon))
-        }
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        setupLocale()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        setupLocale()
-    }
-
-
-    private fun setupLocale() {
-        val lang = if (BuildConfig.IS_MAINLAND) "zh" else "en"
-        val locale = Locale(lang)
-
-        AppCompatDelegate.setApplicationLocales(LocaleListCompat.create(locale))
-
-        updateActivityLocale(locale)
-    }
-
-    @SuppressLint("ObsoleteSdkInt")
-    private fun updateActivityLocale(locale: Locale) {
-        Locale.setDefault(locale)
-
-        val config = resources.configuration
-        config.setLocale(locale)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            createConfigurationContext(config)
-        } else {
-            @Suppress("DEPRECATION")
-            resources.updateConfiguration(config, resources.displayMetrics)
         }
     }
 
