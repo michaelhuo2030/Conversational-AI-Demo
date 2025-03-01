@@ -207,6 +207,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         ApiManager.setOnUnauthorizedCallback {
             runOnUiThread {
                 ToastUtil.show(getString(io.agora.scene.common.R.string.common_login_expired))
+                cleanCookie()
                 stopAgentAndLeaveChannel()
                 SSOUserManager.logout()
                 updateLoginStatus(false)
