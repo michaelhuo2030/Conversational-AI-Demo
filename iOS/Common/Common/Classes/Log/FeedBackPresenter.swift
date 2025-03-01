@@ -32,7 +32,7 @@ public class FeedBackPresenter {
         fileURLs.append(contentsOf: AgoraEntLog.allLogsUrls())
         fileURLs.append(contentsOf: getAgoraFiles())
         let tempFile = NSTemporaryDirectory() + "/\(fileName).zip"
-        print("[FeedBackPresenter] feedback dump: \(fileURLs)")
+        CommonLogger.info("on start feedback: \(fileURLs)")
         zipFiles(fileURLs: fileURLs, destinationURL: URL(fileURLWithPath: tempFile)) { err, url in
             if let err = err {
                 completion(err, nil)
@@ -51,6 +51,7 @@ public class FeedBackPresenter {
             req.upload { progress in
                 print("upload log progress: \(progress)")
             } completion: { err, content in
+                CommonLogger.info("upload log result: \(content ?? "")")
                 if let content = content as? [String: Any], let code = content["code"] as? Int, code == 0 {
                     completion(nil, "upload log success")
                 } else {
