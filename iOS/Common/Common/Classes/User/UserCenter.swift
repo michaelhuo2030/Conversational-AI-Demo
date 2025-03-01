@@ -18,17 +18,22 @@ public class LoginModel: Codable {
 }
 
 public class UserCenter {
+    
+    public class var user: LoginModel? {
+        return shared._user
+    }
+    
     private static let kLocalLoginKey = "kLocalLoginKey"
     
     public static let shared = UserCenter()
     public static var center: UserCenter { return shared }
     
-    private init() {}
+    private var _user: LoginModel? = nil
     
-    public class var user: LoginModel? {
-        return shared.getUserFromDefaults()
+    private init() {
+        _user = getUserFromDefaults()
     }
-    
+        
     private func getUserFromDefaults() -> LoginModel? {
         guard let jsonString = UserDefaults.standard.string(forKey: UserCenter.kLocalLoginKey),
               let data = jsonString.data(using: .utf8) else {
@@ -39,10 +44,11 @@ public class UserCenter {
     }
     
     public func isLogin() -> Bool {
-        return getUserFromDefaults() != nil
+        return _user != nil
     }
     
     public func storeUserInfo(_ user: LoginModel) {
+        _user = user
         if let data = try? JSONEncoder().encode(user),
            let jsonString = String(data: data, encoding: .utf8) {
             UserDefaults.standard.set(jsonString, forKey: UserCenter.kLocalLoginKey)
@@ -51,6 +57,7 @@ public class UserCenter {
     }
     
     public func logout() {
+        _user = nil
         cleanUserInfo()
     }
     

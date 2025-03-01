@@ -23,7 +23,7 @@ public class NetworkManager:NSObject {
     public typealias SuccessClosure = ([String: Any]) -> Void
     public typealias FailClosure = (String) -> Void
 
-    private var sessionConfig: URLSessionConfiguration = {
+    private var sessionConfig: URLSessionConfiguration {
         let config = URLSessionConfiguration.default
         let token = UserCenter.user?.token ?? ""
         config.httpAdditionalHeaders = [
@@ -33,7 +33,7 @@ public class NetworkManager:NSObject {
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 30
         return config
-    }()
+    }
 
     public static let shared = NetworkManager()
     private let baseServerUrl: String = AppContext.shared.baseServerUrl
