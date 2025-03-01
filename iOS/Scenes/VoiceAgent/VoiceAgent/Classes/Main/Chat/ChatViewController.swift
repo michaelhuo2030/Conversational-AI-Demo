@@ -264,7 +264,7 @@ public class ChatViewController: UIViewController {
         }
         
         messageView.snp.makeConstraints { make in
-            make.top.equalTo(topBar.snp.bottom)
+            make.top.equalTo(topBar.snp.bottom).offset(22)
             make.left.right.equalTo(0)
             make.bottom.equalTo(0)
         }
