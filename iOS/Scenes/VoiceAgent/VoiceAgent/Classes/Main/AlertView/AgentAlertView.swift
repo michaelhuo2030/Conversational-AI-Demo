@@ -121,7 +121,7 @@ class AgentAlertView: UIView {
         }
     }
     
-    static func show(in view: UIView, title: String, content: String, cancelTitle: String = "取消", confirmTitle: String = "确定", onConfirm: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+    static func show(in view: UIView, title: String, content: String, cancelTitle: String = ResourceManager.L10n.Error.permissionCancel, confirmTitle: String = ResourceManager.L10n.Error.permissionConfirm, onConfirm: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
         let alertView = AgentAlertView(frame: view.bounds)
         alertView.onConfirmButtonTapped = onConfirm
         alertView.onCancelButtonTapped = onCancel

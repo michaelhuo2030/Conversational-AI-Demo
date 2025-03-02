@@ -14,11 +14,11 @@ extension UIColor {
 }
 
 public extension UIColor {
-    /// 便利构造Hex颜色
+    /// Conveniently construct Hex colors
     ///
     /// - Parameters:
-    ///   - string: hex值
-    ///   - alpha: alpha值，默认1.0
+    ///   - string: hex
+    ///   - alpha: alpha，defaut is 1.0
     convenience init?(hex string: String, alpha: CGFloat = 1.0) {
         
         var hex = string.hasPrefix("#") ? String(string.dropFirst()) : string

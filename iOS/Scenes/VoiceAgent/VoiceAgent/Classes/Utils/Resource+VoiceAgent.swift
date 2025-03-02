@@ -150,6 +150,7 @@ extension ResourceManager {
             public static let dump = ResourceManager.localizedString("devmode.dump")
             public static let copy = ResourceManager.localizedString("devmode.copy")
             public static let close = ResourceManager.localizedString("devmode.close")
+            public static let server = ResourceManager.localizedString("devmode.server")
         }
     }
 }

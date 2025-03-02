@@ -8,13 +8,13 @@
 import Foundation
 
 public enum AUICommonError {
-    case unknown      //未知错误
-    case rtcError(Int32)    //rtc错误
-    case rtmError(Int32)    //rtm错误
-    case rtmNotPresence   //rtm presence错误
-    case httpError(Int, String)  //http错误
-    case networkParseFail   //http响应解析错误
-    case missmatchRoomConfig  //找不到对应房间token信息
+    case unknown
+    case rtcError(Int32)
+    case rtmError(Int32)
+    case rtmNotPresence
+    case httpError(Int, String)
+    case networkParseFail
+    case missmatchRoomConfig 
     
     public func toNSError() -> NSError {
         switch self {

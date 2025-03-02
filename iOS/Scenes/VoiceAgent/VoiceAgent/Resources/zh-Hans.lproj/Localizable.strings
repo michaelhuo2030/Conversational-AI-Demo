@@ -101,3 +101,4 @@
 "devmode.copy" = "复制用户当前通话问题";
 "devmode.close" = "关闭开发者模式";
 "devmode.graph" = "graph id";
+"devmode.server" = "服务器";

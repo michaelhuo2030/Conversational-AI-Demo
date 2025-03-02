@@ -20,7 +20,6 @@ class TabbarController: UITabBarController {
     }
     
     private func setupUI() {
-        // 配置TabBar样式
         if #available(iOS 13.0, *) {
             let appearance = UITabBarAppearance()
             appearance.backgroundColor = .white
