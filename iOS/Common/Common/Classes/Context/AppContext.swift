@@ -16,10 +16,10 @@ import Foundation
     @objc public static let shared: AppContext = .init()
     
     public let globalTermsOfServiceUrl: String = "https://www.agora.io/en/terms-of-service/"
-    public let mainlandTermsOfServiceUrl: String = "https://www.agora.io/en/terms-of-service/"
+    public let mainlandTermsOfServiceUrl: String = "https://conversational-ai.shengwang.cn/terms/service"
 
     public let globalPrivacyUrl: String = "https://www.agora.io/en/privacy-policy/"
-    public let mainlandPrivacyUrl: String = "https://www.agora.io/en/terms-of-service/"
+    public let mainlandPrivacyUrl: String = "https://conversational-ai.shengwang.cn/terms/privacy"
 
     private var _appId: String = ""
     private var _certificate: String = ""

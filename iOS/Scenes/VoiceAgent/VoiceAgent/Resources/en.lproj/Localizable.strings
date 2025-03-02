@@ -36,7 +36,7 @@
 "conversation.message.agent.name" = "AI Agent";
 "conversation.agent.connecting" = "Connecting...";
 "conversation.user.speak.toast" = "At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice.";
-"conversation.agent.interrputed" = "Interrputed";
+"conversation.agent.interrputed" = "Interrupted";
 
 "conversation.message.alert.title" = "Clear Messages";
 "conversation.message.alert.content" = "Are you sure you want to clear all messages?";

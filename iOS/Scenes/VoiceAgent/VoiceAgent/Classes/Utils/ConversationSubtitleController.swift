@@ -195,6 +195,16 @@ class ConversationSubtitleController: NSObject {
     }
     
     private func handleMessage(_ message: TranscriptionMessage) {
+        if message.object == MessageType.user.rawValue {
+            let text = message.text ?? ""
+            let subtitleMessage = SubtitleMessage(turnId: message.turn_id ?? 0,
+                                                  userId: ConversationSubtitleController.localUserId,
+                                                  text: text,
+                                                  status: (message.final == true) ? .end : .inprogress)
+            self.delegate?.onSubtitleUpdated(subtitle: subtitleMessage)
+            return
+        }
+        
         let renderMode = getMessageMode(message)
         if renderMode == .words {
             handleWordsMessage(message)
@@ -269,15 +279,6 @@ class ConversationSubtitleController: NSObject {
     }
     
     private func handleWordsMessage(_ message: TranscriptionMessage) {
-        if message.object == MessageType.user.rawValue {
-            let text = message.text ?? ""
-            let subtitleMessage = SubtitleMessage(turnId: message.turn_id ?? 0,
-                                                  userId: ConversationSubtitleController.localUserId,
-                                                  text: text,
-                                                  status: (message.final == true) ? .end : .inprogress)
-            self.delegate?.onSubtitleUpdated(subtitle: subtitleMessage)
-            return
-        }
         queue.async(flags: .barrier) {
             // handle new agent message
             if message.object == MessageType.assistant.rawValue {

@@ -836,6 +836,7 @@ extension ChatViewController: ConversationSubtitleDelegate {
             if (subtitle.turnId == -1) {
                 self.messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: owner, isFinished: subtitle.status == .end)
             } else {
+                print("=====\(subtitle.text)")
                 self.messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: owner, isInterrupted: subtitle.status == .interrupt)
             }
         }
