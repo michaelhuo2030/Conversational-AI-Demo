@@ -8,9 +8,9 @@
 
 struct KeyCenter {
 
-    static let AppId: String = ""
+    static let APP_ID: String = ""
     
-    static let Certificate: String? = ""
+    static let CERTIFICATE: String? = ""
     
     static let BASIC_AUTH_KEY: String = ""
 

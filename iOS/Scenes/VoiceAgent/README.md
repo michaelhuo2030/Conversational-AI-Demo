@@ -23,8 +23,8 @@ This section mainly describes how to quickly run the Conversational AI Agent Dem
 
 ``` Swift
     #----------- AppId --------------
-    static let AppId: String = <Agora App ID>
-    static let Certificate: String? = <Agora App Certificate>
+    static let APP_ID: String = <Agora App ID>
+    static let CERTIFICATE: String? = <Agora App Certificate>
     
     #----------- Basic Auth ---------------
     static let BASIC_AUTH_KEY: String = <Agora RESTful API KEY>

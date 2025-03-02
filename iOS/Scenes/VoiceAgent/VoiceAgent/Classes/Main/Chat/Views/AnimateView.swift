@@ -44,6 +44,7 @@ class AnimateView: NSObject {
     private var scaleAnimator: CAAnimationGroup?
     private var currentAnimParams = AnimParams()
     private var pendingAnimParams: AnimParams?
+    private var isInForeground = true
     
     private var currentState: AgentState = .idle {
         didSet {
@@ -88,14 +89,13 @@ class AnimateView: NSObject {
     }
     
     @objc private func applicationDidEnterBackground() {
+        isInForeground = false
         videoView?.layer.removeAllAnimations()
         scaleAnimator = nil
     }
     
     @objc private func applicationWillEnterForeground() {
-        if currentState == .speaking {
-            startNewAnimation(currentAnimParams)
-        }
+        isInForeground = true
     }
     
     func setupMediaPlayer(_ rtcEngine: AgoraRtcEngineKit) {
@@ -141,6 +141,9 @@ class AnimateView: NSObject {
     }
     
     private func startAgentAnimation(_ currentVolume: Int) {
+        if !isInForeground {
+            return
+        }
         let safeVolume = min(max(currentVolume, VolumeConstants.minVolume), VolumeConstants.maxVolume)
         let newParams = AnimParams(
             minScale: calculateMinScale(safeVolume),

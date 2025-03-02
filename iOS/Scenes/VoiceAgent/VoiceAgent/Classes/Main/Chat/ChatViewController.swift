@@ -375,14 +375,14 @@ public class ChatViewController: UIViewController {
     
     private func stopAgent() {
         addLog("[Call] stopAgent()")
+        stopAgentRequest()
+        leaveChannel()
+        stopCovSubRenderController()
         animateView.updateAgentState(.idle)
         messageView.clearMessages()
         messageView.isHidden = true
         bottomBar.resetState()
         timerCoordinator.stopAllTimer()
-        stopCovSubRenderController()
-        stopAgentRequest()
-        leaveChannel()
         AppContext.preferenceManager()?.resetAgentInformation()
     }
         
@@ -663,10 +663,13 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             if (info.uid == agentUid) {
                 var currentVolume: CGFloat = 0
                 currentVolume = CGFloat(info.volume)
-                if currentVolume > 0 {
-                    animateView.updateAgentState(.speaking, volume: Int(currentVolume))
-                } else {
-                    animateView.updateAgentState(.listening, volume: Int(currentVolume))
+                let agentState = AppContext.preferenceManager()?.information.agentState ?? .unload
+                if (agentState != .unload) {
+                    if currentVolume > 0 {
+                        animateView.updateAgentState(.speaking, volume: Int(currentVolume))
+                    } else {
+                        animateView.updateAgentState(.listening, volume: Int(currentVolume))
+                    }
                 }
             } else if (info.uid == 0) {
                 bottomBar.setVolumeProgress(value: Float(info.volume))
@@ -827,11 +830,14 @@ extension ChatViewController: AnimateViewDelegate {
 
 extension ChatViewController: ConversationSubtitleDelegate {
     func onSubtitleUpdated(subtitle: SubtitleMessage) {
-        let owner: MessageOwner = (subtitle.userId == ConversationSubtitleController.localUserId) ? .me : .agent
-        if (subtitle.turnId == -1) {
-            messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: owner, isFinished: subtitle.status == .end)
-        } else {
-            messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: owner, isInterrupted: subtitle.status == .interrupt)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let owner: MessageOwner = (subtitle.userId == ConversationSubtitleController.localUserId) ? .me : .agent
+            if (subtitle.turnId == -1) {
+                self.messageView.viewModel.reduceIndependentMessage(message: subtitle.text, timestamp: 0, owner: owner, isFinished: subtitle.status == .end)
+            } else {
+                self.messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: owner, isInterrupted: subtitle.status == .interrupt)
+            }
         }
     }
 }

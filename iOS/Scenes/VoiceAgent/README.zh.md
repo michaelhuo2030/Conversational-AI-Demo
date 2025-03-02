@@ -56,8 +56,8 @@
 
 ``` Swift
     #----------- AppId --------------
-    static let AppId: String = <声网 App ID>
-    static let Certificate: String? = <声网 App Certificate>
+    static let APP_ID: String = <声网 App ID>
+    static let CERTIFICATE: String? = <声网 App Certificate>
     
     #----------- Basic Auth ---------------
     static let BASIC_AUTH_KEY: String = <声网 RESTful API KEY>

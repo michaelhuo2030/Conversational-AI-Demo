@@ -22,8 +22,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppContext.shared.appArea = .global
 #endif
         
-        AppContext.shared.appId = KeyCenter.AppId
-        AppContext.shared.certificate = KeyCenter.Certificate ?? ""
+        AppContext.shared.appId = KeyCenter.APP_ID
+        AppContext.shared.certificate = KeyCenter.CERTIFICATE ?? ""
         AppContext.shared.basicAuthKey = KeyCenter.BASIC_AUTH_KEY
         AppContext.shared.basicAuthSecret = KeyCenter.BASIC_AUTH_SECRET
         AppContext.shared.llmUrl = KeyCenter.LLM_URL
