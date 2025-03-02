@@ -521,11 +521,9 @@ extension ChatViewController {
             if (error.code == 1412) {
                 SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.resouceLimit)
             } else {
-                if error.code != 401 {
-                    SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
-                    self.stopLoading()
-                    self.stopAgent()
-                }
+                SVProgressHUD.showError(withStatus: ResourceManager.L10n.Error.joinError)
+                self.stopLoading()
+                self.stopAgent()
                 
                 addLog("start agent failed : \(error.message)")
             }
@@ -823,7 +821,6 @@ extension ChatViewController: AnimateViewDelegate {
 }
 
 extension ChatViewController: ConversationSubtitleDelegate {
-    
     func onSubtitleUpdated(subtitle: SubtitleMessage) {
         let owner: MessageOwner = (subtitle.userId == ConversationSubtitleController.localUserId) ? .me : .agent
         if (subtitle.turnId == -1) {
@@ -944,11 +941,11 @@ extension ChatViewController {
     
     private func switchEnvironment() {
         AppContext.preferenceManager()?.deleteAllPresets()
-        UserCenter.shared.logout()
         stopLoading()
         stopAgent()
         animateView.releaseView()
         rtcManager.destroy()
+        UserCenter.shared.logout()
         NotificationCenter.default.post(name: .EnvironmentChanged, object: nil, userInfo: nil)
     }
 }

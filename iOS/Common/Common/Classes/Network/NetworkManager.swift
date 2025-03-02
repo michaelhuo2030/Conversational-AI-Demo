@@ -155,7 +155,6 @@ public class NetworkManager:NSObject {
                 }
             case 401:
                 NotificationCenter.default.post(name: .TokenExpired, object: nil, userInfo: nil)
-                failure?("Error in the request status code \(httpResponse.statusCode), response: \(String(describing: response))")
             default:
                 failure?("Error in the request status code \(httpResponse.statusCode), response: \(String(describing: response))")
             }

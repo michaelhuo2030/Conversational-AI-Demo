@@ -40,8 +40,10 @@ class LoginManager {
     }
     
     @objc private func loginSessionExpired() {
-        UserCenter.shared.logout()
-        notifyDelegates { $0.userLoginSessionExpired() }
+        if UserCenter.shared.isLogin() {
+            UserCenter.shared.logout()
+            notifyDelegates { $0.userLoginSessionExpired() }
+        }
     }
 }
 
