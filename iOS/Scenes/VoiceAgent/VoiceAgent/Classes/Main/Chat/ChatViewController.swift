@@ -374,7 +374,7 @@ public class ChatViewController: UIViewController {
     }
     
     private func stopAgent() {
-        addLog("[Call] stopAgent()]")
+        addLog("[Call] stopAgent()")
         animateView.updateAgentState(.idle)
         messageView.clearMessages()
         messageView.isHidden = true
@@ -607,6 +607,11 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
+        let channelName = rtcManager.getChannelName()
+        if self.channelName != channelName {
+            return
+        }
+        
         annotationView.dismiss()
         remoteIsJoined = true
         timerCoordinator.stopJoinChannelTimer()

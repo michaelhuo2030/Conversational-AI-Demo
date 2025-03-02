@@ -68,6 +68,34 @@ class AnimateView: NSObject {
     init(videoView: UIView) {
         self.videoView = videoView
         super.init()
+        setupNotifications()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    private func setupNotifications() {
+        NotificationCenter.default.addObserver(self,
+                                             selector: #selector(applicationDidEnterBackground),
+                                             name: UIApplication.didEnterBackgroundNotification,
+                                             object: nil)
+        
+        NotificationCenter.default.addObserver(self,
+                                             selector: #selector(applicationWillEnterForeground),
+                                             name: UIApplication.willEnterForegroundNotification,
+                                             object: nil)
+    }
+    
+    @objc private func applicationDidEnterBackground() {
+        videoView?.layer.removeAllAnimations()
+        scaleAnimator = nil
+    }
+    
+    @objc private func applicationWillEnterForeground() {
+        if currentState == .speaking {
+            startNewAnimation(currentAnimParams)
+        }
     }
     
     func setupMediaPlayer(_ rtcEngine: AgoraRtcEngineKit) {
@@ -160,6 +188,8 @@ class AnimateView: NSObject {
         group.delegate = self
         group.repeatCount = 1
         group.beginTime = CACurrentMediaTime()
+        group.fillMode = .forwards
+        group.isRemovedOnCompletion = false
         
         scaleAnimator = group
         videoView?.layer.add(group, forKey: "sizeAnimation")

@@ -36,6 +36,9 @@ protocol RTCManagerProtocol {
     /// Enables or disables audio dump
     func enableAudioDump(enabled: Bool)
     
+    /// Get current channel name
+    func getChannelName() -> String
+    
     /// Destroys the agent and releases resources
     func destroy()
 }
@@ -45,6 +48,8 @@ class RTCManager: NSObject {
     private weak var delegate: AgoraRtcEngineDelegate?
     private var appId: String = ""
     private var audioDumpEnabled: Bool = false
+    private var channelId: String = ""
+    
     init(appId: String, delegate: AgoraRtcEngineDelegate?) {
         self.appId = appId
         self.delegate = delegate
@@ -83,6 +88,7 @@ class RTCManager: NSObject {
 extension RTCManager: RTCManagerProtocol {
     func joinChannel(token: String, channelName: String, uid: String) -> Int32 {
         setAudioParameter()
+        channelId = channelName
         
         rtcEngine.setAudioScenario(.aiClient)
         rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
@@ -127,12 +133,17 @@ extension RTCManager: RTCManagerProtocol {
     }
     
     func leaveChannel() {
+        channelId = ""
         rtcEngine.leaveChannel()
     }
     
     func destroy() {
         audioDumpEnabled = false
         AgoraRtcEngineKit.destroy()
+    }
+    
+    func getChannelName() -> String {
+        return channelId
     }
 }
 
