@@ -86,7 +86,8 @@ class CustomNavigationView: UIView {
         // Register JavaScript callback
         userContentController.add(self, name: "handleResponse")
         configuration.userContentController = userContentController
-        
+        configuration.applicationNameForUserAgent = "Version/8.0.2 Safari/600.2.5"
+
         let view = WKWebView(frame: CGRectZero, configuration: configuration)
         view.navigationDelegate = self
         view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
