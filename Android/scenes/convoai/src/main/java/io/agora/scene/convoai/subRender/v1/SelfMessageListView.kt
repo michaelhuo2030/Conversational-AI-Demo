@@ -75,7 +75,7 @@ class SelfMessageListView @JvmOverloads constructor(
     }
 
     private fun handleUserMessage(turnId: Long, text: String, isFinal: Boolean) {
-        // The message’s turnId is 0
+        // The message's turnId is 0
         val exitMessage = if (turnId == 0L) currentUserMessage else messageAdapter.getMessageByTurnId(turnId, true)
         if (exitMessage == null) {
             val message = Message(true, turnId, text, isFinal)
@@ -92,7 +92,7 @@ class SelfMessageListView @JvmOverloads constructor(
     }
 
     private fun handleAgentMessage(turnId: Long, text: String, isFinal: Boolean) {
-        // The message’s turnId is 0
+        // The message's turnId is 0
         val exitMessage = if (turnId==0L) currentAgentMessage else messageAdapter.getMessageByTurnId(turnId, false)
         if (exitMessage == null) {
             val message = Message(false, turnId, text, isFinal)
@@ -111,14 +111,19 @@ class SelfMessageListView @JvmOverloads constructor(
     private fun autoScrollIfNeeded() {
         if (autoScrollToBottom) {
             checkAndScrollToBottom()
+        } else {
+            checkShowToBottomButton()
         }
     }
 
     private var scrollRunnable: Runnable? = null
-    private val scrollDelay = 500L
+    private val scrollDelay = 200L
     private var isScrollScheduled = false
     private fun checkAndScrollToBottom() {
-        if (isScrollScheduled) return
+        if (isScrollScheduled) {
+            scrollRunnable?.let { binding.rvMessages.removeCallbacks(it) }
+        }
+        
         scrollRunnable = Runnable {
             binding.rvMessages.post {
                 scrollToBottom()

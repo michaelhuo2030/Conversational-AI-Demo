@@ -122,20 +122,23 @@ class CovMessageListView @JvmOverloads constructor(
                 }
             }
         }
-        autoScrollIfNeeded()
-    }
-
-    private fun autoScrollIfNeeded() {
         if (autoScrollToBottom) {
-            checkAndScrollToBottom()
+            binding.rvMessages.post {
+                scrollToBottom()
+            }
+        } else {
+            checkShowToBottomButton()
         }
     }
 
     private var scrollRunnable: Runnable? = null
-    private val scrollDelay = 500L
+    private val scrollDelay = 200L
     private var isScrollScheduled = false
     private fun checkAndScrollToBottom() {
-        if (isScrollScheduled) return
+        if (isScrollScheduled) {
+            scrollRunnable?.let { binding.rvMessages.removeCallbacks(it) }
+        }
+        
         scrollRunnable = Runnable {
             binding.rvMessages.post {
                 scrollToBottom()
@@ -149,10 +152,7 @@ class CovMessageListView @JvmOverloads constructor(
     private fun scrollToBottom() {
         val lastPosition = messageAdapter.itemCount - 1
         if (lastPosition >= 0) {
-            (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
-                lastPosition,
-                -9999.dp.toInt()
-            )
+            binding.rvMessages.smoothScrollToPosition(lastPosition)
         }
     }
 
