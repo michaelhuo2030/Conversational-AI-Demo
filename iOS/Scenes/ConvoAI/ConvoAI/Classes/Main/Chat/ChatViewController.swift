@@ -686,6 +686,10 @@ extension ChatViewController: AgoraRtcEngineDelegate {
             }
         }
     }
+    
+    public func rtcEngine(_ engine: AgoraRtcEngineKit, didAudioRouteChanged routing: AgoraAudioOutputRouting) {
+        agentManager.setAudioConfig(config: routing)
+    }
 }
 
 // MARK: - Actions

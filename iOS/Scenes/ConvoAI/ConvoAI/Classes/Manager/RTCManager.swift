@@ -17,6 +17,9 @@ protocol RTCManagerProtocol {
     /// - Returns: 0 if the join request was sent successfully, < 0 on failure
     func joinChannel(token: String, channelName: String, uid: String) -> Int32
     
+    // Set audio routing and parameters
+    func setAudioConfig(config: AgoraAudioOutputRouting)
+    
     /// Leave RTC channel
     func leaveChannel()
     
@@ -49,6 +52,7 @@ class RTCManager: NSObject {
     private var appId: String = ""
     private var audioDumpEnabled: Bool = false
     private var channelId: String = ""
+    private var audioRouting = AgoraAudioOutputRouting.default
     
     init(appId: String, delegate: AgoraRtcEngineDelegate?) {
         self.appId = appId
@@ -65,29 +69,13 @@ class RTCManager: NSObject {
         rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: self.delegate)
         ConvoAILogger.info("rtc version: \(AgoraRtcEngineKit.getSdkVersion())")
     }
-    
-    private func setAudioParameter() {
-        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
-        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}")
-        rtcEngine.setParameters("{\"che.audio.sf.stftType\":6}")
-        rtcEngine.setParameters("{\"che.audio.sf.ainlpLowLatencyFlag\":1}")
-        rtcEngine.setParameters("{\"che.audio.sf.ainsLowLatencyFlag\":1}")
-        rtcEngine.setParameters("{\"che.audio.sf.procChainMode\":1}")
-        rtcEngine.setParameters("{\"che.audio.sf.nlpDynamicMode\":1}")
-        rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
-        rtcEngine.setParameters("{\"che.audio.sf.ainlpModelPref\":10}")
-        rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
-        rtcEngine.setParameters("{\"che.audio.sf.ainsModelPref\":10}")
-        rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
-        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}")
-        // enable predump
-        rtcEngine.setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
-    }
 }
 
 extension RTCManager: RTCManagerProtocol {
     func joinChannel(token: String, channelName: String, uid: String) -> Int32 {
-        setAudioParameter()
+        // enable predump
+        rtcEngine.setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
+        setAudioConfig(config: audioRouting)
         channelId = channelName
         
         rtcEngine.setAudioScenario(.aiClient)
@@ -101,6 +89,31 @@ extension RTCManager: RTCManagerProtocol {
         options.autoSubscribeAudio = true
         options.autoSubscribeVideo = false
         return rtcEngine.joinChannel(byToken: token, channelId: channelName, uid: UInt(uid) ?? 0, mediaOptions: options)
+    }
+    
+    func setAudioConfig(config: AgoraAudioOutputRouting) {
+        audioRouting = config
+        rtcEngine.setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
+        rtcEngine.setParameters("{\"che.audio.sf.enabled\":true}")
+        rtcEngine.setParameters("{\"che.audio.sf.stftType\":6}")
+        rtcEngine.setParameters("{\"che.audio.sf.ainlpLowLatencyFlag\":1}")
+        rtcEngine.setParameters("{\"che.audio.sf.ainsLowLatencyFlag\":1}")
+        rtcEngine.setParameters("{\"che.audio.sf.procChainMode\":1}")
+        rtcEngine.setParameters("{\"che.audio.sf.nlpDynamicMode\":1}")
+        if config == .headset ||
+            config == .earpiece ||
+            config == .headsetNoMic ||
+            config == .bluetoothDeviceHfp ||
+            config == .bluetoothDeviceA2dp {
+            rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\":0}")
+        } else {
+            rtcEngine.setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
+        }
+        rtcEngine.setParameters("{\"che.audio.sf.ainlpModelPref\":10}")
+        rtcEngine.setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
+        rtcEngine.setParameters("{\"che.audio.sf.ainsModelPref\":10}")
+        rtcEngine.setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
+        rtcEngine.setParameters("{\"che.audio.agc.enable\":false}")
     }
     
     func muteVoice(state: Bool) {
