@@ -86,6 +86,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
             divider.setDrawable(resources.getDrawable(R.drawable.shape_divider_line, null))
             rcOptions.addItemDecoration(divider)
 
+            mtvBuildNo.text = ServerConfig.appBuildNo
             mtvRtcVersion.text = RtcEngine.getSdkVersion()
 
             btnClose.setOnClickListener {

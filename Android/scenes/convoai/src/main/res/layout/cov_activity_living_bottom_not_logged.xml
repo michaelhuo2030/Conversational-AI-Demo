@@ -29,7 +29,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/viewWithoutLoginTop"
-        app:layout_constraintWidth_percent="0.9" />
+        app:layout_constraintWidth_percent="0.84" />
 
 
     <com.google.android.material.button.MaterialButton

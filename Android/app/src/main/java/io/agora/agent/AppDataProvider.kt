@@ -19,6 +19,10 @@ class AppDataProvider : DataProvider {
         return BuildConfig.IS_MAINLAND
     }
 
+    override fun appBuildNo(): String {
+        return BuildConfig.BUILD_TIMESTAMP
+    }
+
     override fun envName(): String {
         return ""
     }
