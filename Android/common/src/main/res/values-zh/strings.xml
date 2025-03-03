@@ -4,6 +4,7 @@
     <string name="common_debug_mode_enable">开发者模式已开</string>
     <string name="common_debug_mode_disable">开发者模式已关闭</string>
     <string name="common_debug_setting">开发者模式</string>
+    <string name="common_debug_app_build">App Build No</string>
     <string name="common_debug_rtc_version">Rtc 版本</string>
     <string name="common_debug_switch_server">切换服务器</string>
     <string name="common_debug_current_server">已切换到 \n %1s</string>

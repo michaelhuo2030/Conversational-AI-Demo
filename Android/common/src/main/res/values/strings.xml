@@ -4,6 +4,7 @@
     <string name="common_debug_mode_enable">Debug Mode is On</string>
     <string name="common_debug_mode_disable">Debug Mode is Off</string>
     <string name="common_debug_setting">Debugging Settings</string>
+    <string name="common_debug_app_build">App Build No</string>
     <string name="common_debug_rtc_version">Rtc Version</string>
     <string name="common_debug_switch_server">Switch Server</string>
     <string name="common_debug_current_server">Switched to \n %1s</string>

@@ -4,9 +4,11 @@ plugins {
 }
 apply from: 'resource.gradle'
 
+def buildTimestamp = new Date().format("yyyyMMddHHmm")
+
 if (project.getProperty("CN_AG_APP_ID").toString().isEmpty() &&
         project.getProperty("GLOBAL_AG_APP_ID").toString().isEmpty()) {
-    throw new GradleException("请在 gradle.properties 中配置 Agora ID 和 Certificate")
+    throw new GradleException("Please configure Agora ID and Certificate in gradle.properties")
 }
 
 android {
@@ -19,6 +21,8 @@ android {
         targetSdk rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+        
+        buildConfigField("String", "BUILD_TIMESTAMP", "\"${buildTimestamp}\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -70,7 +74,7 @@ android {
                 outputFileName = new File(
                         flavorPrefix + "_" +
                                 "v" + defaultConfig.versionName + "_" +
-                                new Date().format("yyyyMMddHHmm") + ".apk")
+                                buildTimestamp + ".apk")
             }
     }
 

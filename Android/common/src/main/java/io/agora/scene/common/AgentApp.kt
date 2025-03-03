@@ -37,6 +37,7 @@ class AgentApp : Application() {
         DataProviderLoader.getDataProvider()?.let {
             ServerConfig.initBuildConfig(
                 isMainland = it.isMainland(),
+                appBuildNo = it.appBuildNo(),
                 envName = it.envName(),
                 toolboxHost = it.toolboxHost(),
                 rtcAppId = it.rtcAppId(),
