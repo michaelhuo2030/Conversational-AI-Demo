@@ -107,7 +107,13 @@ class ChatMessageCell: UITableViewCell {
             messageBubble.backgroundColor = .clear
         }
         
-        messageLabel.text = message.content
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 5
+        let attributes: [NSAttributedString.Key: Any] = [
+            .paragraphStyle: paragraphStyle
+        ]
+        let attributedString = NSAttributedString(string: message.content, attributes: attributes)
+        messageLabel.attributedText = attributedString
         
         let detector = NSLinguisticTagger(tagSchemes: [.language], options: 0)
         detector.string = message.content
