@@ -174,17 +174,17 @@ class AgentSettingViewController: UIViewController {
         }
         
         SVProgressHUD.show()
-        VoiceAgentLogger.info("request presets in setting page")
+        ConvoAILogger.info("request presets in setting page")
         agentManager.fetchAgentPresets(appId: AppContext.shared.appId) { error, result in
             SVProgressHUD.dismiss()
             if let error = error {
                 SVProgressHUD.showError(withStatus: error.message)
-                VoiceAgentLogger.info(error.message)
+                ConvoAILogger.info(error.message)
                 return
             }
             
             guard let result = result else {
-                VoiceAgentLogger.info("preset is empty")
+                ConvoAILogger.info("preset is empty")
                 SVProgressHUD.showError(withStatus: "preset is empty")
                 return
             }
@@ -478,14 +478,8 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         if let language = supportLanguages.first(where: { $0.languageCode == resetLanguageCode }) {
             manager.updateLanguage(language)
         }
-        if AppContext.shared.appArea == .global {
-            if (preset.presetType.contains("independent")) {
-                manager.updateAiVadState(false)
-            }
-        } else {
-            if (preset.presetType.contains("independent")) {
-                manager.updateAiVadState(false)
-            }
+        if (preset.presetType.contains("independent")) {
+            manager.updateAiVadState(false)
         }
         updateAiVADEnabelState()
     }
@@ -496,10 +490,8 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {
         languageItem.detailLabel.text = language.languageName
-        if AppContext.shared.appArea == .global {
-            if language.languageCode != "en-US" {
-                manager.updateAiVadState(false)
-            }
+        if language.languageCode != "en-US" {
+            manager.updateAiVadState(false)
         }
         updateAiVADEnabelState()
     }
@@ -516,17 +508,11 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
             return
         }
         var aiVadEnable = true
-        if AppContext.shared.appArea == .global {
-            if (preset.presetType.contains("independent")) {
-                aiVadEnable = false
-            }
-            if language.languageCode != "en-US" {
-                aiVadEnable = false
-            }
-        } else {
-            if (preset.presetType.contains("independent")) {
-                aiVadEnable = false
-            }
+        if (preset.presetType.contains("independent")) {
+            aiVadEnable = false
+        }
+        if language.languageCode != "en-US" {
+            aiVadEnable = false
         }
         if (agetnState != .unload) {
             aiVadEnable = false

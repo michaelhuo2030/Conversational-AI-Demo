@@ -392,7 +392,7 @@ public class ChatViewController: UIViewController {
     }
     
     private func addLog(_ txt: String) {
-        VoiceAgentLogger.info(txt)
+        ConvoAILogger.info(txt)
     }
     
     private func goToSSOViewController() {
@@ -821,7 +821,7 @@ extension ChatViewController: AgentControlToolbarDelegate {
 
 extension ChatViewController: AnimateViewDelegate {
     func onError(error: AgentError) {
-        VoiceAgentLogger.info(error.message)
+        ConvoAILogger.info(error.message)
         
         stopLoading()
         stopAgent()

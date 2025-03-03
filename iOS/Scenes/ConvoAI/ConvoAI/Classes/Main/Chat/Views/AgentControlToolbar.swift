@@ -116,11 +116,7 @@ class AgentControlToolbar: UIView {
         button.titleLabel?.textAlignment = .center
         button.layerCornerRadius = buttonWidth / 2.0
         button.clipsToBounds = true
-        if AppContext.shared.appArea == .mainland {
-            button.setImage(UIImage.ag_named("ic_captions_icon_cn")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        } else {
-            button.setImage(UIImage.ag_named("ic_captions_icon")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        }
+        button.setImage(UIImage.ag_named("ic_captions_icon")?.withRenderingMode(.alwaysTemplate), for: .normal)
         if let color = UIColor(hex: 0x333333) {
             button.setBackgroundImage(UIImage(color: color, size: CGSize(width: 1, height: 1)), for: .normal)
         }

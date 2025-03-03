@@ -16,15 +16,11 @@ import Foundation
     @objc public static let shared: AppContext = .init()
     
     public let globalTermsOfServiceUrl: String = "https://www.agora.io/en/terms-of-service/"
-    public let mainlandTermsOfServiceUrl: String = "https://conversational-ai.shengwang.cn/terms/service"
-
     public let globalPrivacyUrl: String = "https://www.agora.io/en/privacy-policy/"
-    public let mainlandPrivacyUrl: String = "https://conversational-ai.shengwang.cn/terms/privacy"
 
     private var _appId: String = ""
     private var _certificate: String = ""
     private var _baseServerUrl: String = ""
-    private var _appArea: AppArea = .global
     private var _environments: [[String : String]] = []
     private var _graphId: String = ""
     
@@ -39,11 +35,6 @@ import Foundation
     
     override init() {
         super.init()
-    }
-
-    @objc public var appArea: AppArea {
-        get { return _appArea }
-        set { _appArea = newValue }
     }
     
     @objc public var appId: String {
@@ -71,11 +62,7 @@ import Foundation
            let environmentsPath = bundle.path(forResource: "environments", ofType: "json"),
            let data = try? Data(contentsOf: URL(fileURLWithPath: environmentsPath)),
            let environments = try? JSONDecoder().decode([String: [[String: String]]].self, from: data) {
-            if (AppContext.shared.appArea == .mainland) {
-                _environments = environments["cn"] ?? []
-            } else {
-                _environments = environments["global"] ?? []
-            }
+            _environments = environments["global"] ?? []
             if (appId.isEmpty) {
                 _appId = _environments.first?["appId"] ?? ""
                 _certificate = _environments.first?["certificate"] ?? ""

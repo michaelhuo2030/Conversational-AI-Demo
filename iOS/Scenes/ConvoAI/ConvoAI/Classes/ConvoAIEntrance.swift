@@ -10,8 +10,8 @@ import Common
 import SVProgressHUD
 
 @objcMembers
-public class VoiceAgentEntrance: NSObject {
-    public static let kSceneName = "VoiceAgent"
+public class ConvoAIEntrance: NSObject {
+    public static let kSceneName = "ConvoAI"
     
 //    public static func voiceAgentScene(viewController: UIViewController) {
 //        let vc = ChatViewController()

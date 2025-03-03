@@ -29,11 +29,7 @@ public class ResourceManager {
     public static func localizedString(_ key: String, bundleName: String?) -> String {
         let resourceBundle = (bundleName != nil) ? getBundle(bundleName: bundleName) : Bundle.main
         
-        var localeIdentifier = "en"
-        let area = AppContext.shared.appArea
-        if area == .mainland {
-            localeIdentifier = "zh-Hans"
-        }
+        let localeIdentifier = "en"
         
         guard let bundlePath = resourceBundle.path(forResource: localeIdentifier, ofType: "lproj"),
               let localizedBundle = Bundle(path: bundlePath)

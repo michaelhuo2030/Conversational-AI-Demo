@@ -35,7 +35,7 @@ class LoginViewController: UIViewController {
         label.font = .systemFont(ofSize: 20, weight: .bold)
         label.numberOfLines = 0
         label.textColor = UIColor.themColor(named: "ai_icontext1")
-        label.isHidden = AppContext.shared.appArea == .global
+        label.isHidden = true
         return label
     }()
     
@@ -190,18 +190,10 @@ class LoginViewController: UIViewController {
             make.height.equalTo(319)
         }
         
-        if AppContext.shared.appArea == .global {
-            titleLabel.snp.makeConstraints { make in
-                make.left.equalToSuperview().offset(30)
-                make.right.equalTo(logoView.snp.left).offset(-10)
-                make.centerY.equalTo(logoView)
-            }
-        } else {
-            titleLabel.snp.makeConstraints { make in
-                make.top.equalToSuperview().offset(40)
-                make.left.equalToSuperview().offset(30)
-                make.right.equalTo(logoView.snp.left).offset(-10)
-            }
+        titleLabel.snp.makeConstraints { make in
+            make.left.equalToSuperview().offset(30)
+            make.right.equalTo(logoView.snp.left).offset(-10)
+            make.centerY.equalTo(logoView)
         }
         
         subtitleLabel.snp.makeConstraints { make in
@@ -323,11 +315,7 @@ class LoginViewController: UIViewController {
     
     @objc private func termsButtonTapped() {
         let vc = TermsServiceWebViewController()
-        if AppContext.shared.appArea == .mainland {
-            vc.url = AppContext.shared.mainlandTermsOfServiceUrl
-        } else {
-            vc.url = AppContext.shared.globalTermsOfServiceUrl
-        }
+        vc.url = AppContext.shared.globalTermsOfServiceUrl
         let termsServiceVC = UINavigationController(rootViewController: vc)
         termsServiceVC.modalPresentationStyle = .fullScreen
         self.present(termsServiceVC, animated: true)
@@ -335,11 +323,7 @@ class LoginViewController: UIViewController {
     
     @objc private func privacyPolicyTapped() {
         let vc = TermsServiceWebViewController()
-        if AppContext.shared.appArea == .mainland {
-            vc.url = AppContext.shared.mainlandPrivacyUrl
-        } else {
-            vc.url = AppContext.shared.globalPrivacyUrl
-        }
+        vc.url = AppContext.shared.globalPrivacyUrl
         let termsServiceVC = UINavigationController(rootViewController: vc)
         termsServiceVC.modalPresentationStyle = .fullScreen
         self.present(termsServiceVC, animated: true)

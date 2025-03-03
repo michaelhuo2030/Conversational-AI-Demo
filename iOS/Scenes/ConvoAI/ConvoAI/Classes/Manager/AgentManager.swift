@@ -60,12 +60,12 @@ class AgentManager: AgentAPI {
     
     func fetchAgentPresets(appId: String, completion: @escaping ((AgentError?, [AgentPreset]?) -> Void)) {
         let url = AgentServiceUrl.fetchAgentPresetsPath("v3/convoai/presetAgents").toHttpUrlSting()
-        VoiceAgentLogger.info("request agent preset api: \(url)")
+        ConvoAILogger.info("request agent preset api: \(url)")
         let requesetBody: [String: Any] = [
             "app_id": appId
         ]
         NetworkManager.shared.getRequest(urlString: url, params: requesetBody) { result in
-            VoiceAgentLogger.info("presets request response: \(result)")
+            ConvoAILogger.info("presets request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
@@ -173,9 +173,9 @@ class AgentManager: AgentAPI {
             ]
         }
         
-        VoiceAgentLogger.info("request start api: \(url) parameters: \(parameters)")
+        ConvoAILogger.info("request start api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            VoiceAgentLogger.info("start request response: \(result)")
+            ConvoAILogger.info("start request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
@@ -208,9 +208,9 @@ class AgentManager: AgentAPI {
             "preset_name": presetName,
             "channel_name": channelName
         ]
-        VoiceAgentLogger.info("request stop api parameters is: \(parameters)")
+        ConvoAILogger.info("request stop api parameters is: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            VoiceAgentLogger.info("stop request response: \(result)")
+            ConvoAILogger.info("stop request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)
@@ -231,9 +231,9 @@ class AgentManager: AgentAPI {
             "channel_name": channelName,
             "preset_name": presetName
         ]
-        VoiceAgentLogger.info("request ping api: \(url) parameters: \(parameters)")
+        ConvoAILogger.info("request ping api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            VoiceAgentLogger.info("ping request response: \(result)")
+            ConvoAILogger.info("ping request response: \(result)")
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
                 let error = AgentError.serverError(code: code, message: msg)

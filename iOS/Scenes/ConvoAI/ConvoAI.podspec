@@ -7,9 +7,9 @@
 #
 
 Pod::Spec.new do |s|
-  s.name             = 'VoiceAgent'
+  s.name             = 'ConvoAI'
   s.version          = '0.1.0'
-  s.summary          = 'A short description of VoiceAgent.'
+  s.summary          = 'A short description of ConvoAI.'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -33,12 +33,12 @@ TODO: Add long description of the pod here.
   s.static_framework = true
   s.swift_version = '5.0'
 
-  s.source_files = 'VoiceAgent/Classes/**/*'
-  s.resource = 'VoiceAgent/Resources/*.bundle'
+  s.source_files = 'ConvoAI/Classes/**/*'
+  s.resource = 'ConvoAI/Resources/*.bundle'
   s.resource_bundles = {
-    'VoiceAgent' => [
-      'VoiceAgent/Assets/**/*',
-      'VoiceAgent/Resources/**/*'
+    'ConvoAI' => [
+      'ConvoAI/Assets/**/*',
+      'ConvoAI/Resources/**/*'
     ]
   }
   

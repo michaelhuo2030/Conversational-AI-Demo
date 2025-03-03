@@ -8,8 +8,8 @@
 import Foundation
 import Common
 
-public class VoiceAgentLogger: NSObject {
-    static let kLogKey = VoiceAgentEntrance.kSceneName
+public class ConvoAILogger: NSObject {
+    static let kLogKey = ConvoAIEntrance.kSceneName
 
     public static func info(_ text: String, context: String? = nil) {
         agoraDoMainThreadTask {

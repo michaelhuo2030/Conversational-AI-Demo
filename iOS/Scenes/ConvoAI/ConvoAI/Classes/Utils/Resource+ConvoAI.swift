@@ -10,7 +10,7 @@ import Common
 
 extension ResourceManager {
     static func localizedString(_ key: String) -> String {
-        return localizedString(key, bundleName: VoiceAgentEntrance.kSceneName)
+        return localizedString(key, bundleName: ConvoAIEntrance.kSceneName)
     }
     
     enum L10n {

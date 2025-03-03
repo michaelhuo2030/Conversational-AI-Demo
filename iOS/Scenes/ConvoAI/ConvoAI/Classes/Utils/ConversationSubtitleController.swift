@@ -174,7 +174,7 @@ class ConversationSubtitleController: NSObject {
     private var renderConfig: SubtitleRenderConfig? = nil
     
     private func addLog(_ txt: String) {
-        VoiceAgentLogger.info(txt)
+        ConvoAILogger.info(txt)
     }
     
     private let queue = DispatchQueue(label: "com.voiceagent.messagequeue", attributes: .concurrent)

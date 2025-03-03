@@ -8,7 +8,7 @@
 import UIKit
 import Common
 import SVProgressHUD
-import VoiceAgent
+import ConvoAI
 import SSZipArchive
 
 @main
@@ -16,12 +16,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-#if MainLand
-        AppContext.shared.appArea = .mainland
-#else
-        AppContext.shared.appArea = .global
-#endif
-        
         AppContext.shared.appId = KeyCenter.APP_ID
         AppContext.shared.certificate = KeyCenter.CERTIFICATE ?? ""
         AppContext.shared.basicAuthKey = KeyCenter.BASIC_AUTH_KEY
@@ -58,7 +52,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             do {
                 try FileManager.default.createDirectory(atPath: destinationPath, withIntermediateDirectories: true)
             } catch {
-                VoiceAgentLogger.info("[Resource] Failed to create directory: \(error)")
+                ConvoAILogger.info("[Resource] Failed to create directory: \(error)")
                 return
             }
         }
@@ -81,12 +75,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let success = SSZipArchive.unzipFile(atPath: zipPath, toDestination: destinationPath)
             
             if success {
-                VoiceAgentLogger.info("[Resource] Successfully unzipped common_resource to: \(destinationPath)")
+                ConvoAILogger.info("[Resource] Successfully unzipped common_resource to: \(destinationPath)")
             } else {
-                VoiceAgentLogger.info("[Resource] Failed to unzip file")
+                ConvoAILogger.info("[Resource] Failed to unzip file")
             }
         } catch {
-            VoiceAgentLogger.info("[Resource] Error during unzip: \(error)")
+            ConvoAILogger.info("[Resource] Error during unzip: \(error)")
         }
     }
     
