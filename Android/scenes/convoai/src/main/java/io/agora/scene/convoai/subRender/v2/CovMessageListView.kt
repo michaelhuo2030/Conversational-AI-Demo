@@ -1,21 +1,16 @@
 package io.agora.scene.convoai.subRender.v2
 
-import android.graphics.Color
-import android.graphics.drawable.Drawable
-import android.text.Html
 import android.view.ViewGroup
 import android.content.Context
-import android.graphics.drawable.ColorDrawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
-import androidx.core.text.HtmlCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.agora.scene.common.util.dp
+import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.databinding.CovMessageAgentItemBinding
 import io.agora.scene.convoai.databinding.CovMessageListViewBinding
 import io.agora.scene.convoai.databinding.CovMessageMineItemBinding
@@ -24,7 +19,7 @@ class CovMessageListView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr), ICovMessageListView {
+) : LinearLayout(context, attrs, defStyleAttr), IConversationSubtitleCallback {
 
     val TAG = "CovMessageListView"
 
@@ -82,7 +77,7 @@ class CovMessageListView @JvmOverloads constructor(
 
     private fun handleMessage(subtitleMessage: SubtitleMessage) {
         // Try to find existing message with same turnId
-        messageAdapter.getMessageByTurnId(subtitleMessage.turnId, subtitleMessage.isMe)?.let { existingMessage ->
+        messageAdapter.getMessageByTurnId(subtitleMessage.turnId, subtitleMessage.userId == 0)?.let { existingMessage ->
             // Update existing message
             existingMessage.apply {
                 content = subtitleMessage.text
@@ -92,7 +87,7 @@ class CovMessageListView @JvmOverloads constructor(
         } ?: run {
             // Create new message
             val newMessage = Message(
-                isMe = subtitleMessage.isMe,
+                isMe = subtitleMessage.userId == 0,
                 turnId = subtitleMessage.turnId,
                 content = subtitleMessage.text,
                 status = subtitleMessage.status
@@ -101,7 +96,7 @@ class CovMessageListView @JvmOverloads constructor(
             // Determine message insertion position
             when {
                 // User message: try to insert before corresponding agent message
-                subtitleMessage.isMe -> {
+                subtitleMessage.userId == 0 -> {
                     messageAdapter.getMessageByTurnId(subtitleMessage.turnId, false)?.let { agentMessage ->
                         val agentIndex = messageAdapter.getMessageIndex(agentMessage)
                         if (agentIndex != -1) {
@@ -121,20 +116,23 @@ class CovMessageListView @JvmOverloads constructor(
                 }
             }
         }
-        autoScrollIfNeeded()
-    }
-
-    private fun autoScrollIfNeeded() {
         if (autoScrollToBottom) {
-            checkAndScrollToBottom()
+            binding.rvMessages.post {
+                scrollToBottom()
+            }
+        } else {
+            checkShowToBottomButton()
         }
     }
 
     private var scrollRunnable: Runnable? = null
-    private val scrollDelay = 500L
+    private val scrollDelay = 200L
     private var isScrollScheduled = false
     private fun checkAndScrollToBottom() {
-        if (isScrollScheduled) return
+        if (isScrollScheduled) {
+            scrollRunnable?.let { binding.rvMessages.removeCallbacks(it) }
+        }
+        
         scrollRunnable = Runnable {
             binding.rvMessages.post {
                 scrollToBottom()
@@ -148,10 +146,7 @@ class CovMessageListView @JvmOverloads constructor(
     private fun scrollToBottom() {
         val lastPosition = messageAdapter.itemCount - 1
         if (lastPosition >= 0) {
-            (binding.rvMessages.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
-                lastPosition,
-                -9999.dp.toInt()
-            )
+            binding.rvMessages.smoothScrollToPosition(lastPosition)
         }
     }
 
@@ -200,32 +195,36 @@ class CovMessageListView @JvmOverloads constructor(
                 when (message.status) {
                     SubtitleStatus.End -> {
                         binding.tvMessageContent.text = message.content
+                        binding.layoutMessageInterrupt.isVisible = false
                     }
 
                     SubtitleStatus.Interrupted -> {
-                        val htmlText =
-                            "${message.content} <img src=\"${io.agora.scene.common.R.drawable.ai_interrupt}\"/>"
-                        binding.tvMessageContent.text = HtmlCompat.fromHtml(
-                            htmlText,
-                            HtmlCompat.FROM_HTML_MODE_COMPACT,
-                            object : Html.ImageGetter {
-                                override fun getDrawable(source: String?): Drawable {
-                                    val drawable = ContextCompat.getDrawable(
-                                        binding.root.context,
-                                        io.agora.scene.common.R.drawable.ai_interrupt
-                                    ) ?: return ColorDrawable(Color.TRANSPARENT)
-
-                                    val size = binding.tvMessageContent.textSize.toInt()
-                                    drawable.setBounds(0, 0, size, size)
-                                    return drawable
-                                }
-                            },
-                            null
-                        )
+                        binding.tvMessageContent.text = message.content
+                        binding.layoutMessageInterrupt.isVisible = true
+//                        val htmlText =
+//                            "${message.content} <img src=\"${io.agora.scene.common.R.drawable.ai_interrupt}\"/>"
+//                        binding.tvMessageContent.text = HtmlCompat.fromHtml(
+//                            htmlText,
+//                            HtmlCompat.FROM_HTML_MODE_COMPACT,
+//                            object : Html.ImageGetter {
+//                                override fun getDrawable(source: String?): Drawable {
+//                                    val drawable = ContextCompat.getDrawable(
+//                                        binding.root.context,
+//                                        io.agora.scene.common.R.drawable.ai_interrupt
+//                                    ) ?: return ColorDrawable(Color.TRANSPARENT)
+//
+//                                    val size = binding.tvMessageContent.textSize.toInt()
+//                                    drawable.setBounds(0, 0, size, size)
+//                                    return drawable
+//                                }
+//                            },
+//                            null
+//                        )
                     }
 
                     else -> {
                         binding.tvMessageContent.text = message.content
+                        binding.layoutMessageInterrupt.isVisible = false
                     }
                 }
             }
@@ -307,7 +306,11 @@ class CovMessageListView @JvmOverloads constructor(
         }
     }
 
-    override fun onUpdateStreamContent(subtitle: SubtitleMessage) {
+    override fun onSubtitleUpdated(subtitle: SubtitleMessage) {
         handleMessage(subtitle)
+    }
+
+    override fun onDebugLog(tag: String, msg: String) {
+        CovLogger.d(tag, msg)
     }
 }

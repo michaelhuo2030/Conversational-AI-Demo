@@ -16,22 +16,14 @@ import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.ui.widget.LastItemDividerDecoration
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getDistanceFromScreenEdges
-import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovSettingDialogBinding
 import io.agora.scene.convoai.databinding.CovSettingOptionItemBinding
 import io.agora.scene.convoai.constant.CovAgentManager
-import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.constant.AgentConnectionState
 
 class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private var onDismissCallback: (() -> Unit)? = null
-
-    interface Callback {
-        fun onPreset(preset: CovAgentPreset)
-    }
-
-    var onCallBack: Callback? = null
 
     companion object {
         private const val TAG = "AgentSettingsSheetDialog"
@@ -62,7 +54,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
         binding?.apply {
             setOnApplyWindowInsets(root)
-            tvAiVad.text = Html.fromHtml(getString(R.string.cov_setting_ai_vad))
             rcOptions.adapter = optionsAdapter
             rcOptions.layoutManager = LinearLayoutManager(context)
             rcOptions.context.getDrawable(io.agora.scene.common.R.drawable.shape_divider_line)?.let {
@@ -94,6 +85,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
         updatePageEnable()
         updateBaseSettings()
+        setAiVadBySelectLanguage()
     }
 
     override fun disableDragging(): Boolean {
@@ -107,6 +99,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
         }
     }
 
+    private val isIdle get() = connectionState == AgentConnectionState.IDLE
+
     // The non-English overseas version must disable AiVad.
     private fun setAiVadBySelectLanguage() {
         binding?.apply {
@@ -115,17 +109,16 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 cbAiVad.isChecked = false
                 cbAiVad.isEnabled = false
             } else {
-                cbAiVad.isEnabled = true
-            }
-        }
-        if (!ServerConfig.isMainlandVersion) {
-            binding?.apply {
-                if (CovAgentManager.language?.language_code == "en-US") {
-                    cbAiVad.isEnabled = true
-                } else {
-                    CovAgentManager.enableAiVad = false
-                    cbAiVad.isChecked = false
-                    cbAiVad.isEnabled = false
+                if (ServerConfig.isMainlandVersion){
+                    cbAiVad.isEnabled = isIdle
+                }else{
+                    if (CovAgentManager.language?.englishEnvironment() == true) {
+                        cbAiVad.isEnabled = isIdle
+                    } else {
+                        CovAgentManager.enableAiVad = false
+                        cbAiVad.isChecked = false
+                        cbAiVad.isEnabled = false
+                    }
                 }
             }
         }
@@ -140,7 +133,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     private fun updatePageEnable() {
         val context = context ?: return
-        if (connectionState == AgentConnectionState.IDLE) {
+        if (isIdle) {
             binding?.apply {
                 tvPresetDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
                 tvLanguageDetail.setTextColor(context.getColor(io.agora.scene.common.R.color.ai_icontext1))
@@ -191,13 +184,22 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
             // Calculate height with constraints
             val params = cvOptions.layoutParams
-            val itemHeight = 44.dp.toInt()
+            val itemHeight = 56.dp.toInt()
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * presets.size).coerceIn(itemHeight, finalMaxHeight)
-
+            
             params.height = finalHeight
             cvOptions.layoutParams = params
+            
+            // Enable scrolling if needed
+//            val contentHeight = itemHeight * presets.size
+//            if (contentHeight > finalHeight) {
+//                rcOptions.isVerticalScrollBarEnabled = true
+//                rcOptions.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+//            } else {
+//                rcOptions.isVerticalScrollBarEnabled = false
+//            }
 
             // Update options and handle selection
             optionsAdapter.updateOptions(
@@ -206,7 +208,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             ) { index ->
                 val preset = presets[index]
                 CovAgentManager.setPreset(preset)
-                onCallBack?.onPreset(preset)
                 updateBaseSettings()
                 setAiVadBySelectLanguage()
                 vOptionsMask.visibility = View.INVISIBLE
@@ -232,9 +233,19 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * languages.size).coerceIn(itemHeight, finalMaxHeight)
-
+            
             params.height = finalHeight
             cvOptions.layoutParams = params
+            
+            // Enable scrolling if needed
+//            val contentHeight = itemHeight * languages.size
+//            if (contentHeight > finalHeight) {
+//                rcOptions.isVerticalScrollBarEnabled = true
+//                rcOptions.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+//                rcOptions.layoutManager = LinearLayoutManager(root.context)
+//            } else {
+//                rcOptions.isVerticalScrollBarEnabled = false
+//            }
 
             // Update options and handle selection
             optionsAdapter.updateOptions(

@@ -3,6 +3,7 @@ package io.agora.scene.common.ui;
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
@@ -55,6 +56,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                 loadWithOverviewMode = true
                 setSupportZoom(false)
                 defaultTextEncodingName = "UTF-8"
+                userAgentString = "Mozilla/5.0 (Linux; Android10) AppleWebKit/537.36 (KHTML, likeGecko) Chrome/110.0.0.0 Mobile Safari/537.36"
             }
             webView.setWebChromeClient(object : WebChromeClient() {
                 override fun onProgressChanged(view: WebView, newProgress: Int) {
@@ -68,6 +70,13 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                     }
                     super.onProgressChanged(view, newProgress)
                 }
+
+                override fun onReceivedTitle(view: WebView, title: String) {
+                    super.onReceivedTitle(view, title)
+                    if (!TextUtils.isEmpty(title) && view.url?.contains(title) == false) {
+                        mBinding?.tvTitle?.text = title
+                    }
+                }
             })
             webView.webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -79,6 +88,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                         CommonLogger.d(TAG, "start login url = $url")
                         runOnUiThread {
                             mLoadingDialog?.show()
+                            mBinding?.emptyView?.isVisible = true
                         }
                         return false
                     }
@@ -99,6 +109,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                     super.onReceivedError(view, request, error)
                     runOnUiThread {
                         mLoadingDialog?.dismiss()
+                        mBinding?.emptyView?.isVisible = false
                     }
                     CommonLogger.e(TAG, "onReceivedError ${error?.description}")
                 }
@@ -108,7 +119,6 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
             webView.loadUrl(ssoUrl)
         }
     }
-
 
     private fun injectJavaScript() {
         // Inject JavaScript code to retrieve JSON data
@@ -153,6 +163,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                 // Handle error messages
                 runOnUiThread {
                     mLoadingDialog?.dismiss()
+                    mBinding?.emptyView?.isVisible = false
                 }
             }
         }
@@ -160,6 +171,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
 
     override fun onDestroy() {
         mLoadingDialog?.dismiss()
+        mBinding?.emptyView?.isVisible = false
         super.onDestroy()
     }
 

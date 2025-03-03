@@ -2,7 +2,7 @@
     <string name="cov_login_for_chat">Call AI Engine</string>
     <string name="cov_detail_agent_title">Convo AI</string>
     <string name="cov_detail_not_joined">Not Joined</string>
-    <string name="cov_detail_join_call">Call AI Agent</string>
+    <string name="cov_detail_join_call">Call AI Engine</string>
     <string name="cov_detail_end_call">End Call</string>
     <string name="cov_detail_agent_joining">Joining</string>
     <string name="cov_detail_agent_ending">Ending</string>
@@ -25,10 +25,10 @@
     <string name="cov_info_agent_id">Agent ID</string>
     <string name="cov_info_agent_connected">Connected</string>
     <string name="cov_info_room_status">Room Status</string>
-    <string name="cov_info_room_id">Room-ID</string>
+    <string name="cov_info_room_id">Room ID</string>
     <string name="cov_info_empty">--</string>
     <string name="cov_info_participant_id">Participant-ID</string>
-    <string name="cov_info_your_id">Your-ID</string>
+    <string name="cov_info_your_id">Your ID</string>
     <string name="cov_info_your_network">Your Network</string>
     <string name="cov_info_your_network_disconnected">Disconnected</string>
     <string name="cov_info_your_network_good">Good</string>
@@ -39,7 +39,7 @@
     <string name="cov_info_more">More Actions</string>
     <string name="cov_info_uploader">Quick Report</string>
 
-    <string name="cov_setting_title">Settings</string>
+    <string name="cov_setting_title">Agent Settings</string>
     <string name="cov_setting_title_connected">(连接中不可修改)</string>
     <string name="cov_setting_agent">AGENT</string>
     <string name="cov_setting_preset">Preset</string>
@@ -51,11 +51,12 @@
     <string name="cov_setting_microphone">Microphone</string>
     <string name="cov_setting_speaker">Speaker</string>
     <string name="cov_setting_bhvs">Enable BHVS</string>
-    <string name="cov_setting_ai_vad">Intelligent</string>
-    <string name="cov_setting_ai_vad_high">Interruption Handling</string>
+    <string name="cov_setting_ai_vad"></string>
+    <string name="cov_setting_ai_vad_high">Intelligent Interruption Handling</string>
     <string name="cov_setting_network_error">Network Error!</string>
     <string name="cov_agent_connecting">Connecting…</string>
     <string name="cov_copy_succeed">Copied</string>
+    <string name="cov_interrupted">Interrupted</string>
 
     <string-array name="cov_setting_microphone_array">
         <item>Inbuilt Mic</item>

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,7 +31,7 @@ interface DebugDialogCallback {
 
     fun onClickCopy() = Unit
 
-    fun onAudioDumpEnable(enable: Boolean) = Unit  // Default implementation
+    fun onAudioDumpEnable(enable: Boolean) = Unit
 
     fun onSeamlessPlayMode(enable: Boolean) = Unit  // Default implementation
 
@@ -112,7 +113,6 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                 }
             }
 
-
             btnCopy.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onDebugDialogCallback?.onClickCopy()
@@ -129,6 +129,11 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                     onClickMaskView()
                 }
             })
+
+            etGraphId.setText(DebugConfigSettings.graphId)
+            etGraphId.doAfterTextChanged {
+                DebugConfigSettings.updateGraphId(it.toString())
+            }
 
             updateEnvConfig()
         }
@@ -148,6 +153,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
             onDebugDialogCallback?.onEnvConfigChange()
             ServerConfig.reset()
         }
+        onDebugDialogCallback?.onAudioDumpEnable(false)
         DebugButton.getInstance(AgentApp.instance()).hide()
         DebugConfigSettings.reset()
         onDebugDialogCallback = null
@@ -168,7 +174,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
 
             // Calculate height with constraints
             val params = cvOptions.layoutParams
-            val itemHeight = 44.dp.toInt()
+            val itemHeight = 56.dp.toInt()
             // Ensure maxHeight is at least one item height
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
             val finalHeight = (itemHeight * serverConfigList.size).coerceIn(itemHeight, finalMaxHeight)

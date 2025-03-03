@@ -1,5 +1,6 @@
 package io.agora.scene.common.ui
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.viewbinding.ViewBinding
+import io.agora.scene.common.util.LocaleManager
 
 abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
@@ -30,6 +32,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     abstract fun getViewBinding(): VB
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleManager.wrapContext(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

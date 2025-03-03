@@ -18,6 +18,8 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import io.agora.scene.common.constant.AgentConstant
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.util.LocaleManager
+import android.content.Context
 
 class AgentApp : Application() {
 
@@ -33,7 +35,6 @@ class AgentApp : Application() {
 
     private fun fetchAppData() {
         DataProviderLoader.getDataProvider()?.let {
-            DebugConfigSettings.init(this, it.isMainland())
             ServerConfig.initBuildConfig(
                 isMainland = it.isMainland(),
                 envName = it.envName(),
@@ -42,14 +43,20 @@ class AgentApp : Application() {
                 rtcAppCert = it.rtcAppCert()
             )
         } ?: run {
-            CommonLogger.d(TAG, "No data provider found")
+            Log.d(TAG, "No data provider found")
         }
+    }
+
+    override fun attachBaseContext(base: Context) {
+        fetchAppData()
+        LocaleManager.init(this)
+        super.attachBaseContext(LocaleManager.wrapContext(base))
     }
 
     override fun onCreate() {
         super.onCreate()
-        fetchAppData()
         app = this
+        DebugConfigSettings.init(this, ServerConfig.isMainlandVersion)
         AgoraLogger.initXLog(this)
         initMMKV()
 

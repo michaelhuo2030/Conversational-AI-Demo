@@ -17,6 +17,13 @@ object DebugConfigSettings {
     private var instance: DevEnvConfig? = null
     private var isMainLand: Boolean = true
 
+    var graphId: String = ""
+        private set
+
+    fun updateGraphId(graphId:String){
+        this.graphId = graphId
+    }
+
     var isDebug: Boolean = false
         private set
 
@@ -24,7 +31,7 @@ object DebugConfigSettings {
         this.isDebug = isDebug
     }
 
-    var isAudioDumpEnabled: Boolean = true
+    var isAudioDumpEnabled: Boolean = false
         private set
 
     fun enableAudioDump(isAudioDumpEnabled: Boolean) {
@@ -57,6 +64,7 @@ object DebugConfigSettings {
     }
 
     fun reset() {
+        graphId = ""
         isDebug = false
         isAudioDumpEnabled = false
     }

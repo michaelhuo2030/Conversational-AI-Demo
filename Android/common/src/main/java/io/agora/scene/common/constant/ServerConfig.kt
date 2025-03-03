@@ -16,19 +16,11 @@ data class EnvConfig(
 
 object ServerConfig {
 
-    const val IS_DEBUG = "is_debug"
-
-//    var isDebug: Boolean = LocalStorageUtil.getBoolean(IS_DEBUG, false)
-//        set(newValue) {
-//            field = newValue
-//            LocalStorageUtil.putBoolean(IS_DEBUG, newValue)
-//        }
-
     @JvmStatic
     val termsOfServicesUrl: String
         get() {
             return if (isMainlandVersion) {
-                "https://www.agora.io/en/terms-of-service/"
+                "https://conversational-ai.shengwang.cn/terms/service/"
             } else {
                 "https://www.agora.io/en/terms-of-service/"
             }
@@ -38,7 +30,7 @@ object ServerConfig {
     val privacyPolicyUrl: String
         get() {
             return if (isMainlandVersion) {
-                "https://www.agora.io/en/terms-of-service/"
+                "https://conversational-ai.shengwang.cn/terms/privacy/"
             } else {
                 "https://www.agora.io/en/privacy-policy/"
             }

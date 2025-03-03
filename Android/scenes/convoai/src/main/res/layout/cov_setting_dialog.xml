@@ -178,13 +178,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
-                android:layout_marginStart="16dp"
                 android:layout_marginTop="24dp"
-                android:alpha="0.3"
                 android:text="@string/cov_setting_advanced_settings"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textColor="@color/ai_icontext4"
+                android:textSize="14sp"
                 android:textStyle="bold"
+                android:layout_marginStart="32dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/ll_agent" />
 
@@ -213,6 +212,7 @@
                         android:text="@string/cov_setting_ai_vad"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
+                        app:layout_constraintEnd_toStartOf="@+id/tv_ai_vad_high"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent" />
@@ -221,7 +221,6 @@
                         android:id="@+id/tv_ai_vad_high"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
                         android:text="@string/cov_setting_ai_vad_high"
                         android:textColor="@color/ai_brand_lightbrand6"
                         android:textSize="14sp"
@@ -233,11 +232,10 @@
                     <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/cb_ai_vad"
                         android:layout_width="wrap_content"
-                        android:layout_height="30dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
                         android:button="@drawable/cb_def_selector"
                         android:checked="true"
-                        app:layout_constraintDimensionRatio="46:28"
                         app:buttonTint="@null"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -271,9 +269,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rc_options"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            </androidx.recyclerview.widget.RecyclerView>
+                android:layout_height="match_parent"/>
         </androidx.cardview.widget.CardView>
     </FrameLayout>
 

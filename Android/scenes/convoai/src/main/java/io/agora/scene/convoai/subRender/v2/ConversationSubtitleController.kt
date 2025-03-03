@@ -2,75 +2,143 @@ package io.agora.scene.convoai.subRender.v2
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import io.agora.rtc2.Constants
+import io.agora.rtc2.IAudioFrameObserver
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
-import io.agora.scene.common.BuildConfig
-import io.agora.scene.convoai.CovLogger
-import io.agora.scene.convoai.rtc.CovAudioFrameObserver
-import io.agora.scene.convoai.subRender.MessageParser
+import io.agora.rtc2.audio.AudioParams
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentLinkedQueue
 
-data class SubRenderConfig (
+/**
+ * Configuration class for subtitle rendering
+ * 
+ * @property rtcEngine The RTC engine instance used for real-time communication
+ * @property renderMode The mode of subtitle rendering (Idle, Text, or Word)
+ * @property callback Callback interface for subtitle updates
+ */
+data class SubtitleRenderConfig (
     val rtcEngine: RtcEngine,
-    val renderMode: SubRenderMode?,
-    val view: ICovMessageListView?
+    val renderMode: SubtitleRenderMode,
+    val callback: IConversationSubtitleCallback?
 )
 
-// Producer: Single word information
-data class TurnWordInfo constructor(
-    val word: String,
-    val startMs: Long,
-    var status: SubtitleStatus = SubtitleStatus.Progress
-)
-
-enum class TurnStatus {
-    IN_PROGRESS,
-    END,
-    INTERRUPTED,
-    UNKNOWN,
+/**
+ * Defines different modes for subtitle rendering
+ * 
+ * Text: Full text subtitles are rendered
+ * Word: Word-by-word subtitles are rendered
+ */
+enum class SubtitleRenderMode {
+    Text,
+    Word
 }
 
-// Producer: Single sentence information
-data class TurnMessageInfo(
+/**
+ * Interface for receiving subtitle update events
+ * Implemented by UI components that need to display subtitles
+ */
+interface IConversationSubtitleCallback {
+    /**
+     * Called when a subtitle is updated and needs to be displayed
+     * 
+     * @param subtitle The updated subtitle message
+     */
+    fun onSubtitleUpdated(subtitle: SubtitleMessage)
+
+    /**
+     * Called when a debug log is received
+     * 
+     * @param tag The tag of the log
+     * @param msg The log message
+     */
+    fun onDebugLog(tag: String, msg: String)
+}
+
+/**
+ * Consumer-facing data class representing a complete subtitle message
+ * Used for rendering in the UI layer
+ *
+ * @property turnId Unique identifier for the conversation turn
+ * @property userId User identifier associated with this subtitle
+ * @property text The actual subtitle text content
+ * @property status Current status of the subtitle
+ */
+data class SubtitleMessage(
     val turnId: Long,
-    val startMs: Long,
+    val userId: Int,
     val text: String,
-    val status: TurnStatus,
-    val words: List<TurnWordInfo>
+    var status: SubtitleStatus
 )
 
+/**
+ * Represents the current status of a subtitle
+ *
+ * Progress: Subtitle is still being generated or spoken
+ * End: Subtitle has completed normally
+ * Interrupted: Subtitle was interrupted before completion
+ */
 enum class SubtitleStatus {
     Progress,
     End,
     Interrupted
 }
 
-// Consumer: Single sentence information for rendering
-data class SubtitleMessage(
-    val turnId: Long,
-    val isMe: Boolean,
-    val text: String,
-    var status: SubtitleStatus
-)
-
-enum class SubRenderMode {
-    Idle,
-    Text,
-    Word
-}
-
 /**
  * Subtitle Rendering Controller
- *
- * @constructor Create empty Cov sub render controller
+ * Manages the processing and rendering of subtitles in conversation
+ * 
+ * @property config Configuration for the subtitle controller
  */
-class CovSubRenderController(
-    private val config: SubRenderConfig
+class ConversationSubtitleController(
+    private val config: SubtitleRenderConfig
 ): IRtcEngineEventHandler() {
+
+    /**
+     * Internal data class representing individual word information
+     * Used by the producer side of the subtitle pipeline
+     * 
+     * @property word The actual word text
+     * @property startMs Timestamp when the word started (in milliseconds)
+     * @property status Current status of the word
+     */
+    private data class TurnWordInfo constructor(
+        val word: String,
+        val startMs: Long,
+        var status: SubtitleStatus = SubtitleStatus.Progress
+    )
+
+    /**
+     * Internal enum representing the status of a conversation turn
+     */
+    private enum class TurnStatus {
+        IN_PROGRESS,  // Turn is currently active
+        END,          // Turn has completed normally
+        INTERRUPTED,  // Turn was interrupted
+        UNKNOWN,      // Status cannot be determined
+    }
+
+    /**
+     * Internal data class representing a complete turn message
+     * Used by the producer side of the subtitle pipeline
+     * 
+     * @property userId User identifier for this turn
+     * @property turnId Unique identifier for this turn
+     * @property startMs Start timestamp of the turn (in milliseconds)
+     * @property text Complete text of the turn
+     * @property status Current status of the turn
+     * @property words List of individual words in the turn
+     */
+    private data class TurnMessageInfo(
+        val userId: Int,
+        val turnId: Long,
+        val startMs: Long,
+        val text: String,
+        val status: TurnStatus,
+        val words: List<TurnWordInfo>
+    )
 
     companion object {
         const val TAG = "CovSubRenderController"
@@ -80,9 +148,84 @@ class CovSubRenderController(
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
     private var mMessageParser = MessageParser()
 
+    @Volatile
+    private var mRenderMode: SubtitleRenderMode? = null
+        set(value) {
+            field = value
+            if (mRenderMode == SubtitleRenderMode.Word) {
+                mLastDequeuedTurn = null
+                mCurSubtitleMessage = null
+                startSubtitleTicker()
+            } else {
+                stopSubtitleTicker()
+            }
+        }
+
+    @Volatile
+    private var mPresentationMs: Long = 0
+    private val agentTurnQueue = ConcurrentLinkedQueue<TurnMessageInfo>()
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var tickerJob: Job? = null
+    private var enable = false
+
     init {
         config.rtcEngine.addHandler(this)
-        config.rtcEngine.registerAudioFrameObserver(object : CovAudioFrameObserver() {
+        config.rtcEngine.registerAudioFrameObserver(object : IAudioFrameObserver {
+            override fun onRecordAudioFrame(
+                channelId: String?,
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
+            override fun onPlaybackAudioFrame(
+                channelId: String?,
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
+            override fun onMixedAudioFrame(
+                channelId: String?,
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
+            override fun onEarMonitoringAudioFrame(
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
             override fun onPlaybackAudioFrameBeforeMixing(
                 channelId: String?,
                 uid: Int,
@@ -98,11 +241,29 @@ class CovSubRenderController(
                 presentationMs: Long
             ): Boolean {
                 // Pass render time to subtitle controller
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "onPlaybackAudioFrameBeforeMixing $presentationMs")
-                }
+                // config.callback?.onDebugLog(TAG, "onPlaybackAudioFrameBeforeMixing $presentationMs")
                 mPresentationMs = presentationMs
                 return false
+            }
+
+            override fun getObservedAudioFramePosition(): Int {
+                return Constants.POSITION_BEFORE_MIXING
+            }
+
+            override fun getRecordAudioParams(): AudioParams? {
+                return null
+            }
+
+            override fun getPlaybackAudioParams(): AudioParams? {
+                return null
+            }
+
+            override fun getMixedAudioParams(): AudioParams? {
+                return null
+            }
+
+            override fun getEarMonitoringAudioParams(): AudioParams? {
+                return null
             }
         })
         config.rtcEngine.setPlaybackAudioFrameBeforeMixingParameters(44100, 1)
@@ -115,7 +276,6 @@ class CovSubRenderController(
                 val rawString = String(bytes, Charsets.UTF_8)
                 val message = mMessageParser.parseStreamMessage(rawString)
                 message?.let { msg ->
-                    CovLogger.d(TAG, "onStreamMessage parser：$msg")
                     val transcription = msg["object"] as? String ?: return
                     var isInterrupt = false
                     val isUserMsg: Boolean
@@ -130,14 +290,14 @@ class CovSubRenderController(
                         }
                         else -> return
                     }
-                    //CovLogger.d(TAG, "onStreamMessage parser：$msg")
+                    config.callback?.onDebugLog(TAG, "onStreamMessage parser：$msg")
                     val turnId = (msg["turn_id"] as? Number)?.toLong() ?: 0L
                     val text = msg["text"] as? String ?: ""
 
                     // deal with interrupt message
                     if (isInterrupt) {
                         val startMs = (msg["start_ms"] as? Number)?.toLong() ?: 0L
-                        onAgentMessageReceived(turnId, startMs, text, null, TurnStatus.INTERRUPTED)
+                        onAgentMessageReceived(uid, turnId, startMs, text, null, TurnStatus.INTERRUPTED)
                         return
                     }
 
@@ -146,14 +306,14 @@ class CovSubRenderController(
                             val isFinal = msg["final"] as? Boolean ?: false
                             val subtitleMessage = SubtitleMessage(
                                 turnId = turnId,
-                                isMe = true,
+                                userId = 0,
                                 text = text,
                                 status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
                             )
                             // Local user messages are directly callbacked out
-                            CovLogger.d(TAG_UI, "pts：$mPresentationMs, $subtitleMessage")
+                            config.callback?.onDebugLog(TAG_UI, "pts：$mPresentationMs, $subtitleMessage")
                             runOnMainThread {
-                                config.view?.onUpdateStreamContent(subtitleMessage)
+                                config.callback?.onSubtitleUpdated(subtitleMessage)
                             }
                         } else {
                             // 0: in-progress, 1: end gracefully, 2: interrupted, otherwise undefined
@@ -166,19 +326,19 @@ class CovSubRenderController(
                             }
                             // Discarding and not processing the message with Unknown status.
                             if (status == TurnStatus.UNKNOWN) {
-                                CovLogger.e(TAG, "unknown turn_status:$turnStatusInt")
+                                config.callback?.onDebugLog(TAG, "unknown turn_status:$turnStatusInt")
                                 return
                             }
                             val startMs = (msg["start_ms"] as? Number)?.toLong() ?: 0L
                             // Parse words array
                             val wordsArray = msg["words"] as? List<Map<String, Any>>
                             val words = parseWords(wordsArray)
-                            onAgentMessageReceived(turnId, startMs, text, words, status)
+                            onAgentMessageReceived(uid, turnId, startMs, text, words, status)
                         }
                     }
                 }
             } catch (e: Exception) {
-                CovLogger.e(TAG, "Process stream message error: ${e.message}")
+                config.callback?.onDebugLog(TAG, "Process stream message error: ${e.message}")
             }
         }
     }
@@ -198,38 +358,17 @@ class CovSubRenderController(
         return wordsList.toList()
     }
 
-    @Volatile
-    private var mRenderMode: SubRenderMode = SubRenderMode.Idle
-        set(value) {
-            field = value
-            if (mRenderMode == SubRenderMode.Word) {
-                mLastDequeuedTurn = null
-                mCurSubtitleMessage = null
-                startSubtitleTicker()
-            } else {
-                stopSubtitleTicker()
-            }
-        }
-
-    @Volatile
-    private var mPresentationMs: Long = 0
-
-    private val agentTurnQueue = ConcurrentLinkedQueue<TurnMessageInfo>()
-
-    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private var tickerJob: Job? = null
-    private var enable = false
-
     fun enable(enable: Boolean) {
         this.enable = enable
     }
 
-    fun setRenderMode(renderMode: SubRenderMode) {
-        this.mRenderMode = renderMode
+    fun reset() {
+        this.mRenderMode = null
+        stopSubtitleTicker()
     }
 
     fun release() {
-        this.mRenderMode = SubRenderMode.Idle
+        this.mRenderMode = null
         stopSubtitleTicker()
         coroutineScope.cancel()
     }
@@ -258,6 +397,7 @@ class CovSubRenderController(
     }
 
     private fun onAgentMessageReceived(
+        uid: Int,
         turnId: Long,
         startMs: Long,
         text: String,
@@ -265,28 +405,33 @@ class CovSubRenderController(
         status: TurnStatus
     ) {
         // Auto detect mode
-        if (mRenderMode == SubRenderMode.Idle) {
-            // TODO turn 0 interrupt ??
-            if (status == TurnStatus.INTERRUPTED) return
-            mRenderMode = if (words != null) {
-                SubRenderMode.Word
+        if (mRenderMode == null) {
+            if (config.renderMode == SubtitleRenderMode.Word) {
+                // TODO turn 0 interrupt ??
+                if (status == TurnStatus.INTERRUPTED) return
+                mRenderMode = if (words != null) {
+                    SubtitleRenderMode.Word
+                } else {
+                    SubtitleRenderMode.Text
+                }
+                config.callback?.onDebugLog(TAG, "Mode auto detected: $mRenderMode")
             } else {
-                SubRenderMode.Text
+                mRenderMode = SubtitleRenderMode.Text
+                config.callback?.onDebugLog(TAG, "Mode auto: $mRenderMode")
             }
-            CovLogger.d(TAG, "Mode auto detected: $mRenderMode")
         }
 
-        if (mRenderMode == SubRenderMode.Text && status != TurnStatus.INTERRUPTED) {
+        if (mRenderMode == SubtitleRenderMode.Text && status != TurnStatus.INTERRUPTED) {
             val subtitleMessage = SubtitleMessage(
                 turnId = turnId,
-                isMe = false,
+                userId = uid,
                 text = text,
                 status = if (status == TurnStatus.END) SubtitleStatus.End else SubtitleStatus.Progress
             )
             // Agent text mode messages are directly callback out
-            CovLogger.d(TAG_UI, "[Text Mode]pts：$mPresentationMs, $subtitleMessage")
+            config.callback?.onDebugLog(TAG_UI, "[Text Mode]pts：$mPresentationMs, $subtitleMessage")
             runOnMainThread {
-                config.view?.onUpdateStreamContent(subtitleMessage)
+                config.callback?.onSubtitleUpdated(subtitleMessage)
             }
             return
         }
@@ -299,14 +444,14 @@ class CovSubRenderController(
             // Check if this turn is older than the latest turn in queue
             val lastTurn = agentTurnQueue.lastOrNull()
             if (lastTurn != null && turnId < lastTurn.turnId) {
-                CovLogger.w(TAG, "Discarding old turn: received=$turnId, latest=${lastTurn.turnId}")
+                config.callback?.onDebugLog(TAG, "Discarding old turn: received=$turnId, latest=${lastTurn.turnId}")
                 return
             }
 
             // The last turn to be dequeued
             mLastDequeuedTurn?.let { lastEnd ->
                 if (turnId <= lastEnd.turnId) {
-                    CovLogger.w(TAG, "Discarding the turn has already been processed: received=$turnId, latest=${lastEnd.turnId}")
+                    config.callback?.onDebugLog(TAG, "Discarding the turn has already been processed: received=$turnId, latest=${lastEnd.turnId}")
                     return
                 }
             }
@@ -334,6 +479,7 @@ class CovSubRenderController(
                     lastBeforeStartMs?.status = SubtitleStatus.Interrupted
 
                     val newInfo = TurnMessageInfo(
+                        userId = uid,
                         turnId = turnId,
                         startMs = existingInfo.startMs,
                         text = existingInfo.text,
@@ -373,6 +519,7 @@ class CovSubRenderController(
 
                     // TODO interrupt / end
                     val newInfo = TurnMessageInfo(
+                        userId = uid,
                         turnId = turnId,
                         startMs = if (useNewData) startMs else existingInfo.startMs,
                         text = if (useNewData) text else existingInfo.text,
@@ -389,6 +536,7 @@ class CovSubRenderController(
             } else {
                 // No existing message, use new message directly
                 val newInfo = TurnMessageInfo(
+                    userId = uid,
                     turnId = turnId,
                     startMs = startMs,
                     text = text,
@@ -406,7 +554,7 @@ class CovSubRenderController(
             // Cleanup old turns
             while (agentTurnQueue.size > 5) {
                 agentTurnQueue.poll()?.let { removed ->
-                    CovLogger.d(TAG, "Removed old turn: ${removed.turnId}")
+                    config.callback?.onDebugLog(TAG, "Removed old turn: ${removed.turnId}")
                 }
             }
         }
@@ -423,7 +571,7 @@ class CovSubRenderController(
     private fun updateSubtitleDisplay() {
         // Audio callback PTS is not assigned.
         if (mPresentationMs <= 0) return
-        if (mRenderMode != SubRenderMode.Word) return
+        if (mRenderMode != SubtitleRenderMode.Word) return
 
         synchronized(agentTurnQueue) {
             // Get all turns that meet display conditions
@@ -437,20 +585,20 @@ class CovSubRenderController(
                         // create interrupted message
                         val interruptedMessage = SubtitleMessage(
                             turnId = turn.turnId,
-                            isMe = false,
+                            userId = turn.userId,
                             text = interruptedText,
                             status = SubtitleStatus.Interrupted
                         )
-                        CovLogger.d(TAG_UI, "[interrupt1]pts：$mPresentationMs, $interruptedMessage")
+                        config.callback?.onDebugLog(TAG_UI, "[interrupt1]pts：$mPresentationMs, $interruptedMessage")
                         runOnMainThread {
-                            config.view?.onUpdateStreamContent(interruptedMessage)
+                            config.callback?.onSubtitleUpdated(interruptedMessage)
                         }
                     
                         // remove the turn if interrupt condition is met
                         mLastDequeuedTurn = turn
                         agentTurnQueue.remove(turn)
                         mCurSubtitleMessage = null
-                        CovLogger.d(TAG, "Removed interrupted turn: ${turn.turnId}")
+                        config.callback?.onDebugLog(TAG, "Removed interrupted turn: ${turn.turnId}")
                         null
                     } else {
                         val words = turn.words.filter { it.startMs <= mPresentationMs }
@@ -474,9 +622,9 @@ class CovSubRenderController(
                     mCurSubtitleMessage?.let { current ->
                         if (current.turnId == turn.turnId) {
                             val interruptedMessage = current.copy(status = SubtitleStatus.Interrupted)
-                            CovLogger.d(TAG_UI, "[interrupt2]pts：$mPresentationMs, $interruptedMessage")
+                            config.callback?.onDebugLog(TAG_UI, "[interrupt2]pts：$mPresentationMs, $interruptedMessage")
                             runOnMainThread {
-                                config.view?.onUpdateStreamContent(interruptedMessage)
+                                config.callback?.onSubtitleUpdated(interruptedMessage)
                             }
                         }
                     }
@@ -490,18 +638,18 @@ class CovSubRenderController(
             // Display the latest turn
             val newSubtitleMessage = SubtitleMessage(
                 turnId = targetTurn.turnId,
-                isMe = false,
+                userId = targetTurn.userId,
                 text = if (targetIsEnd) targetTurn.text
                 else targetWords.joinToString("") { it.word },
                 status = if (targetIsEnd) SubtitleStatus.End else SubtitleStatus.Progress
             )
             if (targetIsEnd) {
-                CovLogger.d(TAG_UI, "[end]pts：$mPresentationMs, $newSubtitleMessage")
+                config.callback?.onDebugLog(TAG_UI, "[end]pts：$mPresentationMs, $newSubtitleMessage")
             } else {
-                CovLogger.d(TAG_UI, "[progress]pts：$mPresentationMs, $newSubtitleMessage")
+                config.callback?.onDebugLog(TAG_UI, "[progress]pts：$mPresentationMs, $newSubtitleMessage")
             }
             runOnMainThread {
-                config.view?.onUpdateStreamContent(newSubtitleMessage)
+                config.callback?.onSubtitleUpdated(newSubtitleMessage)
             }
         
             if (targetIsEnd) {

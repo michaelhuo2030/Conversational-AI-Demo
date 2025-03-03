@@ -3,6 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:background="@color/ai_fill1"
     android:paddingVertical="12dp">
 
     <LinearLayout
@@ -35,4 +37,33 @@
         android:textSize="16sp"
         android:maxLines="999"
         android:textColor="@color/ai_icontext1" />
+
+    <LinearLayout
+        android:id="@+id/layout_message_interrupt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:paddingStart="3dp"
+        android:paddingEnd="6dp"
+        android:paddingVertical="3dp"
+        android:visibility="gone"
+        android:background="@drawable/agent_bg_interrupt"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ai_icon_interrupt"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:text="@string/cov_interrupted"
+            android:textColor="@color/ai_icontext1"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+
 </LinearLayout>

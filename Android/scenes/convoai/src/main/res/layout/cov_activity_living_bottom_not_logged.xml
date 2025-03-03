@@ -11,28 +11,31 @@
         android:id="@+id/viewWithoutLoginTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginBottom="120dp"
-        app:layout_constraintBottom_toTopOf="@+id/btnStartWithoutLogin"/>
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/btnStartWithoutLogin" />
 
     <io.agora.scene.common.ui.widget.TypewriterTextView
         android:id="@+id/tvTyping"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:breakStrategy="simple"
+        android:hyphenationFrequency="normalFast"
+        android:lineSpacingExtra="2dp"
+        android:lineSpacingMultiplier="1.1"
         android:textColor="@color/ai_icontext1"
-        android:textSize="20sp"
-        app:layout_constraintWidth_percent="0.9"
-        app:layout_constraintTop_toBottomOf="@+id/viewWithoutLoginTop"
+        android:textSize="22sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:textStyle="bold"/>
+        app:layout_constraintTop_toBottomOf="@+id/viewWithoutLoginTop"
+        app:layout_constraintWidth_percent="0.9" />
 
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStartWithoutLogin"
         android:layout_width="0dp"
         android:layout_height="58dp"
-        android:layout_marginStart="8dp"
         android:background="@drawable/selector_gradient_button"
         android:insetTop="0dp"
         android:insetBottom="0dp"

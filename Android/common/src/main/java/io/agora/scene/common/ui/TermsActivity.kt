@@ -2,14 +2,16 @@ package io.agora.scene.common.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.text.TextUtils
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
+import android.webkit.WebView
 import android.webkit.WebViewClient
-import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.databinding.CommonTermsActivityBinding
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getStatusBarHeight
-import retrofit2.http.Url
+import android.os.Build
+import android.webkit.WebSettings
 
 class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
 
@@ -38,9 +40,28 @@ class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
             ivBackIcon.setOnClickListener {
                 onHandleOnBackPressed()
             }
-            webView.settings.javaScriptEnabled = true
-            webView.webViewClient = WebViewClient()
 
+            webView.setBackgroundColor(android.graphics.Color.BLACK)
+            
+            webView.settings.apply {
+                javaScriptEnabled = true
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Android 10-11
+                    @Suppress("DEPRECATION")
+                    setForceDark(WebSettings.FORCE_DARK_ON)
+                }
+            }
+
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    val js = "javascript:(function() { " +
+                            "document.body.style.backgroundColor = 'black'; " +
+                            "document.body.style.color = 'white'; " +
+                            "})()"
+                    webView.evaluateJavascript(js, null)
+                }
+            }
 
             intent.getStringExtra(URL_KEY)?.let {
                 webView.loadUrl(it)
@@ -54,6 +75,13 @@ class TermsActivity : BaseActivity<CommonTermsActivityBinding>() {
                         progressBar.visibility = android.view.View.GONE
                     } else {
                         progressBar.visibility = android.view.View.VISIBLE
+                    }
+                }
+
+                override fun onReceivedTitle(view: WebView, title: String) {
+                    super.onReceivedTitle(view, title)
+                    if (!TextUtils.isEmpty(title) && view.url?.contains(title) == false) {
+                        mBinding?.tvTitle?.text = title
                     }
                 }
             }
