@@ -1,22 +1,16 @@
 package io.agora.scene.convoai.subRender.v2
 
-import android.graphics.Color
-import android.graphics.drawable.Drawable
-import android.text.Html
 import android.view.ViewGroup
 import android.content.Context
-import android.graphics.drawable.ColorDrawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
-import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.agora.scene.common.util.dp
+import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.databinding.CovMessageAgentItemBinding
 import io.agora.scene.convoai.databinding.CovMessageListViewBinding
 import io.agora.scene.convoai.databinding.CovMessageMineItemBinding
@@ -314,5 +308,9 @@ class CovMessageListView @JvmOverloads constructor(
 
     override fun onSubtitleUpdated(subtitle: SubtitleMessage) {
         handleMessage(subtitle)
+    }
+
+    override fun onDebugLog(tag: String, msg: String) {
+        CovLogger.d(tag, msg)
     }
 }

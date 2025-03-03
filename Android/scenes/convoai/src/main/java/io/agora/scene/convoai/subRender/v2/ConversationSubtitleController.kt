@@ -2,12 +2,11 @@ package io.agora.scene.convoai.subRender.v2
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import io.agora.rtc2.Constants
+import io.agora.rtc2.IAudioFrameObserver
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
-import io.agora.scene.common.BuildConfig
-import io.agora.scene.convoai.CovLogger
-import io.agora.scene.convoai.rtc.CovAudioFrameObserver
+import io.agora.rtc2.audio.AudioParams
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
 import java.nio.ByteBuffer
@@ -48,6 +47,14 @@ interface IConversationSubtitleCallback {
      * @param subtitle The updated subtitle message
      */
     fun onSubtitleUpdated(subtitle: SubtitleMessage)
+
+    /**
+     * Called when a debug log is received
+     * 
+     * @param tag The tag of the log
+     * @param msg The log message
+     */
+    fun onDebugLog(tag: String, msg: String)
 }
 
 /**
@@ -163,7 +170,62 @@ class ConversationSubtitleController(
 
     init {
         config.rtcEngine.addHandler(this)
-        config.rtcEngine.registerAudioFrameObserver(object : CovAudioFrameObserver() {
+        config.rtcEngine.registerAudioFrameObserver(object : IAudioFrameObserver {
+            override fun onRecordAudioFrame(
+                channelId: String?,
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
+            override fun onPlaybackAudioFrame(
+                channelId: String?,
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
+            override fun onMixedAudioFrame(
+                channelId: String?,
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
+            override fun onEarMonitoringAudioFrame(
+                type: Int,
+                samplesPerChannel: Int,
+                bytesPerSample: Int,
+                channels: Int,
+                samplesPerSec: Int,
+                buffer: ByteBuffer?,
+                renderTimeMs: Long,
+                avsync_type: Int
+            ): Boolean {
+                return false
+            }
+
             override fun onPlaybackAudioFrameBeforeMixing(
                 channelId: String?,
                 uid: Int,
@@ -179,11 +241,29 @@ class ConversationSubtitleController(
                 presentationMs: Long
             ): Boolean {
                 // Pass render time to subtitle controller
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "onPlaybackAudioFrameBeforeMixing $presentationMs")
-                }
+                // config.callback?.onDebugLog(TAG, "onPlaybackAudioFrameBeforeMixing $presentationMs")
                 mPresentationMs = presentationMs
                 return false
+            }
+
+            override fun getObservedAudioFramePosition(): Int {
+                return Constants.POSITION_BEFORE_MIXING
+            }
+
+            override fun getRecordAudioParams(): AudioParams? {
+                return null
+            }
+
+            override fun getPlaybackAudioParams(): AudioParams? {
+                return null
+            }
+
+            override fun getMixedAudioParams(): AudioParams? {
+                return null
+            }
+
+            override fun getEarMonitoringAudioParams(): AudioParams? {
+                return null
             }
         })
         config.rtcEngine.setPlaybackAudioFrameBeforeMixingParameters(44100, 1)
@@ -196,7 +276,6 @@ class ConversationSubtitleController(
                 val rawString = String(bytes, Charsets.UTF_8)
                 val message = mMessageParser.parseStreamMessage(rawString)
                 message?.let { msg ->
-                    CovLogger.d(TAG, "uid: $uid, onStreamMessage parser：$msg")
                     val transcription = msg["object"] as? String ?: return
                     var isInterrupt = false
                     val isUserMsg: Boolean
@@ -211,7 +290,7 @@ class ConversationSubtitleController(
                         }
                         else -> return
                     }
-                    //CovLogger.d(TAG, "onStreamMessage parser：$msg")
+                    config.callback?.onDebugLog(TAG, "onStreamMessage parser：$msg")
                     val turnId = (msg["turn_id"] as? Number)?.toLong() ?: 0L
                     val text = msg["text"] as? String ?: ""
 
@@ -232,7 +311,7 @@ class ConversationSubtitleController(
                                 status = if (isFinal) SubtitleStatus.End else SubtitleStatus.Progress
                             )
                             // Local user messages are directly callbacked out
-                            CovLogger.d(TAG_UI, "pts：$mPresentationMs, $subtitleMessage")
+                            config.callback?.onDebugLog(TAG_UI, "pts：$mPresentationMs, $subtitleMessage")
                             runOnMainThread {
                                 config.callback?.onSubtitleUpdated(subtitleMessage)
                             }
@@ -247,7 +326,7 @@ class ConversationSubtitleController(
                             }
                             // Discarding and not processing the message with Unknown status.
                             if (status == TurnStatus.UNKNOWN) {
-                                CovLogger.e(TAG, "unknown turn_status:$turnStatusInt")
+                                config.callback?.onDebugLog(TAG, "unknown turn_status:$turnStatusInt")
                                 return
                             }
                             val startMs = (msg["start_ms"] as? Number)?.toLong() ?: 0L
@@ -259,7 +338,7 @@ class ConversationSubtitleController(
                     }
                 }
             } catch (e: Exception) {
-                CovLogger.e(TAG, "Process stream message error: ${e.message}")
+                config.callback?.onDebugLog(TAG, "Process stream message error: ${e.message}")
             }
         }
     }
@@ -335,10 +414,10 @@ class ConversationSubtitleController(
                 } else {
                     SubtitleRenderMode.Text
                 }
-                CovLogger.d(TAG, "Mode auto detected: $mRenderMode")
+                config.callback?.onDebugLog(TAG, "Mode auto detected: $mRenderMode")
             } else {
                 mRenderMode = SubtitleRenderMode.Text
-                CovLogger.d(TAG, "Mode auto: $mRenderMode")
+                config.callback?.onDebugLog(TAG, "Mode auto: $mRenderMode")
             }
         }
 
@@ -350,7 +429,7 @@ class ConversationSubtitleController(
                 status = if (status == TurnStatus.END) SubtitleStatus.End else SubtitleStatus.Progress
             )
             // Agent text mode messages are directly callback out
-            CovLogger.d(TAG_UI, "[Text Mode]pts：$mPresentationMs, $subtitleMessage")
+            config.callback?.onDebugLog(TAG_UI, "[Text Mode]pts：$mPresentationMs, $subtitleMessage")
             runOnMainThread {
                 config.callback?.onSubtitleUpdated(subtitleMessage)
             }
@@ -365,14 +444,14 @@ class ConversationSubtitleController(
             // Check if this turn is older than the latest turn in queue
             val lastTurn = agentTurnQueue.lastOrNull()
             if (lastTurn != null && turnId < lastTurn.turnId) {
-                CovLogger.w(TAG, "Discarding old turn: received=$turnId, latest=${lastTurn.turnId}")
+                config.callback?.onDebugLog(TAG, "Discarding old turn: received=$turnId, latest=${lastTurn.turnId}")
                 return
             }
 
             // The last turn to be dequeued
             mLastDequeuedTurn?.let { lastEnd ->
                 if (turnId <= lastEnd.turnId) {
-                    CovLogger.w(TAG, "Discarding the turn has already been processed: received=$turnId, latest=${lastEnd.turnId}")
+                    config.callback?.onDebugLog(TAG, "Discarding the turn has already been processed: received=$turnId, latest=${lastEnd.turnId}")
                     return
                 }
             }
@@ -475,7 +554,7 @@ class ConversationSubtitleController(
             // Cleanup old turns
             while (agentTurnQueue.size > 5) {
                 agentTurnQueue.poll()?.let { removed ->
-                    CovLogger.d(TAG, "Removed old turn: ${removed.turnId}")
+                    config.callback?.onDebugLog(TAG, "Removed old turn: ${removed.turnId}")
                 }
             }
         }
@@ -510,7 +589,7 @@ class ConversationSubtitleController(
                             text = interruptedText,
                             status = SubtitleStatus.Interrupted
                         )
-                        CovLogger.d(TAG_UI, "[interrupt1]pts：$mPresentationMs, $interruptedMessage")
+                        config.callback?.onDebugLog(TAG_UI, "[interrupt1]pts：$mPresentationMs, $interruptedMessage")
                         runOnMainThread {
                             config.callback?.onSubtitleUpdated(interruptedMessage)
                         }
@@ -519,7 +598,7 @@ class ConversationSubtitleController(
                         mLastDequeuedTurn = turn
                         agentTurnQueue.remove(turn)
                         mCurSubtitleMessage = null
-                        CovLogger.d(TAG, "Removed interrupted turn: ${turn.turnId}")
+                        config.callback?.onDebugLog(TAG, "Removed interrupted turn: ${turn.turnId}")
                         null
                     } else {
                         val words = turn.words.filter { it.startMs <= mPresentationMs }
@@ -543,7 +622,7 @@ class ConversationSubtitleController(
                     mCurSubtitleMessage?.let { current ->
                         if (current.turnId == turn.turnId) {
                             val interruptedMessage = current.copy(status = SubtitleStatus.Interrupted)
-                            CovLogger.d(TAG_UI, "[interrupt2]pts：$mPresentationMs, $interruptedMessage")
+                            config.callback?.onDebugLog(TAG_UI, "[interrupt2]pts：$mPresentationMs, $interruptedMessage")
                             runOnMainThread {
                                 config.callback?.onSubtitleUpdated(interruptedMessage)
                             }
@@ -565,9 +644,9 @@ class ConversationSubtitleController(
                 status = if (targetIsEnd) SubtitleStatus.End else SubtitleStatus.Progress
             )
             if (targetIsEnd) {
-                CovLogger.d(TAG_UI, "[end]pts：$mPresentationMs, $newSubtitleMessage")
+                config.callback?.onDebugLog(TAG_UI, "[end]pts：$mPresentationMs, $newSubtitleMessage")
             } else {
-                CovLogger.d(TAG_UI, "[progress]pts：$mPresentationMs, $newSubtitleMessage")
+                config.callback?.onDebugLog(TAG_UI, "[progress]pts：$mPresentationMs, $newSubtitleMessage")
             }
             runOnMainThread {
                 config.callback?.onSubtitleUpdated(newSubtitleMessage)
