@@ -150,6 +150,11 @@ class AgentSettingViewController: UIViewController {
         animateBackgroundViewIn()
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        SVProgressHUD.dismiss()
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         requestPresetsIfNeed()
