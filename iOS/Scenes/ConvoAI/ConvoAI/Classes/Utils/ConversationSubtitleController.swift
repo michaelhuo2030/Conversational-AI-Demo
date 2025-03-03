@@ -136,11 +136,6 @@ struct SubtitleRenderConfig {
     let delegate: ConversationSubtitleDelegate?
 }
 
-protocol ConversationSubtitleControllerProtocol {
-    func setupWithConfig(_ config: SubtitleRenderConfig)
-    func reset()
-}
-
 // MARK: - CovSubRenderController
 
 /// Subtitle Rendering Controller
@@ -445,7 +440,7 @@ extension ConversationSubtitleController: AgoraAudioFrameDelegate {
     }
 }
 // MARK: - CovSubRenderControllerProtocol
-extension ConversationSubtitleController: ConversationSubtitleControllerProtocol {
+extension ConversationSubtitleController {
     
     func setupWithConfig(_ config: SubtitleRenderConfig) {
         renderConfig = config
