@@ -202,6 +202,8 @@ class ChatView: UIView {
     }()
     
     private var shouldAutoScroll = true
+    private var isDraggin = false
+    private var autoScrolling = false
     private lazy var arrowButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage.ag_named("ic_captions_arrow_icon"), for: .normal)
@@ -271,6 +273,7 @@ class ChatView: UIView {
         guard shouldAutoScroll else { return }
         let indexPath = IndexPath(row: viewModel.messages.count - 1, section: 0)
         self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: animated)
+        autoScrolling = true
     }
     
     @objc func clickArrowButton() {
@@ -297,15 +300,39 @@ extension ChatView: UITableViewDelegate, UITableViewDataSource {
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+        isDraggin = true
         shouldAutoScroll = false
-        arrowButton.isHidden = false
     }
     
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        isDraggin = false
         let isAtBottom = (scrollView.contentOffset.y >= (scrollView.contentSize.height - scrollView.frame.size.height))
         if isAtBottom {
             shouldAutoScroll = true
             arrowButton.isHidden = true
+        }
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        if autoScrolling {
+            autoScrolling = false
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if isDraggin {
+            return
+        }
+        let isAtBottom = (scrollView.contentOffset.y >= (scrollView.contentSize.height - scrollView.frame.size.height))
+        if isAtBottom {
+            shouldAutoScroll = true
+            arrowButton.isHidden = true
+        } else {
+            if autoScrolling {
+                return
+            }
+            shouldAutoScroll = false
+            arrowButton.isHidden = false
         }
     }
     
