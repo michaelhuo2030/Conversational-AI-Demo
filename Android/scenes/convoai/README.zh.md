@@ -57,8 +57,8 @@
 
 ```
 #----------- AppId --------------
-CN_AG_APP_ID=<声网 App ID>
-CN_AG_APP_CERTIFICATE=<声网 App Certificate>
+AG_APP_ID=<声网 App ID>
+AG_APP_CERTIFICATE=<声网 App Certificate>
 
 #----------- Basic Auth ---------------
 BASIC_AUTH_KEY=<声网 RESTful API KEY>

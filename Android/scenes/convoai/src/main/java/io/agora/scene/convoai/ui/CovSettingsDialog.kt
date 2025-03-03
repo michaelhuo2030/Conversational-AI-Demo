@@ -3,7 +3,6 @@ package io.agora.scene.convoai.ui
 import android.content.DialogInterface
 import android.graphics.PorterDuff
 import android.os.Bundle
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -109,17 +108,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 cbAiVad.isChecked = false
                 cbAiVad.isEnabled = false
             } else {
-                if (ServerConfig.isMainlandVersion){
-                    cbAiVad.isEnabled = isIdle
-                }else{
-                    if (CovAgentManager.language?.englishEnvironment() == true) {
-                        cbAiVad.isEnabled = isIdle
-                    } else {
-                        CovAgentManager.enableAiVad = false
-                        cbAiVad.isChecked = false
-                        cbAiVad.isEnabled = false
-                    }
-                }
+                cbAiVad.isEnabled = isIdle
             }
         }
     }
@@ -165,7 +154,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clPreset.isEnabled = false
                 clLanguage.isEnabled = false
                 cbAiVad.isEnabled = false
-                tvTitleConnectedTips.isVisible = ServerConfig.isMainlandVersion
+                tvTitleConnectedTips.isVisible = true
             }
         }
     }
