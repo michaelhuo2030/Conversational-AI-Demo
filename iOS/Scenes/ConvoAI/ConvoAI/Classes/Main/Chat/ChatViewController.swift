@@ -391,10 +391,6 @@ public class ChatViewController: UIViewController {
         rtcManager.muteVoice(state: state)
     }
     
-    private func addLog(_ txt: String) {
-        ConvoAILogger.info(txt)
-    }
-    
     private func goToSSOViewController() {
         let ssoWebVC = SSOWebViewController()
         let baseUrl = AppContext.shared.baseServerUrl
@@ -829,6 +825,7 @@ extension ChatViewController: AnimateViewDelegate {
 }
 
 extension ChatViewController: ConversationSubtitleDelegate {
+    
     func onSubtitleUpdated(subtitle: SubtitleMessage) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -840,6 +837,10 @@ extension ChatViewController: ConversationSubtitleDelegate {
                 self.messageView.viewModel.reduceStandardMessage(turnId: subtitle.turnId, message: subtitle.text, timestamp: 0, owner: owner, isInterrupted: subtitle.status == .interrupt)
             }
         }
+    }
+    
+    func addLog(_ txt: String) {
+        ConvoAILogger.info(txt)
     }
 }
 
