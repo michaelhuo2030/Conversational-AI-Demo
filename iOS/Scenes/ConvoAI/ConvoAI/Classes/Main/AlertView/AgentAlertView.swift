@@ -131,7 +131,13 @@ class AgentAlertView: UIView {
     private func show(in view: UIView, title: String, content: String, cancelTitle: String, confirmTitle: String) {
         view.addSubview(self)
         titleLabel.text = title
-        contentLabel.text = content
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 5
+        let attributes: [NSAttributedString.Key: Any] = [
+            .paragraphStyle: paragraphStyle
+        ]
+        let attributedString = NSAttributedString(string: content, attributes: attributes)
+        contentLabel.attributedText = attributedString
         cancelButton.setTitle(cancelTitle, for: .normal)
         confirmButton.setTitle(confirmTitle, for: .normal)
         
