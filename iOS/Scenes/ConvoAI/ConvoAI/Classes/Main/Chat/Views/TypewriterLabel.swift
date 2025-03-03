@@ -13,7 +13,7 @@ class TypewriterLabel: UILabel {
     private var text2 = ResourceManager.L10n.Conversation.appWelcomeDescription
     private let cursor = "●"
     
-    private let speed: Double = 22
+    private let speed: Double = 12
     private let pauseTime1: Double = 0.5
     private let pauseTime2: Double = 1.5
     private let blinkSpeed: Double = 1

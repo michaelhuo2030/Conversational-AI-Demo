@@ -490,9 +490,6 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {
         languageItem.detailLabel.text = language.languageName
-        if language.languageCode != "en-US" {
-            manager.updateAiVadState(false)
-        }
         updateAiVADEnabelState()
     }
     
@@ -509,9 +506,6 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         }
         var aiVadEnable = true
         if (preset.presetType.contains("independent")) {
-            aiVadEnable = false
-        }
-        if language.languageCode != "en-US" {
             aiVadEnable = false
         }
         if (agetnState != .unload) {
