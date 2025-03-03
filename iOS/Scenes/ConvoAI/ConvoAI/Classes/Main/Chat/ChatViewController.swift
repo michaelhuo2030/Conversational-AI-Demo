@@ -357,7 +357,6 @@ public class ChatViewController: UIViewController {
         }
         let ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
         addLog("Join channel: \(ret)")
-        self.setupMuteState(state: false)
         AppContext.preferenceManager()?.updateRoomState(.connected)
         AppContext.preferenceManager()?.updateRoomId(channelName)
     }

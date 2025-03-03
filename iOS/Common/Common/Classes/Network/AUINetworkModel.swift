@@ -76,7 +76,6 @@ open class AUINetworkModel: NSObject {
     
     open func tokenExpired() {
         DispatchQueue.main.async {
-            UserCenter.shared.logout()
             NotificationCenter.default.post(name: .TokenExpired, object: nil)
         }
     }
