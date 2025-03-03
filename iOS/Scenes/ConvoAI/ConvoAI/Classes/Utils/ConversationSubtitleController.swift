@@ -124,7 +124,7 @@ protocol ConversationSubtitleDelegate: AnyObject {
     /// - Parameter subtitle: The updated subtitle message
     func onSubtitleUpdated(subtitle: SubtitleMessage)
     
-    func addLog(_ txt: String)
+    func onDebugLog(_ txt: String)
 }
 /// Configuration class for subtitle rendering
 ///
@@ -171,7 +171,7 @@ class ConversationSubtitleController: NSObject {
     private var renderConfig: SubtitleRenderConfig? = nil
     
     private func addLog(_ txt: String) {
-        delegate?.addLog(txt)
+        delegate?.onDebugLog(txt)
     }
     
     private let queue = DispatchQueue(label: "com.voiceagent.messagequeue", attributes: .concurrent)
