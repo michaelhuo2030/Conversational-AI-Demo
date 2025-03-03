@@ -596,6 +596,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                 }
             }
+
+            override fun onAudioRouteChanged(routing: Int) {
+                runOnUiThread {
+                    CovLogger.d(TAG, "onAudioRouteChanged, routing:$routing")
+                    CovRtcManager.setAudioConfig(routing)
+                }
+            }
         })
         return rtcEngine
     }

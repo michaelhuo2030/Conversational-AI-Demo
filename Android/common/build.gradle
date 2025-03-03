@@ -82,6 +82,6 @@ dependencies {
     if (USE_LOCAL_SDK) {
         api fileTree(dir: "${localSdkPath}", include: ['*.jar'])
     } else {
-        api libs.agora.rtc.voice
+        api libs.agora.rtc
     }
 }

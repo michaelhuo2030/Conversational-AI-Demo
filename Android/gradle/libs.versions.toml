@@ -15,7 +15,7 @@ navigation = "2.6.0"
 splashscreen = "1.0.1"
 
 commons-codec = "1.17.0"
-agora-voice = "4.5.1"
+agora-full = "4.5.1"
 
 okhttp = "5.0.0-alpha.14"
 retrofit = "2.11.0"
@@ -50,7 +50,7 @@ xlog = { module = "com.elvishew:xlog", version.ref = "xlog" }
 
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
 # rtc
-agora-rtc-voice = { module = "io.agora.rtc:voice-sdk", version.ref = "agora-voice" }
+agora-rtc = { module = "io.agora.rtc:full-sdk", version.ref = "agora-full" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
