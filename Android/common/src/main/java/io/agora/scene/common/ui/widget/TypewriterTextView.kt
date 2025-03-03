@@ -9,7 +9,9 @@ import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatTextView
+import io.agora.scene.common.BuildConfig
 import io.agora.scene.common.R
+import io.agora.scene.common.constant.ServerConfig
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
 import kotlin.math.sin
@@ -24,21 +26,22 @@ class TypewriterTextView @JvmOverloads constructor(
     private var text2 = context.getString(R.string.common_login_typing_text2)
     private val cursor = "●"
     
-    private val speed: Float = 12f
+    private val charsPerSecond: Float get() = if (ServerConfig.isMainlandVersion) 12f else 22f
 
     private val pauseTime1 = TimeUnit.MILLISECONDS.toMillis(500)
-    private val pauseTime2 = TimeUnit.SECONDS.toMillis(1) + TimeUnit.MILLISECONDS.toMillis(500)
+    private val pauseTime2 = TimeUnit.SECONDS.toMillis(2) + TimeUnit.MILLISECONDS.toMillis(500)
 
+    private val typeTime1: Long get() = (text1.length / charsPerSecond * 1000).toLong().coerceAtLeast(1000)
+    private val typeTime2: Long get() = (text2.length / charsPerSecond * 1000).toLong().coerceAtLeast(1000)
+    private val deleteTime1: Long get() = TimeUnit.SECONDS.toMillis(1)+ TimeUnit.MILLISECONDS.toMillis(500)
+    private val deleteTime2: Long get() = TimeUnit.SECONDS.toMillis(1)+ TimeUnit.MILLISECONDS.toMillis(500)
+    
     private var startTime: Long = 0
     private var isAnimating = false
     private val handler = Handler(Looper.getMainLooper())
     
     private val gradientColors = mutableListOf<Int>()
     
-    private val typeTime1: Long get() = (text1.length / speed * 1000).toLong()
-    private val typeTime2: Long get() = (text2.length / speed * 1000).toLong()
-    private val deleteTime1: Long get() = typeTime1
-    private val deleteTime2: Long get() = typeTime2
     private val totalTime: Long get() = typeTime1 + pauseTime2 + deleteTime1 + pauseTime1 +
             typeTime2 + pauseTime2 + deleteTime2 + pauseTime1
     
@@ -105,30 +108,35 @@ class TypewriterTextView @JvmOverloads constructor(
         
         when {
             cycleTime < timePoint1 -> {
-                val charCount = ((cycleTime / 1000f) * speed).toInt()
+                val progress = cycleTime.toFloat() / timePoint1.toFloat()
+                val charCount = (text1.length * progress).toInt()
                 visibleText = text1.take(charCount)
             }
             cycleTime < timePoint2 -> {
                 visibleText = text1
             }
             cycleTime < timePoint3 -> {
-                val charCount = text1.length - ((cycleTime - timePoint1 - pauseTime2) / 1000f * speed).toInt()
+                val elapsed = cycleTime - timePoint2
+                val progress = elapsed.toFloat() / deleteTime1.toFloat()
+                val charCount = text1.length - (text1.length * progress).toInt()
                 visibleText = text1.take(max(0, charCount))
             }
             cycleTime < timePoint4 -> {
                 visibleText = ""
             }
             cycleTime < timePoint5 -> {
-                val elapsed = cycleTime - (timePoint1 + pauseTime2 + deleteTime1 + pauseTime1)
-                val charCount = ((elapsed / 1000f) * speed).toInt()
+                val elapsed = cycleTime - timePoint4
+                val progress = elapsed.toFloat() / typeTime2.toFloat()
+                val charCount = (text2.length * progress).toInt()
                 visibleText = text2.take(charCount)
             }
             cycleTime < timePoint6 -> {
                 visibleText = text2
             }
             cycleTime < timePoint7 -> {
-                val elapsed = cycleTime - (timePoint1 + pauseTime2 + deleteTime1 + pauseTime1 + typeTime2 + pauseTime2)
-                val charCount = text2.length - ((elapsed / 1000f) * speed).toInt()
+                val elapsed = cycleTime - timePoint6
+                val progress = elapsed.toFloat() / deleteTime2.toFloat()
+                val charCount = text2.length - (text2.length * progress).toInt()
                 visibleText = text2.take(max(0, charCount))
             }
             else -> {
@@ -136,15 +144,12 @@ class TypewriterTextView @JvmOverloads constructor(
             }
         }
         
-        // 光标闪烁效果
-        val shouldShowCursor = isInCursorPhase(cycleTime)
+        val shouldShowCursor = isInCursorPhase(cycleTime) &&
+            !(cycleTime >= timePoint1 && cycleTime < timePoint2) &&
+            !(cycleTime >= timePoint5 && cycleTime < timePoint6)
         
         if (shouldShowCursor) {
-            // 每500毫秒切换一次光标状态
-            val isVisible = (currentTime / 500) % 2 == 0L
-            if (isVisible) {
-                visibleText += cursor
-            }
+            visibleText += cursor
         }
         
         setGradientText(visibleText)
@@ -222,9 +227,6 @@ class TypewriterTextView @JvmOverloads constructor(
         timePoint7 = timePoint6 + deleteTime2
     }
 
-    /**
-     * 设置渐变颜色
-     */
     fun setGradientColors(colors: List<Int>) {
         this.gradientColors.clear()
         this.gradientColors.addAll(colors)
