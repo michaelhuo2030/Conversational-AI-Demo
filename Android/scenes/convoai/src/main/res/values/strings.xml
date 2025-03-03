@@ -1,74 +1,73 @@
 <resources>
-    <string name="cov_login_for_chat">Call AI Engine</string>
-    <string name="cov_detail_agent_title">Convo AI</string>
-    <string name="cov_detail_not_joined">Not Joined</string>
-    <string name="cov_detail_join_call">Call AI Engine</string>
-    <string name="cov_detail_end_call">End Call</string>
-    <string name="cov_detail_agent_joining">Joining</string>
-    <string name="cov_detail_agent_ending">Ending</string>
-    <string name="cov_detail_join_call_failed">Failed to join. Please try again.</string>
-    <string name="cov_detail_join_call_succeed">Agent joined!</string>
-    <string name="cov_detail_join_call_tips">At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice.</string>
-    <string name="cov_detail_agent_leave">Agent Left!</string>
-    <string name="cov_detail_message_list_you">You</string>
-    <string name="cov_detail_connecting">Connecting…</string>
-    <string name="cov_detail_agent_join_timeout">Timeout. Please try again.</string>
-    <string name="cov_detail_agent_state_error">Agent left abnormally. Please try again.</string>
-    <string name="cov_detail_net_state_error">Network error. Please check your network settings.</string>
-    <string name="cov_detail_state_error">Agent left abnormally. Please try again.</string>
-    <string name="cov_detail_room_error">Room no longer exists. Please join a new call.</string>
-    <string name="cov_detail_start_agent_limit_error">The current preset resources are out of limit. Please try again later.</string>
+    <string name="cov_login_for_chat">连接 AI 引擎</string>
+    <string name="cov_detail_agent_title">对话式 AI 引擎体验</string>
+    <string name="cov_detail_not_joined">未加入</string>
+    <string name="cov_detail_join_call">连接 AI 引擎</string>
+    <string name="cov_detail_end_call">结束通话</string>
+    <string name="cov_detail_agent_joining">加入中</string>
+    <string name="cov_detail_agent_ending">停止中</string>
+    <string name="cov_detail_join_call_failed">智能体加入失败，请稍后重试。</string>
+    <string name="cov_detail_join_call_succeed">智能体已加入！</string>
+    <string name="cov_detail_join_call_tips">请在对话初期大声、清晰地说话，提升智能体对您的声音锁定效果。</string>
+    <string name="cov_detail_agent_leave">智能体已离开！</string>
+    <string name="cov_detail_message_list_you">你</string>
+    <string name="cov_detail_connecting">连接中…</string>
+    <string name="cov_detail_agent_join_timeout">智能体加入超时，请稍后重试。</string>
+    <string name="cov_detail_agent_state_error">智能体状态异常，请退出重试。</string>
+    <string name="cov_detail_net_state_error">网络异常，请检查网络设置。</string>
+    <string name="cov_detail_state_error">智能体状态异常，请重试。</string>
+    <string name="cov_detail_room_error">房间已经不存在了，请发起一个新的会话。</string>
+    <string name="cov_detail_start_agent_limit_error">当前预设资源超限，请稍后重试</string>
 
-    <string name="cov_info_dialog_title">INFO</string>
-    <string name="cov_channel_info_title">CHANNEL INFO</string>
-    <string name="cov_info_agent_status">Agent Status</string>
-    <string name="cov_info_agent_id">Agent ID</string>
-    <string name="cov_info_agent_connected">Connected</string>
-    <string name="cov_info_room_status">Room Status</string>
-    <string name="cov_info_room_id">Room ID</string>
+    <string name="cov_info_dialog_title">信息</string>
+    <string name="cov_channel_info_title">频道信息</string>
+    <string name="cov_info_agent_status">智能体状态</string>
+    <string name="cov_info_agent_id">智能体 ID</string>
+    <string name="cov_info_agent_connected">已连接</string>
+    <string name="cov_info_room_status">房间状态</string>
+    <string name="cov_info_room_id">房间 ID</string>
     <string name="cov_info_empty">--</string>
-    <string name="cov_info_participant_id">Participant-ID</string>
-    <string name="cov_info_your_id">Your ID</string>
-    <string name="cov_info_your_network">Your Network</string>
-    <string name="cov_info_your_network_disconnected">Disconnected</string>
-    <string name="cov_info_your_network_good">Good</string>
-    <string name="cov_info_your_network_medium">Fair</string>
-    <string name="cov_info_your_network_poor">Poor</string>
-    <string name="cov_netwotk_info_title">NETWORK INFO</string>
-    <string name="cov_info_logout">Log Out</string>
-    <string name="cov_info_more">More Actions</string>
-    <string name="cov_info_uploader">Quick Report</string>
+    <string name="cov_info_participant_id">参与者 ID</string>
+    <string name="cov_info_your_id">您的 ID</string>
+    <string name="cov_info_your_network">您的网络</string>
+    <string name="cov_info_your_network_disconnected">未连接</string>
+    <string name="cov_info_your_network_good">良好</string>
+    <string name="cov_info_your_network_medium">一般</string>
+    <string name="cov_info_your_network_poor">较差</string>
+    <string name="cov_netwotk_info_title">网络信息</string>
+    <string name="cov_info_logout">退出登录</string>
+    <string name="cov_info_more">更多操作</string>
+    <string name="cov_info_uploader">一键上报</string>
 
-    <string name="cov_setting_title">Agent Settings</string>
+    <string name="cov_setting_title">人物设定</string>
     <string name="cov_setting_title_connected">(连接中不可修改)</string>
-    <string name="cov_setting_agent">AGENT</string>
-    <string name="cov_setting_preset">Preset</string>
-    <string name="cov_setting_voice">Voice</string>
-    <string name="cov_setting_model">Model</string>
-    <string name="cov_setting_language">Language</string>
-    <string name="cov_setting_device">DEVICE</string>
-    <string name="cov_setting_advanced_settings">Advanced Settings</string>
-    <string name="cov_setting_microphone">Microphone</string>
-    <string name="cov_setting_speaker">Speaker</string>
-    <string name="cov_setting_bhvs">Enable BHVS</string>
-    <string name="cov_setting_ai_vad"></string>
-    <string name="cov_setting_ai_vad_high">Intelligent Interruption Handling</string>
-    <string name="cov_setting_network_error">Network Error!</string>
-    <string name="cov_agent_connecting">Connecting…</string>
-    <string name="cov_copy_succeed">Copied</string>
-    <string name="cov_interrupted">Interrupted</string>
+    <string name="cov_setting_agent">智能体</string>
+    <string name="cov_setting_preset">预设</string>
+    <string name="cov_setting_voice">语音</string>
+    <string name="cov_setting_model">模型</string>
+    <string name="cov_setting_language">语言</string>
+    <string name="cov_setting_device">设备</string>
+    <string name="cov_setting_advanced_settings">高级设置</string>
+    <string name="cov_setting_microphone">麦克风</string>
+    <string name="cov_setting_speaker">扬声器</string>
+    <string name="cov_setting_bhvs">启用 对话人声锁定</string>
+    <string name="cov_setting_ai_vad">启用&#160;&#160;</string>
+    <string name="cov_setting_ai_vad_high">优雅打断</string>
+    <string name="cov_setting_network_error">请求失败：</string>
+    <string name="cov_agent_connecting">连接中...</string>
+    <string name="cov_copy_succeed">已复制</string>
+    <string name="cov_interrupted">已打断</string>
 
     <string-array name="cov_setting_microphone_array">
-        <item>Inbuilt Mic</item>
+        <item>内置麦克风</item>
     </string-array>
 
     <string-array name="cov_setting_speaker_array">
-        <item>Inbuilt Speaker</item>
+        <item>内置扬声器</item>
     </string-array>
 
-    <string name="cov_permission_required">Permission Required</string>
-    <string name="cov_mic_permission_required_content">Microphone permission is required for voice chat. Please grant the permission to continue.</string>
-    <string name="cov_retry">Retry</string>
-    <string name="cov_exit">Exit</string>
-
+    <string name="cov_permission_required">需要权限</string>
+    <string name="cov_mic_permission_required_content">语音聊天需要麦克风权限。请授予权限以继续。</string>
+    <string name="cov_retry">重试</string>
+    <string name="cov_exit">退出</string>
 </resources>

@@ -22,7 +22,7 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             handleSplashScreenExit()
         } else {
-            goScene(AgentScenes.ConvoAi)
+            goScene()
         }
         super.onCreate(savedInstanceState)
     }
@@ -34,17 +34,9 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
     override fun initView() {
     }
 
-    private fun goScene(scene: AgentScenes) {
-        try {
-            val intent = when (scene) {
-                AgentScenes.ConvoAi -> Intent(this, CovLivingActivity::class.java)
-                else -> Intent()
-            }
-            startActivity(intent)
-            finish()
-        } catch (e: Exception) {
-            ToastUtil.show(getString(R.string.scenes_coming_soon))
-        }
+    private fun goScene() {
+        startActivity(Intent(this, CovLivingActivity::class.java))
+        finish()
     }
 
     private val SPLASH_DURATION = 300L
@@ -53,7 +45,7 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
     private fun handleSplashScreenExit() {
         val splashScreen = installSplashScreen()
         var keepSplashOnScreen = true
-        
+
         splashScreen.setOnExitAnimationListener { provider ->
             provider.iconView.animate()
                 .alpha(0f)
@@ -62,15 +54,15 @@ class WelcomeActivity : BaseActivity<WelcomeActivityBinding>() {
                 .scaleY(1f)
                 .withEndAction {
                     provider.remove()
-                    goScene(AgentScenes.ConvoAi)
+                    goScene()
                 }.start()
         }
-        
+
         val handler = android.os.Handler(mainLooper)
         handler.postDelayed({
             keepSplashOnScreen = false
         }, SPLASH_DURATION)
-        
+
         splashScreen.setKeepOnScreenCondition { keepSplashOnScreen }
     }
 }
