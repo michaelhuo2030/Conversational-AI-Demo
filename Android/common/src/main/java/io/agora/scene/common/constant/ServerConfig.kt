@@ -19,26 +19,15 @@ object ServerConfig {
     @JvmStatic
     val termsOfServicesUrl: String
         get() {
-            return if (isMainlandVersion) {
-                "https://conversational-ai.shengwang.cn/terms/service/"
-            } else {
-                "https://www.agora.io/en/terms-of-service/"
-            }
+            return "https://conversational-ai.shengwang.cn/terms/service/"
         }
 
     @JvmStatic
     val privacyPolicyUrl: String
         get() {
-            return if (isMainlandVersion) {
-                "https://conversational-ai.shengwang.cn/terms/privacy/"
-            } else {
-                "https://www.agora.io/en/privacy-policy/"
-            }
+            return "https://conversational-ai.shengwang.cn/terms/privacy/"
         }
 
-    @JvmStatic
-    var isMainlandVersion: Boolean = false
-        private set
 
     @JvmStatic
     var appBuildNo: String = ""
@@ -65,11 +54,8 @@ object ServerConfig {
     val isBuildEnv: Boolean get() = buildEnvConfig.toolboxServerHost == toolBoxUrl
 
     fun initBuildConfig(
-        isMainland: Boolean,
-        appBuildNo: String,
-        envName: String, toolboxHost: String, rtcAppId: String, rtcAppCert: String
+        appBuildNo: String, envName: String, toolboxHost: String, rtcAppId: String, rtcAppCert: String
     ) {
-        this.isMainlandVersion = isMainland
         this.appBuildNo = appBuildNo
         buildEnvConfig.apply {
             this.envName = envName

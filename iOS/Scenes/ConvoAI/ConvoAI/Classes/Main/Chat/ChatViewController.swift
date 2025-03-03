@@ -355,7 +355,12 @@ public class ChatViewController: UIViewController {
             addLog("cancel to join channel")
             return
         }
-        let ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
+        let ret: Int32
+        if AppContext.preferenceManager()?.preference.preset?.presetType.hasPrefix("independent") == true {
+            ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid, scenario: .chorus)
+        } else {
+            ret = rtcManager.joinChannel(token: token, channelName: channelName, uid: uid)
+        }
         addLog("Join channel: \(ret)")
         AppContext.preferenceManager()?.updateRoomState(.connected)
         AppContext.preferenceManager()?.updateRoomId(channelName)
@@ -409,7 +414,7 @@ public class ChatViewController: UIViewController {
                 self.addLog("local token: \(localToken)")
                 self.bottomBar.startLoadingAnimation()
                 LoginApiService.getUserInfo { [weak self] error in
-                    self?.bottomBar.stopLoadingAnimation()                    
+                    self?.bottomBar.stopLoadingAnimation()
                     if let err = error {
                         AppContext.loginManager()?.logout()
                         SVProgressHUD.showInfo(withStatus: err.localizedDescription)
@@ -688,7 +693,7 @@ extension ChatViewController: AgoraRtcEngineDelegate {
     }
     
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didAudioRouteChanged routing: AgoraAudioOutputRouting) {
-        agentManager.setAudioConfig(config: routing)
+        rtcManager.setAudioConfig(config: routing)
     }
 }
 

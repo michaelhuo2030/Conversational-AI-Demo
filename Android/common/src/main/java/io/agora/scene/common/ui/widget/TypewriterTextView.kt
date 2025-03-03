@@ -26,7 +26,7 @@ class TypewriterTextView @JvmOverloads constructor(
     private var text2 = context.getString(R.string.common_login_typing_text2)
     private val cursor = "●"
 
-    private val charsPerSecond: Float get() = if (ServerConfig.isMainlandVersion) 12f else 22f
+    private val charsPerSecond: Float get() = 12f
 
     private val pauseTime1 = TimeUnit.MILLISECONDS.toMillis(500)
     private val pauseTime2 = TimeUnit.SECONDS.toMillis(3)
