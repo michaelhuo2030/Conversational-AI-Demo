@@ -15,8 +15,8 @@ import Foundation
 @objc public class AppContext: NSObject {
     @objc public static let shared: AppContext = .init()
     
-    public let globalTermsOfServiceUrl: String = "https://www.agora.io/en/terms-of-service/"
-    public let globalPrivacyUrl: String = "https://www.agora.io/en/privacy-policy/"
+    public let mainlandTermsOfServiceUrl: String = "https://conversational-ai.shengwang.cn/terms/service"
+    public let mainlandPrivacyUrl: String = "https://conversational-ai.shengwang.cn/terms/privacy"
 
     private var _appId: String = ""
     private var _certificate: String = ""
@@ -62,7 +62,7 @@ import Foundation
            let environmentsPath = bundle.path(forResource: "environments", ofType: "json"),
            let data = try? Data(contentsOf: URL(fileURLWithPath: environmentsPath)),
            let environments = try? JSONDecoder().decode([String: [[String: String]]].self, from: data) {
-            _environments = environments["global"] ?? []
+            _environments = environments["cn"] ?? []
             if (appId.isEmpty) {
                 _appId = _environments.first?["appId"] ?? ""
                 _certificate = _environments.first?["certificate"] ?? ""
