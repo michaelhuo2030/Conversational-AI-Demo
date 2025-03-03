@@ -1,39 +1,37 @@
 # 🌟 Conversational AI Demo 🌟
 
-*English | [中文](README.zh.md)*
+## 🔮 概述
 
-## 🔮 Overview
+声网对话式 AI 引擎重新定义了人机交互界面，突破了传统文字交互，实现了高拟真、自然流畅的实时语音对话，让 AI 真正"开口说话"。适用于创新场景如：
 
-The Conversational AI Engine redefines the human-machine interaction interface, breaking through traditional text-based interactions to achieve highly realistic and naturally flowing real-time voice conversations, enabling AI to truly "speak." It is suitable for innovative scenarios such as:
-
-- 🤖 Intelligent assistants
-- 💞 Emotional companionship
-- 🗣️ Oral language practice
-- 🎧 Intelligent customer service
-- 📱 Smart hardware
-- 🎮 Immersive game NPCs
+- 🤖 智能助手
+- 💞 情感陪伴
+- 🗣️ 口语陪练
+- 🎧 智能客服
+- 📱 智能硬件
+- 🎮 沉浸式游戏 NPC
 
 ---
 
-## 🚀 Quick Start
+## 🚀 快速开始
 
-|  Platform  |                 Example                 |
+|    平台    |                  示例                  |
 | :--------: | :-------------------------------------: |
 | 📱 Android | [ConvoAI(Android)](Android/scenes/convoai) |
-|   📱 iOS   |   [ConvoAI(iOS)](iOS/Scenes/ConvoAI)   |
+|   📱 iOS   |   [ConvoAI(iOS)](iOS/Scenes/VoiceAgent)   |
 |   🌐 Web   |   [ConvoAI(Web)](Web/Scenes/VoiceAgent)   |
 
 ---
 
-## ❓ How to Contact Agora for Assistance
+## ❓ 遇到困难，该如何联系声网获取协助
 
-If you encounter integration difficulties:
+如果您在运行过程中遇到困难：
 
-- 💬 **Option 1**: Get help from intelligent customer service or contact sales personnel at [Agora Support](https://agora-ticket.agora.io/)
-- ✉️ **Option 2**: Send an email to [support@agora.io](mailto:support@agora.io) for inquiries
+- 💬 **方案1**：可以从智能客服获取帮助或联系技术支持人员 [声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)
+- ✉️ **方案2**：发送邮件给 [support@agora.io](mailto:support@agora.io) 咨询
 
 ---
 
-## 📜 License
+## 📜 许可证
 
-Conversational AI Demo is licensed under the MIT License. For details, see [LICENSE](/LICENSE).
+Conversational AI Demo 使用 MIT 许可证，详情见 [LICENSE](/LICENSE)
