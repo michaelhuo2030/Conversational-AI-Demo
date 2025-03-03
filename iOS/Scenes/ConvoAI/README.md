@@ -76,17 +76,17 @@
 
 ## 🗂️ 二、项目结构导览
 
-| 路径                                                                                                    | 描述                                      |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| [AgentManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentManager.swift)               | 对话式 AI 引擎 RESTful 接口实现和数据模型 |
-| [RTCManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/RTCManager.swift)                   | RTC 音视频通信相关实现                    |
-| [AgentPreferenceManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentPreferenceManager.swift) | Agent状态管理                    |
-| [Main/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main)                                                  | UI 界面组件和交互页面                    |
-| [Main/Chat](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Chat)                                         | 聊天页面的视图及控制器                    |
-| [AgentInformationViewController.swift](Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentInformationViewController.swift) | 智能体运行状态信息展示对话框                    |
-| [AgentSettingViewController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentSettingViewController.swift) | 智能体参数配置设置对话框                   |
-| [Utils/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils)                                                | 实用工具类和辅助函数                      |
-| [ConversationSubtitleController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils/ConversationSubtitleController.swift) | 实时对话字幕解析工具                      |
+| 路径                                                                                                           | 描述                                      |
+| ------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [AgentManager.swift](ConvoAI/Classes/Manager/AgentManager.swift)                                              | 对话式 AI 引擎 RESTful 接口实现和数据模型      |
+| [RTCManager.swift](ConvoAI/Classes/Manager/RTCManager.swift)                                                  | RTC 音视频通信相关实现                        |
+| [AgentPreferenceManager.swift](ConvoAI/Classes/Manager/AgentPreferenceManager.swift)                          | Agent状态管理                               |
+| [Main/](ConvoAI/Classes/Main)                                                                                 | UI 界面组件和交互页面                         |
+| [Main/Chat](ConvoAI/Classes/Main/Chat)                                                                        | 聊天页面的视图及控制器                         |
+| [AgentInformationViewController.swift](ConvoAI/Classes/Main/Setting/VC/AgentInformationViewController.swift)  | 智能体运行状态信息展示对话框                    |
+| [AgentSettingViewController.swift](ConvoAI/Classes/Main/Setting/VC/AgentSettingViewController.swift)          | 智能体参数配置设置对话框                       |
+| [Utils/](ConvoAI/Classes/Utils)                                                                               | 实用工具类和辅助函数                          |
+| [ConversationSubtitleController.swift](ConvoAI/Classes/Utils/ConversationSubtitleController.swift)            | 实时对话字幕解析工具                          |
 
 
 ## 📚 三、相关资源
