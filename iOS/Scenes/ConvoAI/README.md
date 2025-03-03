@@ -1,71 +1,108 @@
-# 🌟 Conversational AI Demo
+# 🌟 声网对话式 AI 引擎体验应用
 
-*__Other Languages:__  [__简体中文__](README.zh.md)*
+声网对话式 AI 引擎重新定义了人机交互界面，突破了传统文字交互，实现了高拟真、自然流畅的实时语音对话，让 AI 真正"开口说话"。适用于创新场景如：
 
-The Conversational AI Engine redefines the human-machine interaction interface, breaking through traditional text-based interactions to achieve highly realistic and naturally flowing real-time voice conversations, enabling AI to truly "speak." It is suitable for innovative scenarios such as intelligent assistants, emotional companionship, oral language practice, intelligent customer service, smart hardware, and immersive game NPCs.
+- 🤖 智能助手
+- 💞 情感陪伴
+- 🗣️ 口语陪练
+- 🎧 智能客服
+- 📱 智能硬件
+- 🎮 沉浸式游戏 NPC
 
-## 🚀 1. Quick Start
+## 🚀 一、快速开始
 
-This section mainly describes how to quickly run the Conversational AI Demo.
+这个部分主要介绍如何快速跑通声网对话式 AI 引擎体验应用项目。
 
-### 📱 1.1 Environment Preparation
+### 📱 1.1 环境准备
 
-- Xcode 15.0 or above
-- iOS devices running iOS 15.0 or above
+- Xcode 15.0 及以上版本
+- iOS 15.0 及以上的手机设备
 
-### ⚙️ 1.2 Running the Sample
+### ⚙️ 1.2 运行项目
 
-1. Follow [Get started with Agora](https://docs-preview.agora.io/en/conversational-ai/get-started/manage-agora-account) to get the **App ID** and **App Certificate** and enable the **Conversational AI** service.
-2. Follow [Generate Customer ID and Customer Secret](https://docs.agora.io/en/conversational-ai/rest-api/restful-authentication#generate-customer-id-and-customer-secret) to get the **Basic Auth Key** and **Basic Auth Secret**.
-3. Get LLM configuration information from LLM vendor.
-4. Get TTS configuration information from TTS vendor.
-5. Open the `iOS` project and fill in the configuration information obtained above in the [**KeyCenter.swift**](../../Agent/KeyCenter.swift) file:
+#### 1.2.1 获取 APP ID 和 APP 证书
 
-```Swift
+- 进入[声网控制台](https://console.shengwang.cn/overview)
+- 点击创建项目
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_1.jpg)
+- 选择项目基础配置，鉴权机制需要选择**安全模式**
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_2.jpg)
+- 获取项目 APP ID 与 APP 证书
+
+#### 1.2.2 开启对话式 AI 引擎功能权限
+
+- 在[声网控制台](https://console.shengwang.cn/product/ConversationAI?tab=config)开启权限
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/ConvoAI.png)
+
+#### 1.2.3 获取 RESTful API 密钥
+
+- 在[声网控制台](https://console.shengwang.cn/settings/restfulApi)点击添加密钥
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/restful.png)
+- 下载密钥文件，复制 BASIC_AUTH_KEY 和 BASIC_AUTH_SECRET
+
+#### 1.2.4 获取 LLM 配置信息
+
+- 自行在 LLM 厂商官网获取相关配置信息
+
+#### 1.2.5 获取 TTS 配置信息
+
+- 自行在 TTS 厂商官网获取相关配置信息
+
+#### 1.2.6 配置项目
+
+- 打开 `iOS` 项目，在 [**KeyCenter.swift**](../../Agent/KeyCenter.swift) 文件中填写上述获取的配置信息：
+
+``` Swift
     #----------- AppId --------------
-    static let APP_ID: String = <Agora App ID>
-    static let CERTIFICATE: String? = <Agora App Certificate>
-  
+    static let APP_ID: String = <声网 App ID>
+    static let CERTIFICATE: String? = <声网 App Certificate>
+    
     #----------- Basic Auth ---------------
-    static let BASIC_AUTH_KEY: String = <Agora RESTful API KEY>
-    static let BASIC_AUTH_SECRET: String = <Agora RESTful API SECRET>
-  
+    static let BASIC_AUTH_KEY: String = <声网 RESTful API KEY>
+    static let BASIC_AUTH_SECRET: String = <声网 RESTful API SECRET>
+    
     #----------- LLM -----------
-    static let LLM_URL: String = <LLM Vendor API BASE URL>
-    static let LLM_API_KEY: String? = <LLM Vendor API KEY>(optional)
-    static let LLM_SYSTEM_MESSAGES: String? = <LLM Prompt>(optional)
-    static let LLM_MODEL: String? = <LLM Model>(optional)
-  
+    static let LLM_URL: String = <LLM 厂商的 API BASE URL>
+    static let LLM_API_KEY: String? = <LLM 厂商的 API KEY>
+    static let LLM_SYSTEM_MESSAGES: String? = <LLM Prompt>
+    static let LLM_MODEL: String? = <LLM Model>
+    
     #----------- TTS -----------
-    static let TTS_VENDOR: String = <TTS Vendor>
-    static let TTS_PARAMS: [String : Any] = <TTS Parameters>
+    static let TTS_VENDOR: String = <TTS 厂商>
+    static let TTS_PARAMS: [String : Any] = <TTS 参数>
 ```
 
-### ⚙️ 2. Source Code Sitemap
+- 在iOS目录执行`pod install` 后运行项目，即可开始您的体验
 
-| Path                                                                                                                           | Description                                     |
-| ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
-| [AgentManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentManager.swift)                                         | Conversational AI API implementation and models |
-| [RTCManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/RTCManager.swift)                                             | RTC related implementations                     |
-| [AgentPreferenceManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentPreferenceManager.swift)                     | Agent state management                          |
-| [Main/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main)                                                                            | UI components and activities                    |
-| [Main/Chat](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Chat)                                                                   | Chat view and controllers                       |
-| [AgentInformationViewController.swift](Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentInformationViewController.swift) | Information dialog showing agent status         |
-| [AgentSettingViewController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentSettingViewController.swift)     | Settings dialog for agent configuration         |
-| [Utils/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils)                                                                          | Utility classes and helper functions            |
-| [ConversationSubtitleController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils/ConversationSubtitleController.swift)       | Subtitle rendering component                    |
+## 🗂️ 二、项目结构导览
 
-## 📚 3. Related Resources
+| 路径                                                                                                    | 描述                                      |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [AgentManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentManager.swift)               | 对话式 AI 引擎 RESTful 接口实现和数据模型 |
+| [RTCManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/RTCManager.swift)                   | RTC 音视频通信相关实现                    |
+| [AgentPreferenceManager.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Manager/AgentPreferenceManager.swift) | Agent状态管理                    |
+| [Main/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main)                                                  | UI 界面组件和交互页面                    |
+| [Main/Chat](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Chat)                                         | 聊天页面的视图及控制器                    |
+| [AgentInformationViewController.swift](Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentInformationViewController.swift) | 智能体运行状态信息展示对话框                    |
+| [AgentSettingViewController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Main/Setting/VC/AgentSettingViewController.swift) | 智能体参数配置设置对话框                   |
+| [Utils/](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils)                                                | 实用工具类和辅助函数                      |
+| [ConversationSubtitleController.swift](iOS/Scenes/VoiceAgent/VoiceAgent/Classes/Utils/ConversationSubtitleController.swift) | 实时对话字幕解析工具                      |
 
-- Check our [Conversational AI Engine Document](https://docs.agora.io/en/conversational-ai/overview/product-overview) to learn more about Conversational AI Engine
-- Visit [Agora SDK Samples](https://github.com/AgoraIO) for more tutorials
-- Explore repositories managed by developer communities at [Agora Community](https://github.com/AgoraIO-Community)
-- If you encounter issues during integration, feel free to ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io)
 
-## 💬 4. Feedback
+## 📚 三、相关资源
 
-If you have any problems or suggestions regarding the sample projects, we welcome you to file an issue.
+- 📖 查看我们的 [对话式 AI 引擎文档](https://doc.shengwang.cn/doc/convoai/restful/landing-page) 了解更多详情
+- 🧩 访问 [Agora SDK 示例](https://github.com/AgoraIO) 获取更多教程和示例代码
+- 👥 在 [Agora 开发者社区](https://github.com/AgoraIO-Community) 探索开发者社区管理的优质代码仓库
+- 💬 如有疑问，欢迎在 [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io) 提问
 
-## 📜 5. License
+## 💡 四、问题反馈
 
-The sample projects are under the MIT license.
+如果您在集成过程中遇到任何问题或有改进建议：
+
+- 🤖 可通过[声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)获取智能客服帮助或联系技术支持人员
+- ✉️ 发送邮件至 [support@agora.io](mailto:support@agora.io) 获取专业支持
+
+## 📜 五、许可证
+
+本项目采用 MIT 许可证 (The MIT License)。
