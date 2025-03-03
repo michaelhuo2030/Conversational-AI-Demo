@@ -391,6 +391,10 @@ public class ChatViewController: UIViewController {
         rtcManager.muteVoice(state: state)
     }
     
+    private func addLog(_ txt: String) {
+        ConvoAILogger.info(txt)
+    }
+    
     private func goToSSOViewController() {
         let ssoWebVC = SSOWebViewController()
         let baseUrl = AppContext.shared.baseServerUrl
@@ -839,8 +843,8 @@ extension ChatViewController: ConversationSubtitleDelegate {
         }
     }
     
-    func addLog(_ txt: String) {
-        ConvoAILogger.info(txt)
+    func onDebugLog(_ txt: String) {
+        addLog(txt)
     }
 }
 
