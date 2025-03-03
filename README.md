@@ -18,7 +18,7 @@
 |    平台    |                  示例                  |
 | :--------: | :-------------------------------------: |
 | 📱 Android | [ConvoAI(Android)](Android/scenes/convoai) |
-|   📱 iOS   |   [ConvoAI(iOS)](iOS/Scenes/VoiceAgent)   |
+|   📱 iOS   |   [ConvoAI(iOS)](iOS/Scenes/ConvoAI)   |
 |   🌐 Web   |   [ConvoAI(Web)](Web/Scenes/VoiceAgent)   |
 
 ---
