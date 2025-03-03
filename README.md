@@ -36,4 +36,4 @@ If you encounter integration difficulties:
 
 ## 📜 License
 
-Agora-AI-Scenarios is licensed under the MIT License. For details, see [LICENSE](/LICENSE).
+Conversational AI Demo is licensed under the MIT License. For details, see [LICENSE](/LICENSE).

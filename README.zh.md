@@ -1,4 +1,4 @@
-# 🌟 Agora-AI-Scenarios 🌟
+# 🌟 Conversational AI Demo 🌟
 
 *[English](README.md) | 中文*
 
@@ -36,4 +36,4 @@
 
 ## 📜 许可证
 
-Agora-AI-Scenarios 使用 MIT 许可证，详情见 [LICENSE](/LICENSE)
+Conversational AI Demo 使用 MIT 许可证，详情见 [LICENSE](/LICENSE)
