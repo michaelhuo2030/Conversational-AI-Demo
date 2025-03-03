@@ -11,13 +11,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:indeterminateTint="@color/ai_fill1"
         style="?android:attr/progressBarStyleLarge"/>
 
     <TextView
         android:id="@+id/loading_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/ai_icontext1"
-        android:text="Loading..."
+        android:textColor="@color/ai_fill1"
         android:layout_marginTop="5dp"/>
 </LinearLayout>

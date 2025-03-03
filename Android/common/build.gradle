@@ -22,6 +22,14 @@ android {
 
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion
+        buildConfigField("String", "BASIC_AUTH_KEY", "\"${project.getProperty("BASIC_AUTH_KEY")}\"")
+        buildConfigField("String", "BASIC_AUTH_SECRET", "\"${project.getProperty("BASIC_AUTH_SECRET")}\"")
+        buildConfigField("String", "LLM_URL", "\"${project.getProperty("LLM_URL")}\"")
+        buildConfigField("String", "LLM_API_KEY", "\"${project.getProperty("LLM_API_KEY")}\"")
+        buildConfigField("String", "LLM_SYSTEM_MESSAGES", "\"${project.getProperty("LLM_SYSTEM_MESSAGES")}\"")
+        buildConfigField("String", "LLM_MODEL", "\"${project.getProperty("LLM_MODEL")}\"")
+        buildConfigField("String", "TTS_VENDOR", "\"${project.getProperty("TTS_VENDOR")}\"")
+        buildConfigField "String", "TTS_PARAMS", "\"${project.properties['TTS_PARAMS'].toString().replace('"', '\\"')}\""
     }
 
     buildTypes {
@@ -57,20 +65,23 @@ dependencies {
     api libs.androidx.activity
     api libs.androidx.constraintlayout
     api libs.androidx.viewbinding
+    api libs.androidx.lifecycle.process
     api libs.navigation.fragment.ktx
     api libs.navigation.ui.ktx
+    api libs.splashscreen
 
     api libs.okhttp.core
     api libs.okhttp.logging.interceptor
+    api libs.retrofit
+    api libs.converter.gson
     api libs.gson
     api libs.mmkv
     api libs.xlog
 
     api libs.commons.codec
-    api libs.agora.authentication
     if (USE_LOCAL_SDK) {
         api fileTree(dir: "${localSdkPath}", include: ['*.jar'])
     } else {
-        api libs.agora.rtc.voice
+        api libs.agora.rtc
     }
 }

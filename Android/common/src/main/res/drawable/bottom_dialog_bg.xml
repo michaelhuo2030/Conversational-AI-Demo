@@ -3,5 +3,5 @@
     <corners
         android:topLeftRadius="20dp"
         android:topRightRadius="20dp" />
-    <solid android:color="#171717" />
+    <solid android:color="@color/ai_fill2" />
 </shape>

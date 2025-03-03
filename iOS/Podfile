@@ -1,7 +1,7 @@
 # Uncomment the next line to define a global platform for your project
-# platform :ios, '9.0'
+platform :ios, '15.0'
 
-target 'Agent-oversea' do
+target 'Agent-global' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
   
@@ -15,29 +15,36 @@ target 'Agent-oversea' do
   pod 'Common', :path => 'Common'
 
   # Agents
-  pod 'VoiceAgent', :path => 'Scenes/VoiceAgent'
-  pod 'DigitalHuman', :path => 'Scenes/DigitalHuman'
+  pod 'ConvoAI', :path => 'Scenes/ConvoAI'
   
   pod 'Kingfisher'
 
 end
 
-target 'Agent-cn' do
-  # Comment the next line if you don't want to use dynamic frameworks
-  use_frameworks!
+post_install do |installer|
+  resource_url = "https://accktvpic.oss-cn-beijing.aliyuncs.com/ConvoAI/Resource/Convo_AI_Demo_v1.0.0_Resource.zip"
+  download_path = "#{Dir.pwd}/Agent/Resources/Convo_AI_Demo_v1.0.0_Resource.zip"
+  extract_path = "#{Dir.pwd}/Agent/Resources"
   
-#  pod 'AgoraRtcEngine_iOS', '4.5.0'
-  pod 'SSZipArchive'
-  pod 'SwiftyBeaver', '1.9.5'
-  pod 'ZSwiftBaseLib', '0.1.6.2'
-  pod 'AgoraRtcEngine_iOS', :path => 'sdk.podspec'
-  pod 'LookinServer', :subspecs => ['Swift'], :configurations => ['Debug']
-
-  pod 'Common', :path => 'Common'
-
-  # Agents
-  pod 'VoiceAgent', :path => 'Scenes/VoiceAgent'
-  pod 'DigitalHuman', :path => 'Scenes/DigitalHuman'
-  pod 'Kingfisher'
+  puts "Downloading Convo AI Demo resources..."
+  system "curl -L #{resource_url} -o #{download_path}"
   
+  if File.exist?(download_path)
+    puts "Download completed successfully."
+    
+    puts "Extracting resources..."
+    system "unzip -j -o #{download_path} -d #{extract_path}"
+        
+    system "rm #{download_path}"
+    
+    puts "Resource settings completed."
+  else
+    puts "Resource download failed. Please check your network connection and try again."
+  end
+  
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Additional post-install configuration can be added here.
+    end
+  end
 end

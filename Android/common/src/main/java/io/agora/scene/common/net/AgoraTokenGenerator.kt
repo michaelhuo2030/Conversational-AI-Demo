@@ -1,5 +1,6 @@
 package io.agora.scene.common.net
 
+import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.constant.ServerConfig
 import kotlinx.coroutines.*
 import okhttp3.Request
@@ -23,7 +24,6 @@ object TokenGenerator {
 
     private val okHttpClient by lazy {
         SecureOkHttpClient.create()
-            .addInterceptor(HttpLogger())
             .build()
     }
 
@@ -140,6 +140,7 @@ object TokenGenerator {
         return Request.Builder()
             .url(url)
             .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer ${SSOUserManager.getToken()}")
             .post(postBody.toString().toRequestBody())
             .build()
     }

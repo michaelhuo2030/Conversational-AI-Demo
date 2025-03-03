@@ -8,7 +8,7 @@
 import UIKit
 import Common
 import SVProgressHUD
-import VoiceAgent
+import ConvoAI
 import SSZipArchive
 
 @main
@@ -16,26 +16,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        AppContext.shared.appId = KeyCenter.APP_ID
+        AppContext.shared.certificate = KeyCenter.CERTIFICATE ?? ""
+        AppContext.shared.basicAuthKey = KeyCenter.BASIC_AUTH_KEY
+        AppContext.shared.basicAuthSecret = KeyCenter.BASIC_AUTH_SECRET
+        AppContext.shared.llmUrl = KeyCenter.LLM_URL
+        AppContext.shared.llmApiKey = KeyCenter.LLM_API_KEY ?? ""
+        AppContext.shared.llmSystemMessages = KeyCenter.LLM_SYSTEM_MESSAGES ?? ""
+        AppContext.shared.llmModel = KeyCenter.LLM_MODEL ?? ""
+        AppContext.shared.ttsVendor = KeyCenter.TTS_VENDOR
+        AppContext.shared.ttsParams = KeyCenter.TTS_PARAMS
+        AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
         
+        if AppContext.shared.appId.isEmpty {
+            AppContext.shared.loadInnerEnvironment()
+        }
+                
         copyResource()
         
         SVProgressHUD.setMaximumDismissTimeInterval(2)
         SVProgressHUD.setBackgroundColor(UIColor.themColor(named: "ai_fill1").withAlphaComponent(0.8))
         SVProgressHUD.setForegroundColor(.white)
         SVProgressHUD.setImageViewSize(CGSize.zero)
-        SVProgressHUD.setOffsetFromCenter(UIOffset(horizontal: 0, vertical: 180)) 
 
-        #if MainLand
-        AppContext.shared.appArea = .mainland
-        #else
-        AppContext.shared.appArea = .overseas
-        #endif
-
-        AppContext.shared.appId = KeyCenter.AppId
-        AppContext.shared.certificate = KeyCenter.Certificate ?? ""
-        AppContext.shared.baseServerUrl = KeyCenter.BaseHostUrl
-        AppContext.shared.termsOfServiceUrl = KeyCenter.TermsOfService
-        AppContext.shared.environments = KeyCenter.environments
         return true
     }
     
@@ -49,7 +52,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             do {
                 try FileManager.default.createDirectory(atPath: destinationPath, withIntermediateDirectories: true)
             } catch {
-                VoiceAgentLogger.info("[Resource] Failed to create directory: \(error)")
+                ConvoAILogger.info("[Resource] Failed to create directory: \(error)")
                 return
             }
         }
@@ -72,12 +75,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let success = SSZipArchive.unzipFile(atPath: zipPath, toDestination: destinationPath)
             
             if success {
-                VoiceAgentLogger.info("[Resource] Successfully unzipped common_resource to: \(destinationPath)")
+                ConvoAILogger.info("[Resource] Successfully unzipped common_resource to: \(destinationPath)")
             } else {
-                VoiceAgentLogger.info("[Resource] Failed to unzip file")
+                ConvoAILogger.info("[Resource] Failed to unzip file")
             }
         } catch {
-            VoiceAgentLogger.info("[Resource] Error during unzip: \(error)")
+            ConvoAILogger.info("[Resource] Error during unzip: \(error)")
         }
     }
     
@@ -94,7 +97,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
-
 
 }
 

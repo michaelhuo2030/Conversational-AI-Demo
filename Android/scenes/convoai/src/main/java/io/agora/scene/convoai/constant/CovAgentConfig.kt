@@ -16,6 +16,8 @@ object CovAgentManager {
 
     private val TAG = "CovAgentManager"
 
+    private const val DEFAULT_ROOM_EXPIRE_TIME = 600L
+
     // Settings
     private var presetList: List<CovAgentPreset>? = null
     private var preset: CovAgentPreset? = null
@@ -28,6 +30,10 @@ object CovAgentManager {
     val uid = Random.nextInt(1000, 10000000)
     const val agentUID = 999
     var channelName: String = ""
+
+    // room expire time sec
+    var roomExpireTime = DEFAULT_ROOM_EXPIRE_TIME
+        private set
 
     fun setPresetList(l: List<CovAgentPreset>) {
         presetList = l.filter { it.preset_type != "custom" }
@@ -45,6 +51,7 @@ object CovAgentManager {
         } else {
             language = p?.support_languages?.firstOrNull()
         }
+        roomExpireTime = preset?.call_time_limit_second ?: DEFAULT_ROOM_EXPIRE_TIME
     }
 
     fun getLanguages(): List<CovAgentLanguage>? {

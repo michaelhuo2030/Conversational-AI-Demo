@@ -16,6 +16,12 @@ val Number.dp
         Resources.getSystem().displayMetrics
     )
 
+fun Context.getStatusBarHeight(): Int? {
+    val resources = resources
+    val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+    return if (resourceId > 0) resources.getDimensionPixelSize(resourceId) else null
+}
+
 fun Context.copyToClipboard(text: String) {
     val cm: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
     cm.setPrimaryClip(ClipData.newPlainText(null, text))

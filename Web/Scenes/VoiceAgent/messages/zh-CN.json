@@ -1,0 +1,166 @@
+{
+  "language": {
+    "enUS": "English",
+    "zhCN": "中文",
+    "esES": "Español",
+    "jaJP": "日本語",
+    "koKR": "한국어",
+    "arSA": "العربية",
+    "hiIN": "हिन्दी"
+  },
+  "metadata": {
+    "title": "对话式 AI 引擎",
+    "description": "对话式 AI 引擎"
+  },
+  "common": {
+    "language": "语言"
+  },
+  "homePage": {
+    "title": "对话式 AI 引擎"
+  },
+  "status": {
+    "unknown": "未知",
+    "connecting": "连接中...",
+    "connected": "已连接",
+    "disconnected": "未连接",
+    "reconnecting": "未连接",
+    "na": "--",
+    "good": "良好",
+    "medium": "一般",
+    "bad": "较差"
+  },
+  "roomInfo": {
+    "tooltip": "网络和channel信息",
+    "networkInfo": "网络信息",
+    "yourNetwork": "您的网络",
+    "networkLevel": {
+      "good": "良好",
+      "medium": "一般",
+      "bad": "较差",
+      "unknown": "未知"
+    },
+    "channelInfo": "频道信息",
+    "agentStatus": "智能体状态",
+    "roomStatus": "房间状态",
+    "roomId": "房间 ID",
+    "yourId": "您的 ID",
+    "agentId": "智能体 ID",
+    "unknown": "未知"
+  },
+  "moreInfo": {
+    "title": "更多信息",
+    "moreAction": "更多操作"
+  },
+  "settings": {
+    "title": "设置",
+    "save": "保存",
+    "options": {
+      "custom": "自定义",
+      "preset": "预设",
+      "error": "获取预设失败"
+    },
+    "asr": {
+      "language": "语言"
+    },
+    "custom_llm": {
+      "title": "自定义LLM",
+      "url": "自定义LLM URL",
+      "api_key": "自定义LLM Token",
+      "model": "自定义LLM Model",
+      "prompt": "自定义LLM Prompt",
+      "promptPlaceholder": "请输入提示词",
+      "style": "自定义LLM Style"
+    },
+    "advanced_features": {
+      "title": "高级设置",
+      "enable_bhvs": {
+        "title": "启用BHVS",
+        "description": "背景人声抑制，屏蔽背景人声干扰，保留对话人清晰人声"
+      },
+      "enable_aivad": {
+        "title": "<label>启用</label> 优雅打断",
+        "description": ""
+      }
+    }
+  },
+  "agent": {
+    "greeting": {
+      "hi": "你好，",
+      "human": "欢迎体验声网对话式 AI 引擎",
+      "connecting": "我在连接中...",
+      "connected": "我已加入",
+      "speakLoudly": "请你大声跟我说话，以便我更好地和你沟通",
+      "failed": "我加入失败，请晚点再试"
+    },
+    "getStart": "连接 AI 引擎",
+    "subtitle": "字幕",
+    "enableSubtitle": "打开字幕",
+    "disableSubtitle": "关闭字幕",
+    "agentLabel": "Agent",
+    "userLabel": "你",
+    "hangUp": "退出 AI 对话",
+    "tooltip-mic-current-enable": "点击静音",
+    "tooltip-mic-current-disable": "取消静音",
+    "tooltip-mic-current-disallow": "浏览器的麦克风权限未获取",
+    "switchMic": "切换麦克风设备",
+    "agentConnected": "智能体已加入！",
+    "agentDisconnected": "智能体已离开！",
+    "agentConnectedTimeout": "智能体加入超时，请稍后重试。",
+    "agentAborted": "智能体状态异常，请退出重试。",
+    "agentReconnectedTimeout": "网络异常，请检查网络设置。",
+    "tmpDisconnected": "网络异常，请检查网络设置。",
+    "agentReconnected": "智能体已加入！",
+    "errorTitle": "智能体加入失败，请稍后重试。",
+    "reminder": {
+      "firstSpeaking": "请在对话初期大声、清晰地说话，提升智能体对您的声音锁定效果。"
+    },
+    "startAgentError": "连接失败。",
+    "interrupted": "被打断"
+  },
+  "compatibility": {
+    "errorTitle": "兼容性检查",
+    "errorDescription": "请检查浏览器是否支持 WebRTC",
+    "errorHelper": "建议在最新版本的操作系统中使用浏览器的最新版本",
+    "errorButton": "我已知晓"
+  },
+  "devMode": {
+    "badge": "开发模式",
+    "endpoint": "Agent接入点",
+    "agentUrl": "Agent URL",
+    "unknown": "未知",
+    "title": "开发模式",
+    "description": "开发模式下，可以进行Agent的调试",
+    "userChatHistory": "用户消息历史",
+    "historyNumber": "{sum}条消息",
+    "userID": "用户ID",
+    "agentID": "AgentID",
+    "channelName": "频道名称",
+    "copy": "复制",
+    "copySuccess": "复制成功"
+  },
+  "userInfo": {
+    "logout": "退出"
+  },
+  "log": {
+    "label": "一键上报",
+    "uploadSuccess": "上报成功",
+    "uploadSuccessTip": "提交成功，感谢反馈",
+    "uploadErrorTip": "提交失败，请稍后重试"
+  },
+  "login": {
+    "title": "免费聊天",
+    "buttonTip": "一键登录",
+    "panelTitle": "一键登录",
+    "panelDescription": "解锁∞免费畅聊",
+    "panelButton": "手机号登录",
+    "privacyPolicy": "我已阅读并同意<link>《用户协议》</link> 和 <policyLink>《隐私政策》</policyLink>",
+    "termsTip":"请勾选协议",
+    "unauthorizedError": "登录过期，请重新登录"
+  },
+  "conversationTimer": {
+    "tip": "每次对话限时{minutes}分钟",
+    "title": "本次对话时间到！",
+    "description": "每次对话限时{minutes}分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。",
+    "button": "我知道了"
+  }
+}

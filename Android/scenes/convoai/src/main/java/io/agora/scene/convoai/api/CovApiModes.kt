@@ -1,25 +1,37 @@
 package io.agora.scene.convoai.api
 
+import org.json.JSONObject
+
 data class AgentRequestParams(
+    val appId: String,
+    val appCert: String? = null,
+    val basicAuthKey: String? = null,
+    val basicAuthSecret: String? = null,
+    val presetName: String? = null,
+    val graphId: String? = null,
     val channelName: String,
     val agentRtcUid: String,
     val remoteRtcUid: String,
-    val rtcCodec: Int? = null,
-    val audioScenario: Int? = null,
-    val greeting: String? = null,
-    val prompt: String? = null,
-    val maxHistory: Int? = null,
+    val idleTimeout: Int? = null,
+    val llmUrl: String? = null,
+    val llmApiKey: String? = null,
+    val llmPrompt: String? = null,
+    val llmModel: String? = null,
+    val llmGreetingMessage: String? = null,
+    val llmStyle: Int? = null,
+    val llmMaxHistory: Int? = null,
+    val ttsVendor: String? = null,
+    val ttsParams: JSONObject? = null,
+    val ttsAdjustVolume: Int? = null,
     val asrLanguage: String? = null,
-    val vadInterruptThreshold: Float? = null,
+    val asrVendor: String? = null,
+    val vadInterruptDurationMs: Int? = null,
     val vadPrefixPaddingMs: Int? = null,
     val vadSilenceDurationMs: Int? = null,
     val vadThreshold: Int? = null,
-    val bsVoiceThreshold: Int? = null,
-    val idleTimeout: Int? = null,
-    val ttsVoiceId: String? = null,
     val enableAiVad: Boolean? = null,
     val enableBHVS: Boolean? = null,
-    val presetName: String? = null,
+    val parameters: JSONObject? = null,
 )
 
 data class CovAgentPreset(
@@ -29,14 +41,19 @@ data class CovAgentPreset(
     val preset_type: String,
     val default_language_code: String,
     val default_language_name: String,
-    val support_languages: List<CovAgentLanguage>
-){
+    val support_languages: List<CovAgentLanguage>,
+    val call_time_limit_second: Long,
+) {
     fun isIndependent(): Boolean {
-        return preset_type == "independent"
+        return preset_type.startsWith("independent")
     }
 }
 
 data class CovAgentLanguage(
     val language_code: String,
     val language_name: String
-)
+) {
+    fun englishEnvironment(): Boolean {
+        return language_code == "en-US"
+    }
+}

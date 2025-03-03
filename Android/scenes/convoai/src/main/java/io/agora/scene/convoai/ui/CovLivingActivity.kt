@@ -1,48 +1,82 @@
 package io.agora.scene.convoai.ui
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.util.Log
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
+import android.webkit.CookieManager
 import android.widget.Toast
-import androidx.core.view.isVisible
-import io.agora.scene.common.ui.BaseActivity
-import io.agora.scene.common.util.PermissionHelp
-import io.agora.scene.convoai.rtc.CovRtcManager
-import io.agora.scene.convoai.utils.MessageParser
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.BuildConfig
+import io.agora.scene.common.constant.AgentScenes
+import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.debugMode.DebugButton
+import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.debugMode.DebugDialog
+import io.agora.scene.common.debugMode.DebugDialogCallback
 import io.agora.scene.common.net.AgoraTokenType
+import io.agora.scene.common.net.ApiManager
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
+import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.ui.CommonDialog
+import io.agora.scene.common.ui.LoginDialog
+import io.agora.scene.common.ui.LoginDialogCallback
 import io.agora.scene.common.ui.OnFastClickListener
+import io.agora.scene.common.ui.SSOWebViewActivity
+import io.agora.scene.common.ui.TermsActivity
+import io.agora.scene.common.ui.vm.LoginViewModel
+import io.agora.scene.common.util.PermissionHelp
 import io.agora.scene.common.util.copyToClipboard
 import io.agora.scene.common.util.dp
+import io.agora.scene.common.util.getStatusBarHeight
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.animation.AgentState
 import io.agora.scene.convoai.animation.CovBallAnim
 import io.agora.scene.convoai.animation.CovBallAnimCallback
-import io.agora.scene.convoai.databinding.CovActivityLivingBinding
 import io.agora.scene.convoai.api.AgentRequestParams
-import io.agora.scene.convoai.constant.CovAgentManager
-import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.api.CovAgentApiManager
+import io.agora.scene.convoai.api.CovAgentPreset
 import io.agora.scene.convoai.constant.AgentConnectionState
-import io.agora.scene.convoai.debug.CovDebugDialog
-import kotlinx.coroutines.*
+import io.agora.scene.convoai.constant.CovAgentManager
+import io.agora.scene.convoai.databinding.CovActivityLivingBinding
+import io.agora.scene.convoai.rtc.CovRtcManager
+import io.agora.scene.convoai.subRender.v1.SelfRenderConfig
+import io.agora.scene.convoai.subRender.v1.SelfSubRenderController
+import io.agora.scene.convoai.subRender.v2.ConversationSubtitleController
+import io.agora.scene.convoai.subRender.v2.SubtitleRenderConfig
+import io.agora.scene.convoai.subRender.v2.SubtitleRenderMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.util.UUID
-import kotlin.coroutines.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
-    private val TAG = "LivingActivity"
+    private val TAG = "CovLivingActivity"
 
     private var infoDialog: CovAgentInfoDialog? = null
     private var settingDialog: CovSettingsDialog? = null
@@ -57,8 +91,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private val logScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var networkValue: Int = -1
-
-    private var parser = MessageParser()
 
     private var rtcToken: String? = null
 
@@ -87,33 +119,26 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 settingDialog?.updateConnectStatus(value)
                 when (connectionState) {
                     AgentConnectionState.CONNECTED -> {
-                        waitingAgentJob?.cancel()
-                        waitingAgentJob = null
-
-                        // 使用协程替代 Timer 进行 ping
+                        innerCancelJob()
                         pingJob = coroutineScope.launch {
                             while (isActive) {
                                 val presetName = CovAgentManager.getPreset()?.name ?: return@launch
-                                CovAgentApiManager.ping(CovAgentManager.channelName, presetName) {}
-                                delay(10000) // 10秒间隔
+                                CovAgentApiManager.ping(CovAgentManager.channelName, presetName)
+                                delay(10000) // 10s
                             }
                         }
                     }
 
                     AgentConnectionState.IDLE -> {
-                        // 取消 ping
-                        pingJob?.cancel()
-                        pingJob = null
-                        waitingAgentJob?.cancel()
-                        waitingAgentJob = null
+                        // cancel ping
+                        innerCancelJob()
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
                     }
 
                     AgentConnectionState.ERROR -> {
-                        // 取消 ping
-                        pingJob?.cancel()
-                        pingJob = null
-                        waitingAgentJob?.cancel()
-                        waitingAgentJob = null
+                        // cancel ping
+                        innerCancelJob()
+                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
                     }
 
                     AgentConnectionState.CONNECTED_INTERRUPT -> {
@@ -121,15 +146,38 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
 
                     AgentConnectionState.CONNECTING -> {
+                        innerCancelJob()
                     }
                 }
             }
         }
 
+    private fun innerCancelJob(){
+        pingJob?.cancel()
+        pingJob = null
+        waitingAgentJob?.cancel()
+        waitingAgentJob = null
+    }
+
     // Add a flag to indicate whether the call was ended by the user
     private var isUserEndCall = false
 
     private var mCovBallAnim: CovBallAnim? = null
+
+    private var isSelfSubRender = false
+
+    private var subRenderController: ConversationSubtitleController? = null
+
+    private var selfRenderController: SelfSubRenderController? = null
+
+    private var countDownJob: Job? = null
+
+    private var mLoginDialog: LoginDialog? = null
+
+    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var mPermissionHelp: PermissionHelp
+
+    private val mLoginViewModel: LoginViewModel by viewModels()
 
     override fun getViewBinding(): CovActivityLivingBinding {
         return CovActivityLivingBinding.inflate(layoutInflater)
@@ -139,19 +187,31 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         setupView()
         updateStateView()
         CovAgentManager.resetData()
-        createRtcEngine()
+        val rtcEngine = createRtcEngine()
         setupBallAnimView()
-        PermissionHelp(this).checkMicPerm({}, {
-            finish()
-        }, true)
 
-        // Fetch token and presets when entering the scene
-        coroutineScope.launch {
-            val deferreds = listOf(
-                async { updateTokenAsync() },
-                async { fetchPresetsAsync() }
+        checkLogin()
+        // v1 Subtitle Rendering Controller
+        selfRenderController = SelfSubRenderController(SelfRenderConfig(
+            rtcEngine = rtcEngine,
+            view = mBinding?.messageListViewV1
+        ))
+        // v2 Subtitle Rendering Controller
+        subRenderController = ConversationSubtitleController(
+            SubtitleRenderConfig(
+                rtcEngine = rtcEngine,
+                SubtitleRenderMode.Word,
+                mBinding?.messageListViewV2
             )
-            deferreds.awaitAll()
+        )
+        ApiManager.setOnUnauthorizedCallback {
+            runOnUiThread {
+                ToastUtil.show(getString(io.agora.scene.common.R.string.common_login_expired))
+                cleanCookie()
+                stopAgentAndLeaveChannel()
+                SSOUserManager.logout()
+                updateLoginStatus(false)
+            }
         }
     }
 
@@ -161,6 +221,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun finish() {
         logScope.cancel()
+        stopRoomCountDownTask()
         coroutineScope.cancel()
 
         // if agent is connected, leave channel
@@ -173,6 +234,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
         CovRtcManager.resetData()
         CovAgentManager.resetData()
+        subRenderController?.release()
         super.finish()
     }
 
@@ -183,17 +245,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun onPause() {
         super.onPause()
-        if (connectionState == AgentConnectionState.CONNECTED) {
-            startRecordingService()
-        }
+        // Clear debug callback when activity is paused
+        DebugButton.setDebugCallback(null)
     }
 
-    private fun startRecordingService() {
-        val intent = Intent(this, CovRtcForegroundService::class.java)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+    override fun onResume() {
+        super.onResume()
+        // Set debug callback when page is resumed
+        DebugButton.setDebugCallback {
+            showCovAiDebugDialog()
         }
     }
 
@@ -204,22 +264,53 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private fun getAgentParams(): AgentRequestParams {
         return AgentRequestParams(
+            appId = ServerConfig.rtcAppId,
+            appCert = ServerConfig.rtcAppCert.takeIf { it.isNotEmpty() },
+            basicAuthKey = BuildConfig.BASIC_AUTH_KEY.takeIf { it.isNotEmpty() },
+            basicAuthSecret = BuildConfig.BASIC_AUTH_SECRET.takeIf { it.isNotEmpty() },
+            presetName = CovAgentManager.getPreset()?.name,
             channelName = CovAgentManager.channelName,
             remoteRtcUid = CovAgentManager.uid.toString(),
             agentRtcUid = CovAgentManager.agentUID.toString(),
-            audioScenario = Constants.AUDIO_SCENARIO_AI_SERVER,
+            llmUrl = BuildConfig.LLM_URL.takeIf { it.isNotEmpty() },
+            llmApiKey = BuildConfig.LLM_API_KEY.takeIf { it.isNotEmpty() },
+            llmPrompt = BuildConfig.LLM_SYSTEM_MESSAGES.takeIf { it.isNotEmpty() },
+            llmModel = BuildConfig.LLM_MODEL.takeIf { it.isNotEmpty() },
+            ttsVendor = BuildConfig.TTS_VENDOR.takeIf { it.isNotEmpty() },
+            ttsParams = BuildConfig.TTS_PARAMS.takeIf { it.isNotEmpty() }?.let { JSONObject(it) },
+            asrLanguage = CovAgentManager.language?.language_code,
             enableAiVad = CovAgentManager.enableAiVad,
             enableBHVS = CovAgentManager.enableBHVS,
-            presetName = CovAgentManager.getPreset()?.name,
-            asrLanguage = CovAgentManager.language?.language_code,
+            graphId = DebugConfigSettings.graphId.takeIf { it.isNotEmpty() },
+            parameters = JSONObject().apply {
+                put("transcript", JSONObject().apply {
+                    put("enable", true)
+                    put("protocol_version", "v2")
+                    put("enable_words", true)
+                })
+            }
         )
     }
 
     private fun onClickStartAgent() {
+        subRenderController?.reset()
         // Immediately show the connecting status
         isUserEndCall = false
         connectionState = AgentConnectionState.CONNECTING
         CovAgentManager.channelName = "agent_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8)
+
+        isSelfSubRender = CovAgentManager.getPreset()?.isIndependent() == true
+        mBinding?.apply {
+            if (isSelfSubRender) {
+                selfRenderController?.enable(true)
+                subRenderController?.enable(false)
+                messageListViewV1.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
+            } else {
+                selfRenderController?.enable(false)
+                subRenderController?.enable(true)
+                messageListViewV2.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
+            }
+        }
 
         coroutineScope.launch(Dispatchers.IO) {
             val needToken = rtcToken == null
@@ -240,9 +331,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     return@launch
                 }
             }
-            withContext(Dispatchers.Main) {
-                mBinding?.messageListView?.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
-            }
 
             CovRtcManager.joinChannel(rtcToken ?: "", CovAgentManager.channelName, CovAgentManager.uid)
             val startRet = startAgentAsync()
@@ -252,11 +340,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (channelName != CovAgentManager.channelName) {
                     return@withContext
                 }
-                val isAgentOK = startRet.second
-                if (isAgentOK) {
+                val errorCode = startRet.second
+                if (errorCode == 0) {
                     // Startup timeout check
                     waitingAgentJob = launch {
-                        delay(10000)
+                        delay(30000)
                         if (connectionState == AgentConnectionState.CONNECTING) {
                             stopAgentAndLeaveChannel()
                             CovLogger.e(TAG, "Agent connection timeout")
@@ -264,18 +352,22 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         }
                     }
                 } else {
+                    stopAgentAndLeaveChannel()
                     connectionState = AgentConnectionState.IDLE
-                    CovRtcManager.leaveChannel()
-                    CovLogger.e(TAG, "Agent start error")
-                    ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
+                    CovLogger.e(TAG, "Agent start error: $errorCode")
+                    if (errorCode == CovAgentApiManager.ERROR_RESOURCE_LIMIT_EXCEEDED) {
+                        ToastUtil.show(getString(R.string.cov_detail_start_agent_limit_error), Toast.LENGTH_LONG)
+                    } else {
+                        ToastUtil.show(getString(R.string.cov_detail_join_call_failed), Toast.LENGTH_LONG)
+                    }
                 }
             }
         }
     }
 
-    private suspend fun startAgentAsync(): Pair<String, Boolean> = suspendCoroutine { cont ->
+    private suspend fun startAgentAsync(): Pair<String, Int> = suspendCoroutine { cont ->
         CovAgentApiManager.startAgent(getAgentParams()) { err, channelName ->
-            cont.resume(Pair(channelName, err == null))
+            cont.resume(Pair(channelName, err?.errorCode ?: 0))
         }
     }
 
@@ -287,7 +379,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     private suspend fun fetchPresetsAsync(): Boolean = suspendCoroutine { cont ->
         CovAgentApiManager.fetchPresets { err, presets ->
-            if (err == null && presets.isNotEmpty()) {
+            if (err == null) {
                 CovAgentManager.setPresetList(presets)
                 cont.resume(true)
             } else {
@@ -305,12 +397,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun stopAgentAndLeaveChannel() {
+        stopRoomCountDownTask()
+        stopTitleAnim()
+        subRenderController?.reset()
         CovRtcManager.leaveChannel()
         if (connectionState == AgentConnectionState.IDLE) {
             return
         }
         connectionState = AgentConnectionState.IDLE
-        mCovBallAnim?.updateAgentState(AgentState.STATIC)
         CovAgentApiManager.stopAgent(CovAgentManager.channelName, CovAgentManager.getPreset()?.name) {}
         resetSceneState()
     }
@@ -332,7 +426,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun createRtcEngine(): RtcEngineEx {
-        return CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
+        val rtcEngine = CovRtcManager.createRtcEngine(object : IRtcEngineEventHandler() {
             override fun onError(err: Int) {
                 super.onError(err)
                 logScope.launch {
@@ -369,9 +463,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         ToastUtil.showByPosition(
                             getString(R.string.cov_detail_join_call_tips),
                             gravity = Gravity.BOTTOM,
-                            offsetY = 100.dp.toInt(),
                             duration = Toast.LENGTH_LONG
                         )
+                        startRoomCountDownTask()
+                        showTitleAnim()
                     }
                 }
             }
@@ -383,7 +478,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 runOnUiThread {
                     if (uid == CovAgentManager.agentUID) {
                         connectionState = AgentConnectionState.ERROR
-                        mCovBallAnim?.updateAgentState(AgentState.STATIC)
                         if (isUserEndCall) {
                             isUserEndCall = false
                         } else {
@@ -483,35 +577,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
 
-            override fun onStreamMessage(uid: Int, streamId: Int, data: ByteArray?) {
-                data?.let { bytes ->
-                    try {
-                        val rawString = String(bytes, Charsets.UTF_8)
-                        val message = parser.parseStreamMessage(rawString)
-                        message?.let { msg ->
-                            CovLogger.d(TAG, "onStreamMessage: $msg")
-                            val isFinal = msg["is_final"] as? Boolean ?: false
-                            val streamId = msg["stream_id"] as? Double ?: 0.0
-                            val turnId = msg["turn_id"] as? Double ?: 0.0
-                            val text = msg["text"] as? String ?: ""
-                            if (text.isNotEmpty()) {
-                                runOnUiThread {
-                                    mBinding?.messageListView?.updateStreamContent(
-                                        (streamId != 0.0), turnId, text, isFinal
-                                    )
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {
-                        CovLogger.e(TAG, "Process stream message error: ${e.message}")
-                    }
-                }
-            }
-
             override fun onNetworkQuality(uid: Int, txQuality: Int, rxQuality: Int) {
                 if (uid == 0) {
                     runOnUiThread {
-                        CovLogger.e(TAG, "onNetworkQuality: txQuality:$txQuality rxQuality:")
                         updateNetworkStatus(rxQuality)
                     }
                 }
@@ -528,7 +596,55 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                 }
             }
+
+            override fun onAudioRouteChanged(routing: Int) {
+                runOnUiThread {
+                    CovLogger.d(TAG, "onAudioRouteChanged, routing:$routing")
+                    CovRtcManager.setAudioConfig(routing)
+                }
+            }
         })
+        return rtcEngine
+    }
+
+    private fun startRoomCountDownTask() {
+        countDownJob?.cancel()
+        countDownJob = coroutineScope.launch {
+            try {
+                var remainingTime = CovAgentManager.roomExpireTime * 1000L
+                while (remainingTime > 0 && isActive) {
+                    delay(1000)
+                    remainingTime -= 1000
+                    onTimerTick(remainingTime)
+                }
+
+                if (remainingTime <= 0) {
+                    onClickEndCall()
+                    showRoomEndDialog()
+                }
+            } catch (e: Exception) {
+                CovLogger.e(TAG, "Timer error: ${e.message}")
+            } finally {
+                countDownJob = null
+            }
+        }
+    }
+
+    private fun stopRoomCountDownTask() {
+        countDownJob?.cancel()
+        countDownJob = null
+    }
+
+    private fun onTimerTick(remainingTimeMs: Long) {
+        // 可以在这里更新UI显示剩余时间
+        val minutes = (remainingTimeMs / 1000 / 60).toInt()
+        val seconds = (remainingTimeMs / 1000 % 60).toInt()
+        if (remainingTimeMs <= 20000) {
+            mBinding?.clTop?.tvTimer?.setTextColor(getColor(io.agora.scene.common.R.color.ai_red6))
+        } else if (remainingTimeMs <= 60000) {
+            mBinding?.clTop?.tvTimer?.setTextColor(getColor(io.agora.scene.common.R.color.ai_green6))
+        }
+        mBinding?.clTop?.tvTimer?.text = String.format("%02d:%02d", minutes, seconds)
     }
 
     private fun updateUserVolumeAnim(volume: Int) {
@@ -536,15 +652,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             // todo  0～10000 icon high 20 top 6
             var level = volume * 20 + 3500
             if (level > 8500) level = 8500
-            mBinding?.btnMic?.setImageLevel(level)
+            mBinding?.clBottomLogged?.btnMic?.setImageLevel(level)
         } else {
-            mBinding?.btnMic?.setImageLevel(0)
+            mBinding?.clBottomLogged?.btnMic?.setImageLevel(0)
         }
     }
 
     private fun resetSceneState() {
         mBinding?.apply {
-            messageListView.clearMessages()
+            messageListViewV1.clearMessages()
+            messageListViewV2.clearMessages()
             if (isShowMessageList) {
                 isShowMessageList = false
             }
@@ -552,6 +669,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 isLocalAudioMuted = false
                 CovRtcManager.muteLocalAudio(isLocalAudioMuted)
             }
+            clTop.tvTimer.visibility = View.GONE
         }
     }
 
@@ -559,21 +677,21 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             when (connectionState) {
                 AgentConnectionState.IDLE -> {
-                    llCalling.visibility = View.INVISIBLE
-                    llJoinCall.visibility = View.VISIBLE
+                    clBottomLogged.llCalling.visibility = View.INVISIBLE
+                    clBottomLogged.btnJoinCall.visibility = View.VISIBLE
                     vConnecting.visibility = View.GONE
                 }
 
                 AgentConnectionState.CONNECTING -> {
-                    llCalling.visibility = View.VISIBLE
-                    llJoinCall.visibility = View.INVISIBLE
+                    clBottomLogged.llCalling.visibility = View.VISIBLE
+                    clBottomLogged.btnJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.VISIBLE
                 }
 
                 AgentConnectionState.CONNECTED,
                 AgentConnectionState.CONNECTED_INTERRUPT -> {
-                    llCalling.visibility = View.VISIBLE
-                    llJoinCall.visibility = View.INVISIBLE
+                    clBottomLogged.llCalling.visibility = View.VISIBLE
+                    clBottomLogged.btnJoinCall.visibility = View.INVISIBLE
                     vConnecting.visibility = View.GONE
                 }
 
@@ -585,11 +703,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun updateMicrophoneView() {
         mBinding?.apply {
             if (isLocalAudioMuted) {
-                btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_brand_white_selector)
+                clBottomLogged.btnMic.setImageResource(io.agora.scene.common.R.drawable.scene_detail_microphone0)
+                clBottomLogged.btnMic.setBackgroundResource(
+                    io.agora.scene.common.R.drawable
+                        .btn_bg_brand_white_selector
+                )
             } else {
-                btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
-                btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
+                clBottomLogged.btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
+                clBottomLogged.btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
             }
         }
     }
@@ -597,117 +718,103 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun updateMessageList() {
         mBinding?.apply {
             if (isShowMessageList) {
-                messageListView.visibility = View.VISIBLE
-                btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_brand_main6), PorterDuff.Mode.SRC_IN)
+                viewMessageMask.visibility = View.VISIBLE
+                if (isSelfSubRender) {
+                    messageListViewV1.visibility = View.VISIBLE
+                } else {
+                    messageListViewV2.visibility = View.VISIBLE
+                }
+                clBottomLogged.btnCc.setColorFilter(
+                    getColor(io.agora.scene.common.R.color.ai_brand_lightbrand6),
+                    PorterDuff.Mode.SRC_IN
+                )
             } else {
-                messageListView.visibility = View.INVISIBLE
-                btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
+                viewMessageMask.visibility = View.GONE
+                if (isSelfSubRender) {
+                    messageListViewV1.visibility = View.INVISIBLE
+                } else {
+                    messageListViewV2.visibility = View.INVISIBLE
+                }
+                clBottomLogged.btnCc.setColorFilter(
+                    getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff
+                        .Mode.SRC_IN
+                )
             }
         }
     }
 
     private fun updateNetworkStatus(value: Int) {
         networkValue = value
-        infoDialog?.updateNetworkStatus(value)
         mBinding?.apply {
             when (value) {
-                3, 4 -> {
-                    btnInfo.setColorFilter(
-                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_yellow6),
-                        PorterDuff.Mode.SRC_IN
-                    )
+                -1 -> {
+                    clTop.btnNet.visibility = View.GONE
                 }
 
-                5, 6 -> {
-                    btnInfo.setColorFilter(
-                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_red6),
-                        PorterDuff.Mode.SRC_IN
-                    )
+                Constants.QUALITY_VBAD, Constants.QUALITY_DOWN -> {
+                    if (connectionState == AgentConnectionState.CONNECTED_INTERRUPT) {
+                        clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_disconnected)
+                    } else {
+                        clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_poor)
+                    }
+                    clTop.btnNet.visibility = View.VISIBLE
+                }
+
+                Constants.QUALITY_POOR, Constants.QUALITY_BAD -> {
+                    clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_okay)
+                    clTop.btnNet.visibility = View.VISIBLE
                 }
 
                 else -> {
-                    btnInfo.setColorFilter(
-                        this@CovLivingActivity.getColor(io.agora.scene.common.R.color.ai_icontext1),
-                        PorterDuff.Mode.SRC_IN
-                    )
+                    clTop.btnNet.setImageResource(io.agora.scene.common.R.drawable.scene_detail_net_good)
+                    clTop.btnNet.visibility = View.VISIBLE
                 }
-            }
-        }
-    }
-
-    private val onPresetCallback = object : CovSettingsDialog.Callback {
-        override fun onPreset(preset: CovAgentPreset) {
-            mBinding?.apply {
-//                if (preset.isIndependent()) {
-//                    btnCc.isEnabled = false
-//                    btnCc.setBackgroundColor(
-//                        ResourcesCompat.getColor(
-//                            resources,
-//                            io.agora.scene.common.R.color.ai_disable, null
-//                        )
-//                    )
-//                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_disable1), PorterDuff.Mode.SRC_IN)
-//                } else {
-//                    btnCc.isEnabled = true
-//                    btnCc.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_block1_selector)
-//                    btnCc.setColorFilter(getColor(io.agora.scene.common.R.color.ai_icontext1), PorterDuff.Mode.SRC_IN)
-//                }
             }
         }
     }
 
     private fun setupView() {
+        activityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data: Intent? = result.data
+                    val token = data?.getStringExtra("token")
+                    if (token != null) {
+                        SSOUserManager.saveToken(token)
+                        mLoginViewModel.getUserInfoByToken(token)
+                    } else {
+                        showLoginLoading(false)
+                    }
+                }else{
+                    showLoginLoading(false)
+                }
+            }
+        mPermissionHelp = PermissionHelp(this)
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            setOnApplyWindowInsetsListener(root)
-            btnDebug.isVisible = ServerConfig.isDebug
-            btnDebug.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    CovLogger.d(TAG, "showCovDebugDialog called")
-                    val callback = object : CovDebugDialog.Callback {
-                        override fun onAudioDumpEnable(enable: Boolean) {
-                            CovRtcManager.onAudioDump(enable)
-                        }
-
-                        override fun onDebugEnable(enable: Boolean) {
-                            btnDebug.isVisible = ServerConfig.isDebug
-                        }
-
-                        override fun onSwitchEnv(env: Int) {
-                            coroutineScope.launch {
-                                delay(1000L)
-                                onHandleOnBackPressed()
-                            }
-                        }
-
-                        override fun onClickCopy() {
-                            val messageContents = messageListView.getAllMessages()
-                                .filter { it.isMe }
-                                .map { it.content }
-                                .joinToString("\n")
-                            this@CovLivingActivity.copyToClipboard(messageContents)
-                            ToastUtil.show(getString(R.string.cov_copy_succeed))
-                        }
-                    }
-                    val dialog = CovDebugDialog(callback)
-                    dialog.show(supportFragmentManager, "debugSettings")
-                }
-            })
-            btnBack.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    onHandleOnBackPressed()
-                }
-            })
-            btnEndCall.setOnClickListener(object : OnFastClickListener() {
+            val statusBarHeight = getStatusBarHeight() ?: 25.dp.toInt()
+            CovLogger.d(TAG, "statusBarHeight $statusBarHeight")
+            val layoutParams = clTop.root.layoutParams as ViewGroup.MarginLayoutParams
+            layoutParams.topMargin = statusBarHeight
+            clTop.root.layoutParams = layoutParams
+            clBottomLogged.btnEndCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickEndCall()
                 }
             })
-            btnMic.setOnClickListener {
-                isLocalAudioMuted = !isLocalAudioMuted
-                CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+            clBottomLogged.btnMic.setOnClickListener {
+                val currentAudioMuted = isLocalAudioMuted
+                checkMicrophonePermission(
+                    granted = {
+                        if (it) {
+                            isLocalAudioMuted = !isLocalAudioMuted
+                            CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+                        }
+                    },
+                    force = currentAudioMuted,
+                )
             }
-            btnSettings.setOnClickListener(object : OnFastClickListener() {
+            clTop.btnSettings.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     if (CovAgentManager.getPresetList().isNullOrEmpty()) {
                         coroutineScope.launch {
@@ -723,32 +830,90 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     }
                 }
             })
-            btnCc.setOnClickListener {
+            clBottomLogged.btnCc.setOnClickListener {
                 isShowMessageList = !isShowMessageList
             }
-            btnInfo.setOnClickListener(object : OnFastClickListener() {
+            clTop.btnInfo.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    infoDialog = CovAgentInfoDialog.newInstance {
+                    infoDialog = CovAgentInfoDialog.newInstance({
                         infoDialog = null
+                    }) {
+                        showLogoutConfirmDialog {
+                            infoDialog?.dismiss()
+                        }
                     }
-                    infoDialog?.updateNetworkStatus(networkValue)
                     infoDialog?.updateConnectStatus(connectionState)
                     infoDialog?.show(supportFragmentManager, "InfoDialog")
                 }
             })
-            llJoinCall.setOnClickListener(object : OnFastClickListener() {
+            clTop.ivTop.setOnClickListener {
+                DebugConfigSettings.checkClickDebug()
+            }
+            clBottomLogged.btnJoinCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
-                    onClickStartAgent()
+                    // Check microphone permission
+                    checkMicrophonePermission(
+                        granted = {
+                            isLocalAudioMuted = !it
+                            CovRtcManager.muteLocalAudio(isLocalAudioMuted)
+                            onClickStartAgent()
+                        },
+                        force = true,
+                    )
                 }
             })
+            clBottomNotLogged.btnStartWithoutLogin.setOnClickListener(object : OnFastClickListener() {
+                override fun onClickJacking(view: View) {
+                    showLoginDialog()
+                }
+            })
+        }
+    }
+
+    private var titleAnimJob: Job? = null
+    private fun showTitleAnim() {
+        titleAnimJob?.cancel()
+        mBinding?.apply {
+            clTop.tvTips.text = getString(
+                io.agora.scene.common.R.string.common_limit_time,
+                (CovAgentManager.roomExpireTime / 60).toInt()
+            )
+            titleAnimJob = coroutineScope.launch {
+                delay(2000)
+                if (connectionState != AgentConnectionState.IDLE) {
+                    clTop.viewFlipper.showNext()
+                    delay(5000)
+                    if (connectionState != AgentConnectionState.IDLE) {
+                        clTop.viewFlipper.showNext()
+                        clTop.tvTimer.visibility = View.VISIBLE
+                    } else {
+                        // 如果通话已结束，强制显示第一个view
+                        while (clTop.viewFlipper.displayedChild != 0) {
+                            clTop.viewFlipper.showPrevious()
+                        }
+                        clTop.tvTimer.visibility = View.GONE
+                    }
+                }
+            }
+        }
+    }
+
+    private fun stopTitleAnim() {
+        titleAnimJob?.cancel()
+        titleAnimJob = null
+        mBinding?.apply {
+            // 强制显示第一个view
+            while (clTop.viewFlipper.displayedChild != 0) {
+                clTop.viewFlipper.showPrevious()
+            }
+            clTop.tvTimer.visibility = View.GONE
+            mBinding?.clTop?.tvTimer?.setTextColor(getColor(io.agora.scene.common.R.color.ai_brand_white10))
         }
     }
 
     private fun showSettingDialog() {
         settingDialog = CovSettingsDialog.newInstance {
             settingDialog = null
-        }.apply {
-            onCallBack = onPresetCallback
         }
         settingDialog?.updateConnectStatus(connectionState)
         settingDialog?.show(supportFragmentManager, "AgentSettingsSheetDialog")
@@ -762,10 +927,233 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 coroutineScope.launch {
                     delay(1000L)
                     ToastUtil.show(getString(R.string.cov_detail_state_error), Toast.LENGTH_LONG)
-                    onHandleOnBackPressed()
+                    stopAgentAndLeaveChannel()
+//                    onHandleOnBackPressed()
                 }
             }
         })
         mCovBallAnim?.setupView()
+    }
+
+    private var mDebugDialog: DebugDialog? = null
+
+    private fun showCovAiDebugDialog() {
+        if (!isFinishing && !isDestroyed) {
+            if (mDebugDialog?.dialog?.isShowing == true) return
+            mDebugDialog = DebugDialog(AgentScenes.ConvoAi)
+            mDebugDialog?.onDebugDialogCallback = object : DebugDialogCallback {
+                override fun onDialogDismiss() {
+                    mDebugDialog = null
+                }
+
+                override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
+
+                override fun onAudioDumpEnable(enable: Boolean) {
+                    CovRtcManager.onAudioDump(enable)
+                }
+
+                override fun onClickCopy() {
+                    mBinding?.apply {
+                        val messageContents = if (isSelfSubRender) {
+                            messageListViewV1.getAllMessages()
+                                .filter { it.isMe }
+                                .map { it.content }
+                                .joinToString("\n")
+                        } else {
+                            messageListViewV2.getAllMessages()
+                                .filter { it.isMe }
+                                .map { it.content }
+                                .joinToString("\n")
+                        }
+                        this@CovLivingActivity.copyToClipboard(messageContents)
+                        ToastUtil.show(getString(R.string.cov_copy_succeed))
+                    }
+                }
+
+                override fun onEnvConfigChange() {
+                    stopAgentAndLeaveChannel()
+                    SSOUserManager.logout()
+                    updateLoginStatus(false)
+                }
+            }
+            mDebugDialog?.show(supportFragmentManager, "covAidebugSettings")
+        }
+    }
+
+    private fun showRoomEndDialog() {
+        val mins: String = (CovAgentManager.roomExpireTime / 60).toInt().toString()
+        CommonDialog.Builder()
+            .setTitle(getString(io.agora.scene.common.R.string.common_call_time_is_up))
+            .setContent(getString(io.agora.scene.common.R.string.common_call_time_is_up_tips, mins))
+            .setPositiveButton(getString(io.agora.scene.common.R.string.common_i_known))
+            .hideNegativeButton()
+            .build()
+            .show(supportFragmentManager, "dialog_tag")
+    }
+
+    private fun checkLogin() {
+        val tempToken = SSOUserManager.getToken()
+        if (tempToken.isNotEmpty()) {
+            mLoginViewModel.getUserInfoByToken(tempToken)
+        }
+        updateLoginStatus(tempToken.isNotEmpty())
+        mLoginViewModel.userInfoLiveData.observe(this) { userInfo ->
+            if (userInfo != null) {
+                mLoginDialog?.dismiss()
+                mLoginDialog = null
+                showLoginLoading(false)
+                updateLoginStatus(true)
+                getPresetTokenConfig()
+            } else {
+                showLoginLoading(false)
+            }
+        }
+    }
+
+    private fun getPresetTokenConfig() {
+        // Fetch token and presets when entering the scene
+        coroutineScope.launch {
+            val deferreds = listOf(
+                async { updateTokenAsync() },
+                async { fetchPresetsAsync() }
+            )
+            deferreds.awaitAll()
+        }
+    }
+
+    private fun updateLoginStatus(isLogin: Boolean) {
+        mBinding?.apply {
+            if (isLogin) {
+                clTop.btnSettings.visibility = View.VISIBLE
+                clTop.btnInfo.visibility = View.VISIBLE
+                clBottomLogged.root.visibility = View.VISIBLE
+                clBottomNotLogged.root.visibility = View.INVISIBLE
+
+                clBottomNotLogged.tvTyping.stopAnimation()
+            } else {
+                clTop.btnSettings.visibility = View.INVISIBLE
+                clTop.btnInfo.visibility = View.INVISIBLE
+                clBottomLogged.root.visibility = View.INVISIBLE
+                clBottomNotLogged.root.visibility = View.VISIBLE
+
+                clBottomNotLogged.tvTyping.stopAnimation()
+                clBottomNotLogged.tvTyping.startAnimation()
+            }
+        }
+    }
+
+    private fun showLoginLoading(show: Boolean) {
+        mBinding?.apply {
+            if (show) {
+                clBottomNotLogged.layoutLoading.visibility = View.VISIBLE
+                clBottomNotLogged.loadingView.startAnimation()
+            } else {
+                clBottomNotLogged.layoutLoading.visibility = View.GONE
+                clBottomNotLogged.loadingView.stopAnimation()
+            }
+        }
+    }
+
+    private fun showLoginDialog() {
+        if (!isFinishing && !isDestroyed) {  // Add safety check
+            mLoginDialog = LoginDialog().apply {
+                onLoginDialogCallback = object : LoginDialogCallback {
+                    override fun onDialogDismiss() {
+                        mLoginDialog = null
+                    }
+
+                    override fun onClickStartSSO() {
+                        activityResultLauncher.launch(Intent(this@CovLivingActivity, SSOWebViewActivity::class.java))
+                        showLoginLoading(true)
+                    }
+
+                    override fun onTermsOfServices() {
+                        TermsActivity.startActivity(this@CovLivingActivity, ServerConfig.termsOfServicesUrl)
+                    }
+
+                    override fun onPrivacyPolicy() {
+                        TermsActivity.startActivity(this@CovLivingActivity, ServerConfig.privacyPolicyUrl)
+                    }
+                }
+            }
+            mLoginDialog?.show(supportFragmentManager, "mainDebugDialog")
+        }
+    }
+
+    private fun showLogoutConfirmDialog(onLogout: () -> Unit) {
+        CommonDialog.Builder()
+            .setTitle(getString(io.agora.scene.common.R.string.common_logout_confirm_title))
+            .setContent(getString(io.agora.scene.common.R.string.common_logout_confirm_text))
+            .setPositiveButton(getString(io.agora.scene.common.R.string.common_logout_confirm_known), {
+                cleanCookie()
+                stopAgentAndLeaveChannel()
+                SSOUserManager.logout()
+                updateLoginStatus(false)
+                onLogout.invoke()
+            })
+            .setNegativeButton(getString(io.agora.scene.common.R.string.common_logout_confirm_cancel))
+            .hideTopImage()
+            .build()
+            .show(supportFragmentManager, "logout_dialog_tag")
+    }
+
+    private fun cleanCookie() {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies { success ->
+            if (success) {
+                CovLogger.d(TAG, "Cookies successfully removed")
+            } else {
+                Log.d(TAG, "Failed to remove cookies")
+            }
+        }
+        cookieManager.flush()
+    }
+
+    private fun checkMicrophonePermission(granted: (Boolean) -> Unit, force: Boolean) {
+        if (force) {
+            if (mPermissionHelp.hasMicPerm()) {
+                granted.invoke(true)
+            } else {
+                mPermissionHelp.checkMicPerm(
+                    granted = {
+                        granted.invoke(true)
+                    },
+                    unGranted = {
+                        showPermissionDialog {
+                            if (it) {
+                                mPermissionHelp.launchAppSettingForMic(
+                                    granted = {
+                                        granted.invoke(true)
+                                    },
+                                    unGranted = {
+                                        granted.invoke(false)
+                                    }
+                                )
+                            } else {
+                                granted.invoke(false)
+                            }
+                        }
+                    }
+                )
+            }
+        } else {
+            granted.invoke(true)
+        }
+    }
+
+    private fun showPermissionDialog(onResult: (Boolean) -> Unit) {
+        CommonDialog.Builder()
+            .setTitle(getString(R.string.cov_permission_required))
+            .setContent(getString(R.string.cov_mic_permission_required_content))
+            .setPositiveButton(getString(R.string.cov_retry)) {
+                onResult.invoke(true)
+            }
+            .setNegativeButton(getString(R.string.cov_exit)) {
+                onResult.invoke(false)
+            }
+            .hideTopImage()
+            .setCancelable(false)
+            .build()
+            .show(supportFragmentManager, "permission_dialog")
     }
 }

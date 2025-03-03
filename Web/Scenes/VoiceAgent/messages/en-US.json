@@ -1,0 +1,165 @@
+{
+  "language": {
+    "enUS": "English",
+    "zhCN": "中文",
+    "esES": "Español",
+    "jaJP": "日本語",
+    "koKR": "한국어",
+    "arSA": "العربية",
+    "hiIN": "हिन्दी"
+  },
+  "metadata": {
+    "title": "Conversational AI Engine",
+    "description": "Conversational AI Engine"
+  },
+  "common": {
+    "language": "Language"
+  },
+  "homePage": {
+    "title": "Conversational AI Engine"
+  },
+  "status": {
+    "unknown": "Unknown",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnecting": "Disconnected",
+    "na": "--",
+    "good": "Good",
+    "medium": "Fair",
+    "bad": "Poor"
+  },
+  "roomInfo": {
+    "tooltip": "Network and channel information",
+    "networkInfo": "NETWORK INFO",
+    "yourNetwork": "Your Network",
+    "networkLevel": {
+      "good": "Good",
+      "medium": "Fair",
+      "bad": "Poor",
+      "unknown": "Unknown"
+    },
+    "channelInfo": "CHANNEL INFO",
+    "agentStatus": "Agent Status",
+    "roomStatus": "Room Status",
+    "roomId": "Room ID",
+    "yourId": "Your ID",
+    "agentId": "Agent ID",
+    "unknown": "Unknown"
+  },
+  "moreInfo": {
+    "title": "More INFO",
+    "moreAction": "More Actions"
+  },
+  "settings": {
+    "title": "Settings",
+    "save": "Save",
+    "options": {
+      "custom": "Custom",
+      "preset": "Preset",
+      "error": "Failed to get presets"
+    },
+    "asr": {
+      "language": "Language"
+    },
+    "custom_llm": {
+      "title": "Custom LLM",
+      "url": "Custom LLM URL",
+      "api_key": "Custom LLM Key",
+      "model": "Custom LLM Model",
+      "prompt": "Custom LLM Prompt",
+      "promptPlaceholder": "Enter prompt",
+      "style": "Custom LLM Style"
+    },
+    "advanced_features": {
+      "title": "Advanced Settings",
+      "enable_bhvs": {
+        "title": "BHVS",
+        "description": "Background Human Voice Suppression"
+      },
+      "enable_aivad": {
+        "title": "Intelligent Interruption Handling",
+        "description": ""
+      }
+    }
+  },
+  "agent": {
+    "greeting": {
+      "hi": "Hi,",
+      "human": "I'm Conversational AI Engine.",
+      "connecting": "I'm connecting...",
+      "connected": "I've joined",
+      "speakLoudly": "At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice.",
+      "failed": "Failed to join. Please try again."
+    },
+    "getStart": "Call AI Agent",
+    "subtitle": "Subtitles",
+    "enableSubtitle": "Enable Subtitles",
+    "disableSubtitle": "Disable Subtitles",
+    "agentLabel": "Agent",
+    "userLabel": "You",
+    "hangUp": "Exit AI Conversation",
+    "tooltip-mic-current-enable": "Click to mute",
+    "tooltip-mic-current-disable": "Unmute",
+    "tooltip-mic-current-disallow": "Browser microphone permission not granted",
+    "switchMic": "Switch Microphone",
+    "agentConnected": "Agent Joined!",
+    "agentDisconnected": "Agent left!",
+    "agentConnectedTimeout": "Timeout. Please try again.",
+    "agentAborted": "Agent left abnormally. Please try again.",
+    "agentReconnectedTimeout": "Network error. Please check your network settings.",
+    "tmpDisconnected": "Network error. Please check your network settings.",
+    "agentReconnected": "Agent Joined!",
+    "errorTitle": "Failed to join. Please try again.",
+    "reminder": {
+      "firstSpeaking": "At the beginning of the conversation, please speak loudly and clearly to help the AI agent better lock onto your voice."
+    },
+    "startAgentError": "Connection failed.",
+    "interrupted": "Interrupted"
+  },
+  "compatibility": {
+    "errorTitle": "Compatibility Check",
+    "errorDescription": "Please check if your browser supports WebRTC",
+    "errorHelper": "We recommend using the latest version of your browser on the latest operating system",
+    "errorButton": "I understand"
+  },
+  "devMode": {
+    "badge": "Dev Mode",
+    "endpoint": "Agent Endpoint",
+    "unknown": "Unknown",
+    "title": "Dev Mode",
+    "description": "In dev mode, you can debug the Agent",
+    "userChatHistory": "User Message History",
+    "historyNumber": "{sum} messages",
+    "userID": "User ID",
+    "agentID": "Agent ID",
+    "channelName": "Channel Name",
+    "copy": "Copy",
+    "copySuccess": "Copied successfully"
+  },
+  "userInfo": {
+    "logout": "Log Out"
+  },
+  "log": {
+    "label": "Quick Report",
+    "uploadSuccess": "Uploaded",
+    "uploadErrorTip": "Opps! Something went wrong. Please try reporting again.",
+    "uploadSuccessTip": "We've received your report. Thanks for helping us improve!"
+  },
+  "login": {
+    "title": "Log in with Agora account",
+    "buttonTip": "login to chat free",
+    "panelTitle": "Unlock ♾️ Free Chat",
+    "panelDescription": " ",
+    "panelButton": "Log in with Agora account",
+    "privacyPolicy": "I agree to the <link>Agora Terms of Service</link> and <policyLink> Privacy Policy.</policyLink>",
+    "termsTip": "Please accept the terms to proceed.",
+    "unauthorizedError": "Your session has expired. Please log in again."
+  },
+  "conversationTimer": {
+    "tip": "Chats limited to {minutes} minutes each.",
+    "title": "Time's Up!",
+    "description": "Each conversation is limited to {minutes} minutes. The time is up for this conversation. You can close this dialog to start a new conversation.",
+    "button": "Got it"
+  }
+}

@@ -90,6 +90,7 @@ class PermissionHelp constructor(val activity: ComponentActivity) {
                 // You can use the API that requires the permission.
                 granted.invoke()
             }
+
             activity.shouldShowRequestPermissionRationale(perm) -> {
                 // In an educational UI, explain to the user why your app requires this
                 // permission for a specific feature to behave as expected, and what
@@ -103,6 +104,7 @@ class PermissionHelp constructor(val activity: ComponentActivity) {
                     unGranted.invoke()
                 }
             }
+
             else -> {
                 // You can directly ask for the permission.
                 // The registered ActivityResultCallback gets the result of this request.
@@ -121,5 +123,18 @@ class PermissionHelp constructor(val activity: ComponentActivity) {
         this.granted = granted
         this.unGranted = unGranted
         appSettingLauncher.launch(perm)
+    }
+
+    fun launchAppSettingForMic(granted: () -> Unit, unGranted: () -> Unit) {
+        this.granted = granted
+        this.unGranted = unGranted
+        appSettingLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
+
+    fun hasMicPerm(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            activity,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
     }
 }

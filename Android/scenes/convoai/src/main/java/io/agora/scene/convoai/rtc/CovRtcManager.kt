@@ -19,6 +19,8 @@ object CovRtcManager {
 
     private var rtcEngine: RtcEngineEx? = null
 
+    private var mAudioRouting = Constants.AUDIO_ROUTE_DEFAULT
+
     fun createRtcEngine(rtcCallback: IRtcEngineEventHandler): RtcEngineEx {
         val config = RtcEngineConfig()
         config.mContext = AgentApp.instance()
@@ -53,7 +55,11 @@ object CovRtcManager {
 
     fun joinChannel(rtcToken: String, channelName: String, uid: Int) {
         CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $uid")
-        setAudioConfig()
+        //set audio scenario 10，open AI-QoS
+        rtcEngine?.setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
+        // audio predump default enable
+        rtcEngine?.setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
+        setAudioConfig(mAudioRouting)
         val options = ChannelMediaOptions()
         options.clientRoleType = CLIENT_ROLE_BROADCASTER
         options.publishMicrophoneTrack = true
@@ -70,22 +76,36 @@ object CovRtcManager {
         }
     }
 
-    private fun setAudioConfig() {
+    fun setAudioConfig(routing: Int) {
+        mAudioRouting = routing
         rtcEngine?.apply {
-            //set audio scenario 10，open AI-QoS
-            setAudioScenario(Constants.AUDIO_SCENARIO_AI_CLIENT)
             setParameters("{\"che.audio.aec.split_srate_for_48k\":16000}")
             setParameters("{\"che.audio.sf.enabled\":true}")
-            setParameters("{\"che.audio.sf.delayMode\":2}")
+            // setParameters("{\"che.audio.sf.delayMode\":2}")
+            setParameters("{\"che.audio.sf.stftType\":6}")
+            setParameters("{\"che.audio.sf.ainlpLowLatencyFlag\":1}")
+            setParameters("{\"che.audio.sf.ainsLowLatencyFlag\":1}")
+
             setParameters("{\"che.audio.sf.procChainMode\":1}")
             setParameters("{\"che.audio.sf.nlpDynamicMode\":1}")
-            setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
-            setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}")
+
+            if (routing == Constants.AUDIO_ROUTE_HEADSET // 0
+                || routing == Constants.AUDIO_ROUTE_EARPIECE // 1
+                || routing == Constants.AUDIO_ROUTE_HEADSETNOMIC // 2
+                || routing == Constants.AUDIO_ROUTE_BLUETOOTH_DEVICE_HFP // 5
+                || routing == Constants.AUDIO_ROUTE_BLUETOOTH_DEVICE_A2DP) { // 10
+                setParameters("{\"che.audio.sf.nlpAlgRoute\":0}")
+            } else {
+                setParameters("{\"che.audio.sf.nlpAlgRoute\":1}")
+            }
+            //setParameters("{\"che.audio.sf.ainlpToLoadFlag\":1}")
             setParameters("{\"che.audio.sf.ainlpModelPref\":10}")
+
             setParameters("{\"che.audio.sf.nsngAlgRoute\":12}")
-            setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}")
+            //setParameters("{\"che.audio.sf.ainsToLoadFlag\":1}")
             setParameters("{\"che.audio.sf.ainsModelPref\":10}")
             setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
+
             setParameters("{\"che.audio.agc.enable\":false}")
         }
     }
@@ -103,18 +123,16 @@ object CovRtcManager {
         rtcEngine?.adjustRecordingSignalVolume(if (mute) 0 else 100)
     }
 
-    fun onAudioDump(enable:Boolean){
+    fun onAudioDump(enable: Boolean) {
         if (enable) {
             rtcEngine?.setParameters("{\"che.audio.apm_dump\": true}")
-//            rtcEngine?.setParameters("{\"rtc.debug.enable\": true}")
-//            rtcEngine?.setParameters(
-//                "{\"che.audio.frame_dump\":{\"location\":\"all\",\"action\":\"start\"," +
-//                        "\"max_size_bytes\":\"120000000\",\"uuid\":\"123456789\",\"duration\":\"1200000\"}}"
-//            )
         } else {
-//            rtcEngine?.setParameters("{\"rtc.debug.enable\": false}")
             rtcEngine?.setParameters("{\"che.audio.apm_dump\": false}")
         }
+    }
+
+    fun generatePredumpFile() {
+        rtcEngine?.setParameters("{\"che.audio.start.predump\": true}")
     }
 
     fun resetData() {

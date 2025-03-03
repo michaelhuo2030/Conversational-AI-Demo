@@ -1,75 +1,111 @@
-# 对话式 AI 引擎
+# 🌟 声网对话式 AI 引擎体验应用
 
-*Read this in other languages: [English](README.md)*
+*其他语言版本：[English](README.md)*
 
-对话式 AI 引擎 ...
+声网对话式 AI 引擎重新定义了人机交互界面，突破了传统文字交互，实现了高拟真、自然流畅的实时语音对话，让 AI 真正"开口说话"。适用于创新场景如：
 
-### 一、快速开始
+- 🤖 智能助手
+- 💞 情感陪伴
+- 🗣️ 口语陪练
+- 🎧 智能客服
+- 📱 智能硬件
+- 🎮 沉浸式游戏 NPC
 
-这个部分主要介绍如何快速跑通对话式 AI 引擎项目
+## 🚀 一、快速开始
 
-#### 1.1 环境准备
+这个部分主要介绍如何快速跑通声网对话式 AI 引擎体验应用项目。
+
+### 📱 1.1 环境准备
 
 - 最低兼容 Android 7.0（SDK API Level 24）
 - Android Studio 3.5 及以上版本
 - Android 7.0 及以上的手机设备
 
-#### 1.2 运行项目
+### ⚙️ 1.2 运行项目
 
-- 1.2.1 进入声网控制台获取 APP ID 和 APP 证书 [控制台入口](https://console.shengwang.cn/overview)
+#### 1.2.1 获取 APP ID 和 APP 证书
 
-  - 点击创建项目
+- 进入[声网控制台](https://console.shengwang.cn/overview)
+- 点击创建项目
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_1.jpg)
+- 选择项目基础配置，鉴权机制需要选择**安全模式**
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_2.jpg)
+- 获取项目 APP ID 与 APP 证书
 
-    ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_1.jpg)
-  - 选择项目基础配置, 鉴权机制需要选择**安全模式**
+#### 1.2.2 开启对话式 AI 引擎功能权限
 
-    ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_2.jpg)
-  - 拿到项目 APP ID 与 APP 证书
+- 在[声网控制台](https://console.shengwang.cn/product/ConversationAI?tab=config)开启权限
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/ConvoAI.png)
 
-- 1.2.2 在项目的 [**gradle.properties**](../../gradle.properties) 里填写需要的声网 APP ID 和 APP 证书
+#### 1.2.3 获取 RESTful API 密钥
+
+- 在[声网控制台](https://console.shengwang.cn/settings/restfulApi)点击添加密钥
+  ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/restful.png)
+- 下载密钥文件，复制 BASIC_AUTH_KEY 和 BASIC_AUTH_SECRET
+
+#### 1.2.4 获取 LLM 配置信息
+
+- 自行在 LLM 厂商官网获取相关配置信息
+
+#### 1.2.5 获取 TTS 配置信息
+
+- 自行在 TTS 厂商官网获取相关配置信息
+
+#### 1.2.6 配置项目
+
+- 在项目的 [**gradle.properties**](../../gradle.properties) 里填写必须的配置信息：
+
 ```
-# RTC SDK key Config
-#----------- AppKey --------------
-GLOBAL_AG_APP_ID=<Your Agora App ID>
-GLOBAL_AG_APP_CERTIFICATE=<Your Agora App Certificate(if enable token)>
+#----------- AppId --------------
+CN_AG_APP_ID=<声网 App ID>
+CN_AG_APP_CERTIFICATE=<声网 App Certificate>
 
-GLOBAL_AG_APP_ID_DEV=<Your Agora App ID>
-GLOBAL_AG_APP_CERTIFICATE_DEV=<Your Agora App Certificate(if enable token)>
+#----------- Basic Auth ---------------
+BASIC_AUTH_KEY=<声网 RESTful API KEY>
+BASIC_AUTH_SECRET=<声网 RESTful API SECRET>
 
-CN_AG_APP_ID=<Your Agora App ID>
-CN_AG_APP_CERTIFICATE=<Your Agora App Certificate(if enable token)>
+#----------- LLM -----------
+LLM_URL=<LLM 厂商的 API BASE URL>
+LLM_API_KEY=<LLM 厂商的 API KEY>(可选)
+LLM_SYSTEM_MESSAGES=<LLM Prompt>(可选)
+LLM_MODEL=<LLM Model>(可选)
 
-CN_AG_APP_ID_DEV<Your Agora App ID>
-CN_AG_APP_CERTIFICATE_DEV=<Your Agora App Certificate(if enable token)>
+#----------- TTS -----------
+TTS_VENDOR=<TTS 厂商>
+TTS_PARAMS=<TTS 参数>
 ```
 
-- 1.2.3 用 Android Studio 运行项目即可开始您的体验
+- 用 Android Studio 运行项目即可开始您的体验
 
-### 二、 项目介绍
+## 🗂️ 二、项目结构导览
 
-| 路径 | 描述 |
-|------------------------------------------------------------------|-------------|
-| [api/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/api) | 对话式 AI 引擎 restful 接口实现和数据模型 |
-| [animation/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/animation) | 智能体交互动画效果 |
-| [constant/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/constant) | 常量和枚举定义 |
-| [debug/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/debug) | 调试工具和设置界面 |
-| [rtc/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/rtc) | RTC 相关实现 |
-| [ui/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/ui) | UI 组件和活动页面 |
-| [utils/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/utils) | 工具类和辅助函数 |
-| [CovLivingActivity.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovLivingActivity.kt) | AI 对话主界面 |
-| [CovSettingsDialog.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovSettingsDialog.kt) | 智能体配置设置对话框 |
-| [CovAgentInfoDialog.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovAgentInfoDialog.kt) | 智能体状态信息对话框 |
+| 路径                                                                                                    | 描述                                      |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [api/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/api)                                    | 对话式 AI 引擎 RESTful 接口实现和数据模型 |
+| [animation/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/animation)                        | 智能体交互动画效果实现                    |
+| [constant/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/constant)                          | 常量和枚举类型定义                        |
+| [subRender/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/subRender/v2)                     | 实时对话字幕渲染组件                      |
+| [rtc/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/rtc)                                    | RTC 音视频通信相关实现                    |
+| [ui/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/ui)                                      | UI 界面组件和交互页面                     |
+| [utils/](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/utils)                                | 实用工具类和辅助函数                      |
+| [CovLivingActivity.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovLivingActivity.kt)   | AI 对话主交互界面                         |
+| [CovSettingsDialog.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovSettingsDialog.kt)   | 智能体参数配置设置对话框                  |
+| [CovAgentInfoDialog.kt](Android/scenes/convoai/src/main/java/io/agora/scene/convoai/CovAgentInfoDialog.kt) | 智能体运行状态信息展示对话框              |
 
-### 三、相关资料
+## 📚 三、相关资源
 
-- 查看我们的 [对话式 AI 引擎文档]() 了解更多详情
-- 访问 [Agora SDK 示例](https://github.com/AgoraIO) 获取更多教程
-- 在 [Agora 开发者社区](https://github.com/AgoraIO-Community) 查看开发者社区管理的代码仓库
+- 📖 查看我们的 [对话式 AI 引擎文档](https://doc.shengwang.cn/doc/convoai/restful/landing-page) 了解更多详情
+- 🧩 访问 [Agora SDK 示例](https://github.com/AgoraIO) 获取更多教程和示例代码
+- 👥 在 [Agora 开发者社区](https://github.com/AgoraIO-Community) 探索开发者社区管理的优质代码仓库
+- 💬 如有疑问，欢迎在 [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io) 提问
 
-### 四、问题反馈
+## 💡 四、问题反馈
 
-- 集成遇到困难，该如何联系声网获取协助
-  - 可以从智能客服获取帮助或联系技术支持人员 [声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)
+如果您在集成过程中遇到任何问题或有改进建议：
 
-### 五、License
-The MIT License (MIT).
+- 🤖 可通过[声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)获取智能客服帮助或联系技术支持人员
+- ✉️ 发送邮件至 [support@agora.io](mailto:support@agora.io) 获取专业支持
+
+## 📜 五、许可证
+
+本项目采用 MIT 许可证 (The MIT License)。

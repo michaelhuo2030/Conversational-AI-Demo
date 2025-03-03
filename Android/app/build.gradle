@@ -2,10 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
+apply from: 'resource.gradle'
+
+def buildTimestamp = new Date().format("yyyyMMddHHmm")
 
 if (project.getProperty("CN_AG_APP_ID").toString().isEmpty() &&
         project.getProperty("GLOBAL_AG_APP_ID").toString().isEmpty()) {
-    throw new GradleException("请在 gradle.properties 中配置 Agora ID 和 Certificate")
+    throw new GradleException("Please configure Agora ID and Certificate in gradle.properties")
 }
 
 android {
@@ -18,6 +21,8 @@ android {
         targetSdk rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+        
+        buildConfigField("String", "BUILD_TIMESTAMP", "\"${buildTimestamp}\"")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,22 +33,20 @@ android {
         china {
             dimension "region"
             applicationId "cn.shengwang.convoai"
-            resValue "string", "app_name", "对话式 AI 引擎"
+            resValue "string", "app_name", "对话式 AI 引擎体验"
             buildConfigField("Boolean", "IS_MAINLAND", "true")
+            buildConfigField("String", "TOOLBOX_SERVER_HOST", "\"${project.getProperty("CN_TOOLBOX_SERVER_HOST")}\"")
             buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("CN_AG_APP_ID")}\"")
             buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("CN_AG_APP_CERTIFICATE")}\"")
-            buildConfigField("String", "AG_APP_ID_DEV", "\"${project.getProperty("CN_AG_APP_ID_DEV")}\"")
-            buildConfigField("String", "AG_APP_CERTIFICATE_DEV", "\"${project.getProperty("CN_AG_APP_CERTIFICATE_DEV")}\"")
         }
         global {
             dimension "region"
             applicationId "io.agora.convoai"
             resValue "string", "app_name", "Convo AI"
             buildConfigField("Boolean", "IS_MAINLAND", "false")
+            buildConfigField("String", "TOOLBOX_SERVER_HOST", "\"${project.getProperty("GLOBAL_TOOLBOX_SERVER_HOST")}\"")
             buildConfigField("String", "AG_APP_ID", "\"${project.getProperty("GLOBAL_AG_APP_ID")}\"")
             buildConfigField("String", "AG_APP_CERTIFICATE", "\"${project.getProperty("GLOBAL_AG_APP_CERTIFICATE")}\"")
-            buildConfigField("String", "AG_APP_ID_DEV", "\"${project.getProperty("GLOBAL_AG_APP_ID_DEV")}\"")
-            buildConfigField("String", "AG_APP_CERTIFICATE_DEV", "\"${project.getProperty("GLOBAL_AG_APP_CERTIFICATE_DEV")}\"")
         }
     }
 
@@ -59,13 +62,19 @@ android {
     applicationVariants.all {
         variant ->
             variant.outputs.all { output ->
-                def appName = variant.applicationId
+                def flavor = variant.productFlavors.isEmpty() ? "default" : variant.productFlavors[0].name
+                def flavorPrefix = ""
+                if (flavor == "china") {
+                    flavorPrefix = "ShengWang_Conversational_Al_Engine_Demo_for_Android"
+                } else if (flavor == "global") {
+                    flavorPrefix = "Agora_Conversational_Al_Engine_Demo_for_Android"
+                } else {
+                    flavorPrefix = "Conversational_Al_Engine_Demo_for_Android"
+                }
                 outputFileName = new File(
-                        rootProject.name + "_" +
+                        flavorPrefix + "_" +
                                 "v" + defaultConfig.versionName + "_" +
-                                buildType.name + "_" +
-                                new Date().format("yyyyMMddHHmm") + "_" +
-                                appName + ".apk")
+                                buildTimestamp + ".apk")
             }
     }
 
@@ -92,11 +101,6 @@ android {
 dependencies {
     implementation project(':common')
     implementation project(':scenes:convoai')
-    implementation project(':scenes:digitalhuman')
-//    def convoAiModule = ':scenes:convoai'
-//    if (findProject(convoAiModule) != null) {
-//        runtimeOnly project(convoAiModule)
-//    }
 
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit

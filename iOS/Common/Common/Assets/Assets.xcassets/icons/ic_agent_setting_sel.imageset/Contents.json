@@ -5,12 +5,12 @@
       "scale" : "1x"
     },
     {
-      "filename" : "Symbol.png",
+      "filename" : "icon_checkbox1@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Symbol-1.png",
+      "filename" : "icon_checkbox1@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

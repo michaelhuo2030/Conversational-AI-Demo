@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="@color/ai_fill1" />
+        </shape>
+    </item>
+
+    <item
+        android:width="76dp"
+        android:height="76dp"
+        android:gravity="center">
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/scene_detail_convo_ai_logo" />
+    </item>
+</layer-list> 
