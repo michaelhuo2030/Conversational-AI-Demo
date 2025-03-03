@@ -53,8 +53,8 @@ object CovRtcManager {
         return mediaPlayer!!
     }
 
-    fun joinChannel(rtcToken: String, channelName: String, uid: Int,isIndependent:Boolean = false) {
-        CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $uid")
+    fun joinChannel(rtcToken: String, channelName: String, uid: Int, isIndependent: Boolean = false) {
+        CovLogger.d(TAG, "onClickStartAgent channelName: $channelName, localUid: $uid, isIndependent: $isIndependent")
         //set audio scenario 10，open AI-QoS
         if (isIndependent) {
             rtcEngine?.setAudioScenario(Constants.AUDIO_SCENARIO_CHORUS)
