@@ -23,7 +23,7 @@
 
 #### 1.2.1 获取 APP ID 和 APP 证书
 
-- 进入[声网控制台](https://console.shengwang.cn/overview)
+- 进入 [声网控制台](https://console.shengwang.cn/overview)
 - 点击创建项目
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_1.jpg)
 - 选择项目基础配置，鉴权机制需要选择**安全模式**
@@ -32,12 +32,12 @@
 
 #### 1.2.2 开启对话式 AI 引擎功能权限
 
-- 在[声网控制台](https://console.shengwang.cn/product/ConversationAI?tab=config)开启权限
+- 在 [声网控制台](https://console.shengwang.cn/product/ConversationAI?tab=config) 开启权限
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/ConvoAI.png)
 
 #### 1.2.3 获取 RESTful API 密钥
 
-- 在[声网控制台](https://console.shengwang.cn/settings/restfulApi)点击添加密钥
+- 在 [声网控制台](https://console.shengwang.cn/settings/restfulApi) 点击添加密钥
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/restful.png)
 - 下载密钥文件，复制 BASIC_AUTH_KEY 和 BASIC_AUTH_SECRET
 
@@ -99,7 +99,7 @@ TTS_PARAMS=<TTS 参数>
 
 如果您在集成过程中遇到任何问题或有改进建议：
 
-- 🤖 可通过[声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)获取智能客服帮助或联系技术支持人员
+- 🤖 可通过 [声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=) 获取智能客服帮助或联系技术支持人员
 
 ## 📜 五、许可证
 
