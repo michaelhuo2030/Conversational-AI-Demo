@@ -1,4 +1,4 @@
-# 🌟 声网对话式 AI 引擎体验应用
+# 🌟 Conversational-AI-Demo
 
 声网对话式 AI 引擎重新定义了人机交互界面，突破了传统文字交互，实现了高拟真、自然流畅的实时语音对话，让 AI 真正"开口说话"。适用于创新场景如：
 
@@ -22,7 +22,7 @@
 
 #### 1.2.1 获取 APP ID 和 APP 证书
 
-- 进入[声网控制台](https://console.shengwang.cn/overview)
+- 进入 [声网控制台](https://console.shengwang.cn/overview)
 - 点击创建项目
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_1.jpg)
 - 选择项目基础配置，鉴权机制需要选择**安全模式**
@@ -31,12 +31,12 @@
 
 #### 1.2.2 开启对话式 AI 引擎功能权限
 
-- 在[声网控制台](https://console.shengwang.cn/product/ConversationAI?tab=config)开启权限
+- 在 [声网控制台](https://console.shengwang.cn/product/ConversationAI?tab=config) 开启权限
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/ConvoAI.png)
 
 #### 1.2.3 获取 RESTful API 密钥
 
-- 在[声网控制台](https://console.shengwang.cn/settings/restfulApi)点击添加密钥
+- 在 [声网控制台](https://console.shengwang.cn/settings/restfulApi) 点击添加密钥
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/restful.png)
 - 下载密钥文件，复制 BASIC_AUTH_KEY 和 BASIC_AUTH_SECRET
 
@@ -72,7 +72,7 @@
     static let TTS_PARAMS: [String : Any] = <TTS 参数>
 ```
 
-- 在iOS目录执行`pod install` 后运行项目，即可开始您的体验
+- 在 iOS 目录执行 `pod install` 后运行项目，即可开始您的体验
 
 ## 🗂️ 二、项目结构导览
 
@@ -94,14 +94,12 @@
 - 📖 查看我们的 [对话式 AI 引擎文档](https://doc.shengwang.cn/doc/convoai/restful/landing-page) 了解更多详情
 - 🧩 访问 [Agora SDK 示例](https://github.com/AgoraIO) 获取更多教程和示例代码
 - 👥 在 [Agora 开发者社区](https://github.com/AgoraIO-Community) 探索开发者社区管理的优质代码仓库
-- 💬 如有疑问，欢迎在 [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io) 提问
 
 ## 💡 四、问题反馈
 
 如果您在集成过程中遇到任何问题或有改进建议：
 
-- 🤖 可通过[声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)获取智能客服帮助或联系技术支持人员
-- ✉️ 发送邮件至 [support@agora.io](mailto:support@agora.io) 获取专业支持
+- 🤖 可通过 [声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=) 获取智能客服帮助或联系技术支持人员
 
 ## 📜 五、许可证
 
