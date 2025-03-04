@@ -19,9 +19,7 @@ class LoginViewModel : ViewModel() {
        private const val TAG = "LoginViewModel"
     }
 
-    private val apiService by lazy {
-        ApiManager.getService(ApiManagerService::class.java)
-    }
+    private fun getApiService() = ApiManager.getService(ApiManagerService::class.java)
 
     private val _userInfoLiveData: MutableLiveData<SSOUserInfo?> = MutableLiveData()
     val userInfoLiveData: LiveData<SSOUserInfo?> get() = _userInfoLiveData
@@ -29,7 +27,7 @@ class LoginViewModel : ViewModel() {
     fun getUserInfoByToken(token: String) {
         viewModelScope.launch {
             runCatching {
-                apiService.ssoUserInfo("Bearer $token")
+                getApiService().ssoUserInfo("Bearer $token")
             }.onSuccess { result ->
                 if (result.isSuccess && result.data != null) {
                     SSOUserManager.saveUser(result.data!!)
