@@ -16,10 +16,10 @@
 ## 🚀 快速开始
 
 |    平台    |                  示例                  |
-| :--------: | :-------------------------------------: |
-| 📱 Android | [ConvoAI(Android)](Android/scenes/convoai) |
-|   📱 iOS   |   [ConvoAI(iOS)](iOS/Scenes/ConvoAI)   |
-|   🌐 Web   |   [ConvoAI(Web)](Web/Scenes/VoiceAgent)   |
+| -------- | ------------------------------------- |
+| 📱 Android | [Android Demo](Android/scenes/convoai) |
+|   📱 iOS   |   [iOS Demo](iOS/Scenes/ConvoAI)   |
+|   🌐 Web   |   [Web Demo](Web/Scenes/VoiceAgent)   |
 
 ---
 
