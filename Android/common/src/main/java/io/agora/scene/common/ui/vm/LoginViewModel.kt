@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.agora.scene.common.R
 import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.net.ApiManager
 import io.agora.scene.common.net.ApiManagerService
@@ -35,12 +36,12 @@ class LoginViewModel : ViewModel() {
                 } else {
                     SSOUserManager.logout()
                     _userInfoLiveData.postValue(null)
-                    ToastUtil.show("Login expired")
+                    ToastUtil.show(R.string.common_login_expired)
                 }
             }.onFailure { e ->
                 SSOUserManager.logout()
                 _userInfoLiveData.postValue(null)
-                ToastUtil.show("Login expired")
+                ToastUtil.show(R.string.common_login_expired)
             }
         }
     }
