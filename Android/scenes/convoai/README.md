@@ -1,4 +1,4 @@
-# 🌟 声网对话式 AI 引擎体验应用
+# 🌟 Conversational-AI-Demo
 
 声网对话式 AI 引擎重新定义了人机交互界面，突破了传统文字交互，实现了高拟真、自然流畅的实时语音对话，让 AI 真正"开口说话"。适用于创新场景如：
 
@@ -94,14 +94,12 @@ TTS_PARAMS=<TTS 参数>
 - 📖 查看我们的 [对话式 AI 引擎文档](https://doc.shengwang.cn/doc/convoai/restful/landing-page) 了解更多详情
 - 🧩 访问 [Agora SDK 示例](https://github.com/AgoraIO) 获取更多教程和示例代码
 - 👥 在 [Agora 开发者社区](https://github.com/AgoraIO-Community) 探索开发者社区管理的优质代码仓库
-- 💬 如有疑问，欢迎在 [Stack Overflow](https://stackoverflow.com/questions/tagged/agora.io) 提问
 
 ## 💡 四、问题反馈
 
 如果您在集成过程中遇到任何问题或有改进建议：
 
 - 🤖 可通过[声网支持](https://ticket.shengwang.cn/form?type_id=&sdk_product=&sdk_platform=&sdk_version=&current=0&project_id=&call_id=&channel_name=)获取智能客服帮助或联系技术支持人员
-- ✉️ 发送邮件至 [support@agora.io](mailto:support@agora.io) 获取专业支持
 
 ## 📜 五、许可证
 
