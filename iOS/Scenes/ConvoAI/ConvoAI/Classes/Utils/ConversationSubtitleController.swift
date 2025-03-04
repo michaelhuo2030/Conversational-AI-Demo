@@ -143,7 +143,7 @@ struct SubtitleRenderConfig {
 /// Subtitle Rendering Controller
 /// Manages the processing and rendering of subtitles in conversation
 ///
-class ConversationSubtitleController: NSObject {
+@objcMembers class ConversationSubtitleController: NSObject {
     
     public static let localUserId: UInt = 0
     public static let remoteUserId: UInt = 99

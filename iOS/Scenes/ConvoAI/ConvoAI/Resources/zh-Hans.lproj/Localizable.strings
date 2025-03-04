@@ -102,3 +102,7 @@
 "devmode.close" = "关闭开发者模式";
 "devmode.graph" = "graph id";
 "devmode.server" = "服务器";
+
+"iot.info.title" = "我的设备";
+"iot.info.inner.title" = "声网IOT设备";
+"iot.info.device" = "设备";

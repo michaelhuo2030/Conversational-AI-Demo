@@ -107,3 +107,7 @@
 "devmode.close" = "Close Developer Mode";
 "devmode.graph" = "graph id";
 "devmode.server" = "Server";
+
+"iot.info.title" = "My device";
+"iot.info.inner.title" = "Agora IOT devices";
+"iot.info.device" = "device";

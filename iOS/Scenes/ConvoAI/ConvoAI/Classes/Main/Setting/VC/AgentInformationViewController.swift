@@ -14,8 +14,9 @@ class AgentInformationViewController: UIViewController {
     static func show(in viewController: UIViewController, rtcManager: RTCManager?) {
         let settingVC = AgentInformationViewController()
         settingVC.rtcManager = rtcManager
-        settingVC.modalPresentationStyle = .overFullScreen
-        viewController.present(settingVC, animated: false)
+        let navigatonVC = UINavigationController(rootViewController: settingVC)
+        navigatonVC.modalPresentationStyle = .overFullScreen
+        viewController.present(navigatonVC, animated: false)
     }
     
     public var rtcManager: RTCManager?
@@ -25,6 +26,7 @@ class AgentInformationViewController: UIViewController {
     private var panGesture: UIPanGestureRecognizer?
     private var moreItems: [UIView] = []
     private var channelInfoItems: [UIView] = []
+    private var deviceInfoItems: [UIView] = []
     
     private lazy var feedBackPresenter = FeedBackPresenter()
         
@@ -67,24 +69,6 @@ class AgentInformationViewController: UIViewController {
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
         view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
-        return view
-    }()
-    
-    private lazy var feedbackItem: AgentSettingIconItemView = {
-        let view = AgentSettingIconItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.feedback
-        view.imageView.image = UIImage.ag_named("ic_info_debug")?.withRenderingMode(.alwaysTemplate)
-        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
-        view.button.addTarget(self, action: #selector(onClickFeedbackItem), for: .touchUpInside)
-        return view
-    }()
-    
-    private lazy var logoutItem: AgentSettingIconItemView = {
-        let view = AgentSettingIconItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.logout
-        view.imageView.image = UIImage.ag_named("ic_info_logout")?.withRenderingMode(.alwaysTemplate)
-        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
-        view.button.addTarget(self, action: #selector(onClickLogoutItem), for: .touchUpInside)
         return view
     }()
     
@@ -137,6 +121,52 @@ class AgentInformationViewController: UIViewController {
         view.titleLabel.text = ResourceManager.L10n.ChannelInfo.yourId
         view.bottomLine.isHidden = true
         return view
+    }()
+    
+    private lazy var feedbackItem: AgentSettingIconItemView = {
+        let view = AgentSettingIconItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.feedback
+        view.imageView.image = UIImage.ag_named("ic_info_debug")?.withRenderingMode(.alwaysTemplate)
+        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
+        view.button.addTarget(self, action: #selector(onClickFeedbackItem), for: .touchUpInside)
+        return view
+    }()
+    
+    private lazy var logoutItem: AgentSettingIconItemView = {
+        let view = AgentSettingIconItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.logout
+        view.imageView.image = UIImage.ag_named("ic_info_logout")?.withRenderingMode(.alwaysTemplate)
+        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
+        view.button.addTarget(self, action: #selector(onClickLogoutItem), for: .touchUpInside)
+        return view
+    }()
+    
+    private lazy var deviceInfoTitle: UILabel = {
+        let label = UILabel()
+        label.text = ResourceManager.L10n.Iot.title
+        label.font = UIFont.boldSystemFont(ofSize: 12)
+        label.textColor = UIColor.themColor(named: "ai_icontext4")
+        return label
+    }()
+    
+    private lazy var deviceCard: IotDeviceCardView = {
+        let card = IotDeviceCardView()
+        card.configure(title: ResourceManager.L10n.Iot.innerTitle, subtitle: "SN 237263263847SDJK")
+        card.settingsIcon = UIImage.ag_named("ic_iot_add")
+        card.backgroundImage = UIImage.ag_named("ic_iot_card_bg_green")
+        card.settingsButtonBackgroundColor = UIColor.themColor(named: "ai_brand_white8")
+        
+        card.titleFont = .systemFont(ofSize: 20, weight: .semibold)
+        card.titleColor = UIColor.themColor(named: "ai_brand_black10")
+        card.subtitleFont = .systemFont(ofSize: 16, weight: .regular)
+        card.subtitleColor = UIColor.themColor(named: "ai_brand_black8")
+        
+        card.onSettingsTapped = { [weak self] in
+            // Handle settings button tap
+            let vc = IOTListViewController()
+            self?.navigationController?.pushViewController(vc)
+        }
+        return card
     }()
         
     deinit {
@@ -255,6 +285,8 @@ extension AgentInformationViewController {
         moreItems = [feedbackItem, logoutItem]
         channelInfoItems = [agentItem, agentIDItem, roomItem, roomIDItem, idItem]
         
+        contentView.addSubview(deviceInfoTitle)
+        contentView.addSubview(deviceCard)
         contentView.addSubview(moreInfoTitle)
         contentView.addSubview(moreInfoView)
         contentView.addSubview(channelInfoTitle)
@@ -285,8 +317,20 @@ extension AgentInformationViewController {
             make.left.right.top.bottom.equalToSuperview()
         }
         
-        channelInfoTitle.snp.makeConstraints { make in
+        deviceInfoTitle.snp.makeConstraints { make in
             make.top.equalTo(16)
+            make.left.equalTo(32)
+        }
+        
+        deviceCard.snp.makeConstraints { make in
+            make.top.equalTo(deviceInfoTitle.snp.bottom).offset(8)
+            make.left.equalTo(16)
+            make.right.equalTo(-16)
+            make.height.equalTo(140)
+        }
+        
+        channelInfoTitle.snp.makeConstraints { make in
+            make.top.equalTo(deviceCard.snp.bottom).offset(32)
             make.left.equalTo(32)
         }
         
