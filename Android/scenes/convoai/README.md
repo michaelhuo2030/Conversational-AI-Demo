@@ -98,7 +98,7 @@ TTS_PARAMS=<TTS 参数>
 
 ## 📚 三、相关资源
 
-- 📖 查看我们的 [对话式 AI 引擎文档](https://doc.shengwang.cn/doc/convoai/restful/landing-page) 了解更多详情
+- 📖 查看我们的 [对话式 AI 引擎文档](https://doc.shengwang.cn/doc-new/convoai/doc/convoai/restful/user-guides/realtime-sub) 了解更多详情
 - 🧩 访问 [Agora SDK 示例](https://github.com/AgoraIO) 获取更多教程和示例代码
 - 👥 在 [Agora 开发者社区](https://github.com/AgoraIO-Community) 探索开发者社区管理的优质代码仓库
 
