@@ -8,41 +8,27 @@
 import UIKit
 
 class IotDeviceCardView: UIView {
-    
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 32, weight: .bold)
-        label.textColor = .white
+        label.font = .systemFont(ofSize: 20, weight: .bold)
         return label
     }()
     
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .white.withAlphaComponent(0.8)
         return label
     }()
     
     private lazy var settingsButton: UIButton = {
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 25
-        if let image = UIImage(named: "ic_iot_add_device_icon")?.withRenderingMode(.alwaysTemplate) {
+        if let image = UIImage.ag_named("ic_iot_card_edit_icon") {
             button.setImage(image, for: .normal)
         }
         button.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
+        button.setBackgroundColor(color: UIColor.themColor(named: "ai_brand_white6"), forState: .normal)
         return button
-    }()
-    
-    private lazy var gradientLayer: CAGradientLayer = {
-        let layer = CAGradientLayer()
-        layer.colors = [
-            UIColor(red: 0.4, green: 0.8, blue: 1.0, alpha: 1.0).cgColor,
-            UIColor(red: 0.6, green: 0.7, blue: 1.0, alpha: 1.0).cgColor
-        ]
-        layer.startPoint = CGPoint(x: 0, y: 0)
-        layer.endPoint = CGPoint(x: 1, y: 1)
-        layer.cornerRadius = 20
-        return layer
     }()
     
     private lazy var backgroundImageView: UIImageView = {
@@ -56,14 +42,13 @@ class IotDeviceCardView: UIView {
     
     var settingsIcon: UIImage? {
         didSet {
-            settingsButton.setImage(settingsIcon?.withRenderingMode(.alwaysTemplate), for: .normal)
+            settingsButton.setImage(settingsIcon, for: .normal)
         }
     }
     
     var backgroundImage: UIImage? {
         didSet {
             backgroundImageView.image = backgroundImage
-            gradientLayer.isHidden = backgroundImage != nil
         }
     }
     
@@ -106,16 +91,7 @@ class IotDeviceCardView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        gradientLayer.frame = bounds
-    }
-    
     private func setupViews() {
-        layer.cornerRadius = 20
-        layer.masksToBounds = true
-        layer.insertSublayer(gradientLayer, at: 0)
-        
         addSubview(backgroundImageView)
         addSubview(titleLabel)
         addSubview(subtitleLabel)

@@ -155,12 +155,10 @@ class AgentInformationViewController: UIViewController {
         card.settingsIcon = UIImage.ag_named("ic_iot_add")
         card.backgroundImage = UIImage.ag_named("ic_iot_card_bg_green")
         card.settingsButtonBackgroundColor = UIColor.themColor(named: "ai_brand_white8")
-        
         card.titleFont = .systemFont(ofSize: 20, weight: .semibold)
-        card.titleColor = UIColor.themColor(named: "ai_brand_black10")
         card.subtitleFont = .systemFont(ofSize: 16, weight: .regular)
-        card.subtitleColor = UIColor.themColor(named: "ai_brand_black8")
-        
+        card.layer.cornerRadius = 20
+        card.layer.masksToBounds = true
         card.onSettingsTapped = { [weak self] in
             // Handle settings button tap
             let vc = IOTListViewController()
