@@ -77,6 +77,7 @@ TTS_PARAMS=<TTS 参数>
 
 ## 🗂️ 二、项目结构导览
 
+### 2.1 基本结构
 | 路径                                                                                                    | 描述                                      |
 | ------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
 | [api/](src/main/java/io/agora/scene/convoai/api)                                    | 对话式 AI 引擎 RESTful 接口实现和数据模型 |
@@ -88,6 +89,12 @@ TTS_PARAMS=<TTS 参数>
 | [CovLivingActivity.kt](src/main/java/io/agora/scene/convoai/ui/CovLivingActivity.kt)   | AI 对话主交互界面                         |
 | [CovSettingsDialog.kt](src/main/java/io/agora/scene/convoai/ui/CovSettingsDialog.kt)   | 智能体参数配置设置对话框                  |
 | [CovAgentInfoDialog.kt](src/main/java/io/agora/scene/convoai/ui/CovAgentInfoDialog.kt) | 智能体运行状态信息展示对话框              |
+
+### 2.2 实时字幕
+与对话式智能体进行实时互动时，你可能需要实时字幕显示你与智能体的对话内容。
+- 📖 查看我们的 [实时字幕功能指南](https://doc.shengwang.cn/doc/convoai/restful/landing-page) 了解如何实现该功能
+- 实现该功能需要使用 [开源字幕处理模块](src/main/java/io/agora/scene/convoai/subRender/v2)，请参考上述文档将对应文件集成进您的项目
+- ⚠️ 开源字幕处理模块由 Kotlin 语言开发，如果您的项目是纯 Java 项目，您可以参考 Google 官方文档 [将 Kotlin 添加到现有应用](https://developer.android.com/kotlin/add-kotlin?hl=zh-cn) 把对应文件集成进您的项目
 
 ## 📚 三、相关资源
 
