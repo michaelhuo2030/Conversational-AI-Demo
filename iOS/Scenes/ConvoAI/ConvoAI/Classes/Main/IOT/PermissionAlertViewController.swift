@@ -18,16 +18,30 @@ class PermissionAlertViewController: UIViewController {
     
     private lazy var containerView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.themColor(named: "ai_fill1")
+        view.backgroundColor = UIColor.themColor(named: "ai_block2")
         view.layer.cornerRadius = 20
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        return view
+    }()
+    
+    private lazy var warningIconView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage.ag_named("ic_iot_warning_icon")
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+    
+    private lazy var warningCircleView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.themColor(named: "ai_line2")
+        view.layer.cornerRadius = 125 / 2.0
         return view
     }()
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.text = "开启权限和开关"
-        label.font = .systemFont(ofSize: 20, weight: .medium)
+        label.font = .systemFont(ofSize: 24, weight: .semibold)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
         return label
@@ -36,8 +50,8 @@ class PermissionAlertViewController: UIViewController {
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "需要开启以下权限和开关，用于添加附近设备"
-        label.font = .systemFont(ofSize: 14)
-        label.textColor = UIColor.themColor(named: "ai_icontext3")
+        label.font = .systemFont(ofSize: 14, weight: .regular)
+        label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
         label.numberOfLines = 0
         return label
@@ -54,16 +68,24 @@ class PermissionAlertViewController: UIViewController {
     private lazy var closeButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_iot_close_icon"), for: .normal)
+        button.backgroundColor = UIColor.themColor(named: "ai_fill2")
+        button.layer.cornerRadius = 15  // Will be a 30x30 circle
         button.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
         return button
     }()
     
     // MARK: - Initialization
     
-    init(permissions: [Permission]) {
+    init(title: String = "开启权限和开关", 
+         description: String = "需要开启以下权限和开关，用于添加附近设备",
+         permissions: [Permission]) {
         self.permissions = permissions
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overFullScreen
+        
+        // Update labels
+        titleLabel.text = title
+        descriptionLabel.text = description
     }
     
     required init?(coder: NSCoder) {
@@ -89,6 +111,8 @@ class PermissionAlertViewController: UIViewController {
         view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         
         view.addSubview(containerView)
+        containerView.addSubview(warningCircleView)
+        warningCircleView.addSubview(warningIconView)
         containerView.addSubview(titleLabel)
         containerView.addSubview(descriptionLabel)
         containerView.addSubview(permissionsStackView)
@@ -96,29 +120,40 @@ class PermissionAlertViewController: UIViewController {
         
         containerView.snp.makeConstraints { make in
             make.left.right.bottom.equalToSuperview()
-            // 高度会根据内容自适应
+        }
+        
+        warningCircleView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(56)
+            make.size.equalTo(CGSize(width: 125, height: 125))
+        }
+        
+        warningIconView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.bottom.equalTo(-27)
+            make.size.equalTo(CGSize(width: 70, height: 70))
         }
         
         closeButton.snp.makeConstraints { make in
-            make.top.equalTo(20)
-            make.right.equalTo(-20)
-            make.size.equalTo(CGSize(width: 24, height: 24))
+            make.top.equalTo(16)
+            make.right.equalTo(-16)
+            make.size.equalTo(CGSize(width: 30, height: 30))
         }
         
         titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(20)
+            make.top.equalTo(warningCircleView.snp.bottom).offset(24)
             make.centerX.equalToSuperview()
         }
         
         descriptionLabel.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(8)
+            make.top.equalTo(titleLabel.snp.bottom).offset(16)
             make.left.right.equalToSuperview().inset(20)
         }
         
         permissionsStackView.snp.makeConstraints { make in
             make.top.equalTo(descriptionLabel.snp.bottom).offset(24)
             make.left.right.equalToSuperview().inset(20)
-            make.bottom.equalTo(-30)
+            make.bottom.equalTo(-50)
         }
     }
     
@@ -131,7 +166,7 @@ class PermissionAlertViewController: UIViewController {
     
     private func createPermissionCard(permission: Permission) -> UIView {
         let cardView = UIView()
-        cardView.backgroundColor = UIColor.themColor(named: "ai_fill2")
+        cardView.backgroundColor = permission.cardBackgroundColor
         cardView.layer.cornerRadius = 12
         
         let iconBackground = UIView()
@@ -144,15 +179,15 @@ class PermissionAlertViewController: UIViewController {
         
         let titleLabel = UILabel()
         titleLabel.text = permission.title
-        titleLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
         titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         
         let goButton = UIButton(type: .custom)
         goButton.setTitle("去开启", for: .normal)
-        goButton.setTitleColor(.white, for: .normal)
-        goButton.titleLabel?.font = .systemFont(ofSize: 14)
-        goButton.backgroundColor = UIColor.themColor(named: "ai_brand_main6")
-        goButton.layer.cornerRadius = 15
+        goButton.setTitleColor(permission.cardBackgroundColor, for: .normal)
+        goButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
+        goButton.backgroundColor = .white
+        goButton.layer.cornerRadius = 7
         goButton.addTarget(self, action: #selector(goButtonTapped(_:)), for: .touchUpInside)
         
         cardView.addSubview(iconBackground)
@@ -230,6 +265,7 @@ extension PermissionAlertViewController {
     struct Permission {
         let icon: UIImage?
         let iconBackgroundColor: UIColor
+        let cardBackgroundColor: UIColor
         let title: String
         let action: () -> Void
     }

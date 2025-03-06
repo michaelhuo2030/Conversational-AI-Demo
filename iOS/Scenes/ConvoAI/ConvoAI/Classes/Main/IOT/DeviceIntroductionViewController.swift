@@ -349,9 +349,63 @@ class DeviceIntroductionViewController: BaseViewController {
         nextButton.alpha = checkButton.isSelected ? 1.0 : 0.5
     }
     
+    private func testPermissionView() {
+        let permissions = [
+            PermissionAlertViewController.Permission(
+                icon: UIImage.ag_named("ic_iot_location_icon"),
+                iconBackgroundColor: UIColor(red: 1.0, green: 0.4, blue: 0.4, alpha: 1.0),
+                cardBackgroundColor: UIColor.themColor(named: "ai_green6"),
+                title: "定位服务未授权",
+                action: {
+                    // Open Location Settings
+                    guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+                    if UIApplication.shared.canOpenURL(settingsUrl) {
+                        UIApplication.shared.open(settingsUrl)
+                    }
+                }
+            ),
+            PermissionAlertViewController.Permission(
+                icon: UIImage.ag_named("ic_iot_bluetooth_icon"),
+                iconBackgroundColor: UIColor(red: 0.4, green: 0.5, blue: 1.0, alpha: 1.0),
+                cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
+                title: "未开启蓝牙权限",
+                action: {
+                    // Open Bluetooth Settings
+                    guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
+                    if UIApplication.shared.canOpenURL(bluetoothUrl) {
+                        UIApplication.shared.open(bluetoothUrl)
+                    }
+                }
+            ),
+            PermissionAlertViewController.Permission(
+                icon: UIImage.ag_named("ic_iot_bluetooth_icon"),
+                iconBackgroundColor: UIColor(red: 0.4, green: 0.5, blue: 1.0, alpha: 1.0),
+                cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
+                title: "打开蓝牙",
+                action: {
+                    // Open Bluetooth Settings
+                    guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
+                    if UIApplication.shared.canOpenURL(bluetoothUrl) {
+                        UIApplication.shared.open(bluetoothUrl)
+                    }
+                }
+            )
+        ]
+
+        let alertVC = PermissionAlertViewController(
+            title: "开启权限和开关",
+            description: "需要开启以下权限和开关，用于添加附近设备",
+            permissions: permissions
+        )
+        present(alertVC, animated: false)
+    }
+    
     @objc private func nextButtonTapped() {
         // Handle next button tap
-        print("Next button tapped")
+        let vc = SearchDeviceViewController()
+        self.navigationController?.pushViewController(vc)
+        
+//        testPermissionView()
     }
 }
 
