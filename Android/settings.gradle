@@ -31,3 +31,4 @@ rootProject.name = "Agent"
 include ':app'
 include ':common'
 include ':scenes:convoai'
+include ':scenes:convoai:bleLib'
