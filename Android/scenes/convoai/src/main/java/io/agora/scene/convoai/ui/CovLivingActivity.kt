@@ -650,7 +650,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun onTimerTick(remainingTimeMs: Long) {
-        // 可以在这里更新UI显示剩余时间
         val minutes = (remainingTimeMs / 1000 / 60).toInt()
         val seconds = (remainingTimeMs / 1000 % 60).toInt()
         if (remainingTimeMs <= 20000) {
@@ -905,7 +904,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         clTop.viewFlipper.showNext()
                         clTop.tvTimer.visibility = View.VISIBLE
                     } else {
-                        // 如果通话已结束，强制显示第一个view
                         while (clTop.viewFlipper.displayedChild != 0) {
                             clTop.viewFlipper.showPrevious()
                         }
@@ -920,7 +918,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         titleAnimJob?.cancel()
         titleAnimJob = null
         mBinding?.apply {
-            // 强制显示第一个view
             while (clTop.viewFlipper.displayedChild != 0) {
                 clTop.viewFlipper.showPrevious()
             }
