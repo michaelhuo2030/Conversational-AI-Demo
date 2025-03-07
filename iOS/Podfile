@@ -16,6 +16,7 @@ target 'Agent-cn' do
 
   # Agents
   pod 'ConvoAI', :path => 'Scenes/ConvoAI'
+  pod 'BLEManager', :path => './BLEManager'
   
   pod 'Kingfisher'
 

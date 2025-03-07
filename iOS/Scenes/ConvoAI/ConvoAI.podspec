@@ -48,5 +48,6 @@ TODO: Add long description of the pod here.
   s.dependency 'SwifterSwift/UIKit', '6.2.0'
   s.dependency 'Common'
   s.dependency 'Kingfisher'
+  s.dependency 'BLEManager'
 
 end

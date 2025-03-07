@@ -171,7 +171,7 @@ class IOTPreferenceManager: IOTPreferenceManagerProtocol {
         }
         
         // Create new device with updated name
-        let updatedDevice = IOTDevice(name: newName, deviceId: deviceId)
+        let updatedDevice = IOTDevice(name: newName, deviceId: deviceId, rssi: 0)
         devices?[index] = updatedDevice
         
         // Notify delegates
@@ -219,5 +219,14 @@ extension IOTPreferenceManagerDelegate {
 struct IOTDevice: Codable {
     let name: String
     let deviceId: String
+    let rssi: Int
+    let data: [String: String]
+    
+    init(name: String, deviceId: String, rssi: Int, data: [String: Any] = [:]) {
+        self.name = name
+        self.deviceId = deviceId
+        self.rssi = rssi
+        self.data = data.compactMapValues { "\($0)" }
+    }
 }
 

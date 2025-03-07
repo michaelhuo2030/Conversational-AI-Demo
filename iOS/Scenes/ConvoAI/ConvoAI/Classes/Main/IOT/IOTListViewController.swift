@@ -65,7 +65,7 @@ class IOTListViewController: BaseViewController {
     }
     
     private func setupViews() {
-        navigationTitle = "声网IOT设备"
+        navigationTitle = "对话式IOT设备"
         naviBar.setRightButtonTarget(self, action: #selector(navigationRightButtonTapped), image: UIImage.ag_named("ic_iot_bar_add_icon"))
         
         view.addSubview(tableView)
@@ -81,15 +81,25 @@ class IOTListViewController: BaseViewController {
         }
         
         emptyView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.equalTo(naviBar.snp.bottom)
+            make.left.right.bottom.equalToSuperview()
         }
     }
     
     private func updateViewsVisibility() {
         let isEmpty = devices.isEmpty
+        
         tableView.isHidden = isEmpty
         emptyView.isHidden = !isEmpty
-        naviBar.rightButton.isHidden = isEmpty
+        
+        // Update navigation bar right button
+        if isEmpty {
+            naviBar.rightItems = nil  // This will remove the right button
+        } else {
+            naviBar.setRightButtonTarget(self, 
+                                       action: #selector(navigationRightButtonTapped), 
+                                       image: UIImage.ag_named("ic_iot_bar_add_icon"))
+        }
     }
     
     private func addDevice(device: IOTDevice) {
@@ -106,8 +116,8 @@ class IOTListViewController: BaseViewController {
     
     // MARK: - Actions
     override func navigationRightButtonTapped() {
-         let vc = AddIotDeviceViewController()
-         self.navigationController?.pushViewController(vc)
+        let vc = DeviceIntroductionViewController()
+        self.navigationController?.pushViewController(vc)
     }
     
     @objc private func addDeviceButtonTapped() {
@@ -180,7 +190,6 @@ extension IOTListViewController: UITableViewDelegate, UITableViewDataSource {
 extension IOTListViewController: IOTPreferenceManagerDelegate {
     func preferenceManager(_ manager: IOTPreferenceManager, didAddedDevice device: IOTDevice) {
         addDevice(device: device)
-        updateViewsVisibility()
     }
     
     func preferenceManager(_ manager: IOTPreferenceManager, didUpdatedDevice device: IOTDevice) {

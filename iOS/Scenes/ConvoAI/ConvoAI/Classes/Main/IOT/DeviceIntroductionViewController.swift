@@ -7,17 +7,20 @@
 
 import UIKit
 import Common
+import CoreBluetooth
+import BLEManager
+import CoreLocation
+
+struct IntroductionStep {
+    let image: UIImage?
+    let title: String
+    let description: String
+}
 
 class DeviceIntroductionViewController: BaseViewController {
-    
-    // MARK: - Model
-    
-    struct IntroductionStep {
-        let image: UIImage?
-        let title: String
-        let description: String
-    }
-    
+    private var bluetoothManager: AIBLEManager = .shared
+    private let wifiManager = WiFiManager()
+
     // MARK: - UI Components
     
     private lazy var scrollView: UIScrollView = {
@@ -187,20 +190,169 @@ class DeviceIntroductionViewController: BaseViewController {
         )
     ]
     
+    // Add CLLocationManager property at class level
+    private lazy var locationManager: CLLocationManager = {
+        let manager = CLLocationManager()
+        manager.delegate = self
+        return manager
+    }()
+    
+    // Add property to store missing permissions
+    private var missingPermissions: [PermissionAlertViewController.Permission] = []
+    
+    // Add property to hold current alert controller
+    private weak var currentPermissionAlert: PermissionAlertViewController?
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        setupViews()
+        setupConstraints()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        bluetoothManager.delegate = self
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        bluetoothManager.delegate = nil
+    }
+    
+    
+    private func checkPermission() {
+        missingPermissions.removeAll()
+        
+        // Check Bluetooth permission
+        let bluetoothStatus = CBManager.authorization
+        switch bluetoothStatus {
+        case .allowedAlways:
+            print("拥有蓝牙权限")
+            // Check if Bluetooth is powered on
+            if !bluetoothManager.isBLEAvailable {
+                missingPermissions.append(
+                    PermissionAlertViewController.Permission(
+                        icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
+                        iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
+                        cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
+                        title: "打开蓝牙",
+                        action: {
+                            guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
+                            if UIApplication.shared.canOpenURL(bluetoothUrl) {
+                                UIApplication.shared.open(bluetoothUrl)
+                            }
+                        }
+                    )
+                )
+            }
+        case .denied, .restricted:
+            print("没有蓝牙权限")
+            missingPermissions.append(
+                PermissionAlertViewController.Permission(
+                    icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
+                    iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
+                    cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
+                    title: "未开启蓝牙权限",
+                    action: {
+                        guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
+                        if UIApplication.shared.canOpenURL(bluetoothUrl) {
+                            UIApplication.shared.open(bluetoothUrl)
+                        }
+                    }
+                )
+            )
+        case .notDetermined:
+            print("未申请蓝牙权限")
+        @unknown default:
+            break
+        }
+        
+        // Check Location permission
+        let locationStatus = locationManager.authorizationStatus
+        switch locationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            print("拥有定位权限")
+        case .denied, .restricted:
+            print("没有定位权限")
+            missingPermissions.append(
+                PermissionAlertViewController.Permission(
+                    icon: UIImage.ag_named("ic_iot_location_white_icon"),
+                    iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
+                    cardBackgroundColor: UIColor.themColor(named: "ai_green6"),
+                    title: "定位服务未授权",
+                    action: {
+                        guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+                        if UIApplication.shared.canOpenURL(settingsUrl) {
+                            UIApplication.shared.open(settingsUrl)
+                        }
+                    }
+                )
+            )
+        case .notDetermined:
+            print("未申请定位权限")
+            locationManager.requestWhenInUseAuthorization()
+        @unknown default:
+            break
+        }
+        
+        // Update current alert if it exists
+        if let alertVC = currentPermissionAlert {
+            if missingPermissions.isEmpty {
+                alertVC.dismiss(animated: true)
+                currentPermissionAlert = nil
+            } else {
+                // Instead of updating existing alert, dismiss it and show a new one
+                alertVC.dismiss(animated: false) { [weak self] in
+                    guard let self = self else { return }
+                    let newAlertVC = PermissionAlertViewController(
+                        title: "开启权限和开关",
+                        description: "需要开启以下权限和开关，用于添加附近设备",
+                        permissions: self.missingPermissions
+                    )
+                    self.currentPermissionAlert = newAlertVC
+                    self.present(newAlertVC, animated: false)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - UI Setup
+
+extension DeviceIntroductionViewController {
+    private func setupViews() {
         navigationTitle = "配网"
         view.backgroundColor = .black
         naviBar.backgroundColor = .black
-        setupUI()
-        setupPermissions()
-    }
-    
-    // MARK: - UI Setup
-    
-    private func setupUI() {
+        
+        // Location information
+        let locationView = createPermissionView(
+            icon: UIImage.ag_named("ic_iot_location_icon"),
+            iconColor: UIColor(red: 1.0, green: 0.4, blue: 0.4, alpha: 1.0),
+            title: "位置信息"
+        )
+        
+        // Bluetooth
+        let bluetoothView = createPermissionView(
+            icon: UIImage.ag_named("ic_iot_bluetooth_icon"),
+            iconColor: UIColor(red: 0.4, green: 0.5, blue: 1.0, alpha: 1.0),
+            title: "蓝牙"
+        )
+        
+        // Wi-Fi
+        let wifiView = createPermissionView(
+            icon: UIImage.ag_named("ic_iot_wifi_icon"),
+            iconColor: UIColor(red: 0.4, green: 0.8, blue: 0.8, alpha: 1.0),
+            title: "2.4G Wi-Fi"
+        )
+        
+        permissionsStackView.addArrangedSubview(locationView)
+        permissionsStackView.addArrangedSubview(bluetoothView)
+        permissionsStackView.addArrangedSubview(wifiView)
+        
         view.addSubview(scrollView)
         view.addSubview(bottomView)
         bottomView.addSubview(checkButton)
@@ -213,7 +365,9 @@ class DeviceIntroductionViewController: BaseViewController {
         contentView.addSubview(titleLabel)
         contentView.addSubview(descriptionLabel)
         contentView.addSubview(permissionsStackView)
-        
+    }
+    
+    private func setupConstraints() {
         scrollView.snp.makeConstraints { make in
             make.top.equalTo(naviBar.snp.bottom)
             make.left.right.equalToSuperview()
@@ -273,33 +427,6 @@ class DeviceIntroductionViewController: BaseViewController {
         }
     }
     
-    private func setupPermissions() {
-        // Location information
-        let locationView = createPermissionView(
-            icon: UIImage.ag_named("ic_iot_location_icon"),
-            iconColor: UIColor(red: 1.0, green: 0.4, blue: 0.4, alpha: 1.0),
-            title: "位置信息"
-        )
-        
-        // Bluetooth
-        let bluetoothView = createPermissionView(
-            icon: UIImage.ag_named("ic_iot_bluetooth_icon"),
-            iconColor: UIColor(red: 0.4, green: 0.5, blue: 1.0, alpha: 1.0),
-            title: "蓝牙"
-        )
-        
-        // Wi-Fi
-        let wifiView = createPermissionView(
-            icon: UIImage.ag_named("ic_iot_wifi_icon"),
-            iconColor: UIColor(red: 0.4, green: 0.8, blue: 0.8, alpha: 1.0),
-            title: "2.4G Wi-Fi"
-        )
-        
-        permissionsStackView.addArrangedSubview(locationView)
-        permissionsStackView.addArrangedSubview(bluetoothView)
-        permissionsStackView.addArrangedSubview(wifiView)
-    }
-    
     private func createPermissionView(icon: UIImage?, iconColor: UIColor, title: String) -> UIView {
         let containerView = UIView()
         
@@ -349,63 +476,23 @@ class DeviceIntroductionViewController: BaseViewController {
         nextButton.alpha = checkButton.isSelected ? 1.0 : 0.5
     }
     
-    private func testPermissionView() {
-        let permissions = [
-            PermissionAlertViewController.Permission(
-                icon: UIImage.ag_named("ic_iot_location_white_icon"),
-                iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
-                cardBackgroundColor: UIColor.themColor(named: "ai_green6"),
-                title: "定位服务未授权",
-                action: {
-                    // Open Location Settings
-                    guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
-                    if UIApplication.shared.canOpenURL(settingsUrl) {
-                        UIApplication.shared.open(settingsUrl)
-                    }
-                }
-            ),
-            PermissionAlertViewController.Permission(
-                icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
-                iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
-                cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
-                title: "未开启蓝牙权限",
-                action: {
-                    // Open Bluetooth Settings
-                    guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
-                    if UIApplication.shared.canOpenURL(bluetoothUrl) {
-                        UIApplication.shared.open(bluetoothUrl)
-                    }
-                }
-            ),
-            PermissionAlertViewController.Permission(
-                icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
-                iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
-                cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
-                title: "打开蓝牙",
-                action: {
-                    // Open Bluetooth Settings
-                    guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
-                    if UIApplication.shared.canOpenURL(bluetoothUrl) {
-                        UIApplication.shared.open(bluetoothUrl)
-                    }
-                }
-            )
-        ]
-
-        let alertVC = PermissionAlertViewController(
-            title: "开启权限和开关",
-            description: "需要开启以下权限和开关，用于添加附近设备",
-            permissions: permissions
-        )
-        present(alertVC, animated: false)
-    }
-    
     @objc private func nextButtonTapped() {
-        // Handle next button tap
+        checkPermission()
+        
+        if !missingPermissions.isEmpty {
+            let alertVC = PermissionAlertViewController(
+                title: "开启权限和开关",
+                description: "需要开启以下权限和开关，用于添加附近设备",
+                permissions: missingPermissions
+            )
+            currentPermissionAlert = alertVC
+            present(alertVC, animated: false)
+            return
+        }
+        
+        // If all permissions are granted, proceed to next screen
         let vc = SearchDeviceViewController()
         self.navigationController?.pushViewController(vc)
-        
-//        testPermissionView()
     }
 }
 
@@ -468,5 +555,19 @@ class IntroductionCarouselCell: UICollectionViewCell {
 extension DeviceIntroductionViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: collectionView.bounds.width, height: collectionView.bounds.height)
+    }
+}
+
+// Add CLLocationManagerDelegate
+extension DeviceIntroductionViewController: CLLocationManagerDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        // Re-check permissions when location authorization changes
+        checkPermission()
+    }
+}
+
+extension DeviceIntroductionViewController: BLEManagerDelegate {
+    func bleManagerDidUpdateState(_ manager: AIBLEManager, isPowerOn: Bool) {
+        checkPermission()
     }
 }

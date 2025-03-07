@@ -7,9 +7,12 @@
 
 import Foundation
 import Common
-
+import CoreBluetooth
+import BLEManager
 
 class SearchDeviceViewController: BaseViewController {
+    private var bluetoothManager: AIBLEManager = .shared
+
     private lazy var searchingView:SearchingView = {
         let rippleView = SearchingView(frame: CGRectMake(0, naviBar.height, view.bounds.width, view.bounds.height - naviBar.height))
         rippleView.delegate = self
@@ -39,18 +42,28 @@ class SearchDeviceViewController: BaseViewController {
         return tableView
     }()
     
-    private var devices: [IOTDevice] = [
-        IOTDevice(name: "Agora X1", deviceId: "客厅智能音箱"),
-        IOTDevice(name: "Agora X2", deviceId: "卧室智能音箱"),
-        IOTDevice(name: "Agora X3", deviceId: "书房智能音箱"),
-        IOTDevice(name: "Agora X1 Pro", deviceId: "办公室智能音箱"),
-        IOTDevice(name: "Agora X2 Plus", deviceId: "会议室智能音箱")
-    ]
+    private var devices: [IOTDevice] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        bluetoothManager.deviceConnectTimeout = 10
         setupViews()
         setupConstraints()
+        startSearchDevice()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        bluetoothManager.delegate = self
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        bluetoothManager.delegate = nil
+    }
+    
+    private func startSearchDevice() {
+        bluetoothManager.startScan()
     }
     
     private func setupViews() {
@@ -61,8 +74,7 @@ class SearchDeviceViewController: BaseViewController {
         
         [searchingView, tableView, searchFailedView].forEach { view.addSubview($0) }
         
-//        searchingView.startSearch()
-        searchingView.isHidden = true
+        searchingView.startSearch()
         searchFailedView.isHidden = true
     }
     
@@ -118,7 +130,7 @@ extension SearchDeviceViewController: UITableViewDelegate, UITableViewDataSource
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let vc = DeviceAddingViewController()
+        let vc = IOTWifiSettingViewController()
         self.navigationController?.pushViewController(vc)
 //        showWifiAlert()
     }
@@ -134,5 +146,35 @@ extension SearchDeviceViewController: SearchingViewDelegate, DeviceSearchFailedV
         searchFailedView.isHidden = true
         searchingView.isHidden = false
         searchingView.startSearch()
+    }
+}
+
+extension SearchDeviceViewController: BLEManagerDelegate {
+    func bleManagerOnDevicConfigStateChanged(manager: AIBLEManager, oldState: AIBLEManager.DeviceConfigState, newState: AIBLEManager.DeviceConfigState) {
+        switch newState {
+        case .readyToScanDevices:
+            bluetoothManager.startScan()
+        case .deviceConnected:
+            // 步骤3 - 蓝牙连接成功
+            print("deviceConnected")
+        case .wifiConfiguration:
+            print("show load...")
+        case .wifiConfigurationDone:
+            print("dismiss load...")
+        default:
+            print("state = \(newState)")
+        }
+    }
+    
+    func bleManagerDidScanDevice(_ manager: AIBLEManager, device: BLEDevice, error: Error?) {
+        if let data = device.data[CBAdvertisementDataManufacturerDataKey] as? Data {
+            if bluetoothManager.bekenDeviceManufacturerData == data {
+                if !devices.contains(where: { $0.deviceId == device.id.uuidString }) {
+                    let iotDevice = IOTDevice(name: device.name, deviceId: device.id.uuidString, rssi: device.rssi, data: device.data)
+                    devices.append(iotDevice)
+                    tableView.reloadData()
+                }
+            }
+        }
     }
 }
