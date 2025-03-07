@@ -13,6 +13,7 @@ import SwifterSwift
 import Common
 
 public class ChatViewController: UIViewController {
+    private let iotAipManager = IOTApiManager()
     private var isDenoise = true
     private let messageParser = MessageParser()
     private var remoteIsJoined = false
@@ -21,7 +22,7 @@ public class ChatViewController: UIViewController {
     private var agentUid = 0
     private var remoteAgentId = ""
     private let uid = "\(RtcEnum.getUid())"
-    
+        
     private lazy var timerCoordinator: AgentTimerCoordinator = {
         let coordinator = AgentTimerCoordinator()
         coordinator.delegate = self
@@ -207,6 +208,14 @@ public class ChatViewController: UIViewController {
             
             if let error = error {
                 self.addLog("[PreloadData error - userInfo]: \(error)")
+            }
+            
+            Task {
+                do {
+                    try await self.fetchIotPresetsIfNeeded()
+                } catch {
+                    self.addLog("[PreloadData error - iot presets]: \(error)")
+                }
             }
             
             Task {
@@ -429,6 +438,28 @@ public class ChatViewController: UIViewController {
 
 // MARK: - Agent Request
 extension ChatViewController {
+    private func fetchIotPresetsIfNeeded() async throws {
+        guard AppContext.iotPreferenceManager()?.allPresets() == nil else { return }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            iotAipManager.fetchPresets(requestId: UUID().uuidString) { error, presets in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let presets = presets else {
+                    continuation.resume(throwing: NSError(domain: "", code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "result is empty"]))
+                    return
+                }
+                
+                AppContext.iotPreferenceManager()?.setPresets(presets: presets)
+                continuation.resume()
+            }
+        }
+    }
+    
     private func fetchPresetsIfNeeded() async throws {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
@@ -882,7 +913,7 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
         let title = ResourceManager.L10n.ChannelInfo.timeLimitdAlertTitle
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
             let min = preset.callTimeLimitSecond / 60
-            TimeoutAlertView.show(in: view, title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min))
+            TimeoutAlertView.show(in: view, image:UIImage.ag_named("ic_alert_timeout_icon"), title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min))
         }
     }
     

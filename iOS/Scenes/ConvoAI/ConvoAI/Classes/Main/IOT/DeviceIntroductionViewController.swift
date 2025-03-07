@@ -352,8 +352,8 @@ class DeviceIntroductionViewController: BaseViewController {
     private func testPermissionView() {
         let permissions = [
             PermissionAlertViewController.Permission(
-                icon: UIImage.ag_named("ic_iot_location_icon"),
-                iconBackgroundColor: UIColor(red: 1.0, green: 0.4, blue: 0.4, alpha: 1.0),
+                icon: UIImage.ag_named("ic_iot_location_white_icon"),
+                iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
                 cardBackgroundColor: UIColor.themColor(named: "ai_green6"),
                 title: "定位服务未授权",
                 action: {
@@ -365,8 +365,8 @@ class DeviceIntroductionViewController: BaseViewController {
                 }
             ),
             PermissionAlertViewController.Permission(
-                icon: UIImage.ag_named("ic_iot_bluetooth_icon"),
-                iconBackgroundColor: UIColor(red: 0.4, green: 0.5, blue: 1.0, alpha: 1.0),
+                icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
+                iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
                 cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
                 title: "未开启蓝牙权限",
                 action: {
@@ -378,8 +378,8 @@ class DeviceIntroductionViewController: BaseViewController {
                 }
             ),
             PermissionAlertViewController.Permission(
-                icon: UIImage.ag_named("ic_iot_bluetooth_icon"),
-                iconBackgroundColor: UIColor(red: 0.4, green: 0.5, blue: 1.0, alpha: 1.0),
+                icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
+                iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
                 cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
                 title: "打开蓝牙",
                 action: {

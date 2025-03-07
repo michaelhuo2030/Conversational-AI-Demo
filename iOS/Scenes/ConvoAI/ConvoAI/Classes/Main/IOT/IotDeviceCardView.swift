@@ -8,10 +8,24 @@
 import UIKit
 
 class IotDeviceCardView: UIView {
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 20, weight: .bold)
-        return label
+    var onTitleButtonTapped: (() -> Void)?
+    var onSettingsTapped: (() -> Void)?
+    
+    private lazy var titleButton: UIButton = {
+        let button = UIButton(type: .custom)
+        button.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
+        button.setTitleColor(.black, for: .normal)
+        button.contentHorizontalAlignment = .left
+        button.addTarget(self, action: #selector(titleButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    private lazy var editImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage.ag_named("ic_iot_name_edit_icon")
+        imageView.contentMode = .center
+        imageView.isHidden = true // Hidden by default
+        return imageView
     }()
     
     private lazy var subtitleLabel: UILabel = {
@@ -38,8 +52,6 @@ class IotDeviceCardView: UIView {
         return imageView
     }()
     
-    var onSettingsTapped: (() -> Void)?
-    
     var settingsIcon: UIImage? {
         didSet {
             settingsButton.setImage(settingsIcon, for: .normal)
@@ -60,13 +72,13 @@ class IotDeviceCardView: UIView {
     
     var titleFont: UIFont? {
         didSet {
-            titleLabel.font = titleFont
+            titleButton.titleLabel?.font = titleFont
         }
     }
     
     var titleColor: UIColor? {
         didSet {
-            titleLabel.textColor = titleColor
+            titleButton.setTitleColor(titleColor, for: .normal)
         }
     }
     
@@ -82,6 +94,12 @@ class IotDeviceCardView: UIView {
         }
     }
     
+    var showEditIcon: Bool = false {
+        didSet {
+            editImageView.isHidden = !showEditIcon
+        }
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -93,7 +111,8 @@ class IotDeviceCardView: UIView {
     
     private func setupViews() {
         addSubview(backgroundImageView)
-        addSubview(titleLabel)
+        addSubview(titleButton)
+        addSubview(editImageView)
         addSubview(subtitleLabel)
         addSubview(settingsButton)
         
@@ -101,14 +120,21 @@ class IotDeviceCardView: UIView {
             make.edges.equalToSuperview()
         }
         
-        titleLabel.snp.makeConstraints { make in
-            make.top.equalTo(24)
-            make.left.equalTo(24)
+        titleButton.snp.makeConstraints { make in
+            make.top.equalTo(16)
+            make.left.equalTo(16)
+            make.right.lessThanOrEqualTo(-50)
+        }
+        
+        editImageView.snp.makeConstraints { make in
+            make.centerY.equalTo(titleButton)
+            make.left.equalTo(titleButton.snp.right).offset(8)
+            make.size.equalTo(CGSize(width: 24, height: 24))
         }
         
         subtitleLabel.snp.makeConstraints { make in
-            make.top.equalTo(titleLabel.snp.bottom).offset(8)
-            make.left.equalTo(titleLabel)
+            make.top.equalTo(titleButton.snp.bottom).offset(8)
+            make.left.equalTo(titleButton)
         }
         
         settingsButton.snp.makeConstraints { make in
@@ -117,12 +143,16 @@ class IotDeviceCardView: UIView {
         }
     }
     
-    func configure(title: String, subtitle: String) {
-        titleLabel.text = title
-        subtitleLabel.text = subtitle
+    @objc private func titleButtonTapped() {
+        onTitleButtonTapped?()
     }
     
     @objc private func settingsButtonTapped() {
         onSettingsTapped?()
+    }
+    
+    func configure(title: String, subtitle: String) {
+        titleButton.setTitle(title, for: .normal)
+        subtitleLabel.text = subtitle
     }
 }

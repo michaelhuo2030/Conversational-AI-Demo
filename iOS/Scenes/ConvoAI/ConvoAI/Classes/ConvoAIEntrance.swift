@@ -21,6 +21,7 @@ public class ConvoAIEntrance: NSObject {
 
 extension AppContext {
     static private var _preferenceManager: AgentPreferenceManager?
+    static private var _iotPreferenceManager: IOTPreferenceManager?
     static private var _loginManager: LoginManager?
     
     static func preferenceManager() -> AgentPreferenceManager? {
@@ -31,6 +32,16 @@ extension AppContext {
         _preferenceManager = AgentPreferenceManager()
         
         return _preferenceManager
+    }
+    
+    static func iotPreferenceManager() -> IOTPreferenceManager? {
+        if let manager = _iotPreferenceManager {
+            return manager
+        }
+        
+        _iotPreferenceManager = IOTPreferenceManager()
+        
+        return _iotPreferenceManager
     }
     
     static func loginManager() -> LoginManager? {

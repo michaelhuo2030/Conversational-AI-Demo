@@ -151,19 +151,19 @@ class AgentInformationViewController: UIViewController {
     
     private lazy var deviceCard: IotDeviceCardView = {
         let card = IotDeviceCardView()
-        card.configure(title: ResourceManager.L10n.Iot.innerTitle, subtitle: "SN 237263263847SDJK")
+        card.configure(title: ResourceManager.L10n.Iot.innerTitle, subtitle: "0 个设备")
         card.settingsIcon = UIImage.ag_named("ic_iot_add")
         card.backgroundImage = UIImage.ag_named("ic_iot_card_bg_green")
         card.settingsButtonBackgroundColor = UIColor.themColor(named: "ai_brand_white8")
-        card.titleFont = .systemFont(ofSize: 20, weight: .semibold)
-        card.subtitleFont = .systemFont(ofSize: 16, weight: .regular)
-        card.layer.cornerRadius = 20
-        card.layer.masksToBounds = true
+        card.titleColor = UIColor.themColor(named: "ai_brand_black10")
+        card.subtitleColor = UIColor.themColor(named: "ai_brand_black10")
         card.onSettingsTapped = { [weak self] in
             // Handle settings button tap
             let vc = IOTListViewController()
             self?.navigationController?.pushViewController(vc)
         }
+        card.layer.cornerRadius = 20
+        card.layer.masksToBounds = true
         return card
     }()
         
