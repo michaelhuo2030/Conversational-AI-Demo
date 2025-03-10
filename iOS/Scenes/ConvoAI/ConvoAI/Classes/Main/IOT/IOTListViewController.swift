@@ -38,8 +38,8 @@ class IOTListViewController: BaseViewController {
         return view
     }()
     
-    private lazy var devices: [IOTDevice] = {
-        var data = AppContext.iotPreferenceManager()?.allDevices()
+    private lazy var devices: [LocalDevice] = {
+        var data = AppContext.iotDeviceManager()?.getAllDevices()
         return data ?? []
     }()
     
@@ -57,11 +57,11 @@ class IOTListViewController: BaseViewController {
     // MARK: - Private Methods
     
     private func registerDelegate() {
-        AppContext.iotPreferenceManager()?.addDelegate(self)
+        AppContext.iotDeviceManager()?.addDelegate(self)
     }
     
     private func unregisterDelegage() {
-        AppContext.iotPreferenceManager()?.removeDelegate(self)
+        AppContext.iotDeviceManager()?.removeDelegate(self)
     }
     
     private func setupViews() {
@@ -102,7 +102,7 @@ class IOTListViewController: BaseViewController {
         }
     }
     
-    private func addDevice(device: IOTDevice) {
+    private func addDevice(device: LocalDevice) {
         // Insert at the beginning of the array
         devices.insert(device, at: 0)
         
@@ -125,7 +125,7 @@ class IOTListViewController: BaseViewController {
         self.navigationController?.pushViewController(vc)
     }
     
-    private func showRenameAlert(for device: IOTDevice) {
+    private func showRenameAlert(for device: LocalDevice) {
         let alert = UIAlertController(
             title: "修改设备名称",
             message: nil,
@@ -149,7 +149,7 @@ class IOTListViewController: BaseViewController {
                   !newName.isEmpty else { return }
             
             // Update device name
-            AppContext.iotPreferenceManager()?.updateDeviceName(deviceId: device.deviceId, newName: newName)
+            AppContext.iotDeviceManager()?.updateDeviceName(name: newName, deviceId: device.deviceId)
         }
         alert.addAction(confirmAction)
         
@@ -176,6 +176,7 @@ extension IOTListViewController: UITableViewDelegate, UITableViewDataSource {
         
         cell.onSettingsTapped = { [weak self] in
             let settingsVC = IOTSettingViewController()
+            settingsVC.deviceId = device.deviceId
             self?.present(settingsVC, animated: true)
         }
         
@@ -187,12 +188,12 @@ extension IOTListViewController: UITableViewDelegate, UITableViewDataSource {
     }
 }
 
-extension IOTListViewController: IOTPreferenceManagerDelegate {
-    func preferenceManager(_ manager: IOTPreferenceManager, didAddedDevice device: IOTDevice) {
+extension IOTListViewController: IOTDeviceManagerDelegate {
+    func deviceManager(_ manager: IOTDeviceManager, didAddDevice device: LocalDevice) {
         addDevice(device: device)
     }
     
-    func preferenceManager(_ manager: IOTPreferenceManager, didUpdatedDevice device: IOTDevice) {
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateDevice device: LocalDevice) {
         if let index = devices.firstIndex(where: { $0.deviceId == device.deviceId }) {
             devices[index] = device
             tableView.reloadData()
@@ -200,8 +201,8 @@ extension IOTListViewController: IOTPreferenceManagerDelegate {
         }
     }
     
-    func preferenceManager(_ manager: IOTPreferenceManager, didRemovedDevice device: IOTDevice) {
-        if let index = devices.firstIndex(where: { $0.deviceId == device.deviceId }) {
+    func deviceManager(_ manager: IOTDeviceManager, didRemoveDevice deviceId: String) {
+        if let index = devices.firstIndex(where: { $0.deviceId == deviceId }) {
             devices.remove(at: index)
             tableView.reloadData()
             updateViewsVisibility()

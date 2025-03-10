@@ -59,7 +59,7 @@ class SearchDeviceViewController: BaseViewController {
         return tableView
     }()
     
-    private var devices: [IOTDevice] = []
+    private var devices: [BLEDevice] = []
     override func viewDidLoad() {
         super.viewDidLoad()
         bluetoothManager.deviceConnectTimeout = 10
@@ -237,14 +237,13 @@ extension SearchDeviceViewController: BLEManagerDelegate {
     func bleManagerDidScanDevice(_ manager: AIBLEManager, device: BLEDevice, error: Error?) {
         if let data = device.data[CBAdvertisementDataManufacturerDataKey] as? Data {
 //            if bluetoothManager.bekenDeviceManufacturerData == data {
-                if !devices.contains(where: { $0.deviceId == device.id.uuidString }) {
+            if !devices.contains(where: { $0.id == device.id }) {
                     if devices.isEmpty {
                         remakeConstraints()
                         searchingView.hideTextView(isHidden: true)
                         searchingView.alpha = 0.5
                     }
-                    let iotDevice = IOTDevice(name: device.name, deviceId: device.id.uuidString, rssi: device.rssi, data: device.data)
-                    devices.append(iotDevice)
+                    devices.append(device)
                     tableView.reloadData()
                 }
             }

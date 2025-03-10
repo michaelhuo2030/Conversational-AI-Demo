@@ -31,7 +31,16 @@ class DeviceAddingViewController: BaseViewController {
         setupConstraints()
         
         SVProgressHUD.showInfo(withStatus: "添加设备中...")
+        //TODO: Complete the code.
+        guard let presets = AppContext.iotPresetsManager()?.allPresets(), let defaultPreset = presets.first, let defaultLanguage = defaultPreset.support_languages.first(where: {$0.isDefault}) else { return }
+        let localDevice = LocalDevice(name: "smaug", deviceId: "123", rssi: 123, currentPreset: defaultPreset, currentLanguage: defaultLanguage, aiVad: false)
+        
+        AppContext.iotDeviceManager()?.addDevice(device: localDevice)
         testErrorAlert()
+    }
+    
+    private func requestData() {
+        
     }
     
     func testSuccessAlert() {

@@ -72,33 +72,6 @@ class IOTApiManager: IOTApiProtocol {
         return AppContext.shared.baseServerUrl
     }
     
-    // MARK: - Mock Data
-    private let mockPresets: [CovIotPreset] = [
-        CovIotPreset(
-            preset_name: "default",
-            display_name: "默认预设",
-            preset_brief: "通用对话助手",
-            preset_type: "general",
-            support_languages: [
-                CovIotLanguage(isDefault: true, code: "zh-CN", name: "中文"),
-                CovIotLanguage(isDefault: false, code: "en-US", name: "English")
-            ],
-            call_time_limit_second: 1800
-        ),
-        CovIotPreset(
-            preset_name: "customer_service",
-            display_name: "客服助手",
-            preset_brief: "专业的客服对话助手",
-            preset_type: "service",
-            support_languages: [
-                CovIotLanguage(isDefault: true, code: "zh-CN", name: "中文"),
-                CovIotLanguage(isDefault: false, code: "en-US", name: "English"),
-                CovIotLanguage(isDefault: false, code: "ja-JP", name: "日本語")
-            ],
-            call_time_limit_second: 3600
-        )
-    ]
-    
     private let mockToken = CovIotTokenModel(
         agent_url: "wss://example.com/agent",
         auth_token: "mock_token_12345"
@@ -106,17 +79,7 @@ class IOTApiManager: IOTApiProtocol {
     
     // MARK: - Fetch Presets
     func fetchPresets(requestId: String, completion: @escaping (IOTRequestError?, [CovIotPreset]?) -> Void) {
-        // Use mock data for now
-        if true {
-            // Mock API delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                guard let self = self else { return }
-                completion(nil, self.mockPresets)
-            }
-            return
-        }
-        
-        let url = "\(baseUrl)/\(SERVICE_VERSION)/presets/list"
+        let url = "\(baseUrl)/convoai-iot/\(SERVICE_VERSION)/presets/list"
         let requesetBody: [String: Any] = [
             "request_id": requestId
         ]
@@ -153,17 +116,7 @@ class IOTApiManager: IOTApiProtocol {
             return
         }
         
-        // Use mock data for now
-        if true {
-            // Mock API delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                guard let self = self else { return }
-                completion(self.mockToken, nil)
-            }
-            return
-        }
-        
-        let url = "\(baseUrl)/\(SERVICE_VERSION)/auth/token/generate"
+        let url = "\(baseUrl)/convoai-iot/\(SERVICE_VERSION)/auth/token/generate"
         let parameters: [String: Any] = [
             "request_id": UUID().uuidString,
             "device_id": deviceId
@@ -208,16 +161,7 @@ class IOTApiManager: IOTApiProtocol {
             return
         }
         
-        // Use mock data for now
-        if true {
-            // Mock API delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                completion(nil)
-            }
-            return
-        }
-        
-        let url = "\(baseUrl)/\(SERVICE_VERSION)/device/preset/update"
+        let url = "\(baseUrl)/convoai-iot/\(SERVICE_VERSION)/device/preset/update"
         let parameters: [String: Any] = [
             "request_id": UUID().uuidString,
             "device_id": deviceId,

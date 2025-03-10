@@ -7,6 +7,7 @@
 
 import UIKit
 import Common
+import BLEManager
 
 class SearchResultCell: UITableViewCell {
     var tapCallback: (() -> Void)?
@@ -75,7 +76,7 @@ class SearchResultCell: UITableViewCell {
         }
     }
     
-    func configData(device: IOTDevice) {
+    func configData(device: BLEDevice) {
         titleView.text = device.name
     }
     
