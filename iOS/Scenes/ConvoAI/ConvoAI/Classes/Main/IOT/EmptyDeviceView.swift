@@ -32,7 +32,7 @@ class EmptyDeviceView: UIView {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "欢迎"
+        label.text = ResourceManager.L10n.Iot.deviceEmptyWelcome
         label.font = .systemFont(ofSize: 28, weight: .semibold)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -41,7 +41,7 @@ class EmptyDeviceView: UIView {
     
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "让我们现在添加设备吧"
+        label.text = ResourceManager.L10n.Iot.deviceEmptyDescription
         label.font = .systemFont(ofSize: 16)
         label.textColor = UIColor.themColor(named: "ai_icontext3")
         label.textAlignment = .center
@@ -58,7 +58,7 @@ class EmptyDeviceView: UIView {
     
     private lazy var addDeviceButton: CustomButtonView = {
         var view = CustomButtonView()
-        view.startButton.setTitle("添加设备", for: .normal)
+        view.startButton.setTitle(ResourceManager.L10n.Iot.deviceEmptyAddButton, for: .normal)
         view.startButton.setImage(UIImage.ag_named("ic_iot_bar_add_icon"), for: .normal)
         view.startButton.addTarget(self, action: #selector(addDeviceButtonTapped), for: .touchUpInside)
         return view

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Common
 
 protocol SearchingViewDelegate: AnyObject {
     func searchTimeout()
@@ -35,7 +36,7 @@ class SearchingView: UIView {
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
-        label.text = "正在扫描..."
+        label.text = ResourceManager.L10n.Iot.deviceScanningTitle
         label.textAlignment = .center
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.numberOfLines = 0
@@ -45,7 +46,7 @@ class SearchingView: UIView {
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 14)
-        label.text = "请确保智能设备已打开配网开关，且位于手机附近"
+        label.text = ResourceManager.L10n.Iot.deviceScanningDescription
         label.textAlignment = .center
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.numberOfLines = 0

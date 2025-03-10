@@ -17,7 +17,7 @@ class IOTWifiSettingViewController: BaseViewController {
 
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        let text = "选择2.4GHz Wi-Fi网络"
+        let text = ResourceManager.L10n.Iot.wifiSettingsTitle
         let attributedString = NSMutableAttributedString(string: text)
         let range = (text as NSString).range(of: "2.4GHz")
         attributedString.addAttribute(.foregroundColor, 
@@ -31,7 +31,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "输入Wi-Fi密码"
+        label.text = ResourceManager.L10n.Iot.wifiSettingsSubtitle
         label.font = .systemFont(ofSize: 24, weight: .medium)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -40,7 +40,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     private lazy var tipLabel: UILabel = {
         let label = UILabel()
-        label.text = "提示：不支持5G Wi-Fi"
+        label.text = ResourceManager.L10n.Iot.wifiSettingsTip
         label.font = .systemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_green6")
         label.textAlignment = .center
@@ -56,7 +56,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     private lazy var wifiErrorLabel: UILabel = {
         let label = UILabel()
-        label.text = "请输入 2.4G 无线网络"
+        label.text = ResourceManager.L10n.Iot.wifiSettingsError
         label.font = .systemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_red6")
         label.isHidden = true
@@ -80,7 +80,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     private lazy var switchNetworkButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("更换", for: .normal)
+        button.setTitle(ResourceManager.L10n.Iot.wifiSettingsSwitch, for: .normal)
         button.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 13)
         button.backgroundColor = UIColor.themColor(named: "ai_line2")
@@ -92,7 +92,7 @@ class IOTWifiSettingViewController: BaseViewController {
     private lazy var passwordField: UITextField = {
         let field = UITextField()
         field.backgroundColor = UIColor.themColor(named: "ai_block1")
-        field.placeholder = "密码"
+        field.placeholder = ResourceManager.L10n.Iot.wifiSettingsPasswordPlaceholder
         field.textColor = UIColor.themColor(named: "ai_icontext1")
         field.font = .systemFont(ofSize: 16)
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
@@ -114,7 +114,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     private lazy var nextButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("下一步", for: .normal)
+        button.setTitle(ResourceManager.L10n.Iot.wifiSettingsNext, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = UIColor.themColor(named: "ai_brand_main6")
         button.layer.cornerRadius = 8

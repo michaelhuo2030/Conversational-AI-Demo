@@ -65,7 +65,7 @@ class IOTListViewController: BaseViewController {
     }
     
     private func setupViews() {
-        navigationTitle = "对话式IOT设备"
+        navigationTitle = ResourceManager.L10n.Iot.title
         naviBar.setRightButtonTarget(self, action: #selector(navigationRightButtonTapped), image: UIImage.ag_named("ic_iot_bar_add_icon"))
         
         view.addSubview(tableView)
@@ -109,7 +109,7 @@ class IOTListViewController: BaseViewController {
         tableView.reloadData()
         
         // Show a success message
-        SVProgressHUD.showSuccess(withStatus: "设备添加成功")
+        SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Iot.deviceAddSuccessTitle)
         
         updateViewsVisibility()
     }
@@ -127,7 +127,7 @@ class IOTListViewController: BaseViewController {
     
     private func showRenameAlert(for device: IOTDevice) {
         let alert = UIAlertController(
-            title: "修改设备名称",
+            title: ResourceManager.L10n.Iot.deviceRename,
             message: nil,
             preferredStyle: .alert
         )
@@ -140,11 +140,11 @@ class IOTListViewController: BaseViewController {
         }
         
         // Add cancel action
-        let cancelAction = UIAlertAction(title: "取消", style: .cancel)
+        let cancelAction = UIAlertAction(title: ResourceManager.L10n.Iot.cancel, style: .cancel)
         alert.addAction(cancelAction)
         
         // Add confirm action
-        let confirmAction = UIAlertAction(title: "确定", style: .default) { [weak self] _ in
+        let confirmAction = UIAlertAction(title: ResourceManager.L10n.Iot.submit, style: .default) { [weak self] _ in
             guard let newName = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !newName.isEmpty else { return }
             
@@ -196,7 +196,7 @@ extension IOTListViewController: IOTPreferenceManagerDelegate {
         if let index = devices.firstIndex(where: { $0.deviceId == device.deviceId }) {
             devices[index] = device
             tableView.reloadData()
-            SVProgressHUD.showSuccess(withStatus: "设备名称已更新")
+            SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Iot.deviceRenameSucceed)
         }
     }
     

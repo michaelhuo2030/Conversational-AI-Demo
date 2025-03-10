@@ -26,7 +26,7 @@ class DeviceSearchFailedView: UIView {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "搜索失败"
+        label.text = ResourceManager.L10n.Iot.deviceSearchFailedTitle
         label.font = .systemFont(ofSize: 20, weight: .semibold)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -35,7 +35,7 @@ class DeviceSearchFailedView: UIView {
     
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = "请检查设备是否处于待配网状态"
+        label.text = ResourceManager.L10n.Iot.deviceSearchFailedDescription
         label.font = .systemFont(ofSize: 14, weight: .regular)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -45,7 +45,7 @@ class DeviceSearchFailedView: UIView {
     
     private lazy var retryButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("重新扫描", for: .normal)
+        button.setTitle(ResourceManager.L10n.Iot.deviceSearchFailedRetry, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
         button.backgroundColor = UIColor.themColor(named: "ai_brand_main6")
@@ -56,7 +56,7 @@ class DeviceSearchFailedView: UIView {
     
     private lazy var tipLabel: UILabel = {
         let label = UILabel()
-        label.text = "请确保智能设备已打开配网开关，且位于手机附近"
+        label.text = ResourceManager.L10n.Iot.deviceSearchFailedTip
         label.font = .systemFont(ofSize: 14, weight: .regular)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
