@@ -247,6 +247,10 @@
         android:textSize="14sp"
         android:layout_marginBottom="16dp"
         android:paddingStart="3dp"
+        android:background="@android:color/transparent"
+        android:button="@null"
+        android:drawableStart="@drawable/agent_terms_cb_selector"
+        android:drawablePadding="10dp"
         app:layout_constraintBottom_toTopOf="@id/btn_next"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

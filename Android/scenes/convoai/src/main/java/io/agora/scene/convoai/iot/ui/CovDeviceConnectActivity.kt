@@ -23,6 +23,7 @@ import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
 import io.agora.scene.convoai.iot.api.CovIotApiManager
+import io.agora.scene.convoai.iot.manager.CovIotPresetManager
 import io.agora.scene.convoai.iot.manager.CovScanBleDeviceManager
 import io.agora.scene.convoai.iot.model.CovIotDevice
 import io.agora.scene.convoai.iot.ui.dialog.CovDeviceConnectionFailedDialog
@@ -140,12 +141,25 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
 //            }
 //        }
 
-        CovIotApiManager.generatorToken(device.address) { model, e ->
+        CovIotApiManager.generatorToken("EDB7AE137E93E5C6752A552E4570754BBC759923196B2E7D4D9EFFCD00000000") { model, e ->
             if (e != null || model?.auth_token?.isEmpty() == true) {
+                CovLogger.e(TAG, "CovIotApiManager generatorToken failed: $e")
                 updateConnectState(ConnectState.FAILED)
             } else {
-                // Simulate connection process
-                simulateConnectProcess()
+                CovIotApiManager.updateSettings(
+                    deviceId = device.name,
+                    presetName = CovIotPresetManager.getDefaultPreset()?.preset_name ?: "story_mode",
+                    asrLanguage = CovIotPresetManager.getDefaultLanguage()?.code ?: "zh-CN",
+                    enableAiVad = false
+                ) { err ->
+                    if (err != null) {
+                        CovLogger.e(TAG, "CovIotApiManager updateSettings failed: $err")
+                        updateConnectState(ConnectState.FAILED)
+                    } else {
+                        // Simulate connection process
+                        simulateConnectProcess()
+                    }
+                }
             }
         }
     }
@@ -269,8 +283,8 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                     id = device.address,
                     name = device.name,
                     bleDevice = device,
-                    currentPreset = "",
-                    currentLanguage = "",
+                    currentPreset = CovIotPresetManager.getDefaultPreset()?.preset_name ?: "story_mode",
+                    currentLanguage = CovIotPresetManager.getDefaultLanguage()?.code ?: "zh-CN",
                     enableAIVAD = false
                 )
                 

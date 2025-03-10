@@ -79,9 +79,9 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
         // Record initial state
         device?.let { device ->
             // If device value is empty, use default value
-            initialLanguage = device.currentLanguage.takeIf { it.isNotEmpty() } ?: getDefaultLanguage()
+            initialLanguage = device.currentLanguage.takeIf { it.isNotEmpty() } ?: CovIotPresetManager.getDefaultLanguage()?.code ?: "zh-CN"
             initialAiVad = device.enableAIVAD
-            initialPreset = device.currentPreset.takeIf { it.isNotEmpty() } ?: getDefaultPreset()
+            initialPreset = device.currentPreset.takeIf { it.isNotEmpty() } ?: CovIotPresetManager.getDefaultPreset()?.preset_name ?: "story_mode"
         }
 
         // Set dialog to not close when touching outside area
@@ -469,24 +469,6 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
                 binding.ivIcon.visibility = if (selected) View.VISIBLE else View.INVISIBLE
             }
         }
-    }
-
-    // Get default language
-    private fun getDefaultLanguage(): String {
-        // Get default preset
-        val defaultPreset = getDefaultPreset()
-        // Get language list for this preset
-        val languages = CovIotPresetManager.getPresetLanguages(defaultPreset)
-        // Return default language code instead of name
-        return languages?.find { it.default }?.code ?: languages?.firstOrNull()?.code ?: "zh-CN"
-    }
-
-    // Get default preset
-    private fun getDefaultPreset(): String {
-        // Get preset list from preset manager
-        val presets = CovIotPresetManager.getPresetList()
-        // Return the ID of the first preset, or empty string if list is empty
-        return presets?.firstOrNull()?.preset_name ?: ""
     }
 
     // Get language code by language name

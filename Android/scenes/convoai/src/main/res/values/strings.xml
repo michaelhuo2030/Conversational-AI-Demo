@@ -38,6 +38,7 @@
     <string name="cov_info_logout">退出登录</string>
     <string name="cov_info_more">更多操作</string>
     <string name="cov_info_uploader">一键上报</string>
+    <string name="cov_my_device">我的设备</string>
 
     <string name="cov_setting_title">人物设定</string>
     <string name="cov_setting_title_connected">(连接中不可修改)</string>

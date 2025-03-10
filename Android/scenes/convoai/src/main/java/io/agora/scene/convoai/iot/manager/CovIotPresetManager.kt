@@ -9,6 +9,10 @@ object CovIotPresetManager {
 
     private var presetList: List<CovIotPreset>? = null
 
+    fun getDefaultPreset(): CovIotPreset? {
+        return presetList?.firstOrNull()
+    }
+
     fun getPreset(presetName: String): CovIotPreset? {
         return presetList?.find { it.display_name == presetName }
     }
@@ -23,6 +27,10 @@ object CovIotPresetManager {
 
     fun getLanguageList(): List<CovIotLanguage>? {
         return presetList?.firstOrNull()?.support_languages
+    }
+
+    fun getDefaultLanguage(): CovIotLanguage? {
+        return presetList?.firstOrNull()?.support_languages?.find { it.default }
     }
 
     fun getPresetLanguages(presetName: String): List<CovIotLanguage>? {
