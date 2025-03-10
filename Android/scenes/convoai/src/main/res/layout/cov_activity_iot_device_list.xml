@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/ai_fill1">
 
-    <!-- 顶部标题栏 -->
+    <!-- header title bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_title_bar"
         android:layout_width="match_parent"
@@ -48,7 +48,7 @@
             app:layout_constraintTop_toTopOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 设备列表 -->
+    <!-- device list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_devices"
         android:layout_width="match_parent"
@@ -64,7 +64,7 @@
         tools:visibility="gone"
         tools:listitem="@layout/cov_iot_device_item" />
     
-    <!-- 空状态视图 -->
+    <!-- empty state view -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_empty_state"
         android:layout_width="match_parent"
@@ -74,7 +74,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cl_title_bar">
 
-        <!-- 背景圆形1 -->
+        <!-- background circle 1 -->
         <View
             android:id="@+id/view_circle_bg1"
             android:layout_width="220dp"
@@ -84,7 +84,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- 背景圆形2 -->
+        <!-- background circle 2 -->
         <View
             android:id="@+id/view_circle_bg2"
             android:layout_width="240dp"

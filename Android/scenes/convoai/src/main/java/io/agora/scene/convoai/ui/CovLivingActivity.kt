@@ -853,7 +853,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             infoDialog = null
                         },
                         {
-                            infoDialog?.dismiss()
+                            showLogoutConfirmDialog {
+                                infoDialog?.dismiss()
+                            }
                         },
                         {
                             CovIotDeviceListActivity.startActivity(this@CovLivingActivity)

@@ -1,7 +1,6 @@
 package io.agora.scene.convoai.iot.ui
 
 import android.content.Intent
-import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -9,7 +8,6 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.Toast
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.dp
@@ -18,8 +16,9 @@ import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityWifiSelectBinding
-import io.agora.scene.convoai.iot.manager.BleDeviceManager
+import io.agora.scene.convoai.iot.manager.CovScanBleDeviceManager
 import io.iot.dn.ble.model.BleDevice
+import io.iot.dn.wifi.manager.WifiManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,21 +27,35 @@ import kotlinx.coroutines.launch
 
 class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
 
-    private val TAG = "CovWifiSelectActivity"
+
+    companion object {
+        private const val TAG = "CovWifiSelectActivity"
+        private const val EXTRA_DEVICE_ID = "extra_device_id"
+
+        fun startActivity(activity: BaseActivity<*>, deviceId: String) {
+            val intent = Intent(activity, CovWifiSelectActivity::class.java).apply {
+                putExtra(EXTRA_DEVICE_ID, deviceId)
+            }
+            activity.startActivity(intent)
+
+            // Add log to confirm if device object is correctly passed
+            CovLogger.d("CovWifiSelectActivity", "Starting Wi-Fi selection page, passing device: $deviceId")
+        }
+    }
     
-    // 创建协程作用域用于异步操作
+    // Create coroutine scope for asynchronous operations
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     
-    // 当前连接的Wi-Fi网络
+    // Current connected Wi-Fi network
     private var currentWifi: String? = null
     
-    // 是否显示密码
+    // Whether password is visible
     private var isPasswordVisible = false
-    
-    // 移除不需要的WiFi网络列表
-    // private val wifiNetworks = mutableListOf<WifiNetwork>()
 
     private lateinit var bleDevice: BleDevice
+    
+    // Add WiFi manager
+    private lateinit var wifiManager: WifiManager
 
     override fun getViewBinding(): CovActivityWifiSelectBinding {
         return CovActivityWifiSelectBinding.inflate(layoutInflater)
@@ -51,22 +64,24 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // 获取设备ID
+        // Initialize WiFi manager
+        wifiManager = WifiManager(this)
+        
+        // Get device ID
         val deviceId = intent.getStringExtra(EXTRA_DEVICE_ID) ?: ""
         
-        // 从设备管理器获取设备
-        val device = BleDeviceManager.getDevice(deviceId)
+        // Get device from device manager
+        val device = CovScanBleDeviceManager.getDevice(deviceId)
         if (device == null) {
-            // 设备不存在，显示错误并返回
-            Toast.makeText(this, "设备信息不存在", Toast.LENGTH_SHORT).show()
+            // Device doesn't exist, show error and return
             finish()
             return
         }
         
-        // 保存设备信息
+        // Save device information
         bleDevice = device
         
-        // 继续初始化
+        // Continue initialization
         initData()
     }
 
@@ -84,7 +99,7 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
 
     override fun onResume() {
         super.onResume()
-        // 每次页面恢复时重新获取当前Wi-Fi信息
+        // Get current Wi-Fi information every time the page resumes
         getCurrentWifi()
     }
 
@@ -97,7 +112,7 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
             layoutParams.topMargin = statusBarHeight
             clTitleBar.layoutParams = layoutParams
 
-            // 设置返回按钮点击事件
+            // Set back button click event
             ivBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     finish()
@@ -108,11 +123,11 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
     
     private fun setupPasswordToggle() {
         mBinding?.apply {
-            // 设置密码可见性切换
+            // Set password visibility toggle
             ivTogglePassword.setOnClickListener {
                 isPasswordVisible = !isPasswordVisible
                 
-                // 更新密码输入框的输入类型
+                // Update password input field type
                 if (isPasswordVisible) {
                     etWifiPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
                     ivTogglePassword.setImageResource(R.drawable.cov_iot_show_pw)
@@ -121,21 +136,21 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
                     ivTogglePassword.setImageResource(R.drawable.cov_iot_hide_pw)
                 }
                 
-                // 将光标移到文本末尾
+                // Move cursor to the end of text
                 etWifiPassword.setSelection(etWifiPassword.text.length)
             }
             
-            // 监听密码输入变化
+            // Monitor password input changes
             etWifiPassword.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 
                 override fun afterTextChanged(s: Editable?) {
-                    // 根据密码长度启用或禁用下一步按钮
+                    // Enable or disable next button based on password length
                     val isEnabled = !s.isNullOrEmpty() && s.length >= 8
                     btnNext.isEnabled = isEnabled
-                    // 根据按钮状态设置alpha值
+                    // Set alpha value based on button state
                     btnNext.alpha = if (isEnabled) 1.0f else 0.5f
                 }
             })
@@ -144,12 +159,12 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
     
     private fun setupWifiSelection() {
         mBinding?.apply {
-            // 设置当前Wi-Fi名称
+            // Set current Wi-Fi name
             currentWifi?.let {
                 tvWifiName.text = it
             }
             
-            // 设置更换Wi-Fi按钮点击事件 - 打开系统Wi-Fi设置
+            // Set change Wi-Fi button click event - open system Wi-Fi settings
             btnChangeWifi.setOnClickListener {
                 openWifiSettings()
             }
@@ -158,26 +173,26 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
     
     private fun setupNextButton() {
         mBinding?.apply {
-            // 初始状态下禁用下一步按钮
+            // Disable next button in initial state
             btnNext.isEnabled = false
-            // 设置初始alpha值
+            // Set initial alpha value
             btnNext.alpha = 0.5f
             
-            // 设置下一步按钮点击事件
+            // Set next button click event
             btnNext.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     val password = etWifiPassword.text.toString()
                     
                     if (password.length < 8) {
-                        ToastUtil.show("Wi-Fi密码长度不能少于8位")
+                        ToastUtil.show("Wi-Fi password must be at least 8 characters")
                         return
                     }
                     
-                    // 保存Wi-Fi信息并进入下一步
+                    // Save Wi-Fi information and proceed to next step
                     currentWifi?.let {
                         startDeviceConnectActivity(password)
                     } ?: run {
-                        ToastUtil.show("请先选择Wi-Fi网络")
+                        ToastUtil.show("Please select a Wi-Fi network first")
                     }
                 }
             })
@@ -185,56 +200,47 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
     }
 
     private fun initData() {
-        // 添加日志输出检查device是否为null
-        CovLogger.d(TAG, "配置设备Wi-Fi: ${bleDevice.name}, device是否为null: ${bleDevice == null}")
-        
-        // 如果device为null，显示提示并返回上一页面
-        if (bleDevice == null) {
-            ToastUtil.show("设备信息获取失败，请重试")
-            finish()
-            return
-        }
-        
-        // 获取当前连接的Wi-Fi
+        // Add log output to check if device is null
+        CovLogger.d(TAG, "Configuring device Wi-Fi: ${bleDevice.name}")
+
+        // Get currently connected Wi-Fi
         getCurrentWifi()
     }
     
-    // 获取当前连接的Wi-Fi信息
+    // Get current Wi-Fi information
     private fun getCurrentWifi() {
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                // 获取当前连接的Wi-Fi信息
-                val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
-                val wifiInfo = wifiManager.connectionInfo
-                val ssid = wifiInfo.ssid.replace("\"", "") // 移除SSID两端的引号
+                // Use WifiManager to get current Wi-Fi information
+                val wifiInfo = wifiManager.getCurrentWifiInfo()
                 
-                if (ssid.isNotEmpty() && ssid != "<unknown ssid>") {
-                    currentWifi = ssid
+                if (wifiInfo != null) {
+                    currentWifi = wifiInfo.ssid
                     
-                    // 检查WiFi频段
-                    val is5GHz = checkIf5GHzWifi(wifiManager, wifiInfo)
+                    // Check WiFi frequency band
+                    val is5GHz = !wifiManager.is24GHzWifi(wifiInfo.frequency)
                     
                     launch(Dispatchers.Main) {
                         mBinding?.tvWifiName?.text = currentWifi ?: ""
                         
                         if (is5GHz) {
-                            // 5G WiFi - 显示红色并禁用密码输入
+                            // 5G WiFi - show in red and disable password input
                             mBinding?.tvWifiName?.setTextColor(resources.getColor(io.agora.scene.common.R.color.ai_red6, null))
                             mBinding?.etWifiPassword?.isEnabled = false
                             mBinding?.btnNext?.isEnabled = false
                             mBinding?.btnNext?.alpha = 0.5f
                             mBinding?.tvWifiWarning?.visibility = View.VISIBLE
                         } else {
-                            // 2.4G WiFi - 正常显示
+                            // 2.4G WiFi - normal display
                             mBinding?.tvWifiName?.setTextColor(resources.getColor(io.agora.scene.common.R.color.ai_icontext1, null))
                             mBinding?.etWifiPassword?.isEnabled = true
                             mBinding?.tvWifiWarning?.visibility = View.GONE
                             
-                            // 更新UI状态，确保Wi-Fi已连接时启用下一步按钮（如果密码已输入）
+                            // Update UI state, ensure next button is enabled when Wi-Fi is connected (if password is entered)
                             val isEnabled = !mBinding?.etWifiPassword?.text.isNullOrEmpty() && 
                                            (mBinding?.etWifiPassword?.text?.length ?: 0) >= 8
                             mBinding?.btnNext?.isEnabled = isEnabled
-                            // 根据按钮状态设置alpha值
+                            // Set alpha value based on button state
                             mBinding?.btnNext?.alpha = if (isEnabled) 1.0f else 0.5f
                         }
                     }
@@ -244,63 +250,33 @@ class CovWifiSelectActivity : BaseActivity<CovActivityWifiSelectBinding>() {
                         mBinding?.btnNext?.isEnabled = false
                         mBinding?.btnNext?.alpha = 0.5f
                         mBinding?.tvWifiWarning?.visibility = View.GONE
-                        ToastUtil.show("未检测到Wi-Fi连接，请先连接Wi-Fi")
+                        ToastUtil.show("No Wi-Fi connection detected, please connect to Wi-Fi first")
                     }
                 }
             } catch (e: Exception) {
-                CovLogger.e(TAG, "获取Wi-Fi信息失败: ${e.message}")
+                CovLogger.e(TAG, "Failed to get Wi-Fi information: ${e.message}")
                 
                 launch(Dispatchers.Main) {
-                    ToastUtil.show("获取Wi-Fi信息失败")
+                    ToastUtil.show("Failed to get Wi-Fi information")
                 }
             }
         }
     }
     
-    // 检查当前WiFi是否为5GHz
-    private fun checkIf5GHzWifi(wifiManager: WifiManager, wifiInfo: android.net.wifi.WifiInfo): Boolean {
-        try {
-            // Android 6.0 (API 23)及以上版本可以直接获取频率
-            val frequency = wifiInfo.frequency
-            CovLogger.d(TAG, "当前WiFi频率: $frequency MHz")
-            
-            // 5GHz WiFi频率范围通常在5000MHz以上
-            return frequency > 4900
-        } catch (e: Exception) {
-            CovLogger.e(TAG, "获取WiFi频率失败: ${e.message}")
-            // 如果无法获取频率，默认为非5G
-            return false
-        }
-    }
-    
-    // 打开系统Wi-Fi设置页面
+    // Open system Wi-Fi settings page
     private fun openWifiSettings() {
         try {
             val intent = Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)
             startActivity(intent)
         } catch (e: Exception) {
-            CovLogger.e(TAG, "打开Wi-Fi设置失败: ${e.message}")
-            ToastUtil.show("无法打开Wi-Fi设置")
+            CovLogger.e(TAG, "Failed to open Wi-Fi settings: ${e.message}")
+            ToastUtil.show("Unable to open Wi-Fi settings")
         }
     }
     
-    // 启动设备连接页面
+    // Start device connection page
     private fun startDeviceConnectActivity(wifiPassword: String) {
-        // 将Wi-Fi信息传递给设备连接页面
+        // Pass Wi-Fi information to device connection page
         CovDeviceConnectActivity.startActivity(this, bleDevice.address, currentWifi ?: "", wifiPassword)
-    }
-
-    companion object {
-        private const val EXTRA_DEVICE_ID = "extra_device_id"
-        
-        fun startActivity(activity: BaseActivity<*>, deviceId: String) {
-            val intent = Intent(activity, CovWifiSelectActivity::class.java).apply {
-                putExtra(EXTRA_DEVICE_ID, deviceId)
-            }
-            activity.startActivity(intent)
-            
-            // 添加日志确认设备对象是否正确传递
-            CovLogger.d("CovWifiSelectActivity", "启动Wi-Fi选择页面，传递设备: $deviceId")
-        }
     }
 }

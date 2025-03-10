@@ -22,7 +22,8 @@ import io.agora.scene.convoai.R
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
-import io.agora.scene.convoai.iot.manager.BleDeviceManager
+import io.agora.scene.convoai.iot.api.CovIotApiManager
+import io.agora.scene.convoai.iot.manager.CovScanBleDeviceManager
 import io.agora.scene.convoai.iot.model.CovIotDevice
 import io.agora.scene.convoai.iot.ui.dialog.CovDeviceConnectionFailedDialog
 import io.iot.dn.ble.manager.BleManager
@@ -46,24 +47,24 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
         }
     }
     
-    // 创建协程作用域用于异步操作
+    // Create coroutine scope for asynchronous operations
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     private val viewModelScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    // 设备对象
+    // Device object
     private var device: BleDevice? = null
-    // WiFi信息
+    // WiFi information
     private var wifiSsid: String = ""
     private var wifiPassword: String = ""
 
     private val bleManager = BleManager(this)
     
-    // 连接状态
+    // Connection states
     private enum class ConnectState {
-        CONNECTING,  // 连接中
-        FAILED,      // 连接失败
-        SUCCESS      // 连接成功
+        CONNECTING,  // Connecting
+        FAILED,      // Connection failed
+        SUCCESS      // Connection successful
     }
 
     override fun getViewBinding(): CovActivityDeviceConnectBinding {
@@ -94,27 +95,27 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
             layoutParams.topMargin = statusBarHeight
             clTitleBar.layoutParams = layoutParams
 
-            // 设置返回按钮点击事件
+            // Set back button click event
             ivBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     finish()
                 }
             })
             
-            // 添加旋转动画
+            // Add rotation animation
             startConnectingAnimation()
         }
     }
 
     private fun initData() {
-        // 从Intent中获取设备信息和WiFi信息
-        device = BleDeviceManager.getDevice(intent.getStringExtra(EXTRA_DEVICE) ?: "")
+        // Get device information and WiFi information from Intent
+        device = CovScanBleDeviceManager.getDevice(intent.getStringExtra(EXTRA_DEVICE) ?: "")
         wifiSsid = intent.getStringExtra(EXTRA_WIFI_SSID) ?: ""
         wifiPassword = intent.getStringExtra(EXTRA_WIFI_PASSWORD) ?: ""
-        CovLogger.d(TAG, "连接设备: ${device}, WiFi: $wifiSsid")
+        CovLogger.d(TAG, "Connecting device: ${device}, WiFi: $wifiSsid")
     }
     
-    // 开始连接设备
+    // Start connecting to device
     private fun startConnect() {
         val device = this.device ?: return
         updateConnectState(ConnectState.CONNECTING)
@@ -138,86 +139,93 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
 //                }
 //            }
 //        }
-        // 模拟连接过程
-        simulateConnectProcess()
+
+        CovIotApiManager.generatorToken(device.address) { model, e ->
+            if (e != null || model?.auth_token?.isEmpty() == true) {
+                updateConnectState(ConnectState.FAILED)
+            } else {
+                // Simulate connection process
+                simulateConnectProcess()
+            }
+        }
     }
     
-    // 模拟连接过程
+    // Simulate connection process
     private fun simulateConnectProcess() {
         coroutineScope.launch {
-            // 模拟连接延迟
+            // Simulate connection delay
             delay(5000)
             
-            // 随机决定连接结果（50%成功率）
+            // Randomly decide connection result (50% success rate)
             val isSuccess = (0..100).random() <= 50
             
             if (isSuccess) {
-                // 连接成功
+                // Connection successful
                 updateConnectState(ConnectState.SUCCESS)
             } else {
-                // 连接失败
+                // Connection failed
                 updateConnectState(ConnectState.FAILED)
             }
         }
     }
     
-    // 添加旋转动画方法
+    // Add rotation animation method
     private fun startConnectingAnimation() {
         mBinding?.ivConnectingCircle?.let { connectingCircle ->
-            // 创建旋转动画
+            // Create rotation animation
             val rotateAnimation = RotateAnimation(
                 0f, 360f,
                 Animation.RELATIVE_TO_SELF, 0.5f,
                 Animation.RELATIVE_TO_SELF, 0.5f
             )
 
-            // 设置动画属性
-            rotateAnimation.duration = 2000 // 旋转一周的时间为2秒
-            rotateAnimation.repeatCount = Animation.INFINITE // 无限循环
-            rotateAnimation.interpolator = LinearInterpolator() // 线性插值器，使旋转速度均匀
+            // Set animation properties
+            rotateAnimation.duration = 2000 // Rotation time for one cycle is 2 seconds
+            rotateAnimation.repeatCount = Animation.INFINITE // Infinite loop
+            rotateAnimation.interpolator = LinearInterpolator() // Linear interpolator for uniform rotation speed
 
-            // 启动动画
+            // Start animation
             connectingCircle.startAnimation(rotateAnimation)
         }
     }
     
-    // 更新连接状态UI
+    // Update connection state UI
     private fun updateConnectState(state: ConnectState) {
         mBinding?.apply {
             when (state) {
                 ConnectState.CONNECTING -> {
                     clConnecting.visibility = View.VISIBLE
                     tvConnectingStatus.text = getString(R.string.cov_iot_devices_connecting)
-                    // 确保动画在连接状态下运行
+                    // Ensure animation runs in connecting state
                     startConnectingAnimation()
                 }
                 ConnectState.FAILED -> {
                     clConnecting.visibility = View.GONE
-                    // 停止动画
+                    // Stop animation
                     ivConnectingCircle.clearAnimation()
-                    // 显示连接失败的UI
+                    // Show connection failed UI
                     showConnectionFailedDialog()
                 }
                 ConnectState.SUCCESS -> {
                     clConnecting.visibility = View.GONE
-                    // 停止动画
+                    // Stop animation
                     ivConnectingCircle.clearAnimation()
-                    // 显示连接成功的对话框
+                    // Show connection success dialog
                     showConnectionSuccessDialog()
                 }
             }
         }
     }
 
-    // 显示连接成功对话框
+    // Show connection success dialog
     private fun showConnectionSuccessDialog() {
         CommonDialog.Builder()
             .setTitle(getString(R.string.cov_iot_devices_connect_connect_success))
             .setContent(getString(R.string.cov_iot_devices_connect_connect_success_tips))
             .setPositiveButton(getString(R.string.cov_iot_devices_connect_connect_success_know)) {
-                // 保存设备到设备列表
+                // Save device to device list
                 saveDeviceToList()
-                // 返回设备列表页面
+                // Return to device list page
                 navigateToDeviceListPage()
             }
             .setImage(R.drawable.cov_iot_connect_success)
@@ -227,18 +235,18 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
             .show(supportFragmentManager, "dialog_success")
     }
 
-    // 导航到设备列表页面
+    // Navigate to device list page
     private fun navigateToDeviceListPage() {
-        // 假设设备列表页面是CovDeviceListActivity
+        // Assume device list page is CovDeviceListActivity
         val intent = Intent(this, CovIotDeviceListActivity::class.java).apply {
-            // 清除任务栈中当前Activity之上的所有Activity
+            // Clear all activities above current activity in the task stack
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         startActivity(intent)
         finish()
     }
 
-    // 显示连接失败对话框
+    // Show connection failed dialog
     private fun showConnectionFailedDialog() {
         CovDeviceConnectionFailedDialog.newInstance(
             onDismiss = {
@@ -252,11 +260,11 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
         ).show(supportFragmentManager, "dialog_failed")
     }
 
-    // 保存设备到设备列表
+    // Save device to device list
     private fun saveDeviceToList() {
         device?.let { device ->
             try {
-                // 将Device转换为CovIotDevice
+                // Convert Device to CovIotDevice
                 val iotDevice = CovIotDevice(
                     id = device.address,
                     name = device.name,
@@ -266,7 +274,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                     enableAIVAD = false
                 )
                 
-                // 从SharedPreferences加载现有设备列表
+                // Load existing device list from SharedPreferences
                 val sharedPrefs = getSharedPreferences("iot_devices_prefs", MODE_PRIVATE)
                 val devicesJson = sharedPrefs.getString("saved_devices", null)
                 
@@ -278,23 +286,23 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                     deviceList.addAll(loadedDevices)
                 }
                 
-                // 检查设备是否已存在
+                // Check if device already exists
                 val existingDeviceIndex = deviceList.indexOfFirst { it.id == iotDevice.id }
                 if (existingDeviceIndex >= 0) {
-                    // 更新现有设备
+                    // Update existing device
                     deviceList[existingDeviceIndex] = iotDevice
                 } else {
-                    // 添加新设备
+                    // Add new device
                     deviceList.add(0, iotDevice)
                 }
                 
-                // 保存更新后的设备列表
+                // Save updated device list
                 val updatedDevicesJson = com.google.gson.Gson().toJson(deviceList)
                 sharedPrefs.edit().putString("saved_devices", updatedDevicesJson).apply()
                 
-                CovLogger.d(TAG, "设备已保存到列表: ${iotDevice.name}")
+                CovLogger.d(TAG, "Device saved to list: ${iotDevice.name}")
             } catch (e: Exception) {
-                CovLogger.e(TAG, "保存设备失败: ${e.message}")
+                CovLogger.e(TAG, "Failed to save device: ${e.message}")
                 e.printStackTrace()
             }
         }

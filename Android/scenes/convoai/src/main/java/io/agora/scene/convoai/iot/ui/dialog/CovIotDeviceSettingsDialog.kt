@@ -33,12 +33,12 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
     private var device: CovIotDevice? = null
     private var context: Context? = null
     
-    // 添加初始状态记录
+    // Record initial state
     private var initialLanguage: String? = null
     private var initialAiVad: Boolean = false
     private var initialPreset: String? = null
 
-    // 预设适配器
+    // Preset adapter
     private lateinit var presetAdapter: PresetAdapter
     private var presetList = mutableListOf<PresetItem>()
     private var selectedPresetPosition = 0
@@ -76,15 +76,15 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 记录初始状态
+        // Record initial state
         device?.let { device ->
-            // 如果设备值为空，则使用默认值
-            initialLanguage = device.currentLanguage.takeIf { !it.isNullOrEmpty() } ?: getDefaultLanguage()
+            // If device value is empty, use default value
+            initialLanguage = device.currentLanguage.takeIf { it.isNotEmpty() } ?: getDefaultLanguage()
             initialAiVad = device.enableAIVAD
-            initialPreset = device.currentPreset.takeIf { !it.isNullOrEmpty() } ?: getDefaultPreset()
+            initialPreset = device.currentPreset.takeIf { it.isNotEmpty() } ?: getDefaultPreset()
         }
 
-        // 设置点击外部区域关闭对话框
+        // Set dialog to not close when touching outside area
         dialog?.setCanceledOnTouchOutside(false)
         
         binding?.apply {
@@ -95,71 +95,72 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
                 rcOptions.addItemDecoration(LastItemDividerDecoration(it))
             }
 
-            // 初始化预设列表
+            // Initialize preset list
             initPresetList()
             
-            // 设置预设RecyclerView
+            // Set up preset RecyclerView
             rvPreset.layoutManager = LinearLayoutManager(context)
             presetAdapter = PresetAdapter(presetList, selectedPresetPosition) { position ->
-                // 处理预设选择
+                // Handle preset selection
                 selectedPresetPosition = position
             }
             rvPreset.adapter = presetAdapter
 
-            // 语言选项点击事件
+            // Language option click event
             clLanguage.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickLanguage()
                 }
             })
 
-            // 遮罩层点击事件
+            // Mask layer click event
             vOptionsMask.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onClickMaskView()
                 }
             })
 
-            // 优雅打断开关
+            // AI VAD switch
             cbAiVad.isChecked = initialAiVad
 
             mLoadingDialog = LoadingDialog(this.root.context)
             mLoadingDialog?.setProgressBarColor(io.agora.scene.common.R.color.ai_click)
 
-            // 关闭按钮
+            // Close button
             btnClose.setOnClickListener {
-                // 检查是否需要保存设置
+                // Check if settings need to be saved
                 if (hasSettingsChanged()) {
                     showSaveConfirmDialog(
                         onSave = {
-                            // 点击确认时，从UI读取当前状态并创建新的CovIotDevice对象
+                            // When confirmed, read current state from UI and create new CovIotDevice object
                             device?.let { dev ->
                                 binding?.let { binding ->
-                                    // 创建新的CovIotDevice对象
-                                    val languageText = binding.tvLanguageDetail.text.toString()
+                                    // Get language code for current displayed language name
+                                    val languageName = binding.tvLanguageDetail.text.toString()
+                                    val languageCode = getCurrentLanguageCode(languageName) ?: initialLanguage ?: "zh-CN"
+                                    
                                     val selectedPreset = presetList[selectedPresetPosition]
                                     val newDevice = CovIotDevice(
                                         dev.id,
                                         dev.name,
                                         dev.bleDevice,
                                         currentPreset = selectedPreset.id,
-                                        currentLanguage = languageText,
+                                        currentLanguage = languageCode, // Use language code
                                         enableAIVAD = binding.cbAiVad.isChecked,
                                     )
 
                                     mLoadingDialog?.show()
                                     CovIotApiManager.updateSettings(
-                                        deviceId = newDevice.bleDevice.address,
+                                        deviceId = newDevice.name,
                                         presetName = newDevice.currentPreset,
                                         asrLanguage = newDevice.currentLanguage,
-                                        enableAivad = newDevice.enableAIVAD
+                                        enableAiVad = newDevice.enableAIVAD
                                     ) { e ->
                                         if (e == null) {
-                                            // 调用回调保存新设备
+                                            // Call callback to save new device
                                             onSaveCallback?.invoke(newDevice)
                                         } else {
-                                            // TODO 保存失败
-                                            ToastUtil.show("设备信息更新失败, 请重试")
+                                            ToastUtil.show(R.string.cov_iot_devices_setting_modify_failed_toast)
                                         }
                                         mLoadingDialog?.dismiss()
                                     }
@@ -168,7 +169,7 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
                             dismiss()
                         },
                         onCancel = {
-                            // 点击取消时，恢复UI到初始状态
+                            // When canceled, restore UI to initial state
                             restoreInitialSettings()
                             onDismissCallback?.invoke()
                             dismiss()
@@ -180,13 +181,13 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
                 }
             }
 
-            // 重新配网按钮
+            // Reset network button
             btnReset.setOnClickListener {
                 onResetCallback?.invoke()
                 dismiss()
             }
 
-            // 删除设备按钮
+            // Delete device button
             btnDelete.setOnClickListener {
                 showDeleteConfirmDialog(device?.name ?: "") {
                     onDeleteCallback?.invoke()
@@ -204,18 +205,20 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
 
     private fun updateBaseSettings() {
         binding?.apply {
-            tvLanguageDetail.text = initialLanguage
+            // Display language name, but store language code
+            val languageName = CovIotPresetManager.getLanguageByCode(initialLanguage)?.name ?: initialLanguage
+            tvLanguageDetail.text = languageName
         }
     }
 
     private fun initPresetList() {
-        // 清空列表
+        // Clear list
         presetList.clear()
         
-        // 从CovIotPresetManager获取预设列表
+        // Get preset list from CovIotPresetManager
         val presets = CovIotPresetManager.getPresetList()
         
-        // 添加所有预设到列表
+        // Add all presets to the list
         presets?.forEach { preset ->
             presetList.add(
                 PresetItem(
@@ -226,26 +229,26 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
             )
         }
         
-        // 设置初始选中位置
+        // Set initial selected position
         selectedPresetPosition = presets?.indexOfFirst { it.preset_name == initialPreset }.takeIf { it != null && it >= 0 } ?: 0
     }
 
     private fun onClickLanguage() {
-        // 获取当前选中预设的语言列表
+        // Get language list for current selected preset
         val currentPreset = presetList.getOrNull(selectedPresetPosition)?.id ?: return
         val languages = CovIotPresetManager.getPresetLanguages(currentPreset) ?: return
         
         binding?.apply {
             vOptionsMask.visibility = View.VISIBLE
 
-            // 计算弹出位置
+            // Calculate popup position
             val itemDistances = clLanguage.getDistanceFromScreenEdges()
             val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
             val targetY = itemDistances.top - maskDistances.top + 30.dp
             cvOptions.x = vOptionsMask.width - 250.dp
             cvOptions.y = targetY
 
-            // 计算高度约束
+            // Calculate height constraints
             val params = cvOptions.layoutParams
             val itemHeight = 56.dp.toInt()
             val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
@@ -254,12 +257,16 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
             params.height = finalHeight
             cvOptions.layoutParams = params
 
-            // 更新选项并处理选择
+            // Get index of current language name
+            val currentLanguageName = tvLanguageDetail.text.toString()
+            val currentIndex = languages.indexOfFirst { it.name == currentLanguageName }.takeIf { it >= 0 } ?: 0
+
+            // Update options and handle selection
             optionsAdapter.updateOptions(
                 languages.map { it.name }.toTypedArray(),
-                languages.indexOfFirst { it.name == tvLanguageDetail.text.toString() }.takeIf { it >= 0 } ?: 0
+                currentIndex
             ) { index ->
-                // 更新语言显示
+                // Update language display name
                 tvLanguageDetail.text = languages[index].name
                 vOptionsMask.visibility = View.INVISIBLE
             }
@@ -272,17 +279,20 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
         }
     }
 
-    // 修改检查设置是否有变更的方法
+    // Method to check if settings have changed
     private fun hasSettingsChanged(): Boolean {
-        // 比较当前UI设置与初始设置是否有变化
+        // Compare current UI settings with initial settings
         binding?.let {
-            // 从UI读取当前状态
+            // Read current state from UI
             val currentAiVad = it.cbAiVad.isChecked
             val selectedPreset = presetList[selectedPresetPosition].id
             
-            // 检查语言是否变更 (通过UI文本比较)
-            val currentLanguageText = it.tvLanguageDetail.text.toString()
-            val languageChanged = initialLanguage != currentLanguageText
+            // Get language code for current displayed language name
+            val currentLanguageName = it.tvLanguageDetail.text.toString()
+            val currentLanguageCode = getCurrentLanguageCode(currentLanguageName)
+            
+            // Compare language code instead of language name
+            val languageChanged = initialLanguage != currentLanguageCode
             
             return currentAiVad != initialAiVad || 
                    languageChanged || 
@@ -292,19 +302,20 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
         return false
     }
     
-    // 添加恢复初始设置的方法
+    // Method to restore initial settings
     private fun restoreInitialSettings() {
-        // 恢复预设选择
+        // Restore preset selection
         selectedPresetPosition = if (initialPreset?.contains("故事") == true) 0 else 1
         presetAdapter.updateSelectedPosition(selectedPresetPosition)
         
-        // 更新UI
+        // Update UI
         binding?.apply {
-            // 恢复AI VAD开关状态
+            // Restore AI VAD switch state
             cbAiVad.isChecked = initialAiVad
             
-            // 恢复语言显示
-            tvLanguageDetail.text = initialLanguage
+            // Restore language display, use language code to get corresponding language name
+            val languageName = CovIotPresetManager.getLanguageByCode(initialLanguage)?.name ?: initialLanguage
+            tvLanguageDetail.text = languageName
         }
     }
 
@@ -312,9 +323,9 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
         CommonDialog.Builder()
             .setTitle(getString(R.string.cov_iot_devices_setting_delete, deviceName))
             .setContent(getString(R.string.cov_iot_devices_setting_delete_content))
-            .setPositiveButton(getString(R.string.cov_iot_devices_setting_delete_confirm), {
+            .setPositiveButton(getString(R.string.cov_iot_devices_setting_delete_confirm)) {
                 onDelete.invoke()
-            })
+            }
             .setNegativeButton(getString(io.agora.scene.common.R.string.common_logout_confirm_cancel))
             .hideTopImage()
             .build()
@@ -325,18 +336,18 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
         CommonDialog.Builder()
             .setTitle(getString(R.string.cov_iot_devices_setting_confirm_title))
             .setContent(getString(R.string.cov_iot_devices_setting_confirm_content))
-            .setPositiveButton(getString(R.string.cov_iot_devices_setting_confirm), {
+            .setPositiveButton(getString(R.string.cov_iot_devices_setting_confirm)) {
                 onSave.invoke()
-            })
-            .setNegativeButton(getString(R.string.cov_iot_devices_setting_cancel), {
+            }
+            .setNegativeButton(getString(R.string.cov_iot_devices_setting_cancel)) {
                 onCancel.invoke()
-            })
+            }
             .hideTopImage()
             .build()
             .show(parentFragmentManager, "save_dialog_tag")
     }
 
-    // 预设适配器
+    // Preset adapter
     inner class PresetAdapter(
         private val presets: List<PresetItem>,
         private var selectedPosition: Int = 0,
@@ -363,10 +374,10 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
             holder.descTextView.text = preset.description
             holder.radioButton.isChecked = position == selectedPosition
             
-            // 显示分隔线，除了最后一项
+            // Show divider except for the last item
             holder.divider.visibility = if (position < presets.size - 1) View.VISIBLE else View.GONE
             
-            // 设置点击事件
+            // Set click event
             holder.itemView.setOnClickListener {
                 updateSelection(position)
             }
@@ -381,20 +392,20 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
                 val oldPosition = selectedPosition
                 selectedPosition = position
                 
-                // 只更新变化的项，避免整个列表闪烁
+                // Only update changed items to avoid list flickering
                 notifyItemChanged(oldPosition, "selection_changed")
                 notifyItemChanged(position, "selection_changed")
                 
-                // 更新语言选项
+                // Update language options
                 val currentPreset = presets[position].id
                 val languages = CovIotPresetManager.getPresetLanguages(currentPreset)
                 
-                // 查找该预设的默认语言（isDefault为true的语言）
+                // Find default language for this preset (language with isDefault=true)
                 val defaultLanguage = languages?.find { it.default }
                 if (defaultLanguage != null) {
                     binding?.tvLanguageDetail?.text = defaultLanguage.name
                 } else if (languages?.isNotEmpty() == true) {
-                    // 如果没有默认语言，则使用第一个
+                    // If no default language, use the first one
                     binding?.tvLanguageDetail?.text = languages[0].name
                 }
                 
@@ -406,7 +417,7 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
             if (payloads.isEmpty() || payloads[0] != "selection_changed") {
                 super.onBindViewHolder(holder, position, payloads)
             } else {
-                // 只更新选择状态，避免整个项目重绘
+                // Only update selection state to avoid redrawing the entire item
                 holder.radioButton.isChecked = position == selectedPosition
             }
         }
@@ -460,26 +471,33 @@ class CovIotDeviceSettingsDialog : BaseSheetDialog<CovIotDeviceSettingsDialogBin
         }
     }
 
-    // 获取默认语言
+    // Get default language
     private fun getDefaultLanguage(): String {
-        // 获取默认预设
+        // Get default preset
         val defaultPreset = getDefaultPreset()
-        // 获取该预设的语言列表
+        // Get language list for this preset
         val languages = CovIotPresetManager.getPresetLanguages(defaultPreset)
-        // 返回默认语言或第一个语言
-        return languages?.find { it.default }?.name ?: languages?.firstOrNull()?.name ?: "中文"
+        // Return default language code instead of name
+        return languages?.find { it.default }?.code ?: languages?.firstOrNull()?.code ?: "zh-CN"
     }
 
-    // 获取默认预设
+    // Get default preset
     private fun getDefaultPreset(): String {
-        // 从预设管理器获取预设列表
+        // Get preset list from preset manager
         val presets = CovIotPresetManager.getPresetList()
-        // 返回第一个预设的ID，如果列表为空则返回空字符串
+        // Return the ID of the first preset, or empty string if list is empty
         return presets?.firstOrNull()?.preset_name ?: ""
+    }
+
+    // Get language code by language name
+    private fun getCurrentLanguageCode(languageName: String): String? {
+        val currentPreset = presetList.getOrNull(selectedPresetPosition)?.id ?: return null
+        val languages = CovIotPresetManager.getPresetLanguages(currentPreset) ?: return null
+        return languages.find { it.name == languageName }?.code
     }
 }
 
-// 预设项数据类
+// Preset item data class
 data class PresetItem(
     val id: String,
     val title: String,

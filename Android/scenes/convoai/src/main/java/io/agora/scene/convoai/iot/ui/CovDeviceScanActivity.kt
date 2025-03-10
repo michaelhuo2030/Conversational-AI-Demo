@@ -2,7 +2,6 @@ package io.agora.scene.convoai.iot.ui
 
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 import android.os.CountDownTimer
 import android.provider.Settings
 import android.util.Log
@@ -16,7 +15,7 @@ import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getStatusBarHeight
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.databinding.CovActivityDeviceScanBinding
-import io.agora.scene.convoai.iot.adapter.DeviceAdapter
+import io.agora.scene.convoai.iot.adapter.CovIotDeviceScanListAdapter
 import io.iot.dn.ble.callback.BleListener
 import io.iot.dn.ble.manager.BleManager
 import io.iot.dn.ble.model.BleDevice
@@ -26,43 +25,48 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import io.agora.scene.convoai.iot.manager.BleDeviceManager
+import io.agora.scene.convoai.iot.manager.CovScanBleDeviceManager
 import io.agora.scene.convoai.iot.ui.dialog.CovPermissionDialog
+import io.iot.dn.ble.log.BleLogCallback
+import io.iot.dn.ble.log.BleLogLevel
+import io.iot.dn.ble.log.BleLogger
 
 class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
 
-    private val TAG = "CovDeviceScanActivity"
+
+    companion object {
+        private const val TAG = "CovDeviceScanActivity"
+        fun startActivity(activity: BaseActivity<*>) {
+            val intent = Intent(activity, CovDeviceScanActivity::class.java)
+            activity.startActivity(intent)
+        }
+    }
     
-    // 创建协程作用域用于异步操作
+    // Create coroutine scope for asynchronous operations
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     
     private val bleManager = BleManager(this)
 
-    // 设备列表适配器
-    private lateinit var deviceAdapter: DeviceAdapter
+    // Device list adapter
+    private lateinit var deviceAdapter: CovIotDeviceScanListAdapter
     
-    // 设备列表
+    // Device list
     private val deviceList = mutableListOf<BleDevice>()
     
-    // 倒计时器
+    // Countdown timer
     private var countDownTimer: CountDownTimer? = null
 
     private var permissionDialog: CovPermissionDialog? = null
     
-    // 扫描状态
+    // Scan state
     private enum class ScanState {
-        SCANNING,    // 扫描中
-        FAILED,      // 扫描失败
-        SUCCESS      // 扫描成功
+        SCANNING,    // Scanning
+        FAILED,      // Scan failed
+        SUCCESS      // Scan successful
     }
 
     override fun getViewBinding(): CovActivityDeviceScanBinding {
         return CovActivityDeviceScanBinding.inflate(layoutInflater)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        initData()
     }
 
     override fun initView() {
@@ -81,7 +85,7 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
 
     override fun onResume() {
         super.onResume()
-        // 检查WiFi是否已开启，如果已开启则关闭权限对话框
+        // Check if WiFi is enabled, if enabled, close the permission dialog
         if (isNetworkConnected() && permissionDialog?.isAdded == true) {
             permissionDialog?.dismiss()
         }
@@ -96,14 +100,14 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
             layoutParams.topMargin = statusBarHeight
             clTitleBar.layoutParams = layoutParams
 
-            // 设置返回按钮点击事件
+            // Set back button click event
             ivBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     finish()
                 }
             })
             
-            // 设置重试按钮点击事件
+            // Set retry button click event
             btnRetry.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     startScan()
@@ -112,24 +116,24 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
         }
     }
     
-    // 设置涟漪动画
+    // Setup ripple animation
     private fun setupRippleAnimation() {
         mBinding?.apply {
-            // 扫描中的涟漪动画
+            // Ripple animation during scanning
             rippleAnimationView.scaleFactor = 1.4f
         }
     }
     
     private fun setupDeviceList() {
-        deviceAdapter = DeviceAdapter(deviceList) { device ->
-            // 设备点击事件处理
-            CovLogger.d(TAG, "点击设备: ${device.name}")
-            // 检查网络连接状态
+        deviceAdapter = CovIotDeviceScanListAdapter(deviceList) { device ->
+            // Device click event handling
+            CovLogger.d(TAG, "Device clicked: ${device.name}")
+            // Check network connection status
             if (!isNetworkConnected()) {
-                // 网络未连接，显示提示对话框
+                // Network not connected, show prompt dialog
                 showNetworkSettingsDialog()
             } else {
-                // 网络已连接，只传递设备ID
+                // Network connected, only pass device ID
                 CovWifiSelectActivity.startActivity(this, device.address)
             }
         }
@@ -140,34 +144,37 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
         }
     }
 
-    private fun initData() {
-        // 可以在这里初始化数据，例如从Intent中获取设备类型等信息
-        val deviceType = intent.getStringExtra(EXTRA_DEVICE_TYPE) ?: "未知设备"
-        CovLogger.d(TAG, "扫描设备类型: $deviceType")
-    }
-
     private fun initBle() {
+        BleLogger.init(object : BleLogCallback {
+            override fun onLog(level: BleLogLevel, tag: String, message: String) {
+                when (level) {
+                    BleLogLevel.DEBUG -> Log.d(tag, message)
+                    BleLogLevel.INFO -> Log.i(tag, message)
+                    BleLogLevel.WARN -> Log.w(tag, message)
+                    BleLogLevel.ERROR -> Log.e(tag, message)
+                }
+            }
+        })
         bleManager.addListener(object : BleListener {
             override fun onScanStateChanged(state: BleScanState) {
-                // 处理扫描状态变化
+                // Handle scan state changes
             }
 
             override fun onDeviceFound(device: BleDevice) {
-                Log.d("hugo", "onDeviceFound: $device")
-                // 将发现的设备添加到设备管理器
-                BleDeviceManager.addDevice(device)
+                // Add discovered device to device manager
+                CovScanBleDeviceManager.addDevice(device)
                 
                 runOnUiThread {
-                    // 检查设备是否已存在于列表中
+                    // Check if the device already exists in the list
                     if (deviceList.none { it.address == device.address } && device.name.isNotEmpty()) {
                         deviceList.add(device)
                         deviceAdapter.notifyDataSetChanged()
                         
-                        // 发现设备后，隐藏扫描中视图，但保留波纹动画
-                        if (deviceList.size == 1) { // 第一次发现设备时
+                        // After finding a device, hide the scanning view but keep the ripple animation
+                        if (deviceList.size == 1) { // When first device is found
                             mBinding?.clScanning?.visibility = View.GONE
                             mBinding?.clScanResult?.visibility = View.VISIBLE
-                            // 波纹动画保持可见
+                            // Keep ripple animation visible
                             mBinding?.rippleAnimationView?.alpha = 0.5F
                         }
                     }
@@ -175,32 +182,32 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
             }
 
             override fun onConnectionStateChanged(state: BleConnectionState) {
-                // 处理连接状态变化
+                // Handle connection state changes
             }
 
             override fun onDataReceived(uuid: String, data: ByteArray) {
-                // 处理接收到的数据
+                // Handle received data
             }
         })
     }
     
-    // 开始扫描设备
+    // Start scanning for devices
     private fun startScan() {
         updateScanState(ScanState.SCANNING)
         
-        // 清空之前的设备列表
+        // Clear previous device list
         deviceList.clear()
         deviceAdapter.notifyDataSetChanged()
         
-        // 清空设备管理器中的设备
-        BleDeviceManager.clearDevices()
+        // Clear devices in device manager
+        CovScanBleDeviceManager.clearDevices()
         
-        // 启动蓝牙扫描
+        // Start Bluetooth scanning
         mBinding?.root?.postDelayed({
             bleManager.startScan(null)
         }, 3000)
         
-        // 启动30秒倒计时
+        // Start 30-second countdown
         countDownTimer?.cancel()
         countDownTimer = object : CountDownTimer(30000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
@@ -209,22 +216,22 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
             }
 
             override fun onFinish() {
-                // 停止扫描
+                // Stop scanning
                 bleManager.stopScan()
                 
-                // 根据deviceList数量决定是否扫描成功
+                // Determine scan success based on deviceList size
                 if (deviceList.isEmpty()) {
-                    // 没有找到设备，显示失败状态
+                    // No devices found, show failure state
                     updateScanState(ScanState.FAILED)
                 } else {
-                    // 找到设备，显示设备列表
+                    // Devices found, show device list
                     updateScanState(ScanState.SUCCESS)
                 }
             }
         }.start()
     }
     
-    // 更新扫描状态UI
+    // Update scan state UI
     private fun updateScanState(state: ScanState) {
         mBinding?.apply {
             when (state) {
@@ -236,7 +243,7 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
                     clScanResult.visibility = View.VISIBLE
                     rippleAnimationView.visibility = View.VISIBLE
                     
-                    // 扫描中时，设置clScanResult距离底部160dp
+                    // When scanning, set clScanResult 160dp from bottom
                     val layoutParams = clScanResult.layoutParams as ViewGroup.MarginLayoutParams
                     layoutParams.bottomMargin = 160.dp.toInt()
                     clScanResult.layoutParams = layoutParams
@@ -252,10 +259,10 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
                     clScanning.visibility = View.GONE
                     clScanFailed.visibility = View.GONE
                     clScanResult.visibility = View.VISIBLE
-                    rippleAnimationView.visibility = View.GONE // 扫描成功时隐藏波纹动画
+                    rippleAnimationView.visibility = View.GONE // Hide ripple animation when scan succeeds
                     tvCountdown.visibility = View.GONE
                     
-                    // 扫描成功后，设置clScanResult距离底部60dp
+                    // After successful scan, set clScanResult 60dp from bottom
                     val layoutParams = clScanResult.layoutParams as ViewGroup.MarginLayoutParams
                     layoutParams.bottomMargin = 60.dp.toInt()
                     clScanResult.layoutParams = layoutParams
@@ -264,18 +271,18 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
         }
     }
 
-    // 检查WiFi开关是否开启
+    // Check if WiFi is enabled
     private fun isNetworkConnected(): Boolean {
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
         return wifiManager.isWifiEnabled
     }
 
-    // 显示权限对话框
+    // Show permission dialog
     private fun showNetworkSettingsDialog() {
         if (permissionDialog == null) {
             permissionDialog = CovPermissionDialog.newInstance(
                 onDismiss = {
-                    // 对话框关闭回调
+                    // Dialog dismiss callback
                     permissionDialog = null
                 },
                 onWifiPermission = {
@@ -292,17 +299,6 @@ class CovDeviceScanActivity : BaseActivity<CovActivityDeviceScanBinding>() {
             if (!isAdded) {
                 show(supportFragmentManager, "permission_dialog")
             }
-        }
-    }
-
-    companion object {
-        private const val EXTRA_DEVICE_TYPE = "extra_device"
-        
-        fun startActivity(activity: BaseActivity<*>, deviceType: String = "") {
-            val intent = Intent(activity, CovDeviceScanActivity::class.java).apply {
-                putExtra(EXTRA_DEVICE_TYPE, deviceType)
-            }
-            activity.startActivity(intent)
         }
     }
 } 

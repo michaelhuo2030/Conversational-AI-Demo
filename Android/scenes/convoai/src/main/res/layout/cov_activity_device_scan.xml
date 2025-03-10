@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/ai_fill2">
 
-    <!-- 标题栏 -->
+    <!-- header title bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_title_bar"
         android:layout_width="match_parent"
@@ -38,7 +38,7 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 扫描状态区域 -->
+    <!-- scan status area -->
     <FrameLayout
         android:id="@+id/fl_scan_container"
         android:layout_width="match_parent"
@@ -46,14 +46,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cl_title_bar">
 
-        <!-- 波纹动画视图 - 确保它在最底层并且填充整个容器 -->
+        <!-- ripple animation view - ensure it's at the bottom and fills the container -->
         <io.agora.scene.convoai.iot.animation.RippleAnimationView
             android:id="@+id/ripple_animation_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="bottom" />
 
-        <!-- 扫描中状态 -->
+        <!-- scanning state -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_scanning"
             android:layout_width="match_parent"
@@ -87,7 +87,7 @@
                 app:layout_constraintTop_toBottomOf="@id/tv_scanning_status" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 扫描失败状态 -->
+        <!-- scan failed state -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_scan_failed"
             android:layout_width="match_parent"
@@ -159,7 +159,7 @@
                 app:layout_constraintStart_toStartOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- 扫描结果列表 -->
+        <!-- scan result list -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_scan_result"
             android:layout_width="match_parent"

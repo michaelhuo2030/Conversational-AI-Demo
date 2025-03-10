@@ -28,4 +28,15 @@ object CovIotPresetManager {
     fun getPresetLanguages(presetName: String): List<CovIotLanguage>? {
         return presetList?.find { it.preset_name == presetName }?.support_languages
     }
+
+    fun getLanguageByCode(languageCode: String?): CovIotLanguage? {
+        if (languageCode == null) return null
+        
+        presetList?.forEach { preset ->
+            preset.support_languages.find { it.code == languageCode }?.let {
+                return it
+            }
+        }
+        return null
+    }
 }

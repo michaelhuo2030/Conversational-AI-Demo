@@ -1,17 +1,18 @@
 package io.agora.scene.convoai.iot.adapter
 
 import android.app.AlertDialog
+import android.text.InputFilter
 import android.text.InputType
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.recyclerview.widget.RecyclerView
+import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovIotDeviceItemBinding
 import io.agora.scene.convoai.iot.model.CovIotDevice
 
-class IotDeviceAdapter(private val devices: List<CovIotDevice>) :
-    RecyclerView.Adapter<IotDeviceAdapter.DeviceViewHolder>() {
+class CovIotDeviceListAdapter(private val devices: List<CovIotDevice>) :
+    RecyclerView.Adapter<CovIotDeviceListAdapter.DeviceViewHolder>() {
     
     private var listener: OnItemClickListener? = null
     
@@ -30,11 +31,10 @@ class IotDeviceAdapter(private val devices: List<CovIotDevice>) :
             parent, 
             false
         )
-        // 在创建ViewHolder时就根据viewType设置背景
         val backgroundResId = if (viewType == 0) {
-            parent.context.resources.getIdentifier("cov_iot_device_item_bg_2", "drawable", parent.context.packageName)
+            R.drawable.cov_iot_device_item_bg_2
         } else {
-            parent.context.resources.getIdentifier("cov_iot_device_item_bg", "drawable", parent.context.packageName)
+            R.drawable.cov_iot_device_item_bg
         }
         binding.clIotItem.setBackgroundResource(backgroundResId)
         
@@ -43,7 +43,7 @@ class IotDeviceAdapter(private val devices: List<CovIotDevice>) :
     
     override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
         val device = devices[position]
-        holder.bind(device, position)
+        holder.bind(device)
     }
     
     override fun getItemCount(): Int = devices.size
@@ -55,21 +55,16 @@ class IotDeviceAdapter(private val devices: List<CovIotDevice>) :
     inner class DeviceViewHolder(private val binding: CovIotDeviceItemBinding) : 
         RecyclerView.ViewHolder(binding.root) {
         
-        fun bind(device: CovIotDevice, position: Int) {
+        fun bind(device: CovIotDevice) {
             binding.apply {
-                // 设置设备名称为TextView显示
                 tvDeviceName.text = device.name
                 
-                // 设置名称点击事件，弹出对话框编辑
                 tvDeviceName.setOnClickListener {
                     showEditNameDialog(device, adapterPosition)
                 }
-                
-                // 设置SN和序列号
-                tvSnLabel.text = "SN"
+
                 tvSerialNumber.text = device.id
 
-                // 设置设置按钮点击事件
                 cvDeviceSettings.setOnClickListener {
                     listener?.onItemSettingClick(device, adapterPosition)
                 }
@@ -83,16 +78,19 @@ class IotDeviceAdapter(private val devices: List<CovIotDevice>) :
             input.setText(device.name)
             input.setSelection(input.text.length)
             
+            // set input limit: max 10 characters and not empty
+            input.filters = arrayOf(InputFilter.LengthFilter(10))
+            
             AlertDialog.Builder(context)
-                .setTitle("编辑设备名称")
+                .setTitle(R.string.cov_iot_devices_setting_modify_name)
                 .setView(input)
-                .setPositiveButton("确定") { dialog, which ->
+                .setPositiveButton(R.string.cov_iot_devices_setting_modify_name_confirm) { _, _ ->
                     val newName = input.text.toString().trim()
                     if (newName.isNotEmpty() && newName != device.name) {
                         listener?.onNameChanged(device, newName, position)
                     }
                 }
-                .setNegativeButton("取消") { dialog, which -> dialog.cancel() }
+                .setNegativeButton(R.string.cov_iot_devices_setting_modify_name_cancel) { dialog, _ -> dialog.cancel() }
                 .show()
         }
     }

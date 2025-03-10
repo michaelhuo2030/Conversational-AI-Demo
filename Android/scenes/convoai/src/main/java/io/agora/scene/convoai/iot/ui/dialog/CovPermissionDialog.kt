@@ -17,13 +17,13 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
     private var onBluetoothSwitchClick: (() -> Unit)? = null
     private var onWifiPermissionClick: (() -> Unit)? = null
     
-    // 权限状态
+    // Permission states
     private var locationPermissionGranted = false
     private var bluetoothPermissionGranted = false
     private var bluetoothSwitchNeedOpen = false
     private var wifiPermissionGranted = false
     
-    // 权限显示配置
+    // Permission display configuration
     private var showLocationPermission = true
     private var showBluetoothPermission = true
     private var showWifiPermission = false
@@ -72,12 +72,12 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
         binding?.apply {
             setOnApplyWindowInsets(root)
             
-            // 设置关闭按钮点击事件
+            // Set close button click event
             btnClose.setOnClickListener {
                 dismiss()
             }
             
-            // 设置位置服务权限按钮点击事件
+            // Set location service permission button click event
             btnLocationPermission.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onLocationPermissionClick?.invoke()
@@ -85,7 +85,7 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
                 }
             })
             
-            // 设置蓝牙权限按钮点击事件
+            // Set bluetooth permission button click event
             btnBluetoothPermission.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onBluetoothPermissionClick?.invoke()
@@ -93,7 +93,7 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
                 }
             })
 
-            // 设置蓝牙开关按钮点击事件
+            // Set bluetooth switch button click event
             btnBluetoothSwitch.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onBluetoothSwitchClick?.invoke()
@@ -101,7 +101,7 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
                 }
             })
             
-            // 设置Wi-Fi权限按钮点击事件
+            // Set Wi-Fi permission button click event
             btnWifiPermission.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onWifiPermissionClick?.invoke()
@@ -109,7 +109,7 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
                 }
             })
             
-            // 根据配置显示或隐藏权限项
+            // Show or hide permission items based on configuration
             cvLocationPermission.visibility = if (showLocationPermission) View.VISIBLE else View.GONE
             cvBluetoothPermission.visibility = if (showBluetoothPermission) View.VISIBLE else View.GONE
             cvWifiPermission.visibility = if (showWifiPermission) View.VISIBLE else View.GONE
@@ -124,8 +124,8 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
     }
     
     /**
-     * 更新位置权限状态
-     * @param granted 是否已授予权限
+     * Update location permission status
+     * @param granted Whether permission is granted
      */
     fun updateLocationPermissionStatus(granted: Boolean) {
         locationPermissionGranted = granted
@@ -133,8 +133,8 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
     }
     
     /**
-     * 更新蓝牙权限状态
-     * @param granted 是否已授予权限
+     * Update bluetooth permission status
+     * @param granted Whether permission is granted
      */
     fun updateBluetoothPermissionStatus(granted: Boolean) {
         bluetoothPermissionGranted = granted
@@ -142,8 +142,8 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
     }
     
     /**
-     * 更新Wi-Fi权限状态
-     * @param granted 是否已授予权限
+     * Update Wi-Fi permission status
+     * @param granted Whether permission is granted
      */
     fun updateWifiPermissionStatus(granted: Boolean) {
         wifiPermissionGranted = granted
@@ -156,11 +156,11 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
     }
     
     /**
-     * 更新权限状态UI
+     * Update permission status UI
      */
     private fun updatePermissionStatus() {
         binding?.apply {
-            // 更新位置服务权限状态
+            // Update location service permission status
             if (showLocationPermission) {
                 if (locationPermissionGranted) {
                     cvLocationPermission.visibility = View.GONE
@@ -170,7 +170,7 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
                 }
             }
             
-            // 更新蓝牙权限状态
+            // Update bluetooth permission status
             if (showBluetoothPermission) {
                 if (bluetoothPermissionGranted) {
                     cvBluetoothPermission.visibility = View.GONE
@@ -180,7 +180,7 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
                 }
             }
             
-            // 更新Wi-Fi权限状态
+            // Update Wi-Fi permission status
             if (showWifiPermission) {
                 if (wifiPermissionGranted) {
                     cvWifiPermission.visibility = View.GONE
@@ -190,7 +190,7 @@ class CovPermissionDialog : BaseSheetDialog<CovPermissionDialogBinding>() {
                 }
             }
 
-            // 检查是否所有显示的权限都已授予，如果是则自动关闭对话框
+            // Check if all displayed permissions are granted, if so automatically close the dialog
             val allGranted = (!showLocationPermission || locationPermissionGranted) && 
                              (!showBluetoothPermission || bluetoothPermissionGranted) &&
                              (!showWifiPermission || wifiPermissionGranted) &&

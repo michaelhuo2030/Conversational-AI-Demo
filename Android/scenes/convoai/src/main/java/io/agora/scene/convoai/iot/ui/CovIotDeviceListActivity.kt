@@ -7,13 +7,16 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.ui.LoadingDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.util.dp
 import io.agora.scene.common.util.getStatusBarHeight
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
-import io.agora.scene.convoai.iot.adapter.IotDeviceAdapter
+import io.agora.scene.convoai.R
+import io.agora.scene.convoai.iot.adapter.CovIotDeviceListAdapter
 import io.agora.scene.convoai.databinding.CovActivityIotDeviceListBinding
+import io.agora.scene.convoai.iot.api.CovIotApiManager
 import io.agora.scene.convoai.iot.model.CovIotDevice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +24,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import io.agora.scene.convoai.iot.manager.CovIotDeviceManager
+import io.agora.scene.convoai.iot.manager.CovIotPresetManager
 import io.agora.scene.convoai.iot.ui.dialog.CovIotDeviceSettingsDialog
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>() {
 
@@ -34,16 +40,16 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
         }
     }
     
-    // 创建协程作用域用于异步操作
+    // Create coroutine scope for asynchronous operations
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     
-    // 设备列表适配器
-    private lateinit var deviceAdapter: IotDeviceAdapter
+    // Device list adapter
+    private lateinit var deviceAdapter: CovIotDeviceListAdapter
     
-    // 模拟的设备列表数据
+    // Device list data
     private val deviceList = mutableListOf<CovIotDevice>()
     
-    // 设备管理器
+    // Device manager
     private lateinit var deviceManager: CovIotDeviceManager
 
     override fun getViewBinding(): CovActivityIotDeviceListBinding {
@@ -52,7 +58,7 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 初始化设备管理器
+        // Initialize device manager
         deviceManager = CovIotDeviceManager.getInstance(this)
         initData()
     }
@@ -70,7 +76,6 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
 
     override fun onResume() {
         super.onResume()
-        // 在Activity恢复时重新加载设备列表
         coroutineScope.launch {
             loadDevicesFromLocal()
             updateEmptyState()
@@ -86,14 +91,14 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
             layoutParams.topMargin = statusBarHeight
             clTitleBar.layoutParams = layoutParams
 
-            // 设置返回按钮点击事件
+            // Set back button click event
             ivBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     finish()
                 }
             })
             
-            // 设置添加设备按钮点击事件
+            // Set add device button click event
             ivAdd.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     CovIotDeviceSetupActivity.startActivity(this@CovIotDeviceListActivity)
@@ -104,7 +109,7 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
     
     private fun setupEmptyView() {
         mBinding?.apply {
-            // 设置空状态视图中的添加设备按钮点击事件
+            // Set click event for add device button in empty state view
             btnAddDevice.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     CovIotDeviceSetupActivity.startActivity(this@CovIotDeviceListActivity)
@@ -112,61 +117,41 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
             })
         }
         
-        // 根据设备列表状态更新UI
+        // Update UI based on device list state
         updateEmptyState()
     }
 
     private fun setupRecyclerView() {
-        deviceAdapter = IotDeviceAdapter(deviceList)
-        deviceAdapter.setOnItemClickListener(object : IotDeviceAdapter.OnItemClickListener {
+        deviceAdapter = CovIotDeviceListAdapter(deviceList)
+        deviceAdapter.setOnItemClickListener(object : CovIotDeviceListAdapter.OnItemClickListener {
             override fun onItemSettingClick(device: CovIotDevice, position: Int) {
-                // 这里可以跳转到设备详情页面
-                val dialog = CovIotDeviceSettingsDialog.newInstance(
-                    device = device,
-                    onDismiss = {
-                        // 对话框关闭回调
-                    },
-                    onDelete = {
-                        removeDevice(device, position)
-                    },
-                    onReset = {
-                        // 重新配网回调
-                        CovIotDeviceSetupActivity.startActivity(this@CovIotDeviceListActivity)
-                    },
-                    onSave = { device ->
-                        // 保存新名称回调
-                        val index = deviceList.indexOfFirst { it.id == device.id }
-                        if (index != -1) {
-                            deviceList[index] = device
-                            deviceAdapter.notifyItemChanged(index)
-                            
-                            // 保存到本地
-                            saveDevicesToLocal()
-                            
-                            ToastUtil.show("设备信息已更新")
-                            CovLogger.d(TAG, "设备信息已更新: ${device.id}, 名称: ${device.name}")
+                if (CovIotPresetManager.getPresetList().isNullOrEmpty()) {
+                    coroutineScope.launch {
+                        val success = fetchIotPresetsAsync()
+                        if (success) {
+                            showSettingsDialog(device, position)
                         } else {
-                            CovLogger.e(TAG, "未找到要更新的设备: ${device.id}")
-                            ToastUtil.show("更新设备信息失败")
+                            ToastUtil.show(getString(R.string.cov_detail_net_state_error))
                         }
                     }
-                )
-                dialog.show(supportFragmentManager, "iot_settings")
+                } else {
+                    showSettingsDialog(device, position)
+                }
             }
 
             override fun onNameChanged(device: CovIotDevice, newName: String, position: Int) {
-                // 更新设备名称
+                // Update device name
                 if (position >= 0 && position < deviceList.size) {
                     deviceList[position].name = newName
                     deviceAdapter.notifyItemChanged(position)
                     
-                    // 保存到本地
+                    // Save to local storage
                     saveDevicesToLocal()
                     
-                    ToastUtil.show("设备名称已更新为: $newName")
-                    CovLogger.d(TAG, "设备名称已更新: ${device.id}, 新名称: $newName")
+                    ToastUtil.show(R.string.cov_iot_devices_setting_rename_toast)
+                    CovLogger.d(TAG, "Device name updated: ${device.id}, New name: $newName")
                 } else {
-                    CovLogger.e(TAG, "尝试更新无效位置的设备名称: $position, 列表大小: ${deviceList.size}")
+                    CovLogger.e(TAG, "Attempted to update device name at invalid position: $position, List size: ${deviceList.size}")
                 }
             }
         })
@@ -175,9 +160,9 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
             layoutManager = LinearLayoutManager(this@CovIotDeviceListActivity)
             adapter = deviceAdapter
             
-            // 设置自定义的项目动画
+            // Set custom item animations
             itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator().apply {
-                // 设置添加、移除、移动动画的持续时间
+                // Set duration for add, remove, move animations
                 addDuration = 300
                 removeDuration = 300
                 moveDuration = 300
@@ -187,7 +172,7 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
     }
 
     private fun initData() {
-        // 从本地存储加载设备列表数据
+        // Load device list data from local storage
         coroutineScope.launch {
             loadDevicesFromLocal()
             updateEmptyState()
@@ -205,70 +190,83 @@ class CovIotDeviceListActivity : BaseActivity<CovActivityIotDeviceListBinding>()
         deviceManager.saveDevicesToLocal(deviceList)
     }
 
-//    private fun addNewDevice() {
-//        // 模拟添加新设备
-//        val newDevice = CovIotDevice(
-//            id = System.currentTimeMillis().toString(),
-//            name = "新设备 ${deviceList.size + 1}"
-//        )
-//
-//        // 如果之前列表为空，先清空RecyclerView的缓存
-//        val wasEmpty = deviceList.isEmpty()
-//        if (wasEmpty) {
-//            mBinding?.rvDevices?.recycledViewPool?.clear()
-//        }
-//
-//        deviceList.add(0, newDevice)
-//
-//        if (wasEmpty) {
-//            // 如果之前列表为空，使用notifyDataSetChanged确保完全刷新
-//            deviceAdapter.notifyDataSetChanged()
-//        } else {
-//            // 否则使用局部更新
-//            deviceAdapter.notifyItemInserted(0)
-//            deviceAdapter.notifyItemRangeChanged(1, deviceList.size - 1)
-//        }
-//
-//        mBinding?.rvDevices?.scrollToPosition(0)
-//
-//        // 保存到本地
-//        saveDevicesToLocal()
-//
-//        // 更新空状态
-//        updateEmptyState()
-//    }
-
-    private fun removeDevice(device: CovIotDevice, position: Int) {
+    private fun removeDevice(position: Int) {
         if (position >= 0 && position < deviceList.size) {
             deviceList.removeAt(position)
             deviceAdapter.notifyItemRemoved(position)
-            // 通知从删除位置开始的所有后续项目位置变化
+            // Notify all subsequent items of position change
             deviceAdapter.notifyItemRangeChanged(position, deviceList.size - position)
             
-            // 保存到本地
+            // Save to local storage
             saveDevicesToLocal()
             
-            // 更新空状态
+            // Update empty state
             updateEmptyState()
+            ToastUtil.show(R.string.cov_iot_devices_setting_delete_toast)
         } else {
-            CovLogger.e(TAG, "尝试删除无效位置的设备: $position, 列表大小: ${deviceList.size}")
-            ToastUtil.show("删除设备失败")
+            CovLogger.e(TAG, "Attempted to delete device at invalid position: $position, List size: ${deviceList.size}")
         }
     }
     
     private fun updateEmptyState() {
-        mBinding?.apply {
+        mBinding?.let { binding ->
             if (deviceList.isEmpty()) {
-                // 当列表为空时，清空适配器缓存
-                rvDevices.recycledViewPool.clear()
+                // Clear adapter cache when list is empty
+                binding.rvDevices.recycledViewPool.clear()
                 
-                ivAdd.visibility = View.GONE
-                rvDevices.visibility = View.GONE
-                clEmptyState.visibility = View.VISIBLE
+                binding.ivAdd.visibility = View.GONE
+                binding.rvDevices.visibility = View.GONE
+                binding.clEmptyState.visibility = View.VISIBLE
             } else {
-                ivAdd.visibility = View.VISIBLE
-                rvDevices.visibility = View.VISIBLE
-                clEmptyState.visibility = View.GONE
+                binding.ivAdd.visibility = View.VISIBLE
+                binding.rvDevices.visibility = View.VISIBLE
+                binding.clEmptyState.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun showSettingsDialog(device: CovIotDevice, position: Int) {
+        // Navigate to device details page
+        val dialog = CovIotDeviceSettingsDialog.newInstance(
+            device = device,
+            onDismiss = {
+                // Dialog dismiss callback
+            },
+            onDelete = {
+                removeDevice(position)
+            },
+            onReset = {
+                // Reset network configuration callback
+                CovIotDeviceSetupActivity.startActivity(this@CovIotDeviceListActivity)
+            },
+            onSave = { newDevice ->
+                // Save new name callback
+                val index = deviceList.indexOfFirst { it.id == newDevice.id }
+                if (index != -1) {
+                    deviceList[index] = newDevice
+                    deviceAdapter.notifyItemChanged(index)
+
+                    // Save to local storage
+                    saveDevicesToLocal()
+
+                    ToastUtil.show(R.string.cov_iot_devices_setting_modify_success_toast)
+                    CovLogger.d(TAG, "Device information updated: ${newDevice.id}, Name: ${newDevice.name}")
+                } else {
+                    CovLogger.e(TAG, "Device not found for update: ${newDevice.id}")
+                    ToastUtil.show(R.string.cov_iot_devices_setting_modify_failed_toast)
+                }
+            }
+        )
+        dialog.show(supportFragmentManager, "iot_settings")
+    }
+
+    private suspend fun fetchIotPresetsAsync(): Boolean = suspendCoroutine { cont ->
+        CovIotApiManager.fetchPresets { err, presets ->
+            if (err == null) {
+                CovIotPresetManager.setPresetList(presets)
+                cont.resume(true)
+            } else {
+                cont.resume(false)
             }
         }
     }

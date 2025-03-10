@@ -7,10 +7,10 @@ import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.convoai.databinding.CovItemDeviceBinding
 import io.iot.dn.ble.model.BleDevice
 
-class DeviceAdapter(
+class CovIotDeviceScanListAdapter(
     private val devices: List<BleDevice>,
     private val onItemClick: (BleDevice) -> Unit
-) : RecyclerView.Adapter<DeviceAdapter.DeviceViewHolder>() {
+) : RecyclerView.Adapter<CovIotDeviceScanListAdapter.DeviceViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
         val binding = CovItemDeviceBinding.inflate(
@@ -32,19 +32,23 @@ class DeviceAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         init {
-            binding.root.setOnClickListener {
-                // 点击时改变背景颜色
-                binding.root.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, io.agora.scene.common.R.color.ai_click_app))
-                
-                // 200毫秒后恢复原来的颜色
-                binding.root.postDelayed({
-                    binding.root.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, io.agora.scene.common.R.color.ai_fill1))
-                }, 200)
-                
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    onItemClick(devices[position])
+            binding.root.setOnTouchListener { view, event ->
+                when (event.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        binding.root.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, io.agora.scene.common.R.color.ai_click_app))
+                    }
+                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                        binding.root.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, io.agora.scene.common.R.color.ai_fill1))
+                        
+                        if (event.action == android.view.MotionEvent.ACTION_UP) {
+                            val position = adapterPosition
+                            if (position != RecyclerView.NO_POSITION) {
+                                onItemClick(devices[position])
+                            }
+                        }
+                    }
                 }
+                true
             }
         }
 

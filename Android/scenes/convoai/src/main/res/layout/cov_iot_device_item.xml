@@ -16,7 +16,7 @@
         android:paddingHorizontal="16dp"
         android:paddingVertical="16dp">
 
-        <!-- 设备名称和编辑图标 -->
+        <!-- device name and edit icon -->
         <LinearLayout
             android:id="@+id/ll_device_name"
             android:layout_width="wrap_content"
@@ -35,7 +35,10 @@
                 android:textColor="@color/ai_brand_black10"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                tools:text="大聪明" />
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:maxWidth="300dp"
+                tools:text="大聪明大聪明大聪明10" />
 
             <ImageView
                 android:id="@+id/iv_edit_name"
@@ -46,7 +49,7 @@
                 app:tint="@color/ai_brand_black6" />
         </LinearLayout>
 
-        <!-- SN标签和序列号分离显示 -->
+        <!-- SN label and serial number display separately -->
         <LinearLayout
             android:id="@+id/ll_device_sn"
             android:layout_width="wrap_content"
@@ -64,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/ai_brand_black6"
                 android:textSize="14sp"
-                android:text="SN"
+                android:text="@string/cov_iot_devices_SN"
                 android:textStyle="bold"/>
 
             <TextView

@@ -87,6 +87,7 @@
     <string name="cov_iot_devices_prepare_wifi">2.4G Wi-Fi</string>
     <string name="cov_iot_devices_prepare_ready">已完成上述操作</string>
     <string name="cov_iot_devices_prepare_next">下一步</string>
+    <string name="cov_iot_devices_SN">SN</string>
 
     <string name="cov_iot_devices_scan">扫描附近设备</string>
     <string name="cov_iot_devices_scanning">正在扫描…</string>
@@ -142,4 +143,11 @@
     <string name="cov_iot_devices_setting_delete">您是否要删除“%s”？</string>
     <string name="cov_iot_devices_setting_delete_content">删除后，将不能更改它的对话设定。是否继续删除？</string>
     <string name="cov_iot_devices_setting_delete_confirm">删除</string>
+    <string name="cov_iot_devices_setting_delete_toast">智能设备已删除</string>
+    <string name="cov_iot_devices_setting_rename_toast">昵称修改成功</string>
+    <string name="cov_iot_devices_setting_modify_success_toast">智能设备设置修改成功</string>
+    <string name="cov_iot_devices_setting_modify_failed_toast">智能设备设置修改失败，请重试</string>
+    <string name="cov_iot_devices_setting_modify_name">编辑设备昵称</string>
+    <string name="cov_iot_devices_setting_modify_name_confirm">确定</string>
+    <string name="cov_iot_devices_setting_modify_name_cancel">取消</string>
 </resources>

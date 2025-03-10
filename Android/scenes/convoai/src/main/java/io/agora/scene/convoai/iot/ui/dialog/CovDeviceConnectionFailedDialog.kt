@@ -19,16 +19,16 @@ class CovDeviceConnectionFailedDialog : BaseSheetDialog<CovDeviceConnectionFaile
     private var onDismissCallback: (() -> Unit)? = null
     private var onRescanCallback: (() -> Unit)? = null
     
-    // 检查步骤数据类
+    // Check step data class
     private data class CheckStep(val imageResId: Int, val text: String)
     
-    // 检查步骤列表
+    // Check steps list
     private lateinit var checkSteps: List<CheckStep>
     
-    // 当前显示的步骤索引
+    // Current step index
     private var currentStepIndex = 0
     
-    // ViewPager适配器
+    // ViewPager adapter
     private inner class CheckStepsAdapter : RecyclerView.Adapter<CheckStepsAdapter.CheckStepViewHolder>() {
         
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CheckStepViewHolder {
@@ -84,7 +84,7 @@ class CovDeviceConnectionFailedDialog : BaseSheetDialog<CovDeviceConnectionFaile
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        // 初始化检查步骤数据
+        // Initialize check steps data
         checkSteps = listOf(
             CheckStep(
                 R.drawable.cov_iot_wifi_bg,
@@ -103,12 +103,12 @@ class CovDeviceConnectionFailedDialog : BaseSheetDialog<CovDeviceConnectionFaile
         binding?.apply {
             setOnApplyWindowInsets(root)
             
-            // 设置关闭按钮点击事件
+            // Set close button click event
             btnClose.setOnClickListener {
                 dismiss()
             }
             
-            // 设置重新扫描按钮点击事件
+            // Set rescan button click event
             btnRescan.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     onRescanCallback?.invoke()
@@ -116,18 +116,18 @@ class CovDeviceConnectionFailedDialog : BaseSheetDialog<CovDeviceConnectionFaile
                 }
             })
             
-            // 设置ViewPager
+            // Set up ViewPager
             setupViewPager()
         }
     }
     
     private fun setupViewPager() {
         binding?.apply {
-            // 设置ViewPager适配器
+            // Set ViewPager adapter
             val adapter = CheckStepsAdapter()
             viewpagerCheckSteps.adapter = adapter
             
-            // 设置页面切换监听
+            // Set page change listener
             viewpagerCheckSteps.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                 override fun onPageSelected(position: Int) {
                     currentStepIndex = position
@@ -135,7 +135,7 @@ class CovDeviceConnectionFailedDialog : BaseSheetDialog<CovDeviceConnectionFaile
                 }
             })
             
-            // 初始状态设置
+            // Initial state setup
             viewpagerCheckSteps.setCurrentItem(currentStepIndex, false)
             updateIndicators(currentStepIndex)
         }
@@ -143,19 +143,13 @@ class CovDeviceConnectionFailedDialog : BaseSheetDialog<CovDeviceConnectionFaile
     
     private fun updateIndicators(position: Int) {
         binding?.apply {
-            // 更新指示器状态
-            indicator1.background = resources.getDrawable(
-                if (position == 0) R.drawable.shape_indicator_selected else R.drawable.shape_indicator_normal,
-                null
-            )
-            indicator2.background = resources.getDrawable(
-                if (position == 1) R.drawable.shape_indicator_selected else R.drawable.shape_indicator_normal,
-                null
-            )
-            indicator3.background = resources.getDrawable(
-                if (position == 2) R.drawable.shape_indicator_selected else R.drawable.shape_indicator_normal,
-                null
-            )
+            // Update indicator states
+            indicator1.setBackgroundResource(
+                if (position == 0) R.drawable.shape_indicator_selected else R.drawable.shape_indicator_normal)
+            indicator2.setBackgroundResource(
+                if (position == 1) R.drawable.shape_indicator_selected else R.drawable.shape_indicator_normal)
+            indicator3.setBackgroundResource(
+                if (position == 2) R.drawable.shape_indicator_selected else R.drawable.shape_indicator_normal)
         }
     }
 

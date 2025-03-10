@@ -6,11 +6,9 @@ import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.net.SecureOkHttpClient
 import io.agora.scene.common.util.GsonTools
 import io.agora.scene.convoai.CovLogger
-import io.agora.scene.convoai.api.CovAgentApiManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
@@ -42,29 +40,7 @@ object CovIotApiManager {
 
     fun fetchPresets(completion: (error: Exception?, List<CovIotPreset>) -> Unit) {
         val requestURL =
-            "${ServerConfig.toolBoxUrl}/$SERVICE_VERSION/presets/list"
-
-        // mock 2s delay use post
-        mainScope.launch {
-            delay(2000) // 添加2秒延迟
-            val presetList = listOf(
-                CovIotPreset("story", "故事模式", "专为 2-12 岁儿童定制, 绘声绘色讲奇妙故事。", "normal", listOf(
-                    CovIotLanguage(true, "zh-CN", "中文"),
-                    CovIotLanguage(false, "en-US", "English")
-                ), 300),
-                CovIotPreset("treehole", "树洞模式", "暖心倾听你的倾诉, 真诚给予正向情绪价值。", "normal", listOf(
-                    CovIotLanguage(false, "zh-CN", "中文"),
-                    CovIotLanguage(true, "en-US", "English")
-                ), 300),
-                CovIotPreset("evil", "地狱模式", "给你讲世界上最恐怖的鬼故事, 听完一整晚睡不着。", "normal", listOf(
-                    CovIotLanguage(false, "zh-CN", "中文"),
-                    CovIotLanguage(false, "en-US", "English"),
-                    CovIotLanguage(true, "ja-JP", "にほんご"),
-                ), 300)
-            )
-            completion.invoke(null, presetList)
-        }
-        return
+            "${ServerConfig.toolBoxUrl}/convoai-iot/$SERVICE_VERSION/presets/list"
 
         val postBody = JSONObject()
         try {
@@ -117,15 +93,7 @@ object CovIotApiManager {
             return
         }
 
-        // mock 2s delay use post
-        mainScope.launch {
-            delay(2000) // 添加2秒延迟
-            val tokenModel = CovIotTokenModel("https://example.com", "GSDFSSERDSGEDS")
-            completion.invoke(tokenModel, null)
-        }
-        return
-
-        val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/auth/token/generate"
+        val requestURL = "${ServerConfig.toolBoxUrl}/convoai-iot/${SERVICE_VERSION}/auth/token/generate"
         val postBody = JSONObject()
         try {
             postBody.put("request_id", UUID.randomUUID())
@@ -175,7 +143,7 @@ object CovIotApiManager {
         deviceId: String,
         presetName: String,
         asrLanguage: String,
-        enableAivad: Boolean,
+        enableAiVad: Boolean,
         completion: (error: Exception?) -> Unit) {
         if (deviceId.isEmpty()) {
             runOnMainThread {
@@ -184,21 +152,14 @@ object CovIotApiManager {
             return
         }
 
-        // mock 2s delay use post
-        mainScope.launch {
-            delay(2000) // 添加2秒延迟
-            completion.invoke(null)
-        }
-        return
-
-        val requestURL = "${ServerConfig.toolBoxUrl}/${SERVICE_VERSION}/device/preset/update"
+        val requestURL = "${ServerConfig.toolBoxUrl}/convoai-iot/${SERVICE_VERSION}/device/preset/update"
         val postBody = JSONObject()
         try {
             postBody.put("request_id", UUID.randomUUID())
             postBody.put("device_id", deviceId)
             postBody.put("preset_name", presetName)
             postBody.put("asr_language", asrLanguage)
-            postBody.put("advanced_feature_enable_aivad", enableAivad)
+            postBody.put("advanced_features_enable_aivad", enableAiVad)
         } catch (e: JSONException) {
             CovLogger.e(TAG, "postBody error ${e.message}")
         }
@@ -216,14 +177,15 @@ object CovIotApiManager {
                         runOnMainThread {
                             completion.invoke(null)
                         }
+                        CovLogger.d(TAG, "updateSettings success")
                     } else {
                         runOnMainThread {
-                            completion.invoke(Exception("generatorToken failed:$json"))
+                            completion.invoke(Exception("updateSettings failed:$json"))
                         }
-                        CovLogger.e(TAG, "generatorToken failed $json")
+                        CovLogger.e(TAG, "updateSettings failed $json")
                     }
                 } catch (e: Exception) {
-                    CovLogger.e(TAG, "Parse generatorToken failed: $e")
+                    CovLogger.e(TAG, "Parse updateSettings failed: $e")
                     runOnMainThread {
                         completion.invoke(e)
                     }

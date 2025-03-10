@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/ai_fill1">
 
-    <!-- 标题栏 -->
+    <!-- header title bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_title_bar"
         android:layout_width="match_parent"
@@ -26,7 +26,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 主要内容 -->
+    <!-- main content -->
     <LinearLayout
         android:id="@+id/ll_title_wifi"
         android:layout_width="0dp"
@@ -96,7 +96,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_subtitle_wifi" />
 
-    <!-- Wi-Fi图标区域 -->
+    <!-- Wi-Fi icon area -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_wifi_icon"
         android:layout_width="0dp"
@@ -119,7 +119,7 @@
 
     </androidx.cardview.widget.CardView>
 
-    <!-- Wi-Fi名称选择 -->
+    <!-- Wi-Fi name selection -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_wifi_name"
         android:layout_width="0dp"
@@ -185,7 +185,7 @@
         app:layout_constraintTop_toBottomOf="@+id/cv_wifi_name"
         app:layout_constraintStart_toStartOf="@+id/cv_wifi_name" />
 
-    <!-- Wi-Fi密码输入 -->
+    <!-- Wi-Fi password input -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_wifi_password"
         android:layout_width="0dp"
@@ -234,7 +234,7 @@
 
     </androidx.cardview.widget.CardView>
 
-    <!-- 下一步按钮 -->
+    <!-- next button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_next"
         android:layout_width="match_parent"

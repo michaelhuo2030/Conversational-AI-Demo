@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/ai_fill1">
 
-    <!-- 标题栏 -->
+    <!-- header title bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_title_bar"
         android:layout_width="match_parent"
@@ -39,7 +39,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 连接中状态 -->
+    <!-- connecting state -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_connecting"
         android:layout_width="match_parent"
@@ -67,7 +67,7 @@
 
         </androidx.cardview.widget.CardView>
         
-        <!-- 添加旋转光圈 -->
+        <!-- add rotating circle -->
         <ImageView
             android:id="@+id/iv_connecting_circle"
             android:layout_width="205dp"

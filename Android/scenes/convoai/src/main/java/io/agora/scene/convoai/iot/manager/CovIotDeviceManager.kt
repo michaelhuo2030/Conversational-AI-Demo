@@ -8,22 +8,21 @@ import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.iot.model.CovIotDevice
 
 /**
- * IoT设备管理器，负责设备信息的存储和读取
+ * IoT Device Manager responsible for storing and retrieving device information
  */
-class CovIotDeviceManager private constructor(private val context: Context) {
+class CovIotDeviceManager private constructor(context: Context) {
     private val TAG = "CovIotDeviceManager"
     
-    // SharedPreferences 键值
+    // SharedPreferences keys
     private val PREFS_NAME = "iot_devices_prefs"
     private val DEVICES_KEY = "saved_devices"
     
-    private val sharedPrefs: SharedPreferences by lazy {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    }
+    private val sharedPrefs: SharedPreferences = 
+        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     
     /**
-     * 从本地存储加载设备列表
-     * @return 设备列表，如果没有则返回空列表
+     * Load device list from local storage
+     * @return List of devices, or empty list if none found
      */
     fun loadDevicesFromLocal(): List<CovIotDevice> {
         try {
@@ -33,52 +32,52 @@ class CovIotDeviceManager private constructor(private val context: Context) {
                 val type = object : TypeToken<List<CovIotDevice>>() {}.type
                 val loadedDevices = Gson().fromJson<List<CovIotDevice>>(devicesJson, type)
                 
-                CovLogger.d(TAG, "已从本地加载 ${loadedDevices.size} 个设备")
+                CovLogger.d(TAG, "Loaded ${loadedDevices.size} devices from local storage")
                 return loadedDevices
             } else {
-                CovLogger.d(TAG, "本地没有保存的设备")
+                CovLogger.d(TAG, "No saved devices found in local storage")
             }
         } catch (e: Exception) {
-            CovLogger.e(TAG, "加载设备失败: ${e.message}")
+            CovLogger.e(TAG, "Failed to load devices: ${e.message}")
             e.printStackTrace()
         }
         return emptyList()
     }
     
     /**
-     * 保存设备列表到本地存储
-     * @param deviceList 要保存的设备列表
-     * @return 保存是否成功
+     * Save device list to local storage
+     * @param deviceList List of devices to save
+     * @return Whether the save operation was successful
      */
     fun saveDevicesToLocal(deviceList: List<CovIotDevice>): Boolean {
         try {
             val devicesJson = Gson().toJson(deviceList)
             sharedPrefs.edit().putString(DEVICES_KEY, devicesJson).apply()
             
-            CovLogger.d(TAG, "已保存 ${deviceList.size} 个设备到本地")
+            CovLogger.d(TAG, "Saved ${deviceList.size} devices to local storage")
             return true
         } catch (e: Exception) {
-            CovLogger.e(TAG, "保存设备失败: ${e.message}")
+            CovLogger.e(TAG, "Failed to save devices: ${e.message}")
             e.printStackTrace()
             return false
         }
     }
     
     /**
-     * 添加单个设备并保存
-     * @param device 要添加的设备
-     * @return 保存是否成功
+     * Add a single device and save
+     * @param device Device to add
+     * @return Whether the operation was successful
      */
     fun addDevice(device: CovIotDevice): Boolean {
         val currentDevices = loadDevicesFromLocal().toMutableList()
-        currentDevices.add(0, device) // 添加到列表开头
+        currentDevices.add(0, device) // Add to the beginning of the list
         return saveDevicesToLocal(currentDevices)
     }
     
     /**
-     * 删除单个设备并保存
-     * @param deviceId 要删除的设备ID
-     * @return 保存是否成功
+     * Remove a single device and save
+     * @param deviceId ID of the device to remove
+     * @return Whether the operation was successful
      */
     fun removeDevice(deviceId: String): Boolean {
         val currentDevices = loadDevicesFromLocal().toMutableList()
@@ -92,9 +91,9 @@ class CovIotDeviceManager private constructor(private val context: Context) {
     }
     
     /**
-     * 更新设备信息并保存
-     * @param device 更新后的设备信息
-     * @return 保存是否成功
+     * Update device information and save
+     * @param device Updated device information
+     * @return Whether the operation was successful
      */
     fun updateDevice(device: CovIotDevice): Boolean {
         val currentDevices = loadDevicesFromLocal().toMutableList()
@@ -108,13 +107,18 @@ class CovIotDeviceManager private constructor(private val context: Context) {
     }
     
     /**
-     * 获取设备总数
-     * @return 设备总数
+     * Get total device count
+     * @return Number of devices
      */
     fun getDeviceCount(): Int {
         return loadDevicesFromLocal().size
     }
 
+    /**
+     * Get a specific device by ID
+     * @param deviceId ID of the device to retrieve
+     * @return The device if found, null otherwise
+     */
     fun getDevice(deviceId: String): CovIotDevice? {
         return loadDevicesFromLocal().find { it.id == deviceId }
     }

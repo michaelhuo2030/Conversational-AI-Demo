@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/ai_fill1">
 
-    <!-- 顶部标题栏 -->
+    <!-- header title bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_title_bar"
         android:layout_width="match_parent"
@@ -38,7 +38,7 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 设备预览区域 -->
+    <!-- device preview area -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cv_device_preview"
         android:layout_width="match_parent"
@@ -46,16 +46,16 @@
         android:layout_marginHorizontal="30dp"
         android:layout_marginTop="26dp"
         app:cardCornerRadius="16dp"
-        app:cardBackgroundColor="#5A5E6B"
+        app:cardBackgroundColor="#263075FF"
         app:layout_constraintTop_toBottomOf="@id/cl_title_bar">
 
-        <!-- 添加ViewPager2用于滑动切换图片 -->
+        <!-- add ViewPager2 for image sliding -->
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewpager_device"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- 指示器放在CardView内部，位于图片上方 -->
+        <!-- indicator inside CardView, above images -->
         <LinearLayout
             android:id="@+id/ll_indicators"
             android:layout_width="wrap_content"
@@ -66,20 +66,20 @@
 
             <View
                 android:id="@+id/indicator_1"
-                android:layout_width="6dp"
-                android:layout_height="6dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="7dp"
                 android:background="@drawable/shape_indicator_selected" />
 
             <View
                 android:id="@+id/indicator_2"
-                android:layout_width="6dp"
-                android:layout_height="6dp"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
                 android:background="@drawable/shape_indicator_normal"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 配网提示 -->
+    <!-- setup hint -->
     <LinearLayout
         android:id="@+id/ll_setup_hint"
         android:layout_width="wrap_content"
@@ -143,7 +143,7 @@
         android:weightSum="3"
         app:layout_constraintTop_toBottomOf="@id/tv_permission_hint">
 
-        <!-- 位置信息 -->
+        <!-- location info -->
         <LinearLayout
             android:id="@+id/ll_location"
             android:layout_width="0dp"
@@ -174,7 +174,7 @@
                 android:layout_marginTop="8dp"/>
         </LinearLayout>
 
-        <!-- 蓝牙 -->
+        <!-- bluetooth -->
         <LinearLayout
             android:id="@+id/ll_bluetooth"
             android:layout_width="0dp"
@@ -237,7 +237,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 操作确认 -->
+    <!-- operation confirmation -->
     <CheckBox
         android:id="@+id/cb_confirm"
         android:layout_width="wrap_content"
@@ -251,7 +251,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 下一步按钮 -->
+    <!-- next button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_next"
         android:layout_width="match_parent"

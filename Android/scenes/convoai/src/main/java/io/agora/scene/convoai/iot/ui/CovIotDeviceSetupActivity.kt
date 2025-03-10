@@ -8,13 +8,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
-import android.os.Bundle
 import android.provider.Settings
+import android.view.LayoutInflater
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.ImageView
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.ui.OnFastClickListener
@@ -24,70 +26,67 @@ import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityIotDeviceSetupBinding
-import io.agora.scene.convoai.iot.adapter.DeviceImageAdapter
-import io.agora.scene.convoai.iot.model.DeviceImage
 import io.agora.scene.convoai.iot.ui.dialog.CovPermissionDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
+data class DeviceImage(
+    val resourceId: Int,
+    val description: String
+)
+
 class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>() {
 
     companion object {
         private const val TAG = "CovIotDeviceSetupActivity"
-        private const val EXTRA_DEVICE_TYPE = "extra_device_type"
         private const val MAX_PERMISSION_REQUEST_COUNT = 1
 
-        fun startActivity(activity: BaseActivity<*>, deviceType: String = "") {
-            val intent = Intent(activity, CovIotDeviceSetupActivity::class.java).apply {
-                putExtra(EXTRA_DEVICE_TYPE, deviceType)
-            }
+        fun startActivity(activity: BaseActivity<*>) {
+            val intent = Intent(activity, CovIotDeviceSetupActivity::class.java)
             activity.startActivity(intent)
         }
     }
     
-    // 创建协程作用域用于异步操作
+    // Create coroutine scope for asynchronous operations
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     
-    // 设备图片适配器
-    private lateinit var deviceImageAdapter: DeviceImageAdapter
+    // Device image adapter
+    private lateinit var deviceImageAdapter: CovIotSetupImageAdapter
     
-    // 设备图片列表
+    // Device image list
     private val deviceImages = mutableListOf<DeviceImage>()
     
-    // 设备类型
-    private var deviceType: String = "未知设备"
-    
-    // 蓝牙适配器
+    // Bluetooth adapter
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothManager.adapter
     }
     
-    // 权限对话框
+    // Permission dialog
     private var permissionDialog: CovPermissionDialog? = null
     
-    // 权限请求计数器
+    // Permission request counter
     private var locationPermissionRequestCount = 0
     private var bluetoothPermissionRequestCount = 0
     
-    // 位置服务检查启动器
+    // Location service check launcher
     private val locationSettingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        // 用户从位置设置页面返回后，重新检查位置服务
+        // After returning from location settings page, recheck location service
         checkLocationEnabledAfterSettings()
     }
     
-    // 权限请求回调
+    // Permission request callback
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         var locationPermissionGranted = true
         var bluetoothPermissionGranted = true
         
-        // 检查位置权限结果
+        // Check location permission result
         if (permissions.containsKey(Manifest.permission.ACCESS_FINE_LOCATION)) {
             locationPermissionGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
             if (locationPermissionGranted) {
@@ -97,7 +96,7 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
             }
         }
         
-        // 检查蓝牙权限结果（Android 12及以上）
+        // Check bluetooth permission result (Android 12 and above)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (permissions.containsKey(Manifest.permission.BLUETOOTH_SCAN)) {
                 bluetoothPermissionGranted = bluetoothPermissionGranted && 
@@ -115,43 +114,37 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
             }
         }
         
-        // 如果有权限被拒绝，显示权限对话框
+        // If any permission is denied, show permission dialog
         if (!locationPermissionGranted || !bluetoothPermissionGranted) {
             showPermissionDialog(locationPermissionGranted, bluetoothPermissionGranted)
         } else {
-            // 所有权限都已授予，检查蓝牙是否开启
+            // All permissions granted, check if bluetooth is enabled
             checkBluetoothEnabled()
         }
     }
     
-    // 蓝牙开启请求回调
+    // Bluetooth enable request callback
     private val bluetoothEnableLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // 蓝牙已开启
+            // Bluetooth enabled
             permissionDialog?.updateBluetoothPermissionStatus(true)
             checkLocationEnabled()
         } else {
-            // 用户拒绝开启蓝牙
-            ToastUtil.show("需要开启蓝牙才能配置设备")
+            // User refused to enable bluetooth
             permissionDialog?.updateBluetoothPermissionStatus(true)
             showPermissionDialog(
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) 
                     == PackageManager.PERMISSION_GRANTED,
-                true,
-                false
+                bluetoothGranted = true,
+                bluetoothOpen = false
             )
         }
     }
 
     override fun getViewBinding(): CovActivityIotDeviceSetupBinding {
         return CovActivityIotDeviceSetupBinding.inflate(layoutInflater)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        initData()
     }
 
     override fun initView() {
@@ -162,12 +155,12 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
 
     override fun onResume() {
         super.onResume()
-        // 在页面恢复时更新UI状态
+        // Update UI state when page resumes
         updateUIState()
     }
 
     override fun onDestroy() {
-        // 清理资源，避免内存泄漏
+        // Clean up resources to avoid memory leaks
         dismissPermissionDialog()
         coroutineScope.cancel()
         super.onDestroy()
@@ -182,60 +175,60 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
             layoutParams.topMargin = statusBarHeight
             clTitleBar.layoutParams = layoutParams
 
-            // 设置返回按钮点击事件
+            // Set back button click event
             ivBack.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     finish()
                 }
             })
             
-            // 设置下一步按钮点击事件
+            // Set next button click event
             btnNext.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
                     if (cbConfirm.isChecked) {
-                        // 开始权限检查和蓝牙检查流程
+                        // Start permission check and bluetooth check process
                         checkAndRequestPermissions()
                     } else {
-                        ToastUtil.show("请先确认已完成上述操作")
+                        ToastUtil.show("Please confirm you have completed the above operations first")
                     }
                 }
             })
 
-            // 初始化按钮状态
+            // Initialize button state
             updateNextButtonState(cbConfirm.isChecked)
         }
     }
     
     private fun setupViewPager() {
-        // 初始化设备图片数据
+        // Initialize device image data
         deviceImages.clear()
-        deviceImages.add(DeviceImage(R.drawable.cov_iot_prepare_pic_1, "设备正面图"))
-        deviceImages.add(DeviceImage(R.drawable.cov_iot_device_item_bg_2, "设备背面图"))
+        deviceImages.add(DeviceImage(R.drawable.cov_iot_prepare_pic_1, "Front view of device"))
+        deviceImages.add(DeviceImage(R.drawable.cov_iot_prepare_pic_1, "Back view of device"))
         
-        deviceImageAdapter = DeviceImageAdapter(deviceImages)
+        deviceImageAdapter = CovIotSetupImageAdapter(deviceImages)
         
         mBinding?.apply {
             viewpagerDevice.adapter = deviceImageAdapter
             
-            // 设置ViewPager2页面切换监听
+            // Set ViewPager2 page change listener
             viewpagerDevice.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                 override fun onPageSelected(position: Int) {
                     super.onPageSelected(position)
-                    // 防止索引越界
+                    // Prevent index out of bounds
                     if (position >= 0 && position < deviceImages.size) {
                         updateIndicators(position)
                     }
                 }
             })
             
-            // 初始化指示器状态
+            // Initialize indicator state
             updateIndicators(0)
         }
     }
     
     private fun updateIndicators(position: Int) {
         mBinding?.apply {
-            // 根据当前页面位置更新指示器状态
+            // Update indicator state based on current page position
             indicator1.setBackgroundResource(
                 if (position == 0) R.drawable.shape_indicator_selected 
                 else R.drawable.shape_indicator_normal
@@ -251,93 +244,80 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
     private fun setupCheckbox() {
         mBinding?.apply {
             cbConfirm.setOnCheckedChangeListener { _, isChecked ->
-                // 根据复选框状态启用或禁用下一步按钮
+                // Enable or disable next button based on checkbox state
                 updateNextButtonState(isChecked)
             }
         }
     }
 
-    private fun initData() {
-        // 从Intent中获取设备类型
-        deviceType = intent.getStringExtra(EXTRA_DEVICE_TYPE) ?: "未知设备"
-        CovLogger.d(TAG, "设置设备类型: $deviceType")
-    }
-
-    // 更新UI状态
+    // Update UI state
     private fun updateUIState() {
         mBinding?.apply {
-            // 更新复选框和按钮状态
-            updateNextButtonState(cbConfirm.isChecked == true)
+            // Update checkbox and button state
+            updateNextButtonState(cbConfirm.isChecked)
         }
     }
 
-    // 检查并请求必要的权限
+    // Check and request necessary permissions
     private fun checkAndRequestPermissions() {
         val permissionsToRequest = mutableListOf<String>()
-        var locationPermissionGranted = true
-        var bluetoothPermissionGranted = true
         
-        // 检查位置权限（BLE扫描需要）
+        // Check location permission (required for BLE scanning)
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) 
             != PackageManager.PERMISSION_GRANTED) {
             permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
-            locationPermissionGranted = false
         }
         
-        // Android 12及以上需要蓝牙扫描和连接权限
+        // Android 12 and above require bluetooth scan and connect permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) 
                 != PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(Manifest.permission.BLUETOOTH_SCAN)
-                bluetoothPermissionGranted = false
             }
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) 
                 != PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
-                bluetoothPermissionGranted = false
             }
         }
         
         if (permissionsToRequest.isNotEmpty()) {
-            // 请求权限
+            // Request permissions
             requestPermissionLauncher.launch(permissionsToRequest.toTypedArray())
         } else {
-            // 已有所有权限，检查蓝牙是否开启
+            // Already have all permissions, check if bluetooth is enabled
             checkBluetoothEnabled()
         }
     }
     
-    // 显示权限对话框
+    // Show permission dialog
     private fun showPermissionDialog(locationGranted: Boolean, bluetoothGranted: Boolean, bluetoothOpen: Boolean? = null) {
         if (permissionDialog == null) {
             permissionDialog = CovPermissionDialog.newInstance(
                 onDismiss = {
-                    // 对话框关闭回调
+                    // Dialog dismiss callback
                     permissionDialog = null
                 },
                 onLocationPermission = {
-                    // 位置权限点击回调
+                    // Location permission click callback
                     if (locationPermissionRequestCount >= MAX_PERMISSION_REQUEST_COUNT) {
-                        // 用户多次拒绝，直接跳转到应用设置页面
+                        // User denied multiple times, redirect to app settings
                         openAppSettings()
-                        ToastUtil.show("请在设置中手动授予位置权限")
                     } else {
                         requestLocationPermission()
                     }
                 },
                 onBluetoothPermission = {
-                    // 蓝牙权限点击回调
+                    // Bluetooth permission click callback
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && 
                         bluetoothPermissionRequestCount >= MAX_PERMISSION_REQUEST_COUNT) {
-                        // 用户多次拒绝，直接跳转到应用设置页面
+                        // User denied multiple times, redirect to app settings
                         openAppSettings()
-                        ToastUtil.show("请在设置中手动授予蓝牙权限")
                     } else {
                         requestBluetoothPermission()
                     }
                 },
                 onBluetoothSwitch = {
-                    // 请求开启蓝牙
+                    // Request to enable bluetooth
                     val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                     bluetoothEnableLauncher.launch(enableBtIntent)
                 }
@@ -355,13 +335,13 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
         }
     }
     
-    // 关闭权限对话框
+    // Dismiss permission dialog
     private fun dismissPermissionDialog() {
         permissionDialog?.dismiss()
         permissionDialog = null
     }
     
-    // 打开应用设置页面
+    // Open app settings page
     private fun openAppSettings() {
         try {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -371,17 +351,17 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
             }
             startActivity(intent)
         } catch (e: Exception) {
-            CovLogger.e(TAG, "无法打开应用设置页面: ${e.message}")
-            ToastUtil.show("请手动前往设置页面授予权限")
+            CovLogger.e(TAG, "Unable to open app settings page: ${e.message}")
+            ToastUtil.show("Please manually go to settings page to grant permissions")
         }
     }
     
-    // 请求位置权限
+    // Request location permission
     private fun requestLocationPermission() {
         requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
     }
     
-    // 请求蓝牙权限
+    // Request bluetooth permission
     private fun requestBluetoothPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requestPermissionLauncher.launch(arrayOf(
@@ -389,55 +369,54 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
                 Manifest.permission.BLUETOOTH_CONNECT
             ))
         } else {
-            // Android 12以下版本不需要额外的蓝牙权限
+            // No additional bluetooth permissions needed for Android versions below 12
             permissionDialog?.updateBluetoothPermissionStatus(true)
             checkBluetoothEnabled()
         }
     }
     
-    // 检查蓝牙是否开启
+    // Check if bluetooth is enabled
     private fun checkBluetoothEnabled() {
         bluetoothAdapter?.let { adapter ->
             if (!adapter.isEnabled) {
-                // 蓝牙未开启，请求开启
+                // Bluetooth not enabled, request to enable
                 val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 bluetoothEnableLauncher.launch(enableBtIntent)
             } else {
-                // 蓝牙已开启，检查位置服务
+                // Bluetooth enabled, check location service
                 checkLocationEnabled()
             }
         } ?: run {
-            // 设备不支持蓝牙
-            ToastUtil.show("设备不支持蓝牙功能，无法配置设备")
-            // 提供替代方案或退出流程
+            // Device does not support bluetooth
+            ToastUtil.show("Device does not support bluetooth, cannot configure device")
+            // Provide alternative or exit flow
             showDeviceNotSupportedDialog()
         }
     }
     
-    // 显示设备不支持对话框
+    // Show device not supported dialog
     private fun showDeviceNotSupportedDialog() {
-        // 这里可以实现一个对话框，告知用户设备不支持蓝牙，无法继续配置
-        // 可以提供替代方案或退出流程
-        ToastUtil.show("您的设备不支持蓝牙功能，无法配置智能设备")
+        // Here you can implement a dialog to inform the user that the device does not support bluetooth
+        // Can provide alternatives or exit the flow
+        ToastUtil.show("Your device does not support bluetooth, cannot configure smart device")
         finish()
     }
     
-    // 检查位置服务是否开启
+    // Check if location service is enabled
     private fun checkLocationEnabled() {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         
         if (!isLocationEnabled) {
-            // 位置服务未开启，提示用户开启
-            ToastUtil.show("请开启位置服务以便配置设备")
-            // 跳转到位置设置页面
+            // Location service not enabled, prompt user to enable
+            // Jump to location settings page
             try {
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 locationSettingsLauncher.launch(intent)
             } catch (e: Exception) {
-                CovLogger.e(TAG, "无法打开位置设置页面: ${e.message}")
-                ToastUtil.show("请手动开启位置服务")
+                CovLogger.e(TAG, "Unable to open location settings page: ${e.message}")
+                ToastUtil.show("Please manually enable location service")
             }
             
             permissionDialog?.updateLocationPermissionStatus(false)
@@ -445,46 +424,64 @@ class CovIotDeviceSetupActivity : BaseActivity<CovActivityIotDeviceSetupBinding>
                 bluetoothAdapter?.isEnabled == true
             )
         } else {
-            // 所有条件都满足，可以进入配网流程
+            // All conditions met, can enter network configuration process
             permissionDialog?.updateLocationPermissionStatus(true)
             startWifiConnectActivity()
         }
     }
     
-    // 从设置页面返回后检查位置服务
+    // Check location service after returning from settings
     private fun checkLocationEnabledAfterSettings() {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         
         if (isLocationEnabled) {
-            // 位置服务已开启，可以进入配网流程
+            // Location service enabled, can enter network configuration process
             permissionDialog?.updateLocationPermissionStatus(true)
             dismissPermissionDialog()
             startWifiConnectActivity()
         } else {
-            // 位置服务仍未开启
-            ToastUtil.show("需要开启位置服务才能配置设备")
+            // Location service still not enabled
+            ToastUtil.show("Location service must be enabled to configure the device")
             permissionDialog?.updateLocationPermissionStatus(false)
         }
     }
     
-    // 启动Wi-Fi连接页面
+    // Start Wi-Fi connection page
     private fun startWifiConnectActivity() {
-        val intent = Intent(this, CovDeviceScanActivity::class.java).apply {
-            // 传递设备类型到下一个页面
-            putExtra(EXTRA_DEVICE_TYPE, deviceType)
-        }
-        startActivity(intent)
+        CovDeviceScanActivity.startActivity(this)
     }
 
-    // 添加更新按钮状态的方法
+    // Add method to update button state
     private fun updateNextButtonState(isChecked: Boolean) {
         mBinding?.apply {
             btnNext.let { button ->
                 button.isEnabled = isChecked
                 button.alpha = if (isChecked) 1.0f else 0.5f
             }
+        }
+    }
+
+    inner class CovIotSetupImageAdapter(private val images: List<DeviceImage>) :
+        RecyclerView.Adapter<CovIotSetupImageAdapter.ImageViewHolder>() {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.cov_item_device_image, parent, false)
+            return ImageViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
+            val deviceImage = images[position]
+            holder.imageView.setImageResource(deviceImage.resourceId)
+            holder.imageView.contentDescription = deviceImage.description
+        }
+
+        override fun getItemCount(): Int = images.size
+
+        inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val imageView: ImageView = itemView.findViewById(R.id.iv_device_image)
         }
     }
 }

@@ -103,7 +103,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:text="Language"
+                        android:text="@string/cov_setting_language"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -172,7 +172,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
-                        android:text="启用"
+                        android:text="@string/cov_setting_ai_vad"
                         android:textColor="@color/ai_icontext1"
                         android:textSize="14sp"
                         app:layout_constraintEnd_toStartOf="@+id/tv_ai_vad_high"
@@ -208,7 +208,7 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </LinearLayout>
 
-            <!-- 操作按钮部分 -->
+            <!-- operation button section -->
             <Button
                 android:id="@+id/btn_reset"
                 android:layout_width="0dp"

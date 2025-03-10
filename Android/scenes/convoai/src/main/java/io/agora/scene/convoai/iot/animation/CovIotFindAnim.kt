@@ -22,83 +22,83 @@ class RippleAnimationView @JvmOverloads constructor(
 
     private val TAG = "RippleAnimationView"
     
-    // 涟漪数量
+    // Number of ripples
     private val rippleCount = 3
     
-    // 涟漪间隔时间
-    private val rippleDuration = 500L // 0.5秒
+    // Ripple interval time
+    private val rippleDuration = 500L // 0.5 seconds
     
-    // 单次动画持续时间
-    private val animationDuration = 2500L // 2.5秒
+    // Single animation duration
+    private val animationDuration = 2500L // 2.5 seconds
     
-    // 动画暂停时间
-    private val pauseDuration = 4000L // 4秒
+    // Animation pause time
+    private val pauseDuration = 4000L // 4 seconds
     
-    // 渐入渐出时间比例
+    // Fade in/out time ratio
     private val fadeRatio = 0.2f
     
-    // 缩放因子
+    // Scale factor
     var scaleFactor = 1.4f
     
-    // 基础颜色 #446CFF
+    // Base color #446CFF
     private val baseColor = Color.rgb(68, 108, 255)
     
-    // 存储所有涟漪圆的列表
+    // List to store all ripple circles
     private val rippleCircles = ArrayList<RippleCircle>()
     
-    // 画笔
+    // Paint
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     
-    // 动画集合
+    // Animation set
     private var animatorSet: AnimatorSet? = null
     
     init {
-        // 初始化
+        // Initialization
         paint.style = Paint.Style.FILL
-        Log.d(TAG, "初始化视图")
+        Log.d(TAG, "Initializing view")
         
-        // 不要在init中启动动画，等待视图尺寸确定后再启动
+        // Don't start animation in init, wait until view dimensions are determined
         // startRippleAnimation()
     }
     
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
-        Log.d(TAG, "onDraw: width=$width, height=$height, 圆数量=${rippleCircles.size}")
+        Log.d(TAG, "onDraw: width=$width, height=$height, circle count=${rippleCircles.size}")
         
-        // 绘制所有涟漪圆 - 圆心位于底部中心
+        // Draw all ripple circles - center at bottom middle
         for (circle in rippleCircles) {
             paint.color = circle.color
-            // 将圆心位置改为底部中心
+            // Set circle center position to bottom center
             canvas.drawCircle(width / 2f, height.toFloat(), circle.radius, paint)
-            Log.d(TAG, "绘制圆: radius=${circle.radius}, alpha=${Color.alpha(circle.color)}")
+            Log.d(TAG, "Drawing circle: radius=${circle.radius}, alpha=${Color.alpha(circle.color)}")
         }
     }
     
     private fun startRippleAnimation() {
-        // 清除现有动画
+        // Clear existing animations
         animatorSet?.cancel()
         rippleCircles.clear()
         
-        Log.d(TAG, "开始动画: width=$width, height=$height")
+        Log.d(TAG, "Starting animation: width=$width, height=$height")
         
-        // 为每个涟漪创建一个圆对象
+        // Create a circle object for each ripple
         for (i in 0 until rippleCount) {
             rippleCircles.add(RippleCircle())
         }
         
-        // 创建动画集合
+        // Create animation collection
         val animators = ArrayList<ValueAnimator>()
         
-        // 为每个涟漪创建动画
+        // Create animation for each ripple
         for (i in 0 until rippleCount) {
             val animator = createRippleAnimator(i)
             animators.add(animator)
         }
         
-        // 创建并启动动画集合
+        // Create and start animation set
         animatorSet = AnimatorSet()
-        // 使用 play() 和 with() 方法替代 playTogether()
+        // Use play() and with() methods instead of playTogether()
         if (animators.isNotEmpty()) {
             val builder = animatorSet?.play(animators[0])
             for (i in 1 until animators.size) {
@@ -106,20 +106,20 @@ class RippleAnimationView @JvmOverloads constructor(
             }
         }
         animatorSet?.start()
-        Log.d(TAG, "动画已启动")
+        Log.d(TAG, "Animation started")
     }
     
     private fun createRippleAnimator(index: Int): ValueAnimator {
         val animator = ValueAnimator.ofFloat(0f, 1f)
-        // 移除暂停时间，使用单纯的动画时间
+        // Remove pause time, use pure animation time
         animator.duration = animationDuration
         animator.repeatCount = ValueAnimator.INFINITE
-        // 使用RESTART模式而不是REVERSE
+        // Use RESTART mode instead of REVERSE
         animator.repeatMode = ValueAnimator.RESTART
         animator.startDelay = index * rippleDuration
         animator.interpolator = LinearInterpolator()
         
-        // 记录上一个周期的最后状态，用于平滑过渡
+        // Record the last state of the previous cycle for smooth transition
         var lastRadius = 0f
         var lastAlpha = 0
         
@@ -128,18 +128,18 @@ class RippleAnimationView @JvmOverloads constructor(
             
             val circle = rippleCircles[index]
             
-            // 防止width或height为0的情况
+            // Prevent cases where width or height is 0
             if (width > 0 && height > 0) {
-                // 更新半径（缩放动画）
+                // Update radius (scaling animation)
                 val minRadius = Math.min(width, height) * 0.1f
                 val maxRadius = Math.max(width, height) * scaleFactor
                 
-                // 计算当前半径
+                // Calculate current radius
                 val targetRadius = minRadius + (maxRadius - minRadius) * fraction
                 
-                // 处理循环开始时的半径平滑过渡
+                // Handle smooth radius transition at the beginning of the cycle
                 if (fraction < 0.05f && lastRadius > targetRadius) {
-                    // 在新周期开始时，保持上一个周期的透明度为0
+                    // At the start of a new cycle, keep the opacity of the previous cycle at 0
                     circle.radius = targetRadius
                     circle.color = Color.argb(
                         0,
@@ -148,25 +148,25 @@ class RippleAnimationView @JvmOverloads constructor(
                         Color.blue(baseColor)
                     )
                 } else {
-                    // 正常更新半径
+                    // Normal radius update
                     circle.radius = targetRadius
                     
-                    // 修改透明度计算逻辑
+                    // Modify transparency calculation logic
                     var alpha = 0f
                     if (fraction < fadeRatio) {
-                        // 渐入阶段
+                        // Fade-in stage
                         alpha = (fraction / fadeRatio).pow(2)
                     } else if (fraction < (1 - fadeRatio)) {
-                        // 中间阶段 - 随着圆变大而更快地降低透明度
+                        // Middle stage - decrease transparency faster as the circle grows
                         val progress = (fraction - fadeRatio) / (1 - 2 * fadeRatio)
-                        // 使用更陡峭的曲线，确保在接近结束前透明度已接近0
+                        // Use a steeper curve to ensure transparency is close to 0 near the end
                         alpha = (1.0f - progress.pow(2f)) * (1.0f - progress)
                     } else {
-                        // 渐出阶段 - 确保在结束时完全透明
+                        // Fade-out stage - ensure complete transparency at the end
                         alpha = 0f
                     }
                     
-                    // 确保alpha值在有效范围内
+                    // Ensure alpha value is within valid range
                     val alphaInt = (alpha * 255 * 0.8f).toInt().coerceIn(0, 255)
                     
                     circle.color = Color.argb(
@@ -176,12 +176,12 @@ class RippleAnimationView @JvmOverloads constructor(
                         Color.blue(baseColor)
                     )
                     
-                    // 保存当前状态用于下一周期
+                    // Save current state for next cycle
                     lastRadius = circle.radius
                     lastAlpha = alphaInt
                 }
                 
-                // 重绘视图
+                // Redraw view
                 invalidate()
             }
         }
@@ -189,7 +189,7 @@ class RippleAnimationView @JvmOverloads constructor(
         return animator
     }
     
-    // 添加波纹效果（可选）
+    // Add wave effect (optional)
     fun addWaveEffect() {
         val waveAnimator = ValueAnimator.ofFloat(0.9f, 1.1f)
         waveAnimator.duration = 2000
@@ -198,14 +198,14 @@ class RippleAnimationView @JvmOverloads constructor(
         waveAnimator.interpolator = DecelerateInterpolator()
         
         waveAnimator.addUpdateListener { animation ->
-            // 实现波纹效果的逻辑
+            // Logic for implementing wave effect
             invalidate()
         }
         
         waveAnimator.start()
     }
     
-    // 涟漪圆类
+    // Ripple circle class
     private inner class RippleCircle {
         var radius = 0f
         var color = Color.TRANSPARENT
@@ -213,14 +213,14 @@ class RippleAnimationView @JvmOverloads constructor(
     
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        // 清理资源
+        // Clean up resources
         animatorSet?.cancel()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        Log.d(TAG, "尺寸变化: w=$w, h=$h, oldw=$oldw, oldh=$oldh")
-        // 当视图大小改变时重启动画
+        Log.d(TAG, "Size changed: w=$w, h=$h, oldw=$oldw, oldh=$oldh")
+        // Restart animation when view size changes
         if (w > 0 && h > 0) {
             startRippleAnimation()
         }
@@ -228,10 +228,10 @@ class RippleAnimationView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        Log.d(TAG, "视图已附加到窗口")
+        Log.d(TAG, "View attached to window")
     }
 
-    // 添加测量方法，确保视图有尺寸
+    // Add measurement method to ensure view has dimensions
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         
@@ -243,20 +243,20 @@ class RippleAnimationView @JvmOverloads constructor(
         var width = widthSize
         var height = heightSize
         
-        // 如果宽度是wrap_content，设置默认宽度
+        // If width is wrap_content, set default width
         if (widthMode == MeasureSpec.AT_MOST || widthMode == MeasureSpec.UNSPECIFIED) {
             width = 200
         }
         
-        // 如果高度是wrap_content，设置默认高度
+        // If height is wrap_content, set default height
         if (heightMode == MeasureSpec.AT_MOST || heightMode == MeasureSpec.UNSPECIFIED) {
             height = 200
         }
         
-        // 确保宽高相等（可选，如果你希望视图是正方形）
+        // Ensure width and height are equal (optional, if you want the view to be square)
         val size = Math.min(width, height)
         setMeasuredDimension(size, size)
         
-        Log.d(TAG, "onMeasure: width=$width, height=$height, 最终尺寸=$size")
+        Log.d(TAG, "onMeasure: width=$width, height=$height, final size=$size")
     }
 }

@@ -3,48 +3,48 @@ package io.agora.scene.convoai.iot.manager
 import io.iot.dn.ble.model.BleDevice
 
 /**
- * 蓝牙设备管理器单例类
- * 用于存储和管理扫描到的蓝牙设备
+ * Bluetooth device manager singleton class
+ * Used to store and manage scanned Bluetooth devices
  */
-object BleDeviceManager {
-    // 存储所有扫描到的设备，键为设备地址，值为BleDevice对象
+object CovScanBleDeviceManager {
+    // Store all scanned devices, key is device address, value is BleDevice object
     private val deviceMap = mutableMapOf<String, BleDevice>()
     
     /**
-     * 添加设备到管理器
-     * @param device 蓝牙设备
+     * Add device to manager
+     * @param device Bluetooth device
      */
     fun addDevice(device: BleDevice) {
         deviceMap[device.address] = device
     }
     
     /**
-     * 根据设备地址获取设备
-     * @param address 设备地址
-     * @return 对应的BleDevice对象，如果不存在则返回null
+     * Get device by address
+     * @param address Device address
+     * @return Corresponding BleDevice object, returns null if not exists
      */
     fun getDevice(address: String): BleDevice? {
         return deviceMap[address]
     }
     
     /**
-     * 获取所有设备
-     * @return 所有存储的设备列表
+     * Get all devices
+     * @return List of all stored devices
      */
     fun getAllDevices(): List<BleDevice> {
         return deviceMap.values.toList()
     }
     
     /**
-     * 清空设备列表
+     * Clear device list
      */
     fun clearDevices() {
         deviceMap.clear()
     }
     
     /**
-     * 移除指定设备
-     * @param address 设备地址
+     * Remove specified device
+     * @param address Device address
      */
     fun removeDevice(address: String) {
         deviceMap.remove(address)

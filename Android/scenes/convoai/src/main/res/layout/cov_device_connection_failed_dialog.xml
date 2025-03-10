@@ -53,7 +53,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tv_title" />
 
-            <!-- 直接使用ViewPager2，移除CardView -->
+            <!-- use ViewPager2 directly, remove CardView -->
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/viewpager_check_steps"
                 android:layout_width="match_parent"
@@ -64,20 +64,20 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- 指示器和提示 -->
+            <!-- indicator and hint -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tv_swipe_hint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/cov_iot_devices_connect_connect_failed_check_slide"
-                android:textColor="@color/ai_icontext3"
+                android:textColor="@color/ai_icontext2"
                 android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/viewpager_check_steps" />
 
-            <!-- 指示器点 -->
+            <!-- indicator points -->
             <LinearLayout
                 android:id="@+id/ll_indicators"
                 android:layout_width="wrap_content"
@@ -90,26 +90,26 @@
 
                 <View
                     android:id="@+id/indicator_1"
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="6dp"
                     android:background="@drawable/shape_indicator_normal" />
 
                 <View
                     android:id="@+id/indicator_2"
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="6dp"
                     android:background="@drawable/shape_indicator_normal" />
 
                 <View
                     android:id="@+id/indicator_3"
-                    android:layout_width="8dp"
-                    android:layout_height="8dp"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
                     android:background="@drawable/shape_indicator_selected" />
             </LinearLayout>
 
-            <!-- 重新扫描按钮 -->
+            <!-- rescan button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_rescan"
                 android:layout_width="0dp"
