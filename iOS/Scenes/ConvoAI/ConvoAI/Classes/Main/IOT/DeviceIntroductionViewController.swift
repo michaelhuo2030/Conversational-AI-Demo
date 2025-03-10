@@ -69,13 +69,13 @@ class DeviceIntroductionViewController: BaseViewController {
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
         
-        let fullText = "按住配网按钮 3秒 进入配网状态"
+        let fullText = ResourceManager.L10n.Iot.deviceSetupInstruction
         let attributedString = NSMutableAttributedString(string: fullText)
         
         attributedString.addAttribute(.foregroundColor, value: UIColor.themColor(named: "ai_icontext1"), range: NSRange(location: 0, length: fullText.count))
         attributedString.addAttribute(.font, value: UIFont.systemFont(ofSize: 24, weight: .semibold), range: NSRange(location: 0, length: fullText.count))
         
-        if let range = fullText.range(of: "3秒") {
+        if let range = fullText.range(of: ResourceManager.L10n.Iot.deviceSetupInstructionSub) {
             let nsRange = NSRange(range, in: fullText)
             attributedString.addAttribute(.foregroundColor, value: UIColor.themColor(named: "ai_green6"), range: nsRange)
         }
@@ -90,7 +90,7 @@ class DeviceIntroductionViewController: BaseViewController {
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
         label.numberOfLines = 0
-        label.text = "配对过程中会请求下列权限和开关"
+        label.text = ResourceManager.L10n.Iot.deviceSetupPermissionDescription
         return label
     }()
     
@@ -109,7 +109,7 @@ class DeviceIntroductionViewController: BaseViewController {
         // Create button configuration
         var config = UIButton.Configuration.plain()
         config.image = UIImage.ag_named("ic_iot_uncheck_icon")
-        config.title = "已完成上述操作"
+        config.title = ResourceManager.L10n.Iot.deviceSetupComplete
         config.imagePlacement = .leading
         config.imagePadding = 8
         config.baseForegroundColor = UIColor.themColor(named: "ai_icontext1")
@@ -118,7 +118,7 @@ class DeviceIntroductionViewController: BaseViewController {
         // Set font in configuration
         var container = AttributeContainer()
         container.font = .systemFont(ofSize: 14)
-        config.attributedTitle = AttributedString("已完成上述操作", attributes: container)
+        config.attributedTitle = AttributedString(ResourceManager.L10n.Iot.deviceSetupComplete, attributes: container)
         
         // Apply configuration
         button.configuration = config
@@ -159,7 +159,7 @@ class DeviceIntroductionViewController: BaseViewController {
     
     private lazy var nextButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("下一步", for: .normal)
+        button.setTitle(ResourceManager.L10n.Iot.buttonNext, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor.themColor(named: "ai_brand_main6")
@@ -175,18 +175,18 @@ class DeviceIntroductionViewController: BaseViewController {
     private var steps: [IntroductionStep] = [
         IntroductionStep(
             image: UIImage.ag_named("ic_iot_intro_1"),
-            title: "连接电源",
-            description: "将设备连接到电源并打开"
+            title: ResourceManager.L10n.Iot.deviceStep1Title,
+            description: ResourceManager.L10n.Iot.deviceStep1Description
         ),
         IntroductionStep(
             image: UIImage.ag_named("ic_iot_intro_2"),
-            title: "等待启动",
-            description: "设备指示灯将亮起，等待其完成启动"
+            title: ResourceManager.L10n.Iot.deviceStep2Title,
+            description: ResourceManager.L10n.Iot.deviceStep2Description
         ),
         IntroductionStep(
             image: UIImage.ag_named("ic_iot_intro_3"),
-            title: "网络连接",
-            description: "确保您的手机已连接到Wi-Fi网络"
+            title: ResourceManager.L10n.Iot.deviceStep3Title,
+            description: ResourceManager.L10n.Iot.deviceStep3Description
         )
     ]
     
@@ -229,7 +229,7 @@ class DeviceIntroductionViewController: BaseViewController {
         let bluetoothStatus = CBManager.authorization
         switch bluetoothStatus {
         case .allowedAlways:
-            print("拥有蓝牙权限")
+            print("Bluetooth permission granted")
             // Check if Bluetooth is powered on
             if !bluetoothManager.isBLEAvailable {
                 missingPermissions.append(
@@ -237,7 +237,7 @@ class DeviceIntroductionViewController: BaseViewController {
                         icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
                         iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
                         cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
-                        title: "打开蓝牙",
+                        title: ResourceManager.L10n.Iot.permissionBluetoothEnable,
                         action: {
                             guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
                             if UIApplication.shared.canOpenURL(bluetoothUrl) {
@@ -248,13 +248,13 @@ class DeviceIntroductionViewController: BaseViewController {
                 )
             }
         case .denied, .restricted:
-            print("没有蓝牙权限")
+            print("Bluetooth permission denied")
             missingPermissions.append(
                 PermissionAlertViewController.Permission(
                     icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
                     iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
                     cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
-                    title: "未开启蓝牙权限",
+                    title: ResourceManager.L10n.Iot.permissionBluetoothUnauthorized,
                     action: {
                         guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
                         if UIApplication.shared.canOpenURL(bluetoothUrl) {
@@ -264,7 +264,7 @@ class DeviceIntroductionViewController: BaseViewController {
                 )
             )
         case .notDetermined:
-            print("未申请蓝牙权限")
+            print("Bluetooth permission not requested yet")
         @unknown default:
             break
         }
@@ -273,15 +273,15 @@ class DeviceIntroductionViewController: BaseViewController {
         let locationStatus = locationManager.authorizationStatus
         switch locationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            print("拥有定位权限")
+            print("Location permission granted")
         case .denied, .restricted:
-            print("没有定位权限")
+            print("Location permission denied")
             missingPermissions.append(
                 PermissionAlertViewController.Permission(
                     icon: UIImage.ag_named("ic_iot_location_white_icon"),
                     iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
                     cardBackgroundColor: UIColor.themColor(named: "ai_green6"),
-                    title: "定位服务未授权",
+                    title: ResourceManager.L10n.Iot.permissionLocationUnauthorized,
                     action: {
                         guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
                         if UIApplication.shared.canOpenURL(settingsUrl) {
@@ -291,7 +291,7 @@ class DeviceIntroductionViewController: BaseViewController {
                 )
             )
         case .notDetermined:
-            print("未申请定位权限")
+            print("Location permission not requested yet")
             locationManager.requestWhenInUseAuthorization()
         @unknown default:
             break
@@ -307,8 +307,8 @@ class DeviceIntroductionViewController: BaseViewController {
                 alertVC.dismiss(animated: false) { [weak self] in
                     guard let self = self else { return }
                     let newAlertVC = PermissionAlertViewController(
-                        title: "开启权限和开关",
-                        description: "需要开启以下权限和开关，用于添加附近设备",
+                        title: ResourceManager.L10n.Iot.permissionTitle,
+                        description: ResourceManager.L10n.Iot.permissionDescription,
                         permissions: self.missingPermissions
                     )
                     self.currentPermissionAlert = newAlertVC
@@ -323,7 +323,7 @@ class DeviceIntroductionViewController: BaseViewController {
 
 extension DeviceIntroductionViewController {
     private func setupViews() {
-        navigationTitle = "配网"
+        navigationTitle = ResourceManager.L10n.Iot.deviceSetupInstruction
         view.backgroundColor = .black
         naviBar.backgroundColor = .black
         
@@ -331,21 +331,21 @@ extension DeviceIntroductionViewController {
         let locationView = createPermissionView(
             icon: UIImage.ag_named("ic_iot_location_icon"),
             iconColor: UIColor(red: 1.0, green: 0.4, blue: 0.4, alpha: 1.0),
-            title: "位置信息"
+            title: ResourceManager.L10n.Iot.permissionItemLocation
         )
         
         // Bluetooth
         let bluetoothView = createPermissionView(
             icon: UIImage.ag_named("ic_iot_bluetooth_icon"),
             iconColor: UIColor(red: 0.4, green: 0.5, blue: 1.0, alpha: 1.0),
-            title: "蓝牙"
+            title: ResourceManager.L10n.Iot.permissionItemBluetooth
         )
         
         // Wi-Fi
         let wifiView = createPermissionView(
             icon: UIImage.ag_named("ic_iot_wifi_icon"),
             iconColor: UIColor(red: 0.4, green: 0.8, blue: 0.8, alpha: 1.0),
-            title: "2.4G Wi-Fi"
+            title: ResourceManager.L10n.Iot.permissionItemWifi
         )
         
         permissionsStackView.addArrangedSubview(locationView)
@@ -480,8 +480,8 @@ extension DeviceIntroductionViewController {
         
         if !missingPermissions.isEmpty {
             let alertVC = PermissionAlertViewController(
-                title: "开启权限和开关",
-                description: "需要开启以下权限和开关，用于添加附近设备",
+                title: ResourceManager.L10n.Iot.permissionTitle,
+                description: ResourceManager.L10n.Iot.permissionDescription,
                 permissions: missingPermissions
             )
             currentPermissionAlert = alertVC

@@ -90,7 +90,7 @@ class SearchDeviceViewController: BaseViewController {
     }
     
     private func setupViews() {
-        navigationTitle = "扫描附近设备"
+        navigationTitle = ResourceManager.L10n.Iot.deviceSearchTitle
         naviBar.backgroundColor = UIColor.themColor(named: "ai_fill2")
         view.backgroundColor = UIColor.themColor(named: "ai_fill2")
         view.clipsToBounds = true
@@ -139,7 +139,7 @@ class SearchDeviceViewController: BaseViewController {
                 icon: UIImage.ag_named("ic_iot_wifi_white_icon"),
                 iconBackgroundColor: UIColor.themColor(named: "ai_brand_white2"),
                 cardBackgroundColor: UIColor.themColor(named: "ai_green6"),
-                title: "请打开Wi-Fi",
+                title: ResourceManager.L10n.Iot.permissionItemWifi,
                 action: {
                     // Open Location Settings
                     guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
@@ -151,8 +151,8 @@ class SearchDeviceViewController: BaseViewController {
         ]
 
         let alertVC = PermissionAlertViewController(
-            title: "开启开关",
-            description: "需开启Wi-Fi开关，用于添加附近设备",
+            title: ResourceManager.L10n.Iot.permissionTitle,
+            description: ResourceManager.L10n.Iot.permissionDescription,
             permissions: permissions
         )
         present(alertVC, animated: false)

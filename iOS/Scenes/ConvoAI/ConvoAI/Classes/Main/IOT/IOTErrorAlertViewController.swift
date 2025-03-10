@@ -15,9 +15,9 @@ class IOTErrorAlertViewController: UIViewController {
     private var onRetryButtonTapped: (() -> Void)?
     
     private let bannerTitles = [
-        "检查Wi-Fi密码是否正确",
-        "检查设备是否处于待配网状态",
-        "检查设备是否靠近路由器"
+        ResourceManager.L10n.Iot.errorCheckWifi,
+        ResourceManager.L10n.Iot.errorCheckPairingMode,
+        ResourceManager.L10n.Iot.errorCheckRouter
     ]
     
     // MARK: - UI Components
@@ -41,7 +41,7 @@ class IOTErrorAlertViewController: UIViewController {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "无法连接到智能设备！"
+        label.text = ResourceManager.L10n.Iot.errorAlertTitle
         label.font = .systemFont(ofSize: 24, weight: .semibold)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -50,7 +50,7 @@ class IOTErrorAlertViewController: UIViewController {
     
     private lazy var subtitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "请按照以下步骤检查："
+        label.text = ResourceManager.L10n.Iot.errorAlertSubtitle
         label.font = .systemFont(ofSize: 14)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -90,7 +90,7 @@ class IOTErrorAlertViewController: UIViewController {
     
     private lazy var retryButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("重新扫描", for: .normal)
+        button.setTitle(ResourceManager.L10n.Iot.deviceSearchFailedRetry, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
         button.backgroundColor = UIColor.themColor(named: "ai_brand_main6")

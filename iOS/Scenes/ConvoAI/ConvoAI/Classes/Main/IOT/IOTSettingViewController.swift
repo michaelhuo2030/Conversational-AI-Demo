@@ -39,7 +39,7 @@ class IOTSettingViewController: UIViewController {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "配置"
+        label.text = ResourceManager.L10n.Iot.deviceSettingsTitle
         label.font = .systemFont(ofSize: 16, weight: .semibold)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -63,7 +63,7 @@ class IOTSettingViewController: UIViewController {
         
     private lazy var presetLabel: UILabel = {
         let label = UILabel()
-        label.text = "预设人设"
+        label.text = ResourceManager.L10n.Iot.deviceSettingsPreset
         label.font = .systemFont(ofSize: 14, weight: .semibold)
         label.textColor = UIColor.themColor(named: "ai_icontext4")
         return label
@@ -88,7 +88,7 @@ class IOTSettingViewController: UIViewController {
     
     private lazy var languageCell: SettingCell = {
         let cell = SettingCell()
-        cell.titleLabel.text = "Language"
+        cell.titleLabel.text = ResourceManager.L10n.Iot.deviceSettingsLanguage
         cell.detailLabel.text = "English"
         
         let button = UIButton()
@@ -108,7 +108,7 @@ class IOTSettingViewController: UIViewController {
     
     private lazy var advancedLabel: UILabel = {
         let label = UILabel()
-        label.text = "Advanced Settings"
+        label.text = ResourceManager.L10n.Iot.deviceSettingsAdvanced
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = UIColor.themColor(named: "ai_icontext2")
         return label
@@ -116,14 +116,14 @@ class IOTSettingViewController: UIViewController {
     
     private lazy var interruptSwitch: SettingCell = {
         let cell = SettingCell()
-        cell.titleLabel.text = "启用 优雅打断"
+        cell.titleLabel.text = ResourceManager.L10n.Iot.deviceSettingsInterrupt
         cell.setupAsSwitch()
         return cell
     }()
     
     private lazy var reconnectButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("重新配网", for: .normal)
+        button.setTitle(ResourceManager.L10n.Iot.deviceSettingsReconnect, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16)
         button.backgroundColor = UIColor.themColor(named: "ai_block2")
@@ -134,7 +134,7 @@ class IOTSettingViewController: UIViewController {
     
     private lazy var deleteButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("删除设备", for: .normal)
+        button.setTitle(ResourceManager.L10n.Iot.deviceSettingsDelete, for: .normal)
         button.setTitleColor(UIColor.themColor(named: "ai_brand_white10"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16)
         button.backgroundColor = UIColor.themColor(named: "ai_red6")
@@ -343,29 +343,45 @@ class IOTSettingViewController: UIViewController {
                 return
             }
             
-            AgentAlertView.show(in: view, title: "您是否要保存当前更改？", content: "确认更改后，会在智能设备下次联网时修改配置。", cancelTitle: "放弃更改", confirmTitle: "确认更改") { [weak self] in
-                self?.dismiss(animated: true)
+            AgentAlertView.show(
+                in: view,
+                title: ResourceManager.L10n.Iot.deviceSettingsSaveTitle,
+                content: ResourceManager.L10n.Iot.deviceSettingsSaveDescription,
+                cancelTitle: ResourceManager.L10n.Iot.deviceSettingsSaveDiscard,
+                confirmTitle: ResourceManager.L10n.Iot.deviceSettingsSaveConfirm) { [weak self] in
+                    self?.dismiss(animated: true)
             } onCancel: { [weak self] in
                 self?.dismiss(animated: true)
             }
             
             return
         }
+
         
         if currentPreset.display_name == device.currentPreset.display_name {
             guard let currentLanguage = self.currentLanguage, currentLanguage.name == device.currentLanguage.name else {
                 self.dismiss(animated: true)
                 return
             }
-            AgentAlertView.show(in: view, title: "您是否要保存当前更改？", content: "确认更改后，会在智能设备下次联网时修改配置。", cancelTitle: "放弃更改", confirmTitle: "确认更改") { [weak self] in
-                self?.dismiss(animated: true)
+            AgentAlertView.show(
+                in: view,
+                title: ResourceManager.L10n.Iot.deviceSettingsSaveTitle,
+                content: ResourceManager.L10n.Iot.deviceSettingsSaveDescription,
+                cancelTitle: ResourceManager.L10n.Iot.deviceSettingsSaveDiscard,
+                confirmTitle: ResourceManager.L10n.Iot.deviceSettingsSaveConfirm) { [weak self] in
+                    self?.dismiss(animated: true)
             } onCancel: { [weak self] in
                 self?.dismiss(animated: true)
             }
             
         } else {
-            AgentAlertView.show(in: view, title: "您是否要保存当前更改？", content: "确认更改后，会在智能设备下次联网时修改配置。", cancelTitle: "放弃更改", confirmTitle: "确认更改") { [weak self] in
-                self?.dismiss(animated: true)
+            AgentAlertView.show(
+                in: view,
+                title: ResourceManager.L10n.Iot.deviceSettingsSaveTitle,
+                content: ResourceManager.L10n.Iot.deviceSettingsSaveDescription,
+                cancelTitle: ResourceManager.L10n.Iot.deviceSettingsSaveDiscard,
+                confirmTitle: ResourceManager.L10n.Iot.deviceSettingsSaveConfirm) { [weak self] in
+                    self?.dismiss(animated: true)
             } onCancel: { [weak self] in
                 self?.dismiss(animated: true)
             }
@@ -377,8 +393,12 @@ class IOTSettingViewController: UIViewController {
     }
     
     @objc private func deleteButtonTapped() {
-        // Handle delete
-        AgentAlertView.show(in: view, title: "您是否要删除大聪明？", content: "删除后，将不能更改它的对话设定。是否继续删除？",cancelTitle: "取消", confirmTitle: "删除", onConfirm: {
+        AgentAlertView.show(in: view, 
+                          title: ResourceManager.L10n.Iot.deviceSettingsDeleteTitle, 
+                          content: ResourceManager.L10n.Iot.deviceSettingsDeleteDescription,
+                          cancelTitle: "取消",
+                          confirmTitle: ResourceManager.L10n.Iot.deviceSettingsDeleteConfirm,
+                          onConfirm: {
             
         })
     }

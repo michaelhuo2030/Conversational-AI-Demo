@@ -40,7 +40,7 @@ class PermissionAlertViewController: UIViewController {
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "开启权限和开关"
+        label.text = ResourceManager.L10n.Iot.permissionTitle
         label.font = .systemFont(ofSize: 24, weight: .semibold)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -49,7 +49,7 @@ class PermissionAlertViewController: UIViewController {
     
     private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = "需要开启以下权限和开关，用于添加附近设备"
+        label.text = ResourceManager.L10n.Iot.permissionDescription
         label.font = .systemFont(ofSize: 14, weight: .regular)
         label.textColor = UIColor.themColor(named: "ai_icontext1")
         label.textAlignment = .center
@@ -76,8 +76,8 @@ class PermissionAlertViewController: UIViewController {
     
     // MARK: - Initialization
     
-    init(title: String = "开启权限和开关", 
-         description: String = "需要开启以下权限和开关，用于添加附近设备",
+    init(title: String = ResourceManager.L10n.Iot.permissionTitle,
+         description: String = ResourceManager.L10n.Iot.permissionDescription,
          permissions: [Permission]) {
         self.permissions = permissions
         super.init(nibName: nil, bundle: nil)
@@ -183,7 +183,7 @@ class PermissionAlertViewController: UIViewController {
         titleLabel.textColor = UIColor.themColor(named: "ai_icontext1")
         
         let goButton = UIButton(type: .custom)
-        goButton.setTitle("去开启", for: .normal)
+        goButton.setTitle(ResourceManager.L10n.Iot.permissionGoButton, for: .normal)
         goButton.setTitleColor(permission.cardBackgroundColor, for: .normal)
         goButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
         goButton.backgroundColor = .white
