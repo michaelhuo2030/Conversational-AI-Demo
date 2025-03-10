@@ -7,10 +7,12 @@
 
     <RadioButton
         android:id="@+id/rb_preset"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginEnd="16dp"
-        app:buttonTint="@null"
+        android:button="@null"
+        android:drawableEnd="@drawable/agent_terms_cb_selector"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -50,6 +52,6 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/ai_block2"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout> 
