@@ -82,7 +82,7 @@ class IOTWifiSettingViewController: BaseViewController {
         let button = UIButton(type: .custom)
         button.setTitle("更换", for: .normal)
         button.setTitleColor(UIColor.themColor(named: "ai_icontext1"), for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16)
+        button.titleLabel?.font = .systemFont(ofSize: 13)
         button.backgroundColor = UIColor.themColor(named: "ai_line2")
         button.layer.cornerRadius = 8
         button.addTarget(self, action: #selector(switchNetworkButtonTapped), for: .touchUpInside)
@@ -107,7 +107,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     private lazy var passwordVisibilityButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setImage(UIImage.ag_named("ic_password_visible"), for: .normal)
+        button.setImage(UIImage.ag_named("ic_password_invisible"), for: .normal)
         button.addTarget(self, action: #selector(togglePasswordVisibility), for: .touchUpInside)
         return button
     }()
@@ -307,7 +307,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     @objc private func togglePasswordVisibility() {
         passwordField.isSecureTextEntry.toggle()
-        let image = passwordField.isSecureTextEntry ? "ic_password_visible" : "ic_password_invisible"
+        let image = passwordField.isSecureTextEntry ? "ic_password_invisible" : "ic_password_visible"
         passwordVisibilityButton.setImage(UIImage.ag_named(image), for: .normal)
     }
     
@@ -330,15 +330,10 @@ extension IOTWifiSettingViewController {
     }
     
     private func getCurrentWiFiSSID() -> String? {
+        var result: String? = ""
         wifiManager.getWiFiSSID { ssid in
-            if let ssid {
-                print("")
-//                self.selectWiFiButton.setTitle("WIFI:\(ssid)", for: .normal)
-//                self.wifiSSID = ssid
-            } else {
-                print("无法获取 Wi-Fi SSID")
-            }
+            result = ssid
         }
-        return nil
+        return result
     }
 }

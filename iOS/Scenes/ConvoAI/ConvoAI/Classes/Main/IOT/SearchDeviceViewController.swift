@@ -9,10 +9,14 @@ import Foundation
 import Common
 import CoreBluetooth
 import BLEManager
+import Network
 
 class SearchDeviceViewController: BaseViewController {
-    private var bluetoothManager: AIBLEManager = .shared
-
+    private lazy var bluetoothManager: AIBLEManager = {
+        let manager = AIBLEManager.shared
+        return manager
+    }()
+    
     private lazy var searchingView:SearchingView = {
         let rippleView = SearchingView(frame: CGRectMake(0, naviBar.height, view.bounds.width, view.bounds.height - naviBar.height))
         rippleView.delegate = self
@@ -22,6 +26,23 @@ class SearchDeviceViewController: BaseViewController {
     private lazy var searchFailedView: DeviceSearchFailedView = {
         let view = DeviceSearchFailedView()
         view.delegate = self
+        return view
+    }()
+    
+    // Add container view
+    private lazy var tableContainer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        
+        let maskLayer = CAGradientLayer()
+        maskLayer.colors = [
+            UIColor.white.cgColor,
+            UIColor.white.cgColor,
+            UIColor.clear.cgColor
+        ]
+        maskLayer.locations = [0.0, 0.85, 1.0]
+        view.layer.mask = maskLayer
+        
         return view
     }()
     
@@ -35,15 +56,10 @@ class SearchDeviceViewController: BaseViewController {
         tableView.register(SearchResultCell.self, forCellReuseIdentifier: "SearchResultCell")
         tableView.estimatedRowHeight = 160
         tableView.rowHeight = 90
-        
-        if #available(iOS 15.0, *) {
-            tableView.sectionHeaderTopPadding = 0
-        }
         return tableView
     }()
     
     private var devices: [IOTDevice] = []
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         bluetoothManager.deviceConnectTimeout = 10
@@ -62,6 +78,13 @@ class SearchDeviceViewController: BaseViewController {
         bluetoothManager.delegate = nil
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if let maskLayer = tableContainer.layer.mask as? CAGradientLayer {
+            maskLayer.frame = tableContainer.bounds
+        }
+    }
+    
     private func startSearchDevice() {
         bluetoothManager.startScan()
     }
@@ -72,19 +95,39 @@ class SearchDeviceViewController: BaseViewController {
         view.backgroundColor = UIColor.themColor(named: "ai_fill2")
         view.clipsToBounds = true
         
-        [searchingView, tableView, searchFailedView].forEach { view.addSubview($0) }
+        [searchingView, tableContainer, searchFailedView].forEach { view.addSubview($0) }
+        tableContainer.addSubview(tableView)
         
         searchingView.startSearch()
         searchFailedView.isHidden = true
     }
     
     private func setupConstraints() {
-        tableView.snp.makeConstraints { make in
+        tableContainer.snp.makeConstraints { make in
             make.top.equalTo(naviBar.snp.bottom)
             make.left.right.bottom.equalTo(0)
         }
         
+        tableView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
         searchFailedView.snp.makeConstraints { make in
+            make.top.equalTo(naviBar.snp.bottom)
+            make.left.right.bottom.equalTo(0)
+        }
+    }
+    
+    private func remakeConstraints() {
+        tableContainer.snp.remakeConstraints { make in
+            make.top.equalTo(naviBar.snp.bottom)
+            make.left.right.equalTo(0)
+            make.bottom.equalTo(-200)
+        }
+    }
+    
+    private func restoreConstraints() {
+        tableContainer.snp.remakeConstraints { make in
             make.top.equalTo(naviBar.snp.bottom)
             make.left.right.bottom.equalTo(0)
         }
@@ -130,16 +173,42 @@ extension SearchDeviceViewController: UITableViewDelegate, UITableViewDataSource
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let vc = IOTWifiSettingViewController()
-        self.navigationController?.pushViewController(vc)
-//        showWifiAlert()
+        checkWiFiStatus { [weak self] isWiFiEnabled in
+            if isWiFiEnabled {
+                let vc = IOTWifiSettingViewController()
+                self?.navigationController?.pushViewController(vc)
+            } else {
+                self?.showWifiAlert()
+            }
+        }
+    }
+    
+    private func checkWiFiStatus(completion: @escaping (Bool) -> Void) {
+        let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
+        
+        monitor.pathUpdateHandler = { path in
+            DispatchQueue.main.async {
+                monitor.cancel()
+                completion(path.status == .satisfied)
+            }
+        }
+        
+        monitor.start(queue: DispatchQueue.global())
     }
 }
 
 extension SearchDeviceViewController: SearchingViewDelegate, DeviceSearchFailedViewDelegate {
     func searchTimeout() {
-        searchFailedView.isHidden = false
-        searchingView.isHidden = true
+        bluetoothManager.stopScan()
+        let noResult = devices.isEmpty
+        if noResult {
+            searchFailedView.isHidden = false
+            searchingView.isHidden = true
+        } else {
+            searchFailedView.isHidden = true
+            searchingView.isHidden = true
+        }
+        restoreConstraints()
     }
     
     func researchCallback() {
@@ -155,7 +224,6 @@ extension SearchDeviceViewController: BLEManagerDelegate {
         case .readyToScanDevices:
             bluetoothManager.startScan()
         case .deviceConnected:
-            // 步骤3 - 蓝牙连接成功
             print("deviceConnected")
         case .wifiConfiguration:
             print("show load...")
@@ -168,13 +236,18 @@ extension SearchDeviceViewController: BLEManagerDelegate {
     
     func bleManagerDidScanDevice(_ manager: AIBLEManager, device: BLEDevice, error: Error?) {
         if let data = device.data[CBAdvertisementDataManufacturerDataKey] as? Data {
-            if bluetoothManager.bekenDeviceManufacturerData == data {
+//            if bluetoothManager.bekenDeviceManufacturerData == data {
                 if !devices.contains(where: { $0.deviceId == device.id.uuidString }) {
+                    if devices.isEmpty {
+                        remakeConstraints()
+                        searchingView.hideTextView(isHidden: true)
+                        searchingView.alpha = 0.5
+                    }
                     let iotDevice = IOTDevice(name: device.name, deviceId: device.id.uuidString, rssi: device.rssi, data: device.data)
                     devices.append(iotDevice)
                     tableView.reloadData()
                 }
             }
-        }
+//        }
     }
 }

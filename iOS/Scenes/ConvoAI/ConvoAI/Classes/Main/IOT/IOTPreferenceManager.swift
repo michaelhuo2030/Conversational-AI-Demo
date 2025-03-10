@@ -98,7 +98,8 @@ class IOTPreferenceManager: IOTPreferenceManagerProtocol {
     }
     
     func allDevices() -> [IOTDevice]? {
-        return devices
+        return [IOTDevice(name: "smaug", deviceId: "333434343434", rssi: 123456789)]
+//        return devices
     }
     
     func allPresets() -> [CovIotPreset]? {

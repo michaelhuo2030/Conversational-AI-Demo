@@ -250,23 +250,18 @@ class IOTSettingViewController: UIViewController {
     }
     
     private func setupPresetModes() {
-        let storyMode = createPresetModeCell(
-            title: "故事模式",
-            description: "专为 2-12 岁孩子定制，绘声绘色讲奇妙故事",
-            isSelected: true,
-            isLastCell: false,
-            index: 0
-        )
+        guard let presets = AppContext.iotPreferenceManager()?.allPresets() else { return }
         
-        let treeMode = createPresetModeCell(
-            title: "树洞模式",
-            description: "暖心倾听你的倾诉，真诚给予正向情绪价值",
-            isSelected: false,
-            isLastCell: true,
-            index: 1
-        )
-        
-        [storyMode, treeMode].forEach { presetStackView.addArrangedSubview($0) }
+        for (index, preset) in presets.enumerated() {
+            let cell = createPresetModeCell(
+                title: preset.display_name,
+                description: preset.preset_brief,
+                isSelected: index == 0,  // 第一个默认选中
+                isLastCell: index == presets.count - 1,  // 最后一个设置为 isLastCell
+                index: index
+            )
+            presetStackView.addArrangedSubview(cell)
+        }
     }
     
     private func createPresetModeCell(
@@ -334,7 +329,7 @@ class IOTSettingViewController: UIViewController {
     
     @objc private func deleteButtonTapped() {
         // Handle delete
-        AgentAlertView.show(in: view, title: "您是否要删除“大聪明”？", content: "删除后，将不能更改它的对话设定。是否继续删除？",cancelTitle: "取消", confirmTitle: "删除", onConfirm: {
+        AgentAlertView.show(in: view, title: "您是否要删除大聪明？", content: "删除后，将不能更改它的对话设定。是否继续删除？",cancelTitle: "取消", confirmTitle: "删除", onConfirm: {
             
         })
     }

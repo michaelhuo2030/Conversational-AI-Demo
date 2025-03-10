@@ -207,7 +207,6 @@ class DeviceIntroductionViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupViews()
         setupConstraints()
     }

@@ -99,6 +99,11 @@ class SearchingView: UIView {
         
         delegate?.searchTimeout()
     }
+    
+    func hideTextView(isHidden: Bool) {
+        titleLabel.isHidden = isHidden
+        descriptionLabel.isHidden = isHidden
+    }
 }
 
 extension SearchingView {
