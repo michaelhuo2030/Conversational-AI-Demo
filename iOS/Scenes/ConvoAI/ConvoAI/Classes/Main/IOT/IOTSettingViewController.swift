@@ -398,8 +398,10 @@ class IOTSettingViewController: UIViewController {
                           content: ResourceManager.L10n.Iot.deviceSettingsDeleteDescription,
                           cancelTitle: "取消",
                           confirmTitle: ResourceManager.L10n.Iot.deviceSettingsDeleteConfirm,
-                          onConfirm: {
-            
+                          onConfirm: { [weak self] in
+            guard let self = self else { return }
+            AppContext.iotDeviceManager()?.removeDevice(deviceId: self.deviceId)
+            self.dismiss(animated: true)
         })
     }
 }

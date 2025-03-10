@@ -52,6 +52,7 @@ class IOTListViewController: BaseViewController {
         super.viewDidLoad()
         setupViews()
         setupConstraints()
+        registerDelegate()
     }
     
     // MARK: - Private Methods

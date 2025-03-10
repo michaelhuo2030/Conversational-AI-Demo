@@ -80,10 +80,10 @@ class IOTApiManager: IOTApiProtocol {
     // MARK: - Fetch Presets
     func fetchPresets(requestId: String, completion: @escaping (IOTRequestError?, [CovIotPreset]?) -> Void) {
         let url = "\(baseUrl)/convoai-iot/\(SERVICE_VERSION)/presets/list"
-        let requesetBody: [String: Any] = [
+        let params: [String: Any] = [
             "request_id": requestId
         ]
-        NetworkManager.shared.postRequest(urlString: url, params: requesetBody) { result in
+        NetworkManager.shared.postRequest(urlString: url, params: params) { result in
             ConvoAILogger.info("presets request response: \(result)")
             
             if let code = result["code"] as? Int, code != 0 {
