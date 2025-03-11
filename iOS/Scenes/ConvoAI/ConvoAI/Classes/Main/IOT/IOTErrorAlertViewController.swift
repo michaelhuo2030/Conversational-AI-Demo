@@ -13,7 +13,8 @@ class IOTErrorAlertViewController: UIViewController {
     // MARK: - Properties
     
     private var onRetryButtonTapped: (() -> Void)?
-    
+    private var onCloseButtonTapped: (() -> Void)?
+
     private let bannerTitles = [
         ResourceManager.L10n.Iot.errorCheckWifi,
         ResourceManager.L10n.Iot.errorCheckPairingMode,
@@ -101,8 +102,9 @@ class IOTErrorAlertViewController: UIViewController {
     
     // MARK: - Initialization
     
-    init(onRetry: (() -> Void)? = nil) {
+    init(onRetry: (() -> Void)? = nil, onClose: (() -> Void)? = nil) {
         self.onRetryButtonTapped = onRetry
+        self.onCloseButtonTapped = onClose
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overFullScreen
     }
@@ -202,6 +204,7 @@ class IOTErrorAlertViewController: UIViewController {
     @objc private func closeButtonTapped() {
         animateOut { [weak self] in
             self?.dismiss(animated: false)
+            self?.onCloseButtonTapped?()
         }
     }
     

@@ -131,7 +131,7 @@ class AgentAlertView: UIView {
             make.left.equalTo(24)
             make.right.equalTo(-24)
         }
-        
+
         buttonStackView.snp.makeConstraints { make in
             make.top.equalTo(contentLabel.snp.bottom).offset(20)
             make.left.equalTo(24)
@@ -164,6 +164,7 @@ class AgentAlertView: UIView {
         titleLabel.text = title
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 5
+        paragraphStyle.alignment = .center
         let attributes: [NSAttributedString.Key: Any] = [
             .paragraphStyle: paragraphStyle
         ]

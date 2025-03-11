@@ -39,8 +39,9 @@ class IOTListViewController: BaseViewController {
     }()
     
     private lazy var devices: [LocalDevice] = {
-        var data = AppContext.iotDeviceManager()?.getAllDevices()
-        return data ?? []
+        var data = AppContext.iotDeviceManager()?.getAllDevices() ?? []
+        data.reverse()
+        return data
     }()
     
     // MARK: - Lifecycle
@@ -138,14 +139,34 @@ class IOTListViewController: BaseViewController {
             textField.text = device.name
             textField.clearButtonMode = .whileEditing
             textField.returnKeyType = .done
+            
+            NotificationCenter.default.addObserver(
+                forName: UITextField.textDidChangeNotification,
+                object: textField,
+                queue: .main
+            ) { _ in
+                if let text = textField.text, text.count > 10 {
+                    textField.text = String(text.prefix(10))
+                }
+            }
         }
         
         // Add cancel action
-        let cancelAction = UIAlertAction(title: ResourceManager.L10n.Iot.cancel, style: .cancel)
+        let cancelAction = UIAlertAction(title: ResourceManager.L10n.Iot.cancel, style: .cancel) { _ in
+            NotificationCenter.default.removeObserver(self, 
+                name: UITextField.textDidChangeNotification, 
+                object: alert.textFields?.first)
+        }
         alert.addAction(cancelAction)
         
         // Add confirm action
         let confirmAction = UIAlertAction(title: ResourceManager.L10n.Iot.submit, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            
+            NotificationCenter.default.removeObserver(self,
+                name: UITextField.textDidChangeNotification, 
+                object: alert.textFields?.first)
+            
             guard let newName = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !newName.isEmpty else { return }
             
@@ -194,8 +215,11 @@ extension IOTListViewController: IOTDeviceManagerDelegate {
         addDevice(device: device)
     }
     
-    func deviceManager(_ manager: IOTDeviceManager, didUpdateDevice device: LocalDevice) {
-        if let index = devices.firstIndex(where: { $0.deviceId == device.deviceId }) {
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateName name: String, forDevice deviceId: String) {
+        if let index = devices.firstIndex(where: { $0.deviceId == deviceId }) {
+            var device = devices[index]
+            device.name = name
+            
             devices[index] = device
             tableView.reloadData()
             SVProgressHUD.showSuccess(withStatus: ResourceManager.L10n.Iot.deviceRenameSucceed)

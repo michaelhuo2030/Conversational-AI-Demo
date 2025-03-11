@@ -16,7 +16,7 @@ class IOTSettingViewController: UIViewController {
     private var selectedPresetIndex: Int = 0 // Track current selected preset index
     private var currentLanguage: CovIotLanguage?
     private var currentPreset: CovIotPreset?
-    private var currentAIVadState: Bool = false
+    private var currentAIVadState: Bool?
     
     // MARK: - UI Components
     
@@ -89,7 +89,7 @@ class IOTSettingViewController: UIViewController {
     private lazy var languageCell: SettingCell = {
         let cell = SettingCell()
         cell.titleLabel.text = ResourceManager.L10n.Iot.deviceSettingsLanguage
-        cell.detailLabel.text = "English"
+        cell.detailLabel.text = "English"  // 默认值
         
         let button = UIButton()
         cell.addSubview(button)
@@ -98,9 +98,6 @@ class IOTSettingViewController: UIViewController {
             make.top.bottom.equalTo(0)
             make.left.equalTo(cell.detailLabel.snp.left)
         }
-        
-        let menu = UIMenu(title: "", options: .singleSelection, children: [])
-        button.menu = menu
         button.showsMenuAsPrimaryAction = true
         
         return cell
@@ -116,8 +113,41 @@ class IOTSettingViewController: UIViewController {
     
     private lazy var interruptSwitch: SettingCell = {
         let cell = SettingCell()
-        cell.titleLabel.text = ResourceManager.L10n.Iot.deviceSettingsInterrupt
+        
+        let normalAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14),
+            .foregroundColor: UIColor.themColor(named: "ai_icontext1")
+        ]
+        
+        let highlightAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
+            .foregroundColor: UIColor.themColor(named: "ai_brand_lightbrand6")
+        ]
+        
+        let text = ResourceManager.L10n.Iot.deviceSettingsInterrupt
+        let attributedString = NSMutableAttributedString(
+            string: text,
+            attributes: normalAttributes
+        )
+        
+        if text.count >= 4 {
+            let range = NSRange(location: text.count - 4, length: 4)
+            attributedString.addAttributes(highlightAttributes, range: range)
+        }
+        
+        cell.titleLabel.attributedText = attributedString
+        
         cell.setupAsSwitch()
+        
+        if let device = AppContext.iotDeviceManager()?.getDevice(deviceId: deviceId) {
+            cell.switchControl.isOn = device.aiVad
+        }
+        
+        cell.switchTapCallback = { [weak self] isOn in
+            guard let self = self else { return }
+            self.currentAIVadState = isOn
+        }
+        
         return cell
     }()
     
@@ -157,6 +187,7 @@ class IOTSettingViewController: UIViewController {
         setupViews()
         setupConstraints()
         setupPresetModes()
+        setupLanguageMenu()
         
         // Disable interactive dismissal
         isModalInPresentation = true
@@ -267,38 +298,58 @@ class IOTSettingViewController: UIViewController {
         guard let presets = AppContext.iotPresetsManager()?.allPresets() else { return }
         guard let currentDevice = AppContext.iotDeviceManager()?.getDevice(deviceId: deviceId) else { return }
         for (index, preset) in presets.enumerated() {
+            let isSelected = preset.display_name == currentDevice.currentPreset.display_name
             let cell = createPresetModeCell(
                 preset: preset,
-                isSelected: preset.display_name == currentDevice.currentPreset.display_name,
+                isSelected: isSelected,
                 isLastCell: index == presets.count - 1,
                 index: index
             )
             presetStackView.addArrangedSubview(cell)
+            if isSelected {
+                selectedPresetIndex = index
+            }
         }
     }
     
-    private func languageDidChannge(language: CovIotLanguage) {
-        currentLanguage = language
-    }
+    private func setupLanguageMenu() {
+        guard let currentDevice = AppContext.iotDeviceManager()?.getDevice(deviceId: deviceId) else { return }
         
+        languageCell.detailLabel.text = currentDevice.currentLanguage.name
+        currentLanguage = currentDevice.currentLanguage
+        
+        updateLanguageMenu(with: currentDevice.currentPreset)
+    }
+    
     private func presetDidChange(preset: CovIotPreset) {
         currentPreset = preset
-    
-        if let button = languageCell.subviews.first(where: { $0 is UIButton }) as? UIButton {
-            let actions = preset.support_languages.map { language in
-                let isSelected = language.name == languageCell.detailLabel.text
-                return UIAction(
-                    title: language.name,
-                    state: isSelected ? .on : .off
-                ) { [weak self] _ in
-                    guard let self = self else { return }
-                    self.languageCell.detailLabel.text = language.name
-                    self.currentLanguage = language
-                    AppContext.iotDeviceManager()?.updateLanguage(language: language, deviceId: self.deviceId)
-                }
-            }
-            button.menu = UIMenu(title: "", options: .singleSelection, children: actions)
+        
+        let currentLanguageName = languageCell.detailLabel.text ?? ""
+        let isCurrentLanguageSupported = preset.support_languages.contains { $0.name == currentLanguageName }
+        
+        if !isCurrentLanguageSupported, let defaultLanguage = preset.support_languages.first(where: { $0.isDefault }) {
+            languageCell.detailLabel.text = defaultLanguage.name
+            currentLanguage = defaultLanguage
         }
+        
+        updateLanguageMenu(with: preset)
+    }
+    
+    private func updateLanguageMenu(with preset: CovIotPreset) {
+        guard let button = languageCell.subviews.first(where: { $0 is UIButton }) as? UIButton else { return }
+        let actions = preset.support_languages.map { language in
+            let isSelected = language.name == languageCell.detailLabel.text
+            return UIAction(
+                title: language.name,
+                state: isSelected ? .on : .off
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.languageCell.detailLabel.text = language.name
+                self.currentLanguage = language
+            }
+        }
+        
+        button.menu = UIMenu(title: "", options: .singleSelection, children: actions)
     }
     
     private func createPresetModeCell(
@@ -337,54 +388,38 @@ class IOTSettingViewController: UIViewController {
     
     @objc private func closeButtonTapped() {
         guard let device = AppContext.iotDeviceManager()?.getDevice(deviceId: deviceId) else { return }
-        guard let currentPreset = self.currentPreset else {
-            guard let currentLanguage = self.currentLanguage, currentLanguage.name == device.currentLanguage.name else {
-                self.dismiss(animated: true)
-                return
-            }
-            
-            AgentAlertView.show(
-                in: view,
-                title: ResourceManager.L10n.Iot.deviceSettingsSaveTitle,
-                content: ResourceManager.L10n.Iot.deviceSettingsSaveDescription,
-                cancelTitle: ResourceManager.L10n.Iot.deviceSettingsSaveDiscard,
-                confirmTitle: ResourceManager.L10n.Iot.deviceSettingsSaveConfirm) { [weak self] in
-                    self?.dismiss(animated: true)
-            } onCancel: { [weak self] in
-                self?.dismiss(animated: true)
-            }
-            
+        
+        let hasPresetChange = currentPreset != nil && currentPreset?.display_name != device.currentPreset.display_name
+        let hasLanguageChange = currentLanguage != nil && currentLanguage?.name != device.currentLanguage.name
+        let hasAivadChange = currentAIVadState != nil && currentAIVadState != device.aiVad
+        
+        if !hasPresetChange && !hasLanguageChange && !hasAivadChange {
+            dismiss(animated: true)
             return
         }
-
         
-        if currentPreset.display_name == device.currentPreset.display_name {
-            guard let currentLanguage = self.currentLanguage, currentLanguage.name == device.currentLanguage.name else {
-                self.dismiss(animated: true)
-                return
+        AgentAlertView.show(
+            in: view,
+            title: ResourceManager.L10n.Iot.deviceSettingsSaveTitle,
+            content: ResourceManager.L10n.Iot.deviceSettingsSaveDescription,
+            cancelTitle: ResourceManager.L10n.Iot.deviceSettingsSaveDiscard,
+            confirmTitle: ResourceManager.L10n.Iot.deviceSettingsSaveConfirm
+        ) { [weak self] in
+            guard let self = self else { return }
+            
+            if let preset = self.currentPreset {
+                AppContext.iotDeviceManager()?.updatePreset(preset: preset, deviceId: self.deviceId)
             }
-            AgentAlertView.show(
-                in: view,
-                title: ResourceManager.L10n.Iot.deviceSettingsSaveTitle,
-                content: ResourceManager.L10n.Iot.deviceSettingsSaveDescription,
-                cancelTitle: ResourceManager.L10n.Iot.deviceSettingsSaveDiscard,
-                confirmTitle: ResourceManager.L10n.Iot.deviceSettingsSaveConfirm) { [weak self] in
-                    self?.dismiss(animated: true)
-            } onCancel: { [weak self] in
-                self?.dismiss(animated: true)
+            if let language = self.currentLanguage {
+                AppContext.iotDeviceManager()?.updateLanguage(language: language, deviceId: self.deviceId)
+            }
+            if let aivad = self.currentAIVadState {
+                AppContext.iotDeviceManager()?.updateAIVad(aivad: aivad, deviceId: self.deviceId)
             }
             
-        } else {
-            AgentAlertView.show(
-                in: view,
-                title: ResourceManager.L10n.Iot.deviceSettingsSaveTitle,
-                content: ResourceManager.L10n.Iot.deviceSettingsSaveDescription,
-                cancelTitle: ResourceManager.L10n.Iot.deviceSettingsSaveDiscard,
-                confirmTitle: ResourceManager.L10n.Iot.deviceSettingsSaveConfirm) { [weak self] in
-                    self?.dismiss(animated: true)
-            } onCancel: { [weak self] in
-                self?.dismiss(animated: true)
-            }
+            self.dismiss(animated: true)
+        } onCancel: { [weak self] in
+            self?.dismiss(animated: true)
         }
     }
     
@@ -393,21 +428,25 @@ class IOTSettingViewController: UIViewController {
     }
     
     @objc private func deleteButtonTapped() {
-        AgentAlertView.show(in: view, 
-                          title: ResourceManager.L10n.Iot.deviceSettingsDeleteTitle, 
-                          content: ResourceManager.L10n.Iot.deviceSettingsDeleteDescription,
-                          cancelTitle: "取消",
-                          confirmTitle: ResourceManager.L10n.Iot.deviceSettingsDeleteConfirm,
-                          onConfirm: { [weak self] in
-            guard let self = self else { return }
-            AppContext.iotDeviceManager()?.removeDevice(deviceId: self.deviceId)
-            self.dismiss(animated: true)
+        guard let device = AppContext.iotDeviceManager()?.getDevice(deviceId: deviceId) else { return }
+        
+        AgentAlertView.show(
+            in: view, 
+            title: String(format: ResourceManager.L10n.Iot.deviceSettingsDeleteTitle, "\"\(device.name)\""),
+            content: ResourceManager.L10n.Iot.deviceSettingsDeleteDescription,
+            cancelTitle: "取消",
+            confirmTitle: ResourceManager.L10n.Iot.deviceSettingsDeleteConfirm,
+            onConfirm: { [weak self] in
+                guard let self = self else { return }
+                AppContext.iotDeviceManager()?.removeDevice(deviceId: self.deviceId)
+                self.dismiss(animated: true)
         })
     }
 }
 
 // MARK: - SettingCell
 private class SettingCell: UIControl {
+    var switchTapCallback: ((Bool) -> Void)?
     let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14)
@@ -433,16 +472,16 @@ private class SettingCell: UIControl {
         return view
     }()
     
+    let switchControl: UISwitch = {
+        let switchControl = UISwitch()
+        switchControl.onTintColor = UIColor.themColor(named: "ai_brand_main6")
+        return switchControl
+    }()
+    
     private let arrowImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage.ag_named("ic_iot_arrow_right")
         return imageView
-    }()
-    
-    private let switchControl: UISwitch = {
-        let switchControl = UISwitch()
-        switchControl.onTintColor = UIColor.themColor(named: "ai_brand_main6")
-        return switchControl
     }()
     
     override init(frame: CGRect) {
@@ -485,6 +524,7 @@ private class SettingCell: UIControl {
     }
     
     @objc func switcherValueChanged(_ sender: UISwitch) {
+        switchTapCallback?(sender.isOn)
     }
     
     func setupAsSwitch() {

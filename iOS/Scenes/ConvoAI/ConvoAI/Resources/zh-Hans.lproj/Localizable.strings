@@ -169,16 +169,16 @@
 "iot.device.settings.language.english" = "英文";
 "iot.device.settings.language.japanese" = "日语";
 "iot.device.settings.advanced" = "高级设置";
-"iot.device.settings.interrupt" = "启用优雅打断";
+"iot.device.settings.interrupt" = "启用 优雅打断";
 "iot.device.settings.reconnect" = "重新配网";
 "iot.device.settings.delete" = "删除设备";
-"iot.device.settings.delete.title" = "删除设备";
-"iot.device.settings.delete.description" = "确定要删除此设备吗？此操作无法撤销。";
+"iot.device.settings.delete.title" = "您是否要删除%@？";
+"iot.device.settings.delete.description" = "删除后，将不能更改它的对话设定。是否继续删除？";
 "iot.device.settings.delete.confirm" = "删除";
-"iot.device.settings.save.title" = "保存更改";
-"iot.device.settings.save.description" = "是否要保存所做的更改？";
-"iot.device.settings.save.confirm" = "保存";
-"iot.device.settings.save.discard" = "放弃";
+"iot.device.settings.save.title" = "您是否要保存当前更改？";
+"iot.device.settings.save.description" = "确认更改后，会在智能设备下次联网时修改配置。";
+"iot.device.settings.save.confirm" = "确认更改";
+"iot.device.settings.save.discard" = "放弃更改";
 
 "iot.device.search.title" = "扫描附近设备";
 "iot.device.search.no_result" = "未找到设备";

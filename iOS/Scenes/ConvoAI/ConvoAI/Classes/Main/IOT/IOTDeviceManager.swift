@@ -11,6 +11,11 @@ protocol IOTDeviceManagerDelegate: AnyObject {
     func deviceManager(_ manager: IOTDeviceManager, didAddDevice device: LocalDevice)
     func deviceManager(_ manager: IOTDeviceManager, didUpdateDevice device: LocalDevice)
     func deviceManager(_ manager: IOTDeviceManager, didRemoveDevice deviceId: String)
+    
+    func deviceManager(_ manager: IOTDeviceManager, didUpdatePreset preset: CovIotPreset, forDevice deviceId: String)
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateLanguage language: CovIotLanguage, forDevice deviceId: String)
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateName name: String, forDevice deviceId: String)
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateAIVad enabled: Bool, forDevice deviceId: String)
 }
 
 protocol IOTDeviceManagerProtocol {
@@ -60,24 +65,28 @@ class IOTDeviceManager: IOTDeviceManagerProtocol {
         guard var device = getDevice(deviceId: deviceId) else { return }
         device.currentPreset = preset
         updateDevice(device)
+        notifyDelegates { $0.deviceManager(self, didUpdatePreset: preset, forDevice: deviceId) }
     }
     
     func updateDeviceName(name: String, deviceId: String) {
         guard var device = getDevice(deviceId: deviceId) else { return }
         device.name = name
         updateDevice(device)
+        notifyDelegates { $0.deviceManager(self, didUpdateName: name, forDevice: deviceId) }
     }
     
     func updateAIVad(aivad: Bool, deviceId: String) {
         guard var device = getDevice(deviceId: deviceId) else { return }
         device.aiVad = aivad
         updateDevice(device)
+        notifyDelegates { $0.deviceManager(self, didUpdateAIVad: aivad, forDevice: deviceId) }
     }
     
     func updateLanguage(language: CovIotLanguage, deviceId: String) {
         guard var device = getDevice(deviceId: deviceId) else { return }
         device.currentLanguage = language
         updateDevice(device)
+        notifyDelegates { $0.deviceManager(self, didUpdateLanguage: language, forDevice: deviceId) }
     }
     
     func removeDevice(deviceId: String) {
@@ -130,6 +139,11 @@ extension IOTDeviceManagerDelegate {
     func deviceManager(_ manager: IOTDeviceManager, didAddDevice device: LocalDevice) {}
     func deviceManager(_ manager: IOTDeviceManager, didUpdateDevice device: LocalDevice) {}
     func deviceManager(_ manager: IOTDeviceManager, didRemoveDevice deviceId: String) {}
+    
+    func deviceManager(_ manager: IOTDeviceManager, didUpdatePreset preset: CovIotPreset, forDevice deviceId: String) {}
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateLanguage language: CovIotLanguage, forDevice deviceId: String) {}
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateName name: String, forDevice deviceId: String) {}
+    func deviceManager(_ manager: IOTDeviceManager, didUpdateAIVad enabled: Bool, forDevice deviceId: String) {}
 }
 
 struct LocalDevice: Codable {

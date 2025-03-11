@@ -20,12 +20,12 @@ class IotDeviceCardView: UIView {
         return button
     }()
     
-    private lazy var editImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage.ag_named("ic_iot_name_edit_icon")
-        imageView.contentMode = .center
-        imageView.isHidden = true // Hidden by default
-        return imageView
+    private lazy var editButton: UIButton = {
+        let button = UIButton()
+        button.setImage(UIImage.ag_named("ic_iot_name_edit_icon"), for: .normal)
+        button.isHidden = true // Hidden by default
+        button.addTarget(self, action: #selector(titleButtonTapped), for: .touchUpInside)
+        return button
     }()
     
     private lazy var subtitleLabel: UILabel = {
@@ -96,7 +96,7 @@ class IotDeviceCardView: UIView {
     
     var showEditIcon: Bool = false {
         didSet {
-            editImageView.isHidden = !showEditIcon
+            editButton.isHidden = !showEditIcon
         }
     }
     
@@ -112,7 +112,7 @@ class IotDeviceCardView: UIView {
     private func setupViews() {
         addSubview(backgroundImageView)
         addSubview(titleButton)
-        addSubview(editImageView)
+        addSubview(editButton)
         addSubview(subtitleLabel)
         addSubview(settingsButton)
         
@@ -126,9 +126,9 @@ class IotDeviceCardView: UIView {
             make.right.lessThanOrEqualTo(-50)
         }
         
-        editImageView.snp.makeConstraints { make in
+        editButton.snp.makeConstraints { make in
             make.centerY.equalTo(titleButton)
-            make.left.equalTo(titleButton.snp.right).offset(8)
+            make.left.equalTo(titleButton.snp.right).offset(5)
             make.size.equalTo(CGSize(width: 24, height: 24))
         }
         

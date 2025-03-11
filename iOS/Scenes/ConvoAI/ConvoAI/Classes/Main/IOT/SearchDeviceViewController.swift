@@ -174,11 +174,16 @@ extension SearchDeviceViewController: UITableViewDelegate, UITableViewDataSource
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         checkWiFiStatus { [weak self] isWiFiEnabled in
+            guard let self = self else { return }
             if isWiFiEnabled {
                 let vc = IOTWifiSettingViewController()
-                self?.navigationController?.pushViewController(vc)
+                let device = self.devices[indexPath.row]
+                vc.deviceId = device.id.uuidString
+                vc.rssi = device.rssi
+                
+                self.navigationController?.pushViewController(vc)
             } else {
-                self?.showWifiAlert()
+                self.showWifiAlert()
             }
         }
     }

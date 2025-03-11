@@ -13,6 +13,9 @@ import BLEManager
 class IOTWifiSettingViewController: BaseViewController {
     
     // MARK: - Properties
+    var deviceId: String = ""
+    var rssi: Int = 0
+    
     private let wifiManager = WiFiManager()
 
     private lazy var titleLabel: UILabel = {
@@ -66,7 +69,7 @@ class IOTWifiSettingViewController: BaseViewController {
     private lazy var wifiNameField: UITextField = {
         let field = UITextField()
         field.backgroundColor = UIColor.themColor(named: "ai_block1")
-        field.text = "agora-security_2.4g"
+        field.text = ""
         field.textColor = UIColor.themColor(named: "ai_icontext1")
         field.font = .systemFont(ofSize: 16)
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
@@ -317,8 +320,9 @@ class IOTWifiSettingViewController: BaseViewController {
     
     @objc private func nextButtonTapped() {
         // Handle next button tap
-        
         let vc = DeviceAddingViewController()
+        vc.deviceId = deviceId
+        vc.rssi = rssi
         self.navigationController?.pushViewController(vc)
     }
 }
