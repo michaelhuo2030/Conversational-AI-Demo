@@ -18,11 +18,13 @@ class DeviceAddingViewController: BaseViewController {
     private let apiManger = IOTApiManager()
     private var bluetoothManager: AIBLEManager = .shared
 
+    private var rotatingGradientLayer: CAGradientLayer?
+    
     private lazy var circleBackgroundView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.themColor(named: "ai_block1")
         view.layer.cornerRadius = 225 / 2.0
-        view.layer.masksToBounds = true
+        view.layer.masksToBounds = false
         return view
     }()
     
@@ -37,7 +39,19 @@ class DeviceAddingViewController: BaseViewController {
         
         setupView()
         setupConstraints()
-        addDevice()
+        setupRotatingBorder()
+        startRotationAnimation()
+        prepareToAddDevice()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        bluetoothManager.delegate = self
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        bluetoothManager.delegate = nil
     }
     
     private func setupView() {
@@ -60,22 +74,68 @@ class DeviceAddingViewController: BaseViewController {
         }
     }
     
-    private func addDevice() {
+    private func setupRotatingBorder() {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.frame = CGRect(x: -2, y: -2, width: 229, height: 229)
+        gradientLayer.cornerRadius = 229 / 2.0
+        
+        gradientLayer.colors = [
+            UIColor.white.cgColor,
+            UIColor.white.withAlphaComponent(0.8).cgColor,
+            UIColor.clear.cgColor,
+            UIColor.clear.cgColor
+        ]
+        
+        gradientLayer.locations = [0.0, 0.2, 0.4, 1.0]
+        
+        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0)
+        gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
+        
+        let maskLayer = CAShapeLayer()
+        maskLayer.frame = gradientLayer.bounds
+        maskLayer.path = UIBezierPath(ovalIn: gradientLayer.bounds).cgPath
+        maskLayer.lineWidth = 4
+        maskLayer.strokeColor = UIColor.white.cgColor
+        maskLayer.fillColor = UIColor.clear.cgColor
+        
+        gradientLayer.mask = maskLayer
+        
+        circleBackgroundView.layer.addSublayer(gradientLayer)
+        rotatingGradientLayer = gradientLayer
+    }
+    
+    private func startRotationAnimation() {
+        let rotation = CABasicAnimation(keyPath: "transform.rotation.z")
+        rotation.fromValue = 0
+        rotation.toValue = 2 * Double.pi
+        rotation.duration = 2.0
+        rotation.repeatCount = .infinity
+        rotation.isRemovedOnCompletion = false
+        
+        rotatingGradientLayer?.add(rotation, forKey: "rotationAnimation")
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        if let gradientLayer = rotatingGradientLayer {
+            gradientLayer.position = CGPoint(x: circleBackgroundView.bounds.midX, y: circleBackgroundView.bounds.midY)
+        }
+    }
+    
+    private func prepareToAddDevice() {
         SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Iot.deviceAddProgress)
-        Task {
-            do {
-                let tokenModel = try await requestToken()
-//                bluetoothManager.sendWifiInfo(BLEWifiInfo(ssid: ssid, password: password, authToken: tokenModel.auth_token))
-                await MainActor.run {
-                    guard let presets = AppContext.iotPresetsManager()?.allPresets(), let preset = presets.first, let language = preset.support_languages.first(where: { $0.isDefault }) else {
-                        return
-                    }
-                    
-                    AppContext.iotDeviceManager()?.addDevice(device: LocalDevice(name: "smaug123", deviceId: "\(Int.random(in: 0...1000))", rssi: rssi, currentPreset: preset, currentLanguage: language, aiVad: false))
-                    showSuccessAlert()
+        bluetoothManager.getDeviceId()
+    }
+    
+    private func updateSettings(deviceId: String, presetName: String, asrLanguage: String) async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            apiManger.updateSettings(deviceId: deviceId, presetName: presetName, asrLanguage: asrLanguage, aivad: false) { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
                 }
-            } catch {
-                showErrorAlert()
             }
         }
     }
@@ -134,6 +194,53 @@ class DeviceAddingViewController: BaseViewController {
     private func goToDeviceViewController() {
         if let targetVC = self.navigationController?.viewControllers.first(where: { $0 is IOTListViewController }) {
             self.navigationController?.popToViewController(targetVC, animated: true)
+        }
+    }
+    
+    private func addDevice() {
+        Task {
+            do {
+                let tokenModel = try await requestToken()
+                
+                guard let preset = AppContext.iotPresetsManager()?.allPresets()?.first,
+                      let defaultLanguage = preset.support_languages.first(where: { $0.isDefault }) else {
+                    return
+                }
+                
+                try await updateSettings(deviceId: deviceId, presetName: preset.preset_name, asrLanguage: defaultLanguage.code)
+                
+                bluetoothManager.sendWifiInfo(BLENetworkConfigInfo(
+                    ssid: "\(rssi)",
+                    password: password,
+                    url: AppContext.shared.baseServerUrl,
+                    authToken: tokenModel.auth_token
+                ))
+                
+                await MainActor.run {
+                    AppContext.iotDeviceManager()?.addDevice(device: LocalDevice(
+                        name: "smaug123",
+                        deviceId: "\(Int.random(in: 0...1000))",
+                        rssi: rssi,
+                        currentPreset: preset,
+                        currentLanguage: defaultLanguage,
+                        aiVad: false
+                    ))
+                    showSuccessAlert()
+                }
+            } catch {
+                showErrorAlert()
+            }
+        }
+    }
+}
+
+extension DeviceAddingViewController: BLEManagerDelegate {
+    func bleManagerdidUpdateNotification(manager: AIBLEManager, opcode: Int, statusCode: UInt, payload: Data) {
+        let str = String(data: payload, encoding: .utf8) ?? ""
+        
+        if opcode == BLEOpCode.OpGetDeviceId {
+            deviceId = str
+            addDevice()
         }
     }
 }

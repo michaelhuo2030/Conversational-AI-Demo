@@ -13,27 +13,29 @@ public class WiFiManager: NSObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var completion: ((String?) -> Void)?
 
-    public override init() {
+    override public init() {
         super.init()
         requestLocationPermission()
         locationManager.delegate = self
     }
-    
+
     private func _log(_ info: String) {
-        //print("info  - \(info)")
+        // print("info  - \(info)")
     }
-    
+
     func requestLocationPermission() {
         let status = locationManager.authorizationStatus
         switch status {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
-        case .restricted, .denied:
+        case .restricted,
+             .denied:
             _log("用户拒绝或限制了位置服务权限，请在设置中开启")
-            // 可以在这里提示用户手动去设置中开启权限
-        case .authorizedWhenInUse, .authorizedAlways:
+        // 可以在这里提示用户手动去设置中开启权限
+        case .authorizedWhenInUse,
+             .authorizedAlways:
             _log("已授权使用位置服务")
-            // 在这里可以进行获取 Wi-Fi SSID 的操作
+        // 在这里可以进行获取 Wi-Fi SSID 的操作
         @unknown default:
             break
         }
@@ -46,10 +48,12 @@ public class WiFiManager: NSObject, CLLocationManagerDelegate {
         switch status {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
-        case .restricted, .denied:
+        case .restricted,
+             .denied:
             _log("未授权使用位置服务，无法获取 Wi-Fi SSID")
             completion(nil)
-        case .authorizedWhenInUse, .authorizedAlways:
+        case .authorizedWhenInUse,
+             .authorizedAlways:
             if #available(iOS 14.0, *) {
                 if locationManager.accuracyAuthorization == .reducedAccuracy {
                     _log("未开启精确位置服务，无法获取 Wi-Fi SSID")
@@ -81,7 +85,8 @@ public class WiFiManager: NSObject, CLLocationManagerDelegate {
 
     public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         switch status {
-        case .authorizedWhenInUse, .authorizedAlways:
+        case .authorizedWhenInUse,
+             .authorizedAlways:
             if #available(iOS 14.0, *) {
                 if locationManager.accuracyAuthorization == .reducedAccuracy {
                     _log("未开启精确位置服务，无法获取 Wi-Fi SSID")
@@ -98,8 +103,7 @@ public class WiFiManager: NSObject, CLLocationManagerDelegate {
         }
     }
 
-    @available(iOS 14.0, *)
-    public func locationManager(_ manager: CLLocationManager, didChangeAccuracyAuthorization accuracyAuthorization: CLAccuracyAuthorization) {
+    @available(iOS 14.0, *) public func locationManager(_ manager: CLLocationManager, didChangeAccuracyAuthorization accuracyAuthorization: CLAccuracyAuthorization) {
         if accuracyAuthorization == .reducedAccuracy {
             _log("未开启精确位置服务，无法获取 Wi-Fi SSID")
             completion?(nil)
@@ -108,5 +112,3 @@ public class WiFiManager: NSObject, CLLocationManagerDelegate {
         }
     }
 }
-
-

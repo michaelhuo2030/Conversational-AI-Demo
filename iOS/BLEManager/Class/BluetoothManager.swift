@@ -27,20 +27,30 @@ private extension CBUUID {
     static let AI_SSID_UUID = CBUUID(string: "0000ea05-0000-1000-8000-00805f9b34fb")
     static let AI_PASSWORD_UUID = CBUUID(string: "0000ea06-0000-1000-8000-00805f9b34fb")
     static let AI_DESCRIPTOR_UUID = CBUUID(string: "00002902-0000-1000-8000-00805f9b34fb")
-    static let AI_AUTHTOKEN_UUID = CBUUID(string: "0000ea07-0000-1000-8000-00805f9b34fb")
+    static let AI_AUTHTOKEN1_UUID = CBUUID(string: "0000ea07-0000-1000-8000-00805f9b34fb")
+    static let AI_AUTHTOKEN2_UUID = CBUUID(string: "0000ea08-0000-1000-8000-00805f9b34fb")
+    static let AI_URL_UUID = CBUUID(string: "0000ea09-0000-1000-8000-00805f9b34fb")
 }
 
 public enum BLEOpCode {
     public static let WifiStationStart = 1
+    public static let OpGetDeviceId = 60000
+    public static let DefaultPreState = -1000
+    public static let MaxTokenLength = 500
 }
 
-public class BLEWifiInfo: NSObject {
+public class BLENetworkConfigInfo: NSObject {
     public let ssid: String
     public let password: String
+    public let url: String
     public let authToken: String
-    public init(ssid: String, password: String, authToken:String) {
+    public init(ssid: String,
+                password: String,
+                url: String,
+                authToken: String) {
         self.ssid = ssid
         self.password = password
+        self.url = url
         self.authToken = authToken
     }
 }
@@ -121,7 +131,9 @@ public class AIBLEManager: NSObject {
         case none = 0
         case ssid
         case password
-        case authToken
+        case authTokenFront
+        case authTokenBack
+        case url
         case wifiConnect
     }
 
@@ -130,7 +142,7 @@ public class AIBLEManager: NSObject {
 
     private var lastState: CBManagerState = .unknown
     private var deviceConfigState: DeviceConfigState = .none
-    private var wifiInfo: BLEWifiInfo?
+    private var wifiInfo: BLENetworkConfigInfo?
 
     private(set) var logInfo = ""
 
@@ -138,8 +150,10 @@ public class AIBLEManager: NSObject {
         didSet {
             switch wifiConfigState {
             case .ssid: _log("发送wifi ssid")
-            case .password: _log("发送wifi password")
-            case .authToken: _log("发送auth token")
+            case .password: _log("发送wifi password ")
+            case .authTokenFront: _log("发送auth token front")
+            case .authTokenBack: _log("发送auth token back")
+            case .url: _log("发送 url config")
             case .wifiConnect: _log("发送连接wifi指令")
             default: break
             }
@@ -166,23 +180,28 @@ public class AIBLEManager: NSObject {
 
     override public init() {
         super.init()
-        let _ = centralManager.state
+        // let _ = centralManager.state
     }
 
     private func _log(_ info: String) {
         logInfo = info
-        //print("info  - \(info)")
+        // print("info  - \(info)")
         delegate?.bleManagerOnLastLogInfo(manager: self, logInfo: info)
     }
 
     // 开始扫描设备
     public func startScan() {
+        let _ = centralManager.state
         if lastState == .poweredOn {
             centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
             _log("开始扫描设备")
         } else {
-            onConfigError(.bleNotAvailable)
+            // onConfigError(.bleNotAvailable)
         }
+    }
+
+    public func getDeviceId() {
+        sendOperation(opcode: BLEOpCode.OpGetDeviceId, data: nil)
     }
 
     // 停止扫描设备
@@ -210,7 +229,7 @@ public class AIBLEManager: NSObject {
     }
 
     // 发送wifi数据
-    public func sendWifiInfo(_ info: BLEWifiInfo) {
+    public func sendWifiInfo(_ info: BLENetworkConfigInfo) {
         guard deviceConfigState == .readyToConfigWifi else {
             return
         }
@@ -304,7 +323,9 @@ extension AIBLEManager {
         switch wifiConfigState {
         case .ssid: sendSSID()
         case .password: sendPassword()
-        case .authToken: sendAuthToken()
+        case .authTokenFront: sendAuthTokenFront()
+        case .authTokenBack: sendAuthTokenBack()
+        case .url: sendURLConfig()
         case .wifiConnect: sendOperation(opcode: BLEOpCode.WifiStationStart, data: nil)
         default: break
         }
@@ -374,21 +395,57 @@ extension AIBLEManager {
 
     private func sendPassword() {
         if let cs = findCharacteristic(uuid: .AI_PASSWORD_UUID),
-           let password = wifiInfo?.password,
-           let data = password.data(using: .utf8) {
-            curPeripheral?.writeValue(data, for: cs, type: .withResponse)
+           let password = wifiInfo?.password {
+            if let data = password.data(using: .utf8) {
+                curPeripheral?.writeValue(data, for: cs, type: .withResponse)
+            } else {
+                onConfigFailed(with: .custom("发送password后半段错误: 数据编码错误"))
+            }
         } else {
-            onConfigFailed(with: .custom("发送password错误: 数据错误"))
+            onConfigFailed(with: .custom("发送password后半段错误: 特征值或密码获取失败"))
         }
     }
-    
-    private func sendAuthToken() {
-        if let cs = findCharacteristic(uuid: .AI_AUTHTOKEN_UUID),
-           let password = wifiInfo?.authToken,
-           let data = password.data(using: .utf8) {
-            curPeripheral?.writeValue(data, for: cs, type: .withResponse)
+
+    private func sendAuthTokenFront() {
+        if let cs = findCharacteristic(uuid: .AI_AUTHTOKEN1_UUID),
+           let password = wifiInfo?.authToken {
+            let halfLength = password.count / 2
+            let frontPart = String(password.prefix(halfLength))
+            if let data = frontPart.data(using: .utf8) {
+                curPeripheral?.writeValue(data, for: cs, type: .withResponse)
+            } else {
+                onConfigFailed(with: .custom("发送password前半段错误: 数据编码错误"))
+            }
         } else {
-            onConfigFailed(with: .custom("发送password错误: 数据错误"))
+            onConfigFailed(with: .custom("发送password前半段错误: 特征值或密码获取失败"))
+        }
+    }
+
+    private func sendAuthTokenBack() {
+        if let cs = findCharacteristic(uuid: .AI_AUTHTOKEN2_UUID),
+           let password = wifiInfo?.authToken {
+            let halfLength = password.count / 2
+            let backPart = String(password.suffix(from: password.index(password.startIndex, offsetBy: halfLength)))
+            if let data = backPart.data(using: .utf8) {
+                curPeripheral?.writeValue(data, for: cs, type: .withResponse)
+            } else {
+                onConfigFailed(with: .custom("发送password后半段错误: 数据编码错误"))
+            }
+        } else {
+            onConfigFailed(with: .custom("发送password后半段错误: 特征值或密码获取失败"))
+        }
+    }
+
+    private func sendURLConfig() {
+        if let cs = findCharacteristic(uuid: .AI_URL_UUID),
+           let url = wifiInfo?.url {
+            if let data = url.data(using: .utf8) {
+                curPeripheral?.writeValue(data, for: cs, type: .withResponse)
+            } else {
+                onConfigFailed(with: .custom("发送password后半段错误: 数据编码错误"))
+            }
+        } else {
+            onConfigFailed(with: .custom("发送password后半段错误: 特征值或密码获取失败"))
         }
     }
 
@@ -444,6 +501,9 @@ extension AIBLEManager: CBCentralManagerDelegate {
              }
          }
          */
+//        print(peripheral.name ?? "--")
+//        print(advertisementData)
+
         let name = peripheral.name ?? "--"
         let rssiInt: Int = RSSI.intValue
         let id = peripheral.identifier
@@ -523,10 +583,14 @@ extension AIBLEManager: CBPeripheralDelegate {
             }
 
             var payload: [UInt8]?
-            var opcode = 0
             var statusCode: UInt = 0
             var length = 0
-            opcode = Int(data[0] | data[1] << 8)
+
+            // 解析操作码
+            let opcodeByte1 = Int(data[0])
+            let opcodeByte2 = Int(data[1])
+            let opcode = opcodeByte1 | (opcodeByte2 << 8)
+
             statusCode = UInt(data[2])
             length = Int(data[3] | data[4] << 8)
 
@@ -563,11 +627,17 @@ extension AIBLEManager: CBPeripheralDelegate {
                 doWifiConfigurationStep(.password)
                 onProgress(0.4)
             } else if characteristic.uuid == .AI_PASSWORD_UUID {
-                doWifiConfigurationStep(.authToken)
-                onProgress(0.43)
-            } else if characteristic.uuid == .AI_AUTHTOKEN_UUID {
+                doWifiConfigurationStep(.authTokenFront)
+                onProgress(0.5)
+            } else if characteristic.uuid == .AI_AUTHTOKEN1_UUID {
+                doWifiConfigurationStep(.authTokenBack)
+                onProgress(0.6)
+            } else if characteristic.uuid == .AI_AUTHTOKEN2_UUID {
+                doWifiConfigurationStep(.url)
+                onProgress(0.7)
+            } else if characteristic.uuid == .AI_URL_UUID {
                 doWifiConfigurationStep(.wifiConnect)
-                onProgress(0.46)
+                onProgress(0.8)
             }
         }
     }

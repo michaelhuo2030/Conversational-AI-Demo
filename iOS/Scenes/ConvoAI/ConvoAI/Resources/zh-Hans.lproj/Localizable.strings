@@ -158,11 +158,13 @@
 "iot.error.check.pairing" = "检查设备是否处于待配网状态";
 "iot.error.check.router" = "检查设备是否靠近路由器";
 
-"iot.device.rename.title" = "修改设备名称";
+"iot.device.rename.title" = "修改名称";
 "iot.device.rename.success" = "设备名称已更新";
+"iot.device.rename.placeholder" = "请输入名字";
+"iot.device.rename.tips" = "限10个字符，且不能为空";
 
 "iot.device.settings.title" = "设置";
-"iot.device.settings.preset" = "预设";
+"iot.device.settings.preset" = "预设人设";
 "iot.device.settings.language" = "语言";
 "iot.device.settings.language.title" = "选择语言";
 "iot.device.settings.language.simplified_chinese" = "简体中文";
@@ -194,4 +196,3 @@
 "iot.wifi.settings.password.placeholder" = "密码";
 "iot.wifi.settings.switch" = "更换";
 "iot.wifi.settings.next" = "下一步";
-

@@ -20,6 +20,7 @@ struct IntroductionStep {
 class DeviceIntroductionViewController: BaseViewController {
     private var bluetoothManager: AIBLEManager = .shared
     private let wifiManager = WiFiManager()
+    private let centralManager = CBCentralManager()
 
     // MARK: - UI Components
     
@@ -214,11 +215,13 @@ class DeviceIntroductionViewController: BaseViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         bluetoothManager.delegate = self
+        centralManager.delegate = self
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         bluetoothManager.delegate = nil
+        centralManager.delegate = nil
     }
     
     
@@ -231,7 +234,8 @@ class DeviceIntroductionViewController: BaseViewController {
         case .allowedAlways:
             print("Bluetooth permission granted")
             // Check if Bluetooth is powered on
-            if !bluetoothManager.isBLEAvailable {
+            print("蓝牙状态：\(centralManager.state)")
+            if centralManager.state != .poweredOn {
                 missingPermissions.append(
                     PermissionAlertViewController.Permission(
                         icon: UIImage.ag_named("ic_iot_bluetooth_white_icon"),
@@ -567,6 +571,13 @@ extension DeviceIntroductionViewController: CLLocationManagerDelegate {
 
 extension DeviceIntroductionViewController: BLEManagerDelegate {
     func bleManagerDidUpdateState(_ manager: AIBLEManager, isPowerOn: Bool) {
+        checkPermission()
+    }
+}
+
+// MARK: - CBCentralManagerDelegate
+extension DeviceIntroductionViewController: CBCentralManagerDelegate {
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
         checkPermission()
     }
 }

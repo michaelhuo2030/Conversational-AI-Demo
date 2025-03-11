@@ -128,54 +128,9 @@ class IOTListViewController: BaseViewController {
     }
     
     private func showRenameAlert(for device: LocalDevice) {
-        let alert = UIAlertController(
-            title: ResourceManager.L10n.Iot.deviceRename,
-            message: nil,
-            preferredStyle: .alert
-        )
-        
-        // Add text field
-        alert.addTextField { textField in
-            textField.text = device.name
-            textField.clearButtonMode = .whileEditing
-            textField.returnKeyType = .done
-            
-            NotificationCenter.default.addObserver(
-                forName: UITextField.textDidChangeNotification,
-                object: textField,
-                queue: .main
-            ) { _ in
-                if let text = textField.text, text.count > 10 {
-                    textField.text = String(text.prefix(10))
-                }
-            }
+        IOTTextFieldAlertViewController.show(in: self) { text in
+            AppContext.iotDeviceManager()?.updateDeviceName(name: text, deviceId: device.deviceId)
         }
-        
-        // Add cancel action
-        let cancelAction = UIAlertAction(title: ResourceManager.L10n.Iot.cancel, style: .cancel) { _ in
-            NotificationCenter.default.removeObserver(self, 
-                name: UITextField.textDidChangeNotification, 
-                object: alert.textFields?.first)
-        }
-        alert.addAction(cancelAction)
-        
-        // Add confirm action
-        let confirmAction = UIAlertAction(title: ResourceManager.L10n.Iot.submit, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            
-            NotificationCenter.default.removeObserver(self,
-                name: UITextField.textDidChangeNotification, 
-                object: alert.textFields?.first)
-            
-            guard let newName = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !newName.isEmpty else { return }
-            
-            // Update device name
-            AppContext.iotDeviceManager()?.updateDeviceName(name: newName, deviceId: device.deviceId)
-        }
-        alert.addAction(confirmAction)
-        
-        present(alert, animated: true)
     }
 }
 

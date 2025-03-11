@@ -241,6 +241,8 @@ extension ResourceManager {
             public static let deviceSettingsSaveDiscard = ResourceManager.localizedString("iot.device.settings.save.discard")
             public static let deviceRename = ResourceManager.localizedString("iot.device.rename.title")
             public static let deviceRenameSucceed = ResourceManager.localizedString("iot.device.rename.success")
+            public static let deviceRenamePlaceholder = ResourceManager.localizedString("iot.device.rename.placeholder")
+            public static let deviceRenameTips = ResourceManager.localizedString("iot.device.rename.tips")
             
             // WiFi Settings
             public static let wifiSettingsTitle = ResourceManager.localizedString("iot.wifi.settings.title")

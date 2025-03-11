@@ -241,7 +241,7 @@ extension SearchDeviceViewController: BLEManagerDelegate {
     
     func bleManagerDidScanDevice(_ manager: AIBLEManager, device: BLEDevice, error: Error?) {
         if let data = device.data[CBAdvertisementDataManufacturerDataKey] as? Data {
-//            if bluetoothManager.bekenDeviceManufacturerData == data {
+            if bluetoothManager.bekenDeviceManufacturerData == data {
             if !devices.contains(where: { $0.id == device.id }) {
                     if devices.isEmpty {
                         remakeConstraints()
@@ -252,6 +252,6 @@ extension SearchDeviceViewController: BLEManagerDelegate {
                     tableView.reloadData()
                 }
             }
-//        }
+        }
     }
 }

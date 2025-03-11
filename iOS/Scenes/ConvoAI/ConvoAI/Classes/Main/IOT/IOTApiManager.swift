@@ -59,7 +59,7 @@ protocol IOTApiProtocol {
         deviceId: String,
         presetName: String,
         asrLanguage: String,
-        enableBHVS: Bool,
+        aivad: Bool,
         completion: @escaping (IOTRequestError?) -> Void
     )
 }
@@ -150,7 +150,7 @@ class IOTApiManager: IOTApiProtocol {
         deviceId: String,
         presetName: String,
         asrLanguage: String,
-        enableBHVS: Bool,
+        aivad: Bool,
         completion: @escaping (IOTRequestError?) -> Void
     ) {
         guard !deviceId.isEmpty else {
@@ -164,7 +164,7 @@ class IOTApiManager: IOTApiProtocol {
             "device_id": deviceId,
             "preset_name": presetName,
             "asr_language": asrLanguage,
-            "advanced_feature_enable_aivad": enableBHVS
+            "advanced_feature_enable_aivad": aivad
         ]
         
         ConvoAILogger.info("update setting api: \(url) parameters: \(parameters)")
