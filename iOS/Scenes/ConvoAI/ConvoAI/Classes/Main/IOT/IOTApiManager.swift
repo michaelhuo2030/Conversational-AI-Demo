@@ -72,18 +72,15 @@ class IOTApiManager: IOTApiProtocol {
         return AppContext.shared.baseServerUrl
     }
     
-    private let mockToken = CovIotTokenModel(
-        agent_url: "wss://example.com/agent",
-        auth_token: "mock_token_12345"
-    )
-    
     // MARK: - Fetch Presets
     func fetchPresets(requestId: String, completion: @escaping (IOTRequestError?, [CovIotPreset]?) -> Void) {
         let url = "\(baseUrl)/convoai-iot/\(SERVICE_VERSION)/presets/list"
-        let params: [String: Any] = [
+        let parameters: [String: Any] = [
             "request_id": requestId
         ]
-        NetworkManager.shared.postRequest(urlString: url, params: params) { result in
+        ConvoAILogger.info("fetch iot preset api: \(url) parameters: \(parameters)")
+
+        NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
             ConvoAILogger.info("presets request response: \(result)")
             
             if let code = result["code"] as? Int, code != 0 {
@@ -121,7 +118,7 @@ class IOTApiManager: IOTApiProtocol {
             "request_id": UUID().uuidString,
             "device_id": deviceId
         ]
-        
+        ConvoAILogger.info("generator token api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
             ConvoAILogger.info("token request response: \(result)")
             
@@ -170,6 +167,7 @@ class IOTApiManager: IOTApiProtocol {
             "advanced_feature_enable_aivad": enableBHVS
         ]
         
+        ConvoAILogger.info("update setting api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
             ConvoAILogger.info("update settings response: \(result)")
             
