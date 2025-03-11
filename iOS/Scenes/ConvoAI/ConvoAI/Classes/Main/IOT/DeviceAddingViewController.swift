@@ -8,8 +8,16 @@
 import UIKit
 import Common
 import SVProgressHUD
+import BLEManager
 
 class DeviceAddingViewController: BaseViewController {
+    var deviceId: String = ""
+    var ssid: String = ""
+    var password: String = ""
+    
+    private let apiManger = IOTApiManager()
+    private var bluetoothManager: AIBLEManager = .shared
+
     private lazy var circleBackgroundView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.themColor(named: "ai_block1")
@@ -29,12 +37,59 @@ class DeviceAddingViewController: BaseViewController {
         
         setupView()
         setupConstraints()
-        
-        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Iot.deviceAddProgress)
-        testErrorAlert()
+        addDevice()
+        //TODO: Complete the code.
+//        guard let presets = AppContext.iotPresetsManager()?.allPresets(), let defaultPreset = presets.first, let defaultLanguage = defaultPreset.support_languages.first(where: {$0.isDefault}) else { return }
+//        let localDevice = LocalDevice(name: "smaug", deviceId: "123", rssi: 123, currentPreset: defaultPreset, currentLanguage: defaultLanguage, aiVad: false)
+//        
+//        AppContext.iotDeviceManager()?.addDevice(device: localDevice)
+//        testErrorAlert()
     }
     
-    func testSuccessAlert() {
+    private func addDevice() {
+        SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Iot.deviceAddProgress)
+        Task {
+            do {
+//                let tokenModel = try await requestToken()
+//                bluetoothManager.sendWifiInfo(BLEWifiInfo(ssid: ssid, password: password, authToken: tokenModel.auth_token))
+                await MainActor.run {
+                    guard let presets = AppContext.iotPresetsManager()?.allPresets(), let preset = presets.first, let language = preset.support_languages.first(where: { $0.isDefault }) else {
+                        return
+                    }
+                    
+                    AppContext.iotDeviceManager()?.addDevice(device: LocalDevice(name: "smaug123", deviceId: "1233455511111122", rssi: 123456789, currentPreset: preset, currentLanguage: language, aiVad: false))
+                    showSuccessAlert()
+                }
+            } catch {
+                showErrorAlert()
+            }
+        }
+    }
+    
+    private func requestToken() async throws -> CovIotTokenModel {
+        return try await withCheckedThrowingContinuation { continuation in
+            apiManger.generatorToken(deviceId: deviceId) { tokenModel, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let tokenModel = tokenModel else {
+                    let error = NSError(
+                        domain: "DeviceAddingViewController",
+                        code: -1,
+                        userInfo: [NSLocalizedDescriptionKey: "Token generation failed"]
+                    )
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                continuation.resume(returning: tokenModel)
+            }
+        }
+    }
+    
+    func showSuccessAlert() {
         TimeoutAlertView.show(
             in: view,
             image: UIImage.ag_named("ic_alert_success_icon"),
@@ -50,7 +105,7 @@ class DeviceAddingViewController: BaseViewController {
         }
     }
     
-    func testErrorAlert() {
+    func showErrorAlert() {
         let errorAlert = IOTErrorAlertViewController { [weak self] in
             guard let self = self else { return }
 

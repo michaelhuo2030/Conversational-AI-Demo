@@ -20,7 +20,7 @@ class AgentInformationViewController: UIViewController {
     }
     
     public var rtcManager: RTCManager?
-    
+    private var iotApiManager: IOTApiManager = IOTApiManager()
     private let backgroundViewWidth: CGFloat = 315
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
@@ -151,7 +151,9 @@ class AgentInformationViewController: UIViewController {
     
     private lazy var deviceCard: IotDeviceCardView = {
         let card = IotDeviceCardView()
-        card.configure(title: ResourceManager.L10n.Iot.innerTitle, subtitle: "0 个设备")
+        if let presets = AppContext.iotDeviceManager()?.getAllDevices() {
+            card.configure(title: ResourceManager.L10n.Iot.innerTitle, subtitle: "\(presets.count) 个设备")
+        }
         card.settingsIcon = UIImage.ag_named("ic_iot_add")
         card.backgroundImage = UIImage.ag_named("ic_iot_card_bg_green")
         card.settingsButtonBackgroundColor = UIColor.themColor(named: "ai_brand_white8")
@@ -183,6 +185,7 @@ class AgentInformationViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         animateBackgroundViewIn()
+        requestIOTPresetsIfNeeded()
     }
     
     private func registerDelegate() {
@@ -191,6 +194,28 @@ class AgentInformationViewController: UIViewController {
     
     private func unregisterDelegate() {
         AppContext.preferenceManager()?.removeDelegate(self)
+    }
+    
+    private func requestIOTPresetsIfNeeded() {
+        guard AppContext.iotPresetsManager()?.allPresets() == nil else { return }
+        
+        SVProgressHUD.show()
+        iotApiManager.fetchPresets(requestId: UUID().uuidString) { error, presets in
+            SVProgressHUD.dismiss()
+            if let error = error {
+                SVProgressHUD.showError(withStatus: error.message)
+                ConvoAILogger.info(error.message)
+                return
+            }
+            
+            guard let presets = presets else {
+                ConvoAILogger.info("preset is empty")
+                SVProgressHUD.showError(withStatus: "preset is empty")
+                return
+            }
+            
+            AppContext.iotPresetsManager()?.setPresets(presets: presets)
+        }
     }
     
     private func setupPanGesture() {

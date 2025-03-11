@@ -317,6 +317,9 @@ class IOTWifiSettingViewController: BaseViewController {
     
     @objc private func nextButtonTapped() {
         // Handle next button tap
+        
+        let vc = DeviceAddingViewController()
+        self.navigationController?.pushViewController(vc)
     }
 }
 

@@ -52,7 +52,7 @@ class IOTDeviceCell: UITableViewCell {
         }
     }
     
-    func configData(device: IOTDevice, index: Int) {
+    func configData(device: LocalDevice, index: Int) {
         deviceCardView.configure(title: device.name, subtitle: device.deviceId)
         deviceCardView.backgroundImage = index % 2 == 0 ? UIImage.ag_named("ic_iot_card_bg_green") : UIImage.ag_named("ic_iot_card_bg_blue")
         

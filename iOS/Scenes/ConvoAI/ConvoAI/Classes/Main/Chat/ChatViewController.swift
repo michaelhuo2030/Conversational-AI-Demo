@@ -439,7 +439,7 @@ public class ChatViewController: UIViewController {
 // MARK: - Agent Request
 extension ChatViewController {
     private func fetchIotPresetsIfNeeded() async throws {
-        guard AppContext.iotPreferenceManager()?.allPresets() == nil else { return }
+        guard AppContext.iotPresetsManager()?.allPresets() == nil else { return }
         
         return try await withCheckedThrowingContinuation { continuation in
             iotAipManager.fetchPresets(requestId: UUID().uuidString) { error, presets in
@@ -454,7 +454,7 @@ extension ChatViewController {
                     return
                 }
                 
-                AppContext.iotPreferenceManager()?.setPresets(presets: presets)
+                AppContext.iotPresetsManager()?.setPresets(presets: presets)
                 continuation.resume()
             }
         }
