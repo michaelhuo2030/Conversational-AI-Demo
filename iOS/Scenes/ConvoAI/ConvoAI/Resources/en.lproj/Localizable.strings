@@ -42,6 +42,7 @@
 "conversation.message.alert.content" = "Are you sure you want to clear all messages?";
 
 "conversation.alert.cancel" = "Cancel";
+"conversation.alert.confirm" = "Confirm";
 "conversation.alert.clear" = "Clear";
 
 // Settings View
@@ -56,7 +57,7 @@
 "settings.microphone" = "Microphone";
 "settings.speaker" = "Speaker";
 "settings.noise.cancellation" = "Noise Cancellation";
-"settings.noise.aiVad.nomal" = "";
+"settings.noise.aiVad.nomal" = "Enable";
 "settings.noise.aiVad.highlight" = "Intelligent Interruption Handling";
 "settings.noise.forceResponse" = "Force Response";
 "settings.noise.bhvs" = "Background Human Voice Suppression";
@@ -143,6 +144,7 @@
 
 // Device Setup
 "iot.device.setup.instruction" = "Press and hold the pairing button for 3 seconds";
+"iot.device.setup.instruction.sub" = "3 seconds";
 "iot.device.setup.permission_description" = "The following permissions will be requested during pairing";
 "iot.device.setup.complete" = "I have completed the above steps";
 
@@ -169,6 +171,9 @@
 "iot.error.check.wifi" = "Check if the Wi-Fi password is correct";
 "iot.error.check.pairing" = "Check if the device is in pairing mode";
 "iot.error.check.router" = "Check if the device is close to the router";
+
+"iot.device.rename.title" = "Rename Device";
+"iot.device.rename.success" = "Device name has been updated.";
 
 // Device Settings
 "iot.device.settings.title" = "Settings";
