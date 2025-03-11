@@ -140,12 +140,23 @@ class BleManager(
         return bleConnector.sendToken(token)
     }
 
+    override fun sendUrl(url: String): Boolean {
+        BleLogger.d(TAG, "sendUrl => $url")
+        checkBluetoothPermission()
+        return bleConnector.sendUrl(url)
+    }
+
     override fun startStation(): Boolean {
         checkBluetoothPermission()
         return bleConnector.startStation()
     }
 
-    override fun distributionNetwork(device: BluetoothDevice, ssid: String, pwd: String, token: String): Boolean {
+    override fun getDeviceId(): String {
+        checkBluetoothPermission()
+        return bleConnector.getDeviceId()
+    }
+
+    override fun distributionNetwork(device: BluetoothDevice, ssid: String, pwd: String, token: String, url: String): Boolean {
         // Check if network distribution is already in progress
         if (isDistributing.get()) {
             BleLogger.w(TAG, "Network distribution already in progress, please wait for current process to complete")
@@ -159,12 +170,6 @@ class BleManager(
 
         var startStationResult = false
         try {
-            val connectResult = connect(device)
-            if (!connectResult) {
-                BleLogger.e(TAG, "distributionNetwork connect failed")
-                return false
-            }
-
             val sendSsidResult = sendSSID(ssid)
             if (!sendSsidResult) {
                 BleLogger.e(TAG, "distributionNetwork sendSSID failed")
@@ -179,6 +184,12 @@ class BleManager(
                 }
             }
 
+            val sendUrlResult = sendUrl(url)
+            if (!sendUrlResult) {
+                BleLogger.e(TAG, "distributionNetwork sendUrl failed")
+                return false
+            }
+
             val sendTokenResult = sendToken(token)
             if (!sendTokenResult) {
                 BleLogger.e(TAG, "distributionNetwork sendToken failed")
@@ -189,8 +200,6 @@ class BleManager(
         } catch (e: Exception) {
             BleLogger.e(TAG, "Exception occurred during network distribution: ${e.message}")
         } finally {
-            // Reset distribution state regardless of success or failure
-            disconnect()
             isDistributing.set(false)
         }
 

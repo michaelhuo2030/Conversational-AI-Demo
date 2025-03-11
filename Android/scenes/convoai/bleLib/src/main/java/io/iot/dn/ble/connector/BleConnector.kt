@@ -41,10 +41,12 @@ class BleConnector(
     private var opCodeLatch = CountDownLatch(1)
     private var cmdLatch = CountDownLatch(1)
     private var tokenLatch = CountDownLatch(1)
+    private var urlLatch = CountDownLatch(1)
     private var customDataLatch = CountDownLatch(1)
     private var callback: BleConnectionCallback? = null
     private var opRet: Triple<Int, Int, ByteArray?>? = null
     private var currentConnectionState: BleConnectionState = BleConnectionState.IDLE
+    private var preState = DEFAULT_PRE_STATE
 
     /**
      * Connects to the specified BLE device.
@@ -210,25 +212,94 @@ class BleConnector(
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun sendToken(token: String): Boolean {
         BleLogger.d(TAG, "sendToken => $token")
+
+        // Check if token length exceeds maximum limit
+        if (token.length > MAX_TOKEN_LENGTH) {
+            BleLogger.e(TAG, "Token length exceeds maximum limit of $MAX_TOKEN_LENGTH characters")
+            return false
+        }
+
+        val halfLength = token.length / 2
+        val firstPart = token.substring(0, halfLength)
+        val secondPart = token.substring(halfLength)
+
+        // Send first part
+        BleLogger.d(TAG, "Sending first part of token")
+        val firstResult = sendTokenInternal(AUTH_TOKEN_FIRST_UUID, firstPart)
+        if (!firstResult) {
+            BleLogger.e(TAG, "Failed to send first part of token")
+            return false
+        }
+
+        // Send second part
+        BleLogger.d(TAG, "Sending second part of token")
+        val secondResult = sendTokenInternal(AUTH_TOKEN_SECOND_UUID, secondPart)
+        if (!secondResult) {
+            BleLogger.e(TAG, "Failed to send second part of token")
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Internal method to actually send token data
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    private fun sendTokenInternal(uuid: UUID, tokenData: String): Boolean {
         resetTokenLatch()
 
         val gatt = bluetoothGatt ?: return false
         val service = gatt.getService(SERVICE_UUID) ?: return false
-        val characteristic = service.getCharacteristic(AUTH_TOKEN_UUID) ?: return false
+        val characteristic = service.getCharacteristic(uuid) ?: return false
 
-        characteristic.setValue(token)
+        characteristic.setValue(tokenData)
         val ret = gatt.writeCharacteristic(characteristic)
-        BleLogger.d(TAG, "sendToken ret => $ret")
+        BleLogger.d(TAG, "sendTokenInternal ret => $ret")
         if (!ret) {
-            BleLogger.e(TAG, "sendToken failed")
-            notifyMessageSent(SERVICE_UUID.toString(), AUTH_TOKEN_UUID.toString(), false, "sendToken failed")
+            BleLogger.e(TAG, "sendTokenInternal failed")
+            notifyMessageSent(SERVICE_UUID.toString(), uuid.toString(), false, "sendToken failed")
             return false
         }
         val awaitRet = tokenLatch.await(bleConfig.awaitTimeout, TimeUnit.MILLISECONDS)
-        BleLogger.d(TAG, "sendToken awaitRet: $awaitRet")
+        BleLogger.d(TAG, "sendTokenInternal awaitRet: $awaitRet")
         notifyMessageSent(
             SERVICE_UUID.toString(),
-            AUTH_TOKEN_UUID.toString(),
+            uuid.toString(),
+            awaitRet,
+            if (!awaitRet) "Send timeout" else null
+        )
+        return awaitRet
+    }
+
+    /**
+     * Sends URL to the connected device.
+     *
+     * @param url The URL to send
+     * @return true if send was successful, false otherwise
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    override fun sendUrl(url: String): Boolean {
+        BleLogger.d(TAG, "sendUrl => $url")
+        resetUrlLatch()
+
+        val gatt = bluetoothGatt ?: return false
+        val service = gatt.getService(SERVICE_UUID) ?: return false
+        val characteristic = service.getCharacteristic(URL_UUID) ?: return false
+
+        characteristic.setValue(url)
+        val ret = gatt.writeCharacteristic(characteristic)
+        BleLogger.d(TAG, "sendUrl ret => $ret")
+        if (!ret) {
+            BleLogger.e(TAG, "sendUrl failed")
+            notifyMessageSent(SERVICE_UUID.toString(), URL_UUID.toString(), false, "sendUrl failed")
+            return false
+        }
+        val awaitRet = urlLatch.await(bleConfig.awaitTimeout, TimeUnit.MILLISECONDS)
+        BleLogger.d(TAG, "sendUrl awaitRet: $awaitRet")
+        notifyMessageSent(
+            SERVICE_UUID.toString(),
+            URL_UUID.toString(),
             awaitRet,
             if (!awaitRet) "Send timeout" else null
         )
@@ -303,6 +374,19 @@ class BleConnector(
     }
 
     /**
+     * Get the device ID of connected BLE device
+     *
+     * @return Device ID string
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    override fun getDeviceId(): String {
+        BleLogger.d(TAG, "getDeviceId")
+        val ret = operationCharacteristicWrite(OP_GET_DEVICE_ID, null, true)
+        BleLogger.d(TAG, "getDeviceId ret => ${ret.second?.third?.let { String(it) }}")
+        return ret.second?.third?.let { String(it) } ?: ""
+    }
+
+    /**
      * Enables notifications for the notification characteristic.
      *
      * @return true if notifications were enabled successfully, false otherwise
@@ -337,7 +421,6 @@ class BleConnector(
      * Callback for handling BLE GATT events.
      */
     private val gattCallback = object : BluetoothGattCallback() {
-        private var preState = -1000
 
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -424,9 +507,19 @@ class BleConnector(
                         pwdLatch.countDown()
                     }
 
-                    AUTH_TOKEN_UUID -> {
-                        BleLogger.d(TAG, "onCharacteristicWrite: token write success")
+                    AUTH_TOKEN_FIRST_UUID -> {
+                        BleLogger.d(TAG, "onCharacteristicWrite: token first write success")
                         tokenLatch.countDown()
+                    }
+
+                    AUTH_TOKEN_SECOND_UUID -> {
+                        BleLogger.d(TAG, "onCharacteristicWrite: token second write success")
+                        tokenLatch.countDown()
+                    }
+
+                    URL_UUID -> {
+                        BleLogger.d(TAG, "onCharacteristicWrite: url write success")
+                        urlLatch.countDown()
                     }
 
                     else -> {
@@ -522,6 +615,7 @@ class BleConnector(
     private fun disconnectInner() {
         BleLogger.d(TAG, "disconnectInner")
         notifyConnectionStateChanged(BleConnectionState.DISCONNECTED)
+        preState = DEFAULT_PRE_STATE
         bluetoothGatt?.disconnect()
         bluetoothGatt?.close()
         bluetoothGatt = null
@@ -532,6 +626,7 @@ class BleConnector(
         cmdLatch.countDown()
         tokenLatch.countDown()
         customDataLatch.countDown()
+        urlLatch.countDown()
     }
 
     /**
@@ -591,6 +686,13 @@ class BleConnector(
     }
 
     /**
+     * Resets the URL latch to initial state
+     */
+    private fun resetUrlLatch() {
+        urlLatch = CountDownLatch(1)
+    }
+
+    /**
      * Resets the token latch to initial state
      */
     private fun resetTokenLatch() {
@@ -625,8 +727,13 @@ class BleConnector(
         private val OPERATION_UUID = UUID.fromString("0000ea02-0000-1000-8000-00805f9b34fb")
         private val SSID_UUID = UUID.fromString("0000ea05-0000-1000-8000-00805f9b34fb")
         private val PASSWORD_UUID = UUID.fromString("0000ea06-0000-1000-8000-00805f9b34fb")
-        private val AUTH_TOKEN_UUID = UUID.fromString("0000ea07-0000-1000-8000-00805f9b34fb")
+        private val AUTH_TOKEN_FIRST_UUID = UUID.fromString("0000ea07-0000-1000-8000-00805f9b34fb")
+        private val AUTH_TOKEN_SECOND_UUID = UUID.fromString("0000ea08-0000-1000-8000-00805f9b34fb")
+        private val URL_UUID = UUID.fromString("0000ea09-0000-1000-8000-00805f9b34fb")
         private val DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
         private const val OP_STATION_START = 1
+        private const val OP_GET_DEVICE_ID = 60000
+        private const val DEFAULT_PRE_STATE = -1000
+        private const val MAX_TOKEN_LENGTH = 500
     }
 }

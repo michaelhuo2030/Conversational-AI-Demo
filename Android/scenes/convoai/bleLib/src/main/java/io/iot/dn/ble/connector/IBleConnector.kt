@@ -66,6 +66,15 @@ interface IBleConnector {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun sendToken(token: String): Boolean
 
+    /** 
+     * Send URL to connected device
+     * @param url The URL to send
+     * @return true if URL was sent successfully, false otherwise
+     */
+    @WorkerThread
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun sendUrl(url: String): Boolean
+
     /**
      * Start the station mode on connected device
      * @return true if station was started successfully, false otherwise
@@ -73,6 +82,14 @@ interface IBleConnector {
     @WorkerThread
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun startStation(): Boolean
+
+    /**
+     * Get the device ID of connected BLE device
+     * @return Device ID string
+     */
+    @WorkerThread
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun getDeviceId(): String
 
     /**
      * Set callback for connection state and data events

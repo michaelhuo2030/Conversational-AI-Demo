@@ -95,7 +95,6 @@ class WifiManager(private val context: Context) : IWifiManager {
      * @return String describing the frequency band (2.4 GHz, 5 GHz, 6 GHz, or Unknown)
      */
     private fun getFrequencyBand(frequency: Int): String {
-        BleLogger.d(TAG, "getFrequencyBand frequency: $frequency")
         return when (frequency) {
             in 2400..2500 -> "2.4 GHz"
             in 5000..5900 -> "5 GHz"

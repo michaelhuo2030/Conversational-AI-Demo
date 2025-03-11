@@ -121,45 +121,74 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
         val device = this.device ?: return
         updateConnectState(ConnectState.CONNECTING)
 
-//        CovIotApiManager.generatorToken(device.address) { model, e ->
-//            if (e != null || model?.auth_token?.isEmpty() == true) {
-//                updateConnectState(ConnectState.FAILED)
-//            } else {
-//                viewModelScope.launch {
-//                    try {
-//                        val ret = bleManager.distributionNetwork(
-//                            device = device.device,
-//                            ssid = wifiSsid,
-//                            pwd = wifiPassword,
-//                            token = model?.auth_token ?: ""
-//                        )
-//                        if (ret) updateConnectState(ConnectState.SUCCESS) else updateConnectState(ConnectState.FAILED)
-//                    } catch (e: BleError) {
-//                        updateConnectState(ConnectState.FAILED)
-//                    }
-//                }
-//            }
-//        }
-
-        CovIotApiManager.generatorToken("EDB7AE137E93E5C6752A552E4570754BBC759923196B2E7D4D9EFFCD00000000") { model, e ->
-            if (e != null || model?.auth_token?.isEmpty() == true) {
-                CovLogger.e(TAG, "CovIotApiManager generatorToken failed: $e")
-                updateConnectState(ConnectState.FAILED)
-            } else {
-                CovIotApiManager.updateSettings(
-                    deviceId = device.name,
-                    presetName = CovIotPresetManager.getDefaultPreset()?.preset_name ?: "story_mode",
-                    asrLanguage = CovIotPresetManager.getDefaultLanguage()?.code ?: "zh-CN",
-                    enableAiVad = false
-                ) { err ->
-                    if (err != null) {
-                        CovLogger.e(TAG, "CovIotApiManager updateSettings failed: $err")
+        viewModelScope.launch {
+            try {
+                // 1. connect ble device
+                bleManager.connect(device.device)
+                CovLogger.d(TAG, "ble device connect success")
+                
+                // 2. get device id
+                val deviceId = "1234567890" //TODO bleManager.getDeviceId()
+                CovLogger.d(TAG, "get device id: $deviceId")
+                
+                // 3. get token
+                CovIotApiManager.generatorToken(deviceId) { model, e ->
+                    if (e != null || model?.auth_token?.isEmpty() == true) {
+                        CovLogger.e(TAG, "CovIotApiManager generatorToken failed: $e")
                         updateConnectState(ConnectState.FAILED)
                     } else {
-                        // Simulate connection process
-                        simulateConnectProcess()
+                        viewModelScope.launch {
+                            try {
+                                // 4. update device settings first
+                                CovIotApiManager.updateSettings(
+                                    deviceId = deviceId,
+                                    presetName = CovIotPresetManager.getDefaultPreset()?.preset_name ?: "story_mode",
+                                    asrLanguage = CovIotPresetManager.getDefaultLanguage()?.code ?: "zh-CN",
+                                    enableAiVad = false
+                                ) { err ->
+                                    if (err != null) {
+                                        CovLogger.e(TAG, "CovIotApiManager updateSettings失败: $err")
+                                        updateConnectState(ConnectState.FAILED)
+                                    } else {
+                                        // 5. update settings success, then configure WiFi network
+                                        viewModelScope.launch {
+                                            try {
+                                                simulateConnectProcess()
+                                                // TODO
+                                                // val ret = bleManager.distributionNetwork(
+                                                //     device = device.device,
+                                                //     ssid = wifiSsid,
+                                                //     pwd = wifiPassword,
+                                                //     token = model?.auth_token ?: "",
+                                                //     url = ServerConfig.toolBoxUrl
+                                                // )
+                                                
+                                                // if (ret) {
+                                                //     updateConnectState(ConnectState.SUCCESS)
+                                                // } else {
+                                                //     updateConnectState(ConnectState.FAILED)
+                                                // }
+                                            } catch (e: Exception) {
+                                                CovLogger.e(TAG, "simulateConnectProcess failed: ${e.message}")
+                                                updateConnectState(ConnectState.FAILED)
+                                            } finally {
+                                                // 6. disconnect ble
+                                                bleManager.disconnect()
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                CovLogger.e(TAG, "update settings failed: ${e.message}")
+                                updateConnectState(ConnectState.FAILED)
+                                bleManager.disconnect()
+                            }
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                CovLogger.e(TAG, "ble connect failed: ${e.message}")
+                updateConnectState(ConnectState.FAILED)
             }
         }
     }

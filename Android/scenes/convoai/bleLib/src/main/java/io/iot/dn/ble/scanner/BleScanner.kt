@@ -119,6 +119,7 @@ class BleScanner(private val config: BleConfig) : IBleScanner {
                     name = result.device.name ?: "",
                     address = result.device.address,
                 )
+
                 BleLogger.d(TAG, "Device found: ${result.device.address}, RSSI: ${result.rssi}")
                 updateScanState(BleScanState.FOUND)
                 callback?.onDeviceFound(device)

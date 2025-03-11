@@ -18,9 +18,9 @@ data class BleConfig(
         const val DEFAULT_SCAN_TIMEOUT = 10000L
 
         /** Default connection timeout of 5 seconds */
-        const val DEFAULT_CONNECT_TIMEOUT = 5000L
+        const val DEFAULT_CONNECT_TIMEOUT = 10000L
 
-        const val DEFAULT_AWAIT_TIMEOUT = 5000L
+        const val DEFAULT_AWAIT_TIMEOUT = 10000L
 
         /** Default MTU size of 255 bytes */
         const val DEFAULT_MTU = 255

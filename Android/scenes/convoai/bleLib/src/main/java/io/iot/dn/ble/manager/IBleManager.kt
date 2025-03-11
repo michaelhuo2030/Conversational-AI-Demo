@@ -13,7 +13,7 @@ import androidx.annotation.WorkerThread
 interface IBleManager {
     /**
      * Starts scanning for BLE devices.
-     * 
+     *
      * @param filters Optional list of scan filters to apply. Pass null for no filtering.
      * @throws SecurityException if BLUETOOTH_SCAN permission is not granted
      */
@@ -23,7 +23,7 @@ interface IBleManager {
 
     /**
      * Stops the ongoing BLE device scan.
-     * 
+     *
      * @throws SecurityException if BLUETOOTH_SCAN permission is not granted
      */
     @WorkerThread
@@ -43,7 +43,7 @@ interface IBleManager {
 
     /**
      * Disconnects from the currently connected BLE device.
-     * 
+     *
      * @throws SecurityException if BLUETOOTH_CONNECT permission is not granted
      */
     @WorkerThread
@@ -96,6 +96,17 @@ interface IBleManager {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun sendToken(token: String): Boolean
 
+    /** 
+     * Sends URL to the connected BLE device.
+     *
+     * @param url The URL to send
+     * @return true if URL was sent successfully, false otherwise
+     * @throws SecurityException if BLUETOOTH_CONNECT permission is not granted
+     */
+    @WorkerThread
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun sendUrl(url: String): Boolean
+
     /**
      * Initiates station mode on the connected BLE device.
      *
@@ -105,6 +116,14 @@ interface IBleManager {
     @WorkerThread
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun startStation(): Boolean
+
+    /**
+     * Get the device ID of connected BLE device
+     * @return Device ID string
+     */
+    @WorkerThread
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun getDeviceId(): String
 
     /**
      * Performs network distribution setup on the connected BLE device.
@@ -119,7 +138,7 @@ interface IBleManager {
      */
     @WorkerThread
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    fun distributionNetwork(device: BluetoothDevice, ssid: String, pwd: String, token: String): Boolean
+    fun distributionNetwork(device: BluetoothDevice, ssid: String, pwd: String, token: String, url: String): Boolean
 
     /**
      * Registers a BLE event listener to receive scan and connection callbacks.
