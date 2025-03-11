@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>-</string>
+	<string>The app needs to use location to access Wi-Fi for connecting to smart home devices.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>-</string>
+	<string>The app needs to use Bluetooth to connect to smart home devices.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>-</string>
+	<string>The app needs to use location to access Wi-Fi for connecting to smart home devices.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>-</string>
+	<string>The app needs to use location to access Wi-Fi for connecting to smart home devices.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>-</string>
+	<string>The app needs to use Bluetooth to connect to smart home devices.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>App-Prefs</string>
