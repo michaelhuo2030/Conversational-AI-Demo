@@ -321,8 +321,8 @@ class IOTWifiSettingViewController: BaseViewController {
     @objc private func nextButtonTapped() {
         // Handle next button tap
         let vc = DeviceAddingViewController()
-        vc.deviceId = deviceId
-        vc.rssi = rssi
+        vc.rssi = wifiNameField.text ?? ""
+        vc.password = passwordField.text ?? ""
         self.navigationController?.pushViewController(vc)
     }
 }

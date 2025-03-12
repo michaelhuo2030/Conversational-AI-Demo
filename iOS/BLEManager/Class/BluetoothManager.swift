@@ -178,6 +178,8 @@ public class AIBLEManager: NSObject {
     public var delegate: BLEManagerDelegate?
     public var isBLEAvailable: Bool { lastState == .poweredOn }
 
+    private var deviceIdCompletion: ((String?) -> Void)?
+
     override public init() {
         super.init()
         // let _ = centralManager.state
@@ -185,7 +187,7 @@ public class AIBLEManager: NSObject {
 
     private func _log(_ info: String) {
         logInfo = info
-        // print("info  - \(info)")
+        print("info  - \(info)")
         delegate?.bleManagerOnLastLogInfo(manager: self, logInfo: info)
     }
 
@@ -200,7 +202,9 @@ public class AIBLEManager: NSObject {
         }
     }
 
-    public func getDeviceId() {
+    public func getDeviceId(completion: @escaping (String?) -> Void) {
+        // Store the completion handler to be called when we receive the device ID
+        deviceIdCompletion = completion
         sendOperation(opcode: BLEOpCode.OpGetDeviceId, data: nil)
     }
 
@@ -256,6 +260,9 @@ public class AIBLEManager: NSObject {
         wifiConfigState = .none
         wifiInfo = nil
         stopTimer()
+        
+        // Clear any pending completion handlers
+        deviceIdCompletion = nil
     }
 
     private func stopTimer() {
@@ -429,10 +436,10 @@ extension AIBLEManager {
             if let data = backPart.data(using: .utf8) {
                 curPeripheral?.writeValue(data, for: cs, type: .withResponse)
             } else {
-                onConfigFailed(with: .custom("发送password后半段错误: 数据编码错误"))
+                onConfigFailed(with: .custom("发送authToken后半段错误: 数据编码错误"))
             }
         } else {
-            onConfigFailed(with: .custom("发送password后半段错误: 特征值或密码获取失败"))
+            onConfigFailed(with: .custom("发送authToken后半段错误: 特征值或authToken获取失败"))
         }
     }
 
@@ -442,10 +449,10 @@ extension AIBLEManager {
             if let data = url.data(using: .utf8) {
                 curPeripheral?.writeValue(data, for: cs, type: .withResponse)
             } else {
-                onConfigFailed(with: .custom("发送password后半段错误: 数据编码错误"))
+                onConfigFailed(with: .custom("发送URL错误: 数据编码错误"))
             }
         } else {
-            onConfigFailed(with: .custom("发送password后半段错误: 特征值或密码获取失败"))
+            onConfigFailed(with: .custom("发送URL错误: 特征值或URL获取失败"))
         }
     }
 
@@ -605,16 +612,27 @@ extension AIBLEManager: CBPeripheralDelegate {
                 notificationDataHandle(opcode: opcode, statusCode: statusCode, payload: Data(bytes: payload!, count: length))
             } else {
                 onConfigFailed(with: .custom("op error: \(opcode) statusCode: \(statusCode)"))
+                
+                // Add handling for getDeviceId error
+                if opcode == BLEOpCode.OpGetDeviceId {
+                    let error = BLEManagerError.custom("op error: \(opcode) statusCode: \(statusCode)")
+                    deviceIdCompletion?(nil)
+                    deviceIdCompletion = nil
+                }
             }
         }
     }
 
     private func notificationDataHandle(opcode: Int, statusCode: UInt, payload: Data) {
-        _ = String(data: payload, encoding: .utf8) ?? ""
+        let payloadString = String(data: payload, encoding: .utf8) ?? ""
 
         if opcode == BLEOpCode.WifiStationStart {
             onProgress(1.0)
+            updateState(.wifiConfigurationDone)
             _log("配网成功!")
+        } else if opcode == BLEOpCode.OpGetDeviceId {
+            deviceIdCompletion?(payloadString)
+            deviceIdCompletion = nil
         }
         delegate?.bleManagerdidUpdateNotification(manager: self, opcode: opcode, statusCode: statusCode, payload: payload)
     }

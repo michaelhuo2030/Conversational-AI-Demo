@@ -11,8 +11,7 @@ import SVProgressHUD
 import BLEManager
 
 class DeviceAddingViewController: BaseViewController {
-    var deviceId: String = ""
-    var rssi: Int = 0
+    var rssi: String = ""
     var password: String = ""
     
     private let apiManger = IOTApiManager()
@@ -124,8 +123,15 @@ class DeviceAddingViewController: BaseViewController {
     }
     
     private func prepareToAddDevice() {
+        addLog("[Call] prepareToAddDevice")
         SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.Iot.deviceAddProgress)
-        bluetoothManager.getDeviceId()
+        bluetoothManager.getDeviceId {[weak self] deviceId in
+            guard let self = self else { return }
+            self.addLog("device id: \(deviceId ?? "")")
+            if let deviceId = deviceId {
+                self.addDevice(deviceId: deviceId)
+            }
+        }
     }
     
     private func updateSettings(deviceId: String, presetName: String, asrLanguage: String) async throws {
@@ -140,7 +146,7 @@ class DeviceAddingViewController: BaseViewController {
         }
     }
     
-    private func requestToken() async throws -> CovIotTokenModel {
+    private func requestToken(deviceId: String) async throws -> CovIotTokenModel {
         return try await withCheckedThrowingContinuation { continuation in
             apiManger.generatorToken(deviceId: deviceId) { tokenModel, error in
                 if let error = error {
@@ -152,7 +158,7 @@ class DeviceAddingViewController: BaseViewController {
                     let error = NSError(
                         domain: "DeviceAddingViewController",
                         code: -1,
-                        userInfo: [NSLocalizedDescriptionKey: "Token generation failed"]
+                        userInfo: [NSLocalizedDescriptionKey: "Token generation failed, token is empty"]
                     )
                     continuation.resume(throwing: error)
                     return
@@ -164,6 +170,7 @@ class DeviceAddingViewController: BaseViewController {
     }
     
     private func showSuccessAlert() {
+        addLog("[Call] showSuccessAlert, add device success")
         TimeoutAlertView.show(
             in: view,
             image: UIImage.ag_named("ic_alert_success_icon"),
@@ -180,6 +187,7 @@ class DeviceAddingViewController: BaseViewController {
     }
     
     private func showErrorAlert() {
+        addLog("[Call] showErrorAlert, add device failed")
         let errorAlert = IOTErrorAlertViewController { [weak self] in
             guard let self = self else { return }
             self.goToDeviceViewController()
@@ -197,10 +205,10 @@ class DeviceAddingViewController: BaseViewController {
         }
     }
     
-    private func addDevice() {
+    private func addDevice(deviceId: String) {
         Task {
             do {
-                let tokenModel = try await requestToken()
+                let tokenModel = try await requestToken(deviceId: deviceId)
                 
                 guard let preset = AppContext.iotPresetsManager()?.allPresets()?.first,
                       let defaultLanguage = preset.support_languages.first(where: { $0.isDefault }) else {
@@ -208,7 +216,7 @@ class DeviceAddingViewController: BaseViewController {
                 }
                 
                 try await updateSettings(deviceId: deviceId, presetName: preset.preset_name, asrLanguage: defaultLanguage.code)
-                
+                addLog("ssid: \(rssi), pwd: \(password)")
                 bluetoothManager.sendWifiInfo(BLENetworkConfigInfo(
                     ssid: "\(rssi)",
                     password: password,
@@ -219,7 +227,7 @@ class DeviceAddingViewController: BaseViewController {
                 await MainActor.run {
                     AppContext.iotDeviceManager()?.addDevice(device: LocalDevice(
                         name: "smaug123",
-                        deviceId: "\(Int.random(in: 0...1000))",
+                        deviceId: deviceId,
                         rssi: rssi,
                         currentPreset: preset,
                         currentLanguage: defaultLanguage,
@@ -228,6 +236,7 @@ class DeviceAddingViewController: BaseViewController {
                     showSuccessAlert()
                 }
             } catch {
+                addLog("add device error: \(error)")
                 showErrorAlert()
             }
         }
@@ -236,11 +245,6 @@ class DeviceAddingViewController: BaseViewController {
 
 extension DeviceAddingViewController: BLEManagerDelegate {
     func bleManagerdidUpdateNotification(manager: AIBLEManager, opcode: Int, statusCode: UInt, payload: Data) {
-        let str = String(data: payload, encoding: .utf8) ?? ""
-        
-        if opcode == BLEOpCode.OpGetDeviceId {
-            deviceId = str
-            addDevice()
-        }
+        addLog("[Call] bleManagerdidUpdateNotification optcode: \(opcode), statusCode: \(statusCode)")
     }
 }

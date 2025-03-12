@@ -10,6 +10,7 @@ import Common
 import CoreBluetooth
 import BLEManager
 import Network
+import SVProgressHUD
 
 class SearchDeviceViewController: BaseViewController {
     private lazy var bluetoothManager: AIBLEManager = {
@@ -176,8 +177,11 @@ extension SearchDeviceViewController: UITableViewDelegate, UITableViewDataSource
         checkWiFiStatus { [weak self] isWiFiEnabled in
             guard let self = self else { return }
             if isWiFiEnabled {
-                let vc = IOTWifiSettingViewController()
+                SVProgressHUD.show()
                 let device = self.devices[indexPath.row]
+                bluetoothManager.connect(device)
+
+                let vc = IOTWifiSettingViewController()
                 vc.deviceId = device.id.uuidString
                 vc.rssi = device.rssi
                 
@@ -225,11 +229,12 @@ extension SearchDeviceViewController: SearchingViewDelegate, DeviceSearchFailedV
 
 extension SearchDeviceViewController: BLEManagerDelegate {
     func bleManagerOnDevicConfigStateChanged(manager: AIBLEManager, oldState: AIBLEManager.DeviceConfigState, newState: AIBLEManager.DeviceConfigState) {
+        addLog("[Call] bleManagerOnDevicConfigStateChanged old: \(oldState), new: \(newState)")
         switch newState {
         case .readyToScanDevices:
             bluetoothManager.startScan()
         case .deviceConnected:
-            print("deviceConnected")
+            addLog("device connnected")
         case .wifiConfiguration:
             print("show load...")
         case .wifiConfigurationDone:
@@ -239,9 +244,13 @@ extension SearchDeviceViewController: BLEManagerDelegate {
         }
     }
     
+    func bleManagerOnLastLogInfo(manager: AIBLEManager, logInfo: String) {
+        addLog("[Call] bleManagerOnLastLogInfo : \(logInfo)")
+    }
+    
     func bleManagerDidScanDevice(_ manager: AIBLEManager, device: BLEDevice, error: Error?) {
         if let data = device.data[CBAdvertisementDataManufacturerDataKey] as? Data {
-            if bluetoothManager.bekenDeviceManufacturerData == data {
+//            if bluetoothManager.bekenDeviceManufacturerData == data {
             if !devices.contains(where: { $0.id == device.id }) {
                     if devices.isEmpty {
                         remakeConstraints()
@@ -252,6 +261,6 @@ extension SearchDeviceViewController: BLEManagerDelegate {
                     tableView.reloadData()
                 }
             }
-        }
+//        }
     }
 }
