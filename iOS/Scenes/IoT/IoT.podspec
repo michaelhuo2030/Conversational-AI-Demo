@@ -7,9 +7,9 @@
 #
 
 Pod::Spec.new do |s|
-  s.name             = 'ConvoAI'
+  s.name             = 'IoT'
   s.version          = '0.1.0'
-  s.summary          = 'A short description of ConvoAI.'
+  s.summary          = 'A short description of IoT.'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -33,12 +33,12 @@ TODO: Add long description of the pod here.
   s.static_framework = true
   s.swift_version = '5.0'
 
-  s.source_files = 'ConvoAI/Classes/**/*'
-  s.resource = 'ConvoAI/Resources/*.bundle'
+  s.source_files = 'IoT/Classes/**/*'
+  s.resource = 'IoT/Resources/*.bundle'
   s.resource_bundles = {
-    'ConvoAI' => [
-      'ConvoAI/Assets/**/*',
-      'ConvoAI/Resources/**/*'
+    'IoT' => [
+      'IoT/Assets/**/*',
+      'IoT/Resources/**/*'
     ]
   }
   
@@ -49,6 +49,5 @@ TODO: Add long description of the pod here.
   s.dependency 'Common'
   s.dependency 'Kingfisher'
   s.dependency 'BLEManager'
-  s.dependency 'IoT'
 
 end

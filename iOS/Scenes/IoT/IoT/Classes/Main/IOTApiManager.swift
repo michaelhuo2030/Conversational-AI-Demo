@@ -78,10 +78,10 @@ class IOTApiManager: IOTApiProtocol {
         let parameters: [String: Any] = [
             "request_id": requestId
         ]
-        ConvoAILogger.info("fetch iot preset api: \(url) parameters: \(parameters)")
+        IoTLogger.info("fetch iot preset api: \(url) parameters: \(parameters)")
 
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            ConvoAILogger.info("presets request response: \(result)")
+            IoTLogger.info("presets request response: \(result)")
             
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
@@ -118,9 +118,9 @@ class IOTApiManager: IOTApiProtocol {
             "request_id": UUID().uuidString,
             "device_id": deviceId
         ]
-        ConvoAILogger.info("generator token api: \(url) parameters: \(parameters)")
+        IoTLogger.info("generator token api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            ConvoAILogger.info("token request response: \(result)")
+            IoTLogger.info("token request response: \(result)")
             
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"
@@ -167,9 +167,9 @@ class IOTApiManager: IOTApiProtocol {
             "advanced_feature_enable_aivad": aivad
         ]
         
-        ConvoAILogger.info("update setting api: \(url) parameters: \(parameters)")
+        IoTLogger.info("update setting api: \(url) parameters: \(parameters)")
         NetworkManager.shared.postRequest(urlString: url, params: parameters) { result in
-            ConvoAILogger.info("update settings response: \(result)")
+            IoTLogger.info("update settings response: \(result)")
             
             if let code = result["code"] as? Int, code != 0 {
                 let msg = result["msg"] as? String ?? "Unknown error"

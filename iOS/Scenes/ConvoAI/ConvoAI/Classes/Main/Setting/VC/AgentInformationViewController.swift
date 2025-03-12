@@ -8,9 +8,9 @@
 import UIKit
 import Common
 import SVProgressHUD
+import IoT
 
 class AgentInformationViewController: UIViewController {
-    
     static func show(in viewController: UIViewController, rtcManager: RTCManager?) {
         let settingVC = AgentInformationViewController()
         settingVC.rtcManager = rtcManager
@@ -20,7 +20,6 @@ class AgentInformationViewController: UIViewController {
     }
     
     public var rtcManager: RTCManager?
-    private var iotApiManager: IOTApiManager = IOTApiManager()
     private let backgroundViewWidth: CGFloat = 315
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
@@ -151,18 +150,16 @@ class AgentInformationViewController: UIViewController {
     
     private lazy var deviceCard: IotDeviceCardView = {
         let card = IotDeviceCardView()
-        if let presets = AppContext.iotDeviceManager()?.getAllDevices() {
-            card.configure(title: ResourceManager.L10n.Iot.title, subtitle: String(format: ResourceManager.L10n.Iot.device, "\(presets.count)"))
-        }
+        card.configure(title: ResourceManager.L10n.Iot.title, subtitle: String(format: ResourceManager.L10n.Iot.device, "\(IoTEntrance.deviceCount())"))
         card.settingsIcon = UIImage.ag_named("ic_iot_add")
         card.backgroundImage = UIImage.ag_named("ic_iot_card_bg_green")
         card.settingsButtonBackgroundColor = UIColor.themColor(named: "ai_brand_white8")
         card.titleColor = UIColor.themColor(named: "ai_brand_black10")
         card.subtitleColor = UIColor.themColor(named: "ai_brand_black10")
         card.onSettingsTapped = { [weak self] in
+            guard let self = self else { return }
             // Handle settings button tap
-            let vc = IOTListViewController()
-            self?.navigationController?.pushViewController(vc)
+            IoTEntrance.iotScene(viewController: self)
         }
         card.layer.cornerRadius = 20
         card.layer.masksToBounds = true
@@ -185,7 +182,14 @@ class AgentInformationViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         animateBackgroundViewIn()
-        requestIOTPresetsIfNeeded()
+        SVProgressHUD.show()
+        IoTEntrance.fetchPresetIfNeed { error in
+            SVProgressHUD.dismiss()
+            if let error = error {
+                ConvoAILogger.info("fetch preset error: \(error.localizedDescription)")
+                return
+            }
+        }
     }
     
     private func registerDelegate() {
@@ -194,28 +198,6 @@ class AgentInformationViewController: UIViewController {
     
     private func unregisterDelegate() {
         AppContext.preferenceManager()?.removeDelegate(self)
-    }
-    
-    private func requestIOTPresetsIfNeeded() {
-        guard AppContext.iotPresetsManager()?.allPresets() == nil else { return }
-        
-        SVProgressHUD.show()
-        iotApiManager.fetchPresets(requestId: UUID().uuidString) { error, presets in
-            SVProgressHUD.dismiss()
-            if let error = error {
-                SVProgressHUD.showError(withStatus: error.message)
-                ConvoAILogger.info(error.message)
-                return
-            }
-            
-            guard let presets = presets else {
-                ConvoAILogger.info("preset is empty")
-                SVProgressHUD.showError(withStatus: "preset is empty")
-                return
-            }
-            
-            AppContext.iotPresetsManager()?.setPresets(presets: presets)
-        }
     }
     
     private func setupPanGesture() {

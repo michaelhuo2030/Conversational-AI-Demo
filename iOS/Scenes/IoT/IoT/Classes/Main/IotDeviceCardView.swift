@@ -6,6 +6,9 @@
 //
 
 import UIKit
+import SnapKit
+import Common
+import SwifterSwift
 
 class IotDeviceCardView: UIView {
     var onTitleButtonTapped: (() -> Void)?

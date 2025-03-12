@@ -260,9 +260,9 @@ class DeviceIntroductionViewController: BaseViewController {
                     cardBackgroundColor: UIColor.themColor(named: "ai_brand_main6"),
                     title: ResourceManager.L10n.Iot.permissionBluetoothUnauthorized,
                     action: {
-                        guard let bluetoothUrl = URL(string: "App-Prefs:root=Bluetooth") else { return }
-                        if UIApplication.shared.canOpenURL(bluetoothUrl) {
-                            UIApplication.shared.open(bluetoothUrl)
+                        guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return }
+                        if UIApplication.shared.canOpenURL(settingsUrl) {
+                            UIApplication.shared.open(settingsUrl)
                         }
                     }
                 )

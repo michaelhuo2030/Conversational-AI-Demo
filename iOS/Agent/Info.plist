@@ -2,20 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>The app needs to use location to access Wi-Fi for connecting to smart home devices.</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>The app needs to use Bluetooth to connect to smart home devices.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>The app needs to use location to access Wi-Fi for connecting to smart home devices.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>The app needs to use location to access Wi-Fi for connecting to smart home devices.</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>The app needs to use Bluetooth to connect to smart home devices.</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>App-Prefs</string>
-	</array>
 	<key>Application supports iTunes</key>
 	<true/>
 	<key>CFBundleAllowMixedLocalizations</key>
@@ -24,6 +10,10 @@
 	<array>
 		<string>en</string>
 		<string>zh</string>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>App-Prefs</string>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>

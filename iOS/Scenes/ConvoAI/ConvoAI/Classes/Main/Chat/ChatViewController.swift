@@ -11,9 +11,9 @@ import AgoraRtcKit
 import SVProgressHUD
 import SwifterSwift
 import Common
+import IoT
 
 public class ChatViewController: UIViewController {
-    private let iotAipManager = IOTApiManager()
     private var isDenoise = true
     private let messageParser = MessageParser()
     private var remoteIsJoined = false
@@ -440,27 +440,17 @@ public class ChatViewController: UIViewController {
 // MARK: - Agent Request
 extension ChatViewController {
     private func fetchIotPresetsIfNeeded() async throws {
-        guard AppContext.iotPresetsManager()?.allPresets() == nil else { return }
-        
         return try await withCheckedThrowingContinuation { continuation in
-            iotAipManager.fetchPresets(requestId: UUID().uuidString) { error, presets in
+            IoTEntrance.fetchPresetIfNeed { error in
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
                 }
-                
-                guard let presets = presets else {
-                    continuation.resume(throwing: NSError(domain: "", code: -1,
-                        userInfo: [NSLocalizedDescriptionKey: "result is empty"]))
-                    return
-                }
-                
-                AppContext.iotPresetsManager()?.setPresets(presets: presets)
                 continuation.resume()
             }
         }
     }
-    
+
     private func fetchPresetsIfNeeded() async throws {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
