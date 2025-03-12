@@ -7,6 +7,7 @@
 
 import UIKit
 import Common
+import SVProgressHUD
 
 class IOTSettingViewController: UIViewController {
     
@@ -17,7 +18,8 @@ class IOTSettingViewController: UIViewController {
     private var currentLanguage: CovIotLanguage?
     private var currentPreset: CovIotPreset?
     private var currentAIVadState: Bool?
-    
+    private let iotApiManager = IOTApiManager()
+
     // MARK: - UI Components
     
     private lazy var containerView: UIView = {
@@ -384,6 +386,18 @@ class IOTSettingViewController: UIViewController {
         selectedPresetIndex = index
     }
     
+    private func updateLocalDevie() {
+        if let preset = self.currentPreset {
+            AppContext.iotDeviceManager()?.updatePreset(preset: preset, deviceId: self.deviceId)
+        }
+        if let language = self.currentLanguage {
+            AppContext.iotDeviceManager()?.updateLanguage(language: language, deviceId: self.deviceId)
+        }
+        if let aivad = self.currentAIVadState {
+            AppContext.iotDeviceManager()?.updateAIVad(aivad: aivad, deviceId: self.deviceId)
+        }
+    }
+    
     // MARK: - Actions
     
     @objc private func closeButtonTapped() {
@@ -407,14 +421,33 @@ class IOTSettingViewController: UIViewController {
         ) { [weak self] in
             guard let self = self else { return }
             
-            if let preset = self.currentPreset {
-                AppContext.iotDeviceManager()?.updatePreset(preset: preset, deviceId: self.deviceId)
+            var presetName = device.currentPreset.preset_name
+            var languageCode = device.currentLanguage.code
+            var aivadState = device.aiVad
+            
+            if hasPresetChange, let preset = self.currentPreset {
+                presetName = preset.preset_name
             }
-            if let language = self.currentLanguage {
-                AppContext.iotDeviceManager()?.updateLanguage(language: language, deviceId: self.deviceId)
+            
+            if hasLanguageChange, let language = self.currentLanguage {
+                languageCode = language.code
             }
-            if let aivad = self.currentAIVadState {
-                AppContext.iotDeviceManager()?.updateAIVad(aivad: aivad, deviceId: self.deviceId)
+            
+            if hasAivadChange, let aivad = self.currentAIVadState {
+                aivadState = aivad
+            }
+            
+            SVProgressHUD.show()
+            self.iotApiManager.updateSettings(deviceId: self.deviceId, presetName: presetName, asrLanguage: languageCode, aivad: aivadState) { [weak self] error in
+                guard let self = self else { return }
+                SVProgressHUD.dismiss()
+                if let error = error {
+                    SVProgressHUD.showError(withStatus: error.message)
+                } else {
+                    self.updateLocalDevie()
+                }
+                
+                self.dismiss(animated: true)
             }
             
             self.dismiss(animated: true)

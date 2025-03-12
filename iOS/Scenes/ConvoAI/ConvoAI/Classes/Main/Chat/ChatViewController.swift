@@ -336,6 +336,7 @@ public class ChatViewController: UIViewController {
             startAgentRequest()
             joinChannel()
         } catch {
+            
             handleStartError()
         }
     }

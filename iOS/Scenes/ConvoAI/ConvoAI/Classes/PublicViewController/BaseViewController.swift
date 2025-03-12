@@ -39,6 +39,10 @@ class BaseViewController: UIViewController {
         }
     }
     
+    func addLog(_ txt: String) {
+        ConvoAILogger.info(txt)
+    }
+    
     @objc func navigationBackButtonTapped() {
         navigationController?.popViewController(animated: true)
     }

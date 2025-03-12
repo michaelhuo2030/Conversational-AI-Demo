@@ -149,7 +149,7 @@ extension IOTDeviceManagerDelegate {
 struct LocalDevice: Codable {
     var name: String
     let deviceId: String
-    let rssi: Int
+    let rssi: String
     var currentPreset: CovIotPreset
     var currentLanguage: CovIotLanguage
     var aiVad: Bool
