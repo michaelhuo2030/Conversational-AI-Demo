@@ -11,14 +11,14 @@
 
     <ImageView
         android:id="@+id/ivAppLogin"
-        android:layout_width="101dp"
-        android:layout_height="99dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginTop="25dp"
-        android:layout_marginBottom="20dp"
         android:padding="16dp"
         android:src="@drawable/ai_login_icon"
         app:layout_constraintBottom_toTopOf="@+id/btnLoginSSO"
         app:layout_constraintDimensionRatio="1:1"
+        android:layout_marginBottom="20dp"
         app:layout_constraintEnd_toEndOf="@+id/btnLoginSSO"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.25" />
@@ -63,6 +63,7 @@
             android:textColor="@color/ai_icontext1"
             android:lineSpacingExtra="5dp"
             android:textSize="20sp"
+            android:visibility="gone"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -78,10 +79,10 @@
         android:textColor="@color/ai_icontext_inverse1"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:gravity="center"
-        android:paddingHorizontal="0dp"
         app:backgroundTint="@color/ai_icontext1"
         app:cornerRadius="12dp"
+        android:gravity="center"
+        android:paddingHorizontal="0dp"
         app:layout_constraintBottom_toTopOf="@+id/tvCheckTips"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="6dp"
