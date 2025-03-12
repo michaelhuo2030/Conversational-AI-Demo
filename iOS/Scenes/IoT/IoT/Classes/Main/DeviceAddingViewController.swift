@@ -249,4 +249,9 @@ extension DeviceAddingViewController: BLEManagerDelegate {
     func bleManagerdidUpdateNotification(manager: AIBLEManager, opcode: Int, statusCode: UInt, payload: Data) {
         addLog("[Call] bleManagerdidUpdateNotification optcode: \(opcode), statusCode: \(statusCode)")
     }
+    
+    func bleManagerOnDevicConfigError(manager: AIBLEManager, error: Error) {
+        addLog("[Call] bleManagerOnDevicConfigError: \(error)")
+        showErrorAlert()
+    }
 }

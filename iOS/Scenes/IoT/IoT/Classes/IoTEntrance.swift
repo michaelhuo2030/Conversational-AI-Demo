@@ -38,6 +38,7 @@ public class IoTEntrance: NSObject {
             }
             
             AppContext.iotPresetsManager()?.setPresets(presets: presets)
+            completion?(nil)
         }
     }
     
