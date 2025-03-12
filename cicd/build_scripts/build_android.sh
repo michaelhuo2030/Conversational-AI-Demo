@@ -161,4 +161,4 @@ cat gradle.properties
 ./gradlew :app:assembleRelease || exit 1
 
 # Upload apk
-rm -rf ${WORKSPACE}/*.apk && cp app/build/outputs/apk/global/release/*.apk ${WORKSPACE}
+rm -rf ${WORKSPACE}/*.apk && cp app/build/outputs/apk/china/release/*.apk ${WORKSPACE}
