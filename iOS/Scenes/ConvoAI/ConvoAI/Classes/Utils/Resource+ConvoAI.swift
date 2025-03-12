@@ -156,7 +156,6 @@ extension ResourceManager {
 
         public enum Iot {
             public static let title = ResourceManager.localizedString("iot.info.title")
-            public static let innerTitle = ResourceManager.localizedString("iot.info.inner.title")
             public static let device = ResourceManager.localizedString("iot.info.device")
             public static let submit = ResourceManager.localizedString("iot.common.submit")
             public static let cancel = ResourceManager.localizedString("iot.common.cancel")
@@ -225,9 +224,6 @@ extension ResourceManager {
             public static let deviceSettingsPreset = ResourceManager.localizedString("iot.device.settings.preset")
             public static let deviceSettingsLanguage = ResourceManager.localizedString("iot.device.settings.language")
             public static let deviceSettingsLanguageTitle = ResourceManager.localizedString("iot.device.settings.language.title")
-            public static let deviceSettingsLanguageSimplifiedChinese = ResourceManager.localizedString("iot.device.settings.language.simplified_chinese")
-            public static let deviceSettingsLanguageEnglish = ResourceManager.localizedString("iot.device.settings.language.english")
-            public static let deviceSettingsLanguageJapanese = ResourceManager.localizedString("iot.device.settings.language.japanese")
             public static let deviceSettingsAdvanced = ResourceManager.localizedString("iot.device.settings.advanced")
             public static let deviceSettingsInterrupt = ResourceManager.localizedString("iot.device.settings.interrupt")
             public static let deviceSettingsReconnect = ResourceManager.localizedString("iot.device.settings.reconnect")
@@ -255,11 +251,6 @@ extension ResourceManager {
             
             // Device Search
             public static let deviceSearchTitle = ResourceManager.localizedString("iot.device.search.title")
-            public static let deviceSearchNoResult = ResourceManager.localizedString("iot.device.search.no_result")
-            public static let deviceSearchScanning = ResourceManager.localizedString("iot.device.search.scanning")
-            public static let deviceSearchRetry = ResourceManager.localizedString("iot.device.search.retry")
-            public static let deviceSearchTip = ResourceManager.localizedString("iot.device.search.tip")
-            public static let deviceSearchConnect = ResourceManager.localizedString("iot.device.search.connect")
             
             // Device Search Status
             public static let deviceSearchStatusReady = ResourceManager.localizedString("iot.device.search.status.ready")

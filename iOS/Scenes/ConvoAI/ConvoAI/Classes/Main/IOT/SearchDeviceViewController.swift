@@ -177,13 +177,13 @@ extension SearchDeviceViewController: UITableViewDelegate, UITableViewDataSource
         checkWiFiStatus { [weak self] isWiFiEnabled in
             guard let self = self else { return }
             if isWiFiEnabled {
-                SVProgressHUD.show()
                 let device = self.devices[indexPath.row]
                 bluetoothManager.connect(device)
 
                 let vc = IOTWifiSettingViewController()
                 vc.deviceId = device.id.uuidString
                 vc.rssi = device.rssi
+                vc.deviceName = device.name
                 
                 self.navigationController?.pushViewController(vc)
             } else {

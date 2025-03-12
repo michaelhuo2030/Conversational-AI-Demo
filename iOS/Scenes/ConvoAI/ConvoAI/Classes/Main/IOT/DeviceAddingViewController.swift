@@ -11,8 +11,10 @@ import SVProgressHUD
 import BLEManager
 
 class DeviceAddingViewController: BaseViewController {
-    var rssi: String = ""
+    var wifiName: String = ""
     var password: String = ""
+    var deviceId: String = ""
+    var deviceName: String = ""
     
     private let apiManger = IOTApiManager()
     private var bluetoothManager: AIBLEManager = .shared
@@ -216,9 +218,9 @@ class DeviceAddingViewController: BaseViewController {
                 }
                 
                 try await updateSettings(deviceId: deviceId, presetName: preset.preset_name, asrLanguage: defaultLanguage.code)
-                addLog("ssid: \(rssi), pwd: \(password)")
+                addLog("ssid: \(wifiName), pwd: \(password)")
                 bluetoothManager.sendWifiInfo(BLENetworkConfigInfo(
-                    ssid: "\(rssi)",
+                    ssid: wifiName,
                     password: password,
                     url: AppContext.shared.baseServerUrl,
                     authToken: tokenModel.auth_token
@@ -226,9 +228,9 @@ class DeviceAddingViewController: BaseViewController {
                 
                 await MainActor.run {
                     AppContext.iotDeviceManager()?.addDevice(device: LocalDevice(
-                        name: "smaug123",
+                        name: deviceName,
                         deviceId: deviceId,
-                        rssi: rssi,
+                        rssi: wifiName,
                         currentPreset: preset,
                         currentLanguage: defaultLanguage,
                         aiVad: false

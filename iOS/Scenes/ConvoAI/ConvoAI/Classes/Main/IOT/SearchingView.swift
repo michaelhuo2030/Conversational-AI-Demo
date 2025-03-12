@@ -85,7 +85,7 @@ class SearchingView: UIView {
         }
         
         descriptionLabel.snp.makeConstraints { make in
-            make.top.equalTo(24)
+            make.top.equalTo(titleLabel.snp.bottom).offset(24)
             make.left.right.equalTo(titleLabel)
         }
         

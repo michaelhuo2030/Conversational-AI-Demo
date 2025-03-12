@@ -152,7 +152,7 @@ class AgentInformationViewController: UIViewController {
     private lazy var deviceCard: IotDeviceCardView = {
         let card = IotDeviceCardView()
         if let presets = AppContext.iotDeviceManager()?.getAllDevices() {
-            card.configure(title: ResourceManager.L10n.Iot.innerTitle, subtitle: "\(presets.count) 个设备")
+            card.configure(title: ResourceManager.L10n.Iot.title, subtitle: String(format: ResourceManager.L10n.Iot.device, "\(presets.count)"))
         }
         card.settingsIcon = UIImage.ag_named("ic_iot_add")
         card.backgroundImage = UIImage.ag_named("ic_iot_card_bg_green")

@@ -14,6 +14,7 @@ class IOTWifiSettingViewController: BaseViewController {
     
     // MARK: - Properties
     var deviceId: String = ""
+    var deviceName: String = ""
     var rssi: Int = 0
     
     private let wifiManager = WiFiManager()
@@ -321,8 +322,10 @@ class IOTWifiSettingViewController: BaseViewController {
     @objc private func nextButtonTapped() {
         // Handle next button tap
         let vc = DeviceAddingViewController()
-        vc.rssi = wifiNameField.text ?? ""
+        vc.wifiName = wifiNameField.text ?? ""
         vc.password = passwordField.text ?? ""
+        vc.deviceId = deviceId
+        vc.deviceName = deviceName
         self.navigationController?.pushViewController(vc)
     }
 }

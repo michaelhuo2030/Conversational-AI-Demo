@@ -104,9 +104,8 @@
 "devmode.graph" = "graph id";
 "devmode.server" = "服务器";
 
-"iot.info.title" = "我的设备";
-"iot.info.inner.title" = "声网IOT设备";
-"iot.info.device" = "设备";
+"iot.info.title" = "对话式 AI 设备";
+"iot.info.device" = "%@个设备";
 "iot.common.submit" = "确认";
 "iot.common.cancel" = "取消";
 
@@ -167,9 +166,6 @@
 "iot.device.settings.preset" = "预设人设";
 "iot.device.settings.language" = "语言";
 "iot.device.settings.language.title" = "选择语言";
-"iot.device.settings.language.simplified_chinese" = "简体中文";
-"iot.device.settings.language.english" = "英文";
-"iot.device.settings.language.japanese" = "日语";
 "iot.device.settings.advanced" = "高级设置";
 "iot.device.settings.interrupt" = "启用 优雅打断";
 "iot.device.settings.reconnect" = "重新配网";
@@ -183,11 +179,6 @@
 "iot.device.settings.save.discard" = "放弃更改";
 
 "iot.device.search.title" = "扫描附近设备";
-"iot.device.search.no_result" = "未找到设备";
-"iot.device.search.scanning" = "正在扫描设备...";
-"iot.device.search.retry" = "重试";
-"iot.device.search.tip" = "确保您的设备处于配对模式";
-"iot.device.search.connect" = "连接";
 
 "iot.wifi.settings.title" = "选择2.4GHz Wi-Fi网络";
 "iot.wifi.settings.subtitle" = "输入Wi-Fi密码";
