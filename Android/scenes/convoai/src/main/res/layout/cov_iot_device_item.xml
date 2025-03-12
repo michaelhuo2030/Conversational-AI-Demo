@@ -46,7 +46,7 @@
                 android:layout_height="24dp"
                 android:layout_marginStart="8dp"
                 android:src="@drawable/cov_iot_rename"
-                app:tint="@color/ai_brand_black6" />
+                app:tint="@color/ai_fill1" />
         </LinearLayout>
 
         <!-- SN label and serial number display separately -->
@@ -77,6 +77,9 @@
                 android:layout_marginStart="8dp"
                 android:textColor="@color/ai_brand_black6"
                 android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:maxWidth="300dp"
                 tools:text="237263263847SDJK" />
         </LinearLayout>
 

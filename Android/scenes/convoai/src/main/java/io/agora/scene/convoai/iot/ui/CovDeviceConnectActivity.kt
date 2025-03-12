@@ -22,6 +22,7 @@ import io.agora.scene.convoai.R
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
+import io.agora.scene.common.BuildConfig
 import io.agora.scene.convoai.iot.api.CovIotApiManager
 import io.agora.scene.convoai.iot.manager.CovIotPresetManager
 import io.agora.scene.convoai.iot.manager.CovScanBleDeviceManager
@@ -55,6 +56,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
 
     // Device object
     private var device: BleDevice? = null
+    private var id: String = ""
     // WiFi information
     private var wifiSsid: String = ""
     private var wifiPassword: String = ""
@@ -128,9 +130,16 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                 CovLogger.d(TAG, "ble device connect success")
                 
                 // 2. get device id
-                val deviceId = "1234567890" //TODO bleManager.getDeviceId()
+                val deviceId = bleManager.getDeviceId()
                 CovLogger.d(TAG, "get device id: $deviceId")
-                
+
+                if (deviceId.isEmpty()) {
+                    updateConnectState(ConnectState.FAILED)
+                    return@launch
+                }
+
+                id = deviceId
+
                 // 3. get token
                 CovIotApiManager.generatorToken(deviceId) { model, e ->
                     if (e != null || model?.auth_token?.isEmpty() == true) {
@@ -153,21 +162,25 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                                         // 5. update settings success, then configure WiFi network
                                         viewModelScope.launch {
                                             try {
-                                                simulateConnectProcess()
-                                                // TODO
-                                                // val ret = bleManager.distributionNetwork(
-                                                //     device = device.device,
-                                                //     ssid = wifiSsid,
-                                                //     pwd = wifiPassword,
-                                                //     token = model?.auth_token ?: "",
-                                                //     url = ServerConfig.toolBoxUrl
-                                                // )
+                                                // simulateConnectProcess()
+                                                CovLogger.d(TAG, "distributionNetwork")
+                                                 val ret = bleManager.distributionNetwork(
+                                                     device = device.device,
+                                                     ssid = wifiSsid,
+                                                     pwd = wifiPassword,
+                                                     token = model?.auth_token ?: "",
+                                                     url = "https://toolbox-staging.sh3t.agoralab.co"
+                                                 )
+
+                                                runOnUiThread {
+                                                    CovLogger.d(TAG, "distributionNetwork $ret")
+                                                    if (ret) {
+                                                        updateConnectState(ConnectState.SUCCESS)
+                                                    } else {
+                                                        updateConnectState(ConnectState.FAILED)
+                                                    }
+                                                }
                                                 
-                                                // if (ret) {
-                                                //     updateConnectState(ConnectState.SUCCESS)
-                                                // } else {
-                                                //     updateConnectState(ConnectState.FAILED)
-                                                // }
                                             } catch (e: Exception) {
                                                 CovLogger.e(TAG, "simulateConnectProcess failed: ${e.message}")
                                                 updateConnectState(ConnectState.FAILED)
@@ -309,7 +322,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
             try {
                 // Convert Device to CovIotDevice
                 val iotDevice = CovIotDevice(
-                    id = device.address,
+                    id = id,
                     name = device.name,
                     bleDevice = device,
                     currentPreset = CovIotPresetManager.getDefaultPreset()?.preset_name ?: "story_mode",

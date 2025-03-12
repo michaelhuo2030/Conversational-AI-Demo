@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovIotDeviceItemBinding
 import io.agora.scene.convoai.iot.model.CovIotDevice
+import io.agora.scene.convoai.iot.ui.dialog.CovEditNameDialog
 
 class CovIotDeviceListAdapter(private val devices: List<CovIotDevice>) :
     RecyclerView.Adapter<CovIotDeviceListAdapter.DeviceViewHolder>() {
@@ -73,25 +74,15 @@ class CovIotDeviceListAdapter(private val devices: List<CovIotDevice>) :
         
         private fun showEditNameDialog(device: CovIotDevice, position: Int) {
             val context = itemView.context
-            val input = EditText(context)
-            input.inputType = InputType.TYPE_CLASS_TEXT
-            input.setText(device.name)
-            input.setSelection(input.text.length)
             
-            // set input limit: max 10 characters and not empty
-            input.filters = arrayOf(InputFilter.LengthFilter(10))
-            
-            AlertDialog.Builder(context)
-                .setTitle(R.string.cov_iot_devices_setting_modify_name)
-                .setView(input)
-                .setPositiveButton(R.string.cov_iot_devices_setting_modify_name_confirm) { _, _ ->
-                    val newName = input.text.toString().trim()
-                    if (newName.isNotEmpty() && newName != device.name) {
-                        listener?.onNameChanged(device, newName, position)
-                    }
+            CovEditNameDialog.show(
+                context = context,
+                initialName = device.name
+            ) { newName ->
+                if (newName.isNotEmpty() && newName != device.name) {
+                    listener?.onNameChanged(device, newName, position)
                 }
-                .setNegativeButton(R.string.cov_iot_devices_setting_modify_name_cancel) { dialog, _ -> dialog.cancel() }
-                .show()
+            }
         }
     }
 }
