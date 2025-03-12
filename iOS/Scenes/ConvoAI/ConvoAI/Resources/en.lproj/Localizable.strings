@@ -109,105 +109,90 @@
 "devmode.graph" = "graph id";
 "devmode.server" = "Server";
 
-"iot.info.title" = "My device";
-"iot.info.inner.title" = "Agora IOT devices";
+"iot.info.title" = "Dialogue-based AI Device";
+"iot.info.inner.title" = "Dialogue-based AI Device";
 "iot.info.device" = "device";
 "iot.common.submit" = "Submit";
 "iot.common.cancel" = "Cancel";
 
-// Permissions
-"iot.permission.title" = "Enable Permissions";
-"iot.permission.description" = "The following permissions are required to add nearby devices";
-"iot.permission.go_button" = "Enable";
+"iot.permission.title" = "Enable Permissions & Switches";
+"iot.permission.description" = "Enable the Following to Add Nearby Devices";
+"iot.permission.go_button" = "Go to Enable";
 "iot.permission.item.bluetooth" = "Bluetooth";
 "iot.permission.item.location" = "Location";
 "iot.permission.item.wifi" = "2.4G Wi-Fi";
-"iot.permission.bluetooth.enable" = "Enable Bluetooth";
-"iot.permission.bluetooth.unauthorized" = "Bluetooth permission denied";
-"iot.permission.location.unauthorized" = "Location permission denied";
-"iot.permission.button.next" = "Next Step";
+"iot.permission.bluetooth.enable" = "Turn On Phone Bluetooth";
+"iot.permission.bluetooth.unauthorized" = "Location Service Not Authorized";
+"iot.permission.location.unauthorized" = "Location Service Not Authorized";
+"iot.permission.button.next" = "Next";
 
-// Device Adding Process
 "iot.device.add.title" = "Adding Device";
-"iot.device.add.progress" = "Adding device...";
-"iot.device.add.success.title" = "Successfully Added";
-"iot.device.add.success.description" = "Note: Device information will be saved locally. You'll need to re-add devices after reinstalling the app.";
+"iot.device.add.progress" = "Adding Device...";
+"iot.device.add.success.title" = "Device Added Successfully";
+"iot.device.add.success.description" = "Note: Device addition info is saved locally. Re-add devices after reinstalling the app.";
 
-// Device Scanning
 "iot.device.scanning.title" = "Scanning...";
-"iot.device.scanning.description" = "Please ensure the smart device is in pairing mode and nearby";
+"iot.device.scanning.description" = "Make Sure the Smart Device's Network Setup Switch Is On, \nand It's Near Your Phone";
 
-// Empty Device Page
 "iot.device.empty.welcome" = "Welcome";
-"iot.device.empty.description" = "Let's add your first device";
+"iot.device.empty.description" = "Let's Add a Device Now";
 "iot.device.empty.add_button" = "Add Device";
 
-// Device Setup
-"iot.device.setup.instruction" = "Press and hold the pairing button for 3 seconds";
-"iot.device.setup.instruction.sub" = "3 seconds";
-"iot.device.setup.permission_description" = "The following permissions will be requested during pairing";
-"iot.device.setup.complete" = "I have completed the above steps";
+"iot.device.setup.instruction" = "Hold the Network Setup Button for 3s to Enter Pairing Mode";
+"iot.device.setup.instruction.sub" = "3s";
+"iot.device.setup.permission_description" = "The Following Permissions and Switches Will Be Requested During Pairing";
+"iot.device.setup.complete" = "Completed the Above Operations";
 
-// Others
-"iot.device.default_preset" = "Default Preset";
+"iot.device.default_preset" = "默认预设";
+"iot.device.step1.title" = "连接电源";
+"iot.device.step1.description" = "将设备连接到电源并打开";
+"iot.device.step2.title" = "等待启动";
+"iot.device.step2.description" = "设备指示灯将亮起，等待其完成启动";
+"iot.device.step3.title" = "网络连接";
+"iot.device.step3.description" = "确保您的手机已连接到Wi-Fi网络";
 
-// Device Introduction Steps
-"iot.device.step1.title" = "Connect Power";
-"iot.device.step1.description" = "Connect the device to power and turn it on";
-"iot.device.step2.title" = "Wait for Startup";
-"iot.device.step2.description" = "The device indicator will light up, wait for it to complete startup";
-"iot.device.step3.title" = "Network Connection";
-"iot.device.step3.description" = "Make sure your phone is connected to Wi-Fi network";
+"iot.device.search.failed.title" = "Scan Failed";
+"iot.device.search.failed.description" = "Check If the Device Is in Setup Pending State";
+"iot.device.search.failed.retry" = "Rescan";
+"iot.device.search.failed.tip" = "Ensure the Smart Device's Network Setup Switch Is On and It's Near Your Phone";
 
-// Device Search Failed
-"iot.device.search.failed.title" = "Search Failed";
-"iot.device.search.failed.description" = "Please check if the device is in pairing mode";
-"iot.device.search.failed.retry" = "Scan Again";
-"iot.device.search.failed.tip" = "Please ensure the smart device is in pairing mode and nearby";
+"iot.error.alert.title" = "Can't Connect to the Smart Device!";
+"iot.error.alert.subtitle" = "Check the Following Steps:";
+"iot.error.check.wifi" = "Check Wi-Fi Password";
+"iot.error.check.pairing" = "Check If Device Is in Setup Pending State";
+"iot.error.check.router" = "Check If Device Is Close to Router";
 
-// IOT Error Alert
-"iot.error.alert.title" = "Unable to connect to smart device!";
-"iot.error.alert.subtitle" = "Please check the following steps:";
-"iot.error.check.wifi" = "Check if the Wi-Fi password is correct";
-"iot.error.check.pairing" = "Check if the device is in pairing mode";
-"iot.error.check.router" = "Check if the device is close to the router";
+"iot.device.rename.title" = "修改名称";
+"iot.device.rename.success" = "设备名称已更新";
+"iot.device.rename.placeholder" = "请输入名字";
+"iot.device.rename.tips" = "Max 10 Characters, Can't Be Empty";
 
-"iot.device.rename.title" = "Rename Device";
-"iot.device.rename.success" = "Device name has been updated.";
-
-// Device Settings
-"iot.device.settings.title" = "Settings";
-"iot.device.settings.preset" = "Preset";
-"iot.device.settings.language" = "Language";
-"iot.device.settings.language.title" = "Select Language";
-"iot.device.settings.language.simplified_chinese" = "Simplified Chinese";
-"iot.device.settings.language.english" = "English";
-"iot.device.settings.language.japanese" = "Japanese";
-"iot.device.settings.advanced" = "Advanced Settings";
-"iot.device.settings.interrupt" = "Enable Graceful Interruption";
-"iot.device.settings.reconnect" = "Reconnect";
+"iot.device.settings.title" = "设置";
+"iot.device.settings.preset" = "Preset Character";
+"iot.device.settings.language" = "语言";
+"iot.device.settings.advanced" = "高级设置";
+"iot.device.settings.interrupt" = "启用 优雅打断";
+"iot.device.settings.reconnect" = "Re-set Network";
 "iot.device.settings.delete" = "Delete Device";
-"iot.device.settings.delete.title" = "Delete Device";
-"iot.device.settings.delete.description" = "Are you sure you want to delete this device? This action cannot be undone.";
-"iot.device.settings.delete.confirm" = "Delete";
-"iot.device.settings.save.title" = "Save Changes";
-"iot.device.settings.save.description" = "Do you want to save the changes you made?";
-"iot.device.settings.save.confirm" = "Save";
-"iot.device.settings.save.discard" = "Discard";
+"iot.device.settings.delete.title" = "您是否要删除%@？";
+"iot.device.settings.delete.description" = "删除后，将不能更改它的对话设定。是否继续删除？";
+"iot.device.settings.delete.confirm" = "删除";
+"iot.device.settings.save.title" = "Save Current Changes?";
+"iot.device.settings.save.description" = "Config will be updated when the smart device connects next time after confirming changes.";
+"iot.device.settings.save.confirm" = "Confirm Changes";
+"iot.device.settings.save.discard" = "Discard Changes";
 
-// Device Search
 "iot.device.search.title" = "Scan Nearby Devices";
-"iot.device.search.no_result" = "No devices found";
-"iot.device.search.scanning" = "Scanning for devices...";
-"iot.device.search.retry" = "Retry";
-"iot.device.search.tip" = "Make sure your device is in pairing mode";
-"iot.device.search.connect" = "Connect";
+"iot.device.search.no_result" = "未找到设备";
+"iot.device.search.scanning" = "Scanning...";
+"iot.device.search.retry" = "重试";
+"iot.device.search.tip" = "确保您的设备处于配对模式";
+"iot.device.search.connect" = "连接";
 
-// WiFi Settings
 "iot.wifi.settings.title" = "Select 2.4GHz Wi-Fi Network";
 "iot.wifi.settings.subtitle" = "Enter Wi-Fi Password";
-"iot.wifi.settings.tip" = "Note: 5G Wi-Fi is not supported";
-"iot.wifi.settings.error" = "Please enter 2.4G wireless network";
+"iot.wifi.settings.tip" = "Note: 5G Wi-Fi Not Supported";
+"iot.wifi.settings.error" = "请输入 2.4G 无线网络";
 "iot.wifi.settings.password.placeholder" = "Password";
-"iot.wifi.settings.switch" = "Switch";
+"iot.wifi.settings.switch" = "Change";
 "iot.wifi.settings.next" = "Next";

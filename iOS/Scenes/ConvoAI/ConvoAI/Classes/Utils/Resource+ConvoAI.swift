@@ -224,10 +224,7 @@ extension ResourceManager {
             public static let deviceSettingsTitle = ResourceManager.localizedString("iot.device.settings.title")
             public static let deviceSettingsPreset = ResourceManager.localizedString("iot.device.settings.preset")
             public static let deviceSettingsLanguage = ResourceManager.localizedString("iot.device.settings.language")
-            public static let deviceSettingsLanguageTitle = ResourceManager.localizedString("iot.device.settings.language.title")
-            public static let deviceSettingsLanguageSimplifiedChinese = ResourceManager.localizedString("iot.device.settings.language.simplified_chinese")
-            public static let deviceSettingsLanguageEnglish = ResourceManager.localizedString("iot.device.settings.language.english")
-            public static let deviceSettingsLanguageJapanese = ResourceManager.localizedString("iot.device.settings.language.japanese")
+            
             public static let deviceSettingsAdvanced = ResourceManager.localizedString("iot.device.settings.advanced")
             public static let deviceSettingsInterrupt = ResourceManager.localizedString("iot.device.settings.interrupt")
             public static let deviceSettingsReconnect = ResourceManager.localizedString("iot.device.settings.reconnect")
