@@ -55,6 +55,7 @@
     <string name="cov_iot_devices_connect_connect_failed_check_net">检查设备是否靠近路由器</string>
     <string name="cov_iot_devices_connect_connect_failed_check_slide">左右滑动查看更多</string>
 
+    <string name="cov_iot_devices_setting">Settings</string>
     <string name="cov_iot_devices_setting_name_limit">限10个字符，且不能为空</string>
     <string name="cov_iot_devices_setting_preset">预设人设</string>
     <string name="cov_iot_devices_setting_preset_1_title">故事模式</string>

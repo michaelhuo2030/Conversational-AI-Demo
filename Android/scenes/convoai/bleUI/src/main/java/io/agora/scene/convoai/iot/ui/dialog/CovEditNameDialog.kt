@@ -6,10 +6,8 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
-import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
-import android.widget.FrameLayout
 import io.agora.scene.convoai.iot.R
 import io.agora.scene.convoai.iot.databinding.CovEditNameDialogBinding
 
@@ -90,12 +88,18 @@ class CovEditNameDialog(
                 binding.ivClear.visibility = if (isEmpty) android.view.View.GONE else android.view.View.VISIBLE
                 
                 binding.tvLimitTip.text = if (isEmpty) {
+                    binding.btnConfirm.alpha = 0.5F
+                    binding.btnConfirm.isEnabled = false
                     context.getString(R.string.cov_iot_devices_setting_name_limit)
                 } else {
-                    context.getString(R.string.cov_iot_devices_setting_name_limit)
+                    binding.btnConfirm.alpha = 1.0F
+                    binding.btnConfirm.isEnabled = true
+                    null
                 }
             }
         })
+
+        binding.tvLimitTip.text = null
     }
 
     companion object {

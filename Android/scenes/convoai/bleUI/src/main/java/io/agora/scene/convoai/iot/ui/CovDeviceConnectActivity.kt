@@ -122,6 +122,8 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
     private fun startConnect() {
         val device = this.device ?: return
         updateConnectState(ConnectState.CONNECTING)
+        simulateConnectProcess()
+        return
 
         viewModelScope.launch {
             try {
