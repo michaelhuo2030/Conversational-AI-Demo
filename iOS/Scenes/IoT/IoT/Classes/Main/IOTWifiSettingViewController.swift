@@ -24,8 +24,8 @@ class IOTWifiSettingViewController: BaseViewController {
         let text = ResourceManager.L10n.Iot.wifiSettingsTitle
         let attributedString = NSMutableAttributedString(string: text)
         let range = (text as NSString).range(of: "2.4GHz")
-        attributedString.addAttribute(.foregroundColor, 
-                                    value: UIColor.themColor(named: "ai_green6"), 
+        attributedString.addAttribute(.foregroundColor,
+                                    value: UIColor.themColor(named: "ai_green6"),
                                     range: range)
         label.attributedText = attributedString
         label.font = .systemFont(ofSize: 24, weight: .medium)
@@ -229,9 +229,10 @@ class IOTWifiSettingViewController: BaseViewController {
     }
     
     private func updateNextButtonState() {
-        let isValidWifi = !is5GWifi(ssid: wifiNameField.text ?? "")
-        let hasPassword = !(passwordField.text?.isEmpty ?? true)
-        nextButton.isEnabled = isValidWifi && hasPassword
+        // let isValidWifi = !is5GWifi(ssid: wifiNameField.text ?? "")
+        let password = passwordField.text ?? ""
+        let hasValidPassword = password.count >= 8
+        nextButton.isEnabled = hasValidPassword
         
         // Update button opacity based on enabled state
         nextButton.alpha = nextButton.isEnabled ? 1.0 : 0.5
@@ -347,3 +348,4 @@ extension IOTWifiSettingViewController {
         return result
     }
 }
+

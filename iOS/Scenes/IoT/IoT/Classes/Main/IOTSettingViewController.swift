@@ -133,8 +133,10 @@ class IOTSettingViewController: UIViewController {
         )
         
         if text.count >= 4 {
-            let range = NSRange(location: text.count - 4, length: 4)
-            attributedString.addAttributes(highlightAttributes, range: range)
+            if let range = text.range(of: ResourceManager.L10n.Iot.deviceSettingsInterruptMatchWord) {
+                let nsRange = NSRange(range, in: text)
+                attributedString.addAttributes(highlightAttributes, range: nsRange)
+            }
         }
         
         cell.titleLabel.attributedText = attributedString
@@ -464,7 +466,7 @@ class IOTSettingViewController: UIViewController {
         guard let device = AppContext.iotDeviceManager()?.getDevice(deviceId: deviceId) else { return }
         
         AgentAlertView.show(
-            in: view, 
+            in: view,
             title: String(format: ResourceManager.L10n.Iot.deviceSettingsDeleteTitle, "\"\(device.name)\""),
             content: ResourceManager.L10n.Iot.deviceSettingsDeleteDescription,
             cancelTitle: "取消",
@@ -705,3 +707,4 @@ private class PresetModeCell: UIView {
         separatorLine.isHidden = isLastCell
     }
 }
+
