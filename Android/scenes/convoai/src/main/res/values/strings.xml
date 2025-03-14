@@ -70,4 +70,9 @@
     <string name="cov_mic_permission_required_content">语音聊天需要麦克风权限。请授予权限以继续。</string>
     <string name="cov_retry">重试</string>
     <string name="cov_exit">退出</string>
+
+    <!-- IOT  -->
+    <string name="cov_iot_title">对话式 AI 硬件</string>
+    <string name="cov_iot_devices_num">%d个设备</string>
+    <string name="cov_my_device">我的设备</string>
 </resources>
