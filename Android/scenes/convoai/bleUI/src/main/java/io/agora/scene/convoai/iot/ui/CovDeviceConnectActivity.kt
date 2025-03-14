@@ -1,6 +1,8 @@
 package io.agora.scene.convoai.iot.ui
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +24,9 @@ import io.agora.scene.convoai.iot.R
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
-import io.agora.scene.common.BuildConfig
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.iot.api.CovIotApiManager
 import io.agora.scene.convoai.iot.manager.CovIotPresetManager
 import io.agora.scene.convoai.iot.manager.CovScanBleDeviceManager
@@ -48,7 +52,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
             activity.startActivity(intent)
         }
     }
-    
+
     // Create coroutine scope for asynchronous operations
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -62,7 +66,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
     private var wifiPassword: String = ""
 
     private val bleManager = BleManager(this)
-    
+
     // Connection states
     private enum class ConnectState {
         CONNECTING,  // Connecting
@@ -85,6 +89,11 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
     }
 
     override fun onDestroy() {
+        try {
+            bleManager.disconnect()
+        } catch (e: Exception) {
+            CovLogger.d(TAG, "disconnect")
+        }
         coroutineScope.cancel()
         super.onDestroy()
     }
@@ -104,7 +113,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                     finish()
                 }
             })
-            
+
             // Add rotation animation
             startConnectingAnimation()
         }
@@ -117,26 +126,57 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
         wifiPassword = intent.getStringExtra(EXTRA_WIFI_PASSWORD) ?: ""
         CovLogger.d(TAG, "Connecting device: ${device}, WiFi: $wifiSsid")
     }
-    
+
     // Start connecting to device
     private fun startConnect() {
         val device = this.device ?: return
         updateConnectState(ConnectState.CONNECTING)
-        simulateConnectProcess()
-        return
 
         viewModelScope.launch {
             try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                    // Android 12 and above use BLUETOOTH_SCAN permission
+                    if (ActivityCompat.checkSelfPermission(
+                            this@CovDeviceConnectActivity,
+                            Manifest.permission.BLUETOOTH_SCAN
+                        ) != PackageManager.PERMISSION_GRANTED) {
+                        CovLogger.e(TAG, "ble device scan error: no permission")
+                        ToastUtil.show("blue tooth is not available, please check your bluetooth permission", Toast.LENGTH_LONG)
+                        runOnUiThread {
+                            updateConnectState(ConnectState.FAILED)
+                        }
+                        return@launch
+                    }
+                } else {
+                    // Android 11 and below use BLUETOOTH and BLUETOOTH_ADMIN permissions
+                    if (ActivityCompat.checkSelfPermission(
+                            this@CovDeviceConnectActivity,
+                            Manifest.permission.BLUETOOTH
+                        ) != PackageManager.PERMISSION_GRANTED ||
+                        ActivityCompat.checkSelfPermission(
+                            this@CovDeviceConnectActivity,
+                            Manifest.permission.BLUETOOTH_ADMIN
+                        ) != PackageManager.PERMISSION_GRANTED) {
+                        CovLogger.e(TAG, "ble device scan error: no permission")
+                        ToastUtil.show("blue tooth is not available, please check your bluetooth permission", Toast.LENGTH_LONG)
+                        runOnUiThread {
+                            updateConnectState(ConnectState.FAILED)
+                        }
+                        return@launch
+                    }
+                }
                 // 1. connect ble device
                 bleManager.connect(device.device)
                 CovLogger.d(TAG, "ble device connect success")
-                
+
                 // 2. get device id
                 val deviceId = bleManager.getDeviceId()
                 CovLogger.d(TAG, "get device id: $deviceId")
 
                 if (deviceId.isEmpty()) {
-                    updateConnectState(ConnectState.FAILED)
+                    runOnUiThread {
+                        updateConnectState(ConnectState.FAILED)
+                    }
                     return@launch
                 }
 
@@ -164,15 +204,15 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                                         // 5. update settings success, then configure WiFi network
                                         viewModelScope.launch {
                                             try {
-                                                // simulateConnectProcess()
+                                                //simulateConnectProcess()
                                                 CovLogger.d(TAG, "distributionNetwork")
-                                                 val ret = bleManager.distributionNetwork(
-                                                     device = device.device,
-                                                     ssid = wifiSsid,
-                                                     pwd = wifiPassword,
-                                                     token = model?.auth_token ?: "",
-                                                     url = "https://toolbox-staging.sh3t.agoralab.co"
-                                                 )
+                                                val ret = bleManager.distributionNetwork(
+                                                    device = device.device,
+                                                    ssid = wifiSsid,
+                                                    pwd = wifiPassword,
+                                                    token = model?.auth_token ?: "",
+                                                    url = io.agora.scene.common.BuildConfig.TOOLBOX_SERVER_HOST
+                                                )
 
                                                 runOnUiThread {
                                                     CovLogger.d(TAG, "distributionNetwork $ret")
@@ -182,7 +222,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                                                         updateConnectState(ConnectState.FAILED)
                                                     }
                                                 }
-                                                
+
                                             } catch (e: Exception) {
                                                 CovLogger.e(TAG, "simulateConnectProcess failed: ${e.message}")
                                                 updateConnectState(ConnectState.FAILED)
@@ -207,16 +247,16 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
             }
         }
     }
-    
+
     // Simulate connection process
     private fun simulateConnectProcess() {
         coroutineScope.launch {
             // Simulate connection delay
             delay(5000)
-            
+
             // Randomly decide connection result (50% success rate)
             val isSuccess = (0..100).random() <= 50
-            
+
             if (isSuccess) {
                 // Connection successful
                 updateConnectState(ConnectState.SUCCESS)
@@ -226,7 +266,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
             }
         }
     }
-    
+
     // Add rotation animation method
     private fun startConnectingAnimation() {
         mBinding?.ivConnectingCircle?.let { connectingCircle ->
@@ -246,7 +286,7 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
             connectingCircle.startAnimation(rotateAnimation)
         }
     }
-    
+
     // Update connection state UI
     private fun updateConnectState(state: ConnectState) {
         mBinding?.apply {
@@ -331,19 +371,19 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                     currentLanguage = CovIotPresetManager.getDefaultLanguage()?.code ?: "zh-CN",
                     enableAIVAD = false
                 )
-                
+
                 // Load existing device list from SharedPreferences
                 val sharedPrefs = getSharedPreferences("iot_devices_prefs", MODE_PRIVATE)
                 val devicesJson = sharedPrefs.getString("saved_devices", null)
-                
+
                 val deviceList = mutableListOf<CovIotDevice>()
-                
+
                 if (!devicesJson.isNullOrEmpty()) {
                     val type = object : com.google.gson.reflect.TypeToken<List<CovIotDevice>>() {}.type
                     val loadedDevices = com.google.gson.Gson().fromJson<List<CovIotDevice>>(devicesJson, type)
                     deviceList.addAll(loadedDevices)
                 }
-                
+
                 // Check if device already exists
                 val existingDeviceIndex = deviceList.indexOfFirst { it.id == iotDevice.id }
                 if (existingDeviceIndex >= 0) {
@@ -353,11 +393,11 @@ class CovDeviceConnectActivity : BaseActivity<CovActivityDeviceConnectBinding>()
                     // Add new device
                     deviceList.add(0, iotDevice)
                 }
-                
+
                 // Save updated device list
                 val updatedDevicesJson = com.google.gson.Gson().toJson(deviceList)
                 sharedPrefs.edit().putString("saved_devices", updatedDevicesJson).apply()
-                
+
                 CovLogger.d(TAG, "Device saved to list: ${iotDevice.name}")
             } catch (e: Exception) {
                 CovLogger.e(TAG, "Failed to save device: ${e.message}")
