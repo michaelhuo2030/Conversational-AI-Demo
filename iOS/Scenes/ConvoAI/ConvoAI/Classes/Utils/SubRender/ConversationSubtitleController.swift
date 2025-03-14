@@ -156,8 +156,7 @@ private typealias TurnState = SubtitleStatus
 /// Subtitle Rendering Controller
 /// Manages the processing and rendering of subtitles in conversation
 ///
-@objc public class ConversationSubtitleController: NSObject {
-    
+@objc public class ConversationSubtitleController: NSObject {    
     public static let localUserId: UInt = 0
     public static let remoteUserId: UInt = 99
     

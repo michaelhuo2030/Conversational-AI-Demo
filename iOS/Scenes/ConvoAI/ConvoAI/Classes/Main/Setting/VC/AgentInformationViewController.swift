@@ -8,23 +8,24 @@
 import UIKit
 import Common
 import SVProgressHUD
+import IoT
 
 class AgentInformationViewController: UIViewController {
-    
     static func show(in viewController: UIViewController, rtcManager: RTCManager?) {
         let settingVC = AgentInformationViewController()
         settingVC.rtcManager = rtcManager
-        settingVC.modalPresentationStyle = .overFullScreen
-        viewController.present(settingVC, animated: false)
+        let navigatonVC = UINavigationController(rootViewController: settingVC)
+        navigatonVC.modalPresentationStyle = .overFullScreen
+        viewController.present(navigatonVC, animated: false)
     }
     
     public var rtcManager: RTCManager?
-    
     private let backgroundViewWidth: CGFloat = 315
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
     private var moreItems: [UIView] = []
     private var channelInfoItems: [UIView] = []
+    private var deviceInfoItems: [UIView] = []
     
     private lazy var feedBackPresenter = FeedBackPresenter()
         
@@ -67,24 +68,6 @@ class AgentInformationViewController: UIViewController {
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
         view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
-        return view
-    }()
-    
-    private lazy var feedbackItem: AgentSettingIconItemView = {
-        let view = AgentSettingIconItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.feedback
-        view.imageView.image = UIImage.ag_named("ic_info_debug")?.withRenderingMode(.alwaysTemplate)
-        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
-        view.button.addTarget(self, action: #selector(onClickFeedbackItem), for: .touchUpInside)
-        return view
-    }()
-    
-    private lazy var logoutItem: AgentSettingIconItemView = {
-        let view = AgentSettingIconItemView(frame: .zero)
-        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.logout
-        view.imageView.image = UIImage.ag_named("ic_info_logout")?.withRenderingMode(.alwaysTemplate)
-        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
-        view.button.addTarget(self, action: #selector(onClickLogoutItem), for: .touchUpInside)
         return view
     }()
     
@@ -138,6 +121,50 @@ class AgentInformationViewController: UIViewController {
         view.bottomLine.isHidden = true
         return view
     }()
+    
+    private lazy var feedbackItem: AgentSettingIconItemView = {
+        let view = AgentSettingIconItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.feedback
+        view.imageView.image = UIImage.ag_named("ic_info_debug")?.withRenderingMode(.alwaysTemplate)
+        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
+        view.button.addTarget(self, action: #selector(onClickFeedbackItem), for: .touchUpInside)
+        return view
+    }()
+    
+    private lazy var logoutItem: AgentSettingIconItemView = {
+        let view = AgentSettingIconItemView(frame: .zero)
+        view.titleLabel.text = ResourceManager.L10n.ChannelInfo.logout
+        view.imageView.image = UIImage.ag_named("ic_info_logout")?.withRenderingMode(.alwaysTemplate)
+        view.imageView.tintColor = UIColor.themColor(named: "ai_icontext1")
+        view.button.addTarget(self, action: #selector(onClickLogoutItem), for: .touchUpInside)
+        return view
+    }()
+    
+    private lazy var deviceInfoTitle: UILabel = {
+        let label = UILabel()
+        label.text = ResourceManager.L10n.Iot.title
+        label.font = UIFont.boldSystemFont(ofSize: 12)
+        label.textColor = UIColor.themColor(named: "ai_icontext4")
+        return label
+    }()
+    
+    private lazy var deviceCard: IotDeviceCardView = {
+        let card = IotDeviceCardView()
+        card.configure(title: ResourceManager.L10n.Iot.title, subtitle: String(format: ResourceManager.L10n.Iot.device, "\(IoTEntrance.deviceCount())"))
+        card.settingsIcon = UIImage.ag_named("ic_iot_add")
+        card.backgroundImage = UIImage.ag_named("ic_agent_card_bg_green")
+        card.settingsButtonBackgroundColor = UIColor.themColor(named: "ai_brand_white8")
+        card.titleColor = UIColor.themColor(named: "ai_brand_black10")
+        card.subtitleColor = UIColor.themColor(named: "ai_brand_black10")
+        card.onSettingsTapped = { [weak self] in
+            guard let self = self else { return }
+            // Handle settings button tap
+            IoTEntrance.iotScene(viewController: self)
+        }
+        card.layer.cornerRadius = 20
+        card.layer.masksToBounds = true
+        return card
+    }()
         
     deinit {
         unregisterDelegate()
@@ -155,6 +182,14 @@ class AgentInformationViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         animateBackgroundViewIn()
+        SVProgressHUD.show()
+        IoTEntrance.fetchPresetIfNeed { error in
+            SVProgressHUD.dismiss()
+            if let error = error {
+                ConvoAILogger.info("fetch preset error: \(error.localizedDescription)")
+                return
+            }
+        }
     }
     
     private func registerDelegate() {
@@ -255,6 +290,8 @@ extension AgentInformationViewController {
         moreItems = [feedbackItem, logoutItem]
         channelInfoItems = [agentItem, agentIDItem, roomItem, roomIDItem, idItem]
         
+        contentView.addSubview(deviceInfoTitle)
+        contentView.addSubview(deviceCard)
         contentView.addSubview(moreInfoTitle)
         contentView.addSubview(moreInfoView)
         contentView.addSubview(channelInfoTitle)
@@ -285,8 +322,20 @@ extension AgentInformationViewController {
             make.left.right.top.bottom.equalToSuperview()
         }
         
-        channelInfoTitle.snp.makeConstraints { make in
+        deviceInfoTitle.snp.makeConstraints { make in
             make.top.equalTo(16)
+            make.left.equalTo(32)
+        }
+        
+        deviceCard.snp.makeConstraints { make in
+            make.top.equalTo(deviceInfoTitle.snp.bottom).offset(8)
+            make.left.equalTo(16)
+            make.right.equalTo(-16)
+            make.height.equalTo(140)
+        }
+        
+        channelInfoTitle.snp.makeConstraints { make in
+            make.top.equalTo(deviceCard.snp.bottom).offset(32)
             make.left.equalTo(32)
         }
         

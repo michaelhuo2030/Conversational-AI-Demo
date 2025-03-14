@@ -11,6 +11,7 @@ import AgoraRtcKit
 import SVProgressHUD
 import SwifterSwift
 import Common
+import IoT
 
 public class ChatViewController: UIViewController {
     private var isDenoise = true
@@ -21,7 +22,7 @@ public class ChatViewController: UIViewController {
     private var agentUid = 0
     private var remoteAgentId = ""
     private let uid = "\(RtcEnum.getUid())"
-    
+        
     private lazy var timerCoordinator: AgentTimerCoordinator = {
         let coordinator = AgentTimerCoordinator()
         coordinator.delegate = self
@@ -211,6 +212,14 @@ public class ChatViewController: UIViewController {
             
             Task {
                 do {
+                    try await self.fetchIotPresetsIfNeeded()
+                } catch {
+                    self.addLog("[PreloadData error - iot presets]: \(error)")
+                }
+            }
+            
+            Task {
+                do {
                     try await self.fetchPresetsIfNeeded()
                 } catch {
                     self.addLog("[PreloadData error - presets]: \(error)")
@@ -327,6 +336,7 @@ public class ChatViewController: UIViewController {
             startAgentRequest()
             joinChannel()
         } catch {
+            
             handleStartError()
         }
     }
@@ -429,6 +439,18 @@ public class ChatViewController: UIViewController {
 
 // MARK: - Agent Request
 extension ChatViewController {
+    private func fetchIotPresetsIfNeeded() async throws {
+        return try await withCheckedThrowingContinuation { continuation in
+            IoTEntrance.fetchPresetIfNeed { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                continuation.resume()
+            }
+        }
+    }
+
     private func fetchPresetsIfNeeded() async throws {
         guard AppContext.preferenceManager()?.allPresets() == nil else { return }
         
@@ -882,7 +904,7 @@ extension ChatViewController: AgentTimerCoordinatorDelegate {
         let title = ResourceManager.L10n.ChannelInfo.timeLimitdAlertTitle
         if let manager = AppContext.preferenceManager(), let preset = manager.preference.preset {
             let min = preset.callTimeLimitSecond / 60
-            TimeoutAlertView.show(in: view, title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min))
+            TimeoutAlertView.show(in: view, image:UIImage.ag_named("ic_alert_timeout_icon"), title: title, description: String(format: ResourceManager.L10n.ChannelInfo.timeLimitdAlertDescription, min))
         }
     }
     
