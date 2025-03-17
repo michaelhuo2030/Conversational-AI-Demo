@@ -1,6 +1,6 @@
 <resources>
     <!-- IOT  -->
-    <string name="cov_iot_title">对话式 AI 硬件</string>
+    <string name="cov_iot_title">对话式 AI 设备</string>
     <string name="cov_iot_devices_welcome">欢迎</string>
     <string name="cov_iot_devices_add_device_tip">让我们现在添加设备吧</string>
     <string name="cov_iot_devices_add_device">添加设备</string>
