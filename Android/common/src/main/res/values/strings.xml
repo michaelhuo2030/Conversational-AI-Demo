@@ -15,7 +15,7 @@
     <string name="common_debug_close">关闭开发者模式</string>
     <string name="common_debug_copy_user_question">复制用户当前通话提问</string>
     <string name="common_call_time_is_up">本次对话时间到！</string>
-    <string name="common_call_time_is_up_tips">每次体验对话限时%1s分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。</string>
+    <string name="common_call_time_is_up_tips">体验对话限时%1s分钟，本次对话时间已到。</string>
     <string name="common_i_known">我知道了</string>
 
     <string name="common_login_chat">一键登录</string>
