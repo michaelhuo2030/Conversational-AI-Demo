@@ -89,7 +89,8 @@ public class DeveloperModeViewController: UIViewController {
         // update environment segment        
         for (index, envi) in AppContext.shared.environments.enumerated() {
             let host = envi["host"]
-            if host == AppContext.shared.baseServerUrl {
+            let appId = envi["appId"]
+            if host == AppContext.shared.baseServerUrl && appId == AppContext.shared.appId {
                 selectedEnvironmentIndex = index
                 break
             }
