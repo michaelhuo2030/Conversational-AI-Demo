@@ -113,10 +113,10 @@ extension SearchingView {
         timer = nil
         
         timeInteval = count
+        timeLabel.text = "\(count) s"
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
             guard let self = self else { return }
             timeLabel.text = "\(self.timeInteval) s"
-            
             if self.timeInteval <= 0 {
                 self.searchTimeout()
             }

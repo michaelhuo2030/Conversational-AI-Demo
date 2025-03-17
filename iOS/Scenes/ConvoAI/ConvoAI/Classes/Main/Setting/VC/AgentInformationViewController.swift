@@ -12,11 +12,21 @@ import IoT
 
 class AgentInformationViewController: UIViewController {
     static func show(in viewController: UIViewController, rtcManager: RTCManager?) {
-        let settingVC = AgentInformationViewController()
-        settingVC.rtcManager = rtcManager
-        let navigatonVC = UINavigationController(rootViewController: settingVC)
-        navigatonVC.modalPresentationStyle = .overFullScreen
-        viewController.present(navigatonVC, animated: false)
+        SVProgressHUD.show()
+        IoTEntrance.fetchPresetIfNeed { error in
+            SVProgressHUD.dismiss()
+            if let error = error {
+                ConvoAILogger.info("fetch preset error: \(error.localizedDescription)")
+                SVProgressHUD.showError(withStatus: error.localizedDescription)
+                return
+            }
+            
+            let settingVC = AgentInformationViewController()
+            settingVC.rtcManager = rtcManager
+            let navigatonVC = UINavigationController(rootViewController: settingVC)
+            navigatonVC.modalPresentationStyle = .overFullScreen
+            viewController.present(navigatonVC, animated: false)
+        }
     }
     
     public var rtcManager: RTCManager?
@@ -142,7 +152,7 @@ class AgentInformationViewController: UIViewController {
     
     private lazy var deviceInfoTitle: UILabel = {
         let label = UILabel()
-        label.text = ResourceManager.L10n.Iot.title
+        label.text = ResourceManager.L10n.ChannelInfo.deviceTitle
         label.font = UIFont.boldSystemFont(ofSize: 12)
         label.textColor = UIColor.themColor(named: "ai_icontext4")
         return label

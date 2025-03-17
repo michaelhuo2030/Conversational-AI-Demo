@@ -13,7 +13,7 @@ class IOTSettingViewController: UIViewController {
     
     // MARK: - Properties
     var deviceId: String = ""
-        
+    var reconnectedTap: (() -> ())?
     private var selectedPresetIndex: Int = 0 // Track current selected preset index
     private var currentLanguage: CovIotLanguage?
     private var currentPreset: CovIotPreset?
@@ -452,7 +452,6 @@ class IOTSettingViewController: UIViewController {
                 self.dismiss(animated: true)
             }
             
-            self.dismiss(animated: true)
         } onCancel: { [weak self] in
             self?.dismiss(animated: true)
         }
@@ -460,6 +459,8 @@ class IOTSettingViewController: UIViewController {
     
     @objc private func reconnectButtonTapped() {
         // Handle reconnect
+        self.dismiss(animated: false)
+        reconnectedTap?()
     }
     
     @objc private func deleteButtonTapped() {
