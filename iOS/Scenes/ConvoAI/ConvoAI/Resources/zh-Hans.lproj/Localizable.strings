@@ -82,7 +82,7 @@
 "channel.more.feedback.failed" = "提交失败，请稍后重试";
 "channel.more.logout" = "退出登录";
 "channel.time.limited.alert.title" = "本次对话时间到！";
-"channel.time.limited.alert.description" = "每次对话限时%d分钟，本次对话时间已到。";
+"channel.time.limited.alert.description" = "体验对话限时%d分钟，本次对话时间已到";
 "channel.time.limited.alert.confim" = "我知道了";
 
 "error.network" = "请求失败：";
