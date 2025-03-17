@@ -72,7 +72,7 @@
     <string name="cov_exit">退出</string>
 
     <!-- IOT  -->
-    <string name="cov_iot_title">对话式 AI 硬件</string>
+    <string name="cov_iot_title">对话式 AI 设备</string>
     <string name="cov_iot_devices_num">%d个设备</string>
     <string name="cov_my_device">我的设备</string>
 </resources>
