@@ -181,9 +181,7 @@ extension SearchDeviceViewController: UITableViewDelegate, UITableViewDataSource
                 bluetoothManager.connect(device)
 
                 let vc = IOTWifiSettingViewController()
-                vc.deviceId = device.id.uuidString
-                vc.rssi = device.rssi
-                vc.deviceName = device.name
+                vc.device = device
                 
                 self.navigationController?.pushViewController(vc)
             } else {
@@ -253,7 +251,7 @@ extension SearchDeviceViewController: BLEManagerDelegate {
 //            if bluetoothManager.bekenDeviceManufacturerData == data {
             let prefixName = device.name.prefix(3)
 //            prefixName == "X1-",
-            if  prefixName == "X1-", !devices.contains(where: { $0.id == device.id }) {
+            if prefixName == "X1-", !devices.contains(where: { $0.id == device.id }) {
                     if devices.isEmpty {
                         remakeConstraints()
                         searchingView.hideTextView(isHidden: true)

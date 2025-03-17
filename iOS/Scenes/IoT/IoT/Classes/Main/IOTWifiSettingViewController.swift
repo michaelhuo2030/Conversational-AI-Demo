@@ -13,10 +13,7 @@ import BLEManager
 class IOTWifiSettingViewController: BaseViewController {
     
     // MARK: - Properties
-    var deviceId: String = ""
-    var deviceName: String = ""
-    var rssi: Int = 0
-    
+    var device: BLEDevice?
     private let wifiManager = WiFiManager()
 
     private lazy var titleLabel: UILabel = {
@@ -321,12 +318,12 @@ class IOTWifiSettingViewController: BaseViewController {
     }
     
     @objc private func nextButtonTapped() {
+        guard let device = self.device else { return }
         // Handle next button tap
         let vc = DeviceAddingViewController()
         vc.wifiName = wifiNameField.text ?? ""
         vc.password = passwordField.text ?? ""
-        vc.deviceId = deviceId
-        vc.deviceName = deviceName
+        vc.device = device
         self.navigationController?.pushViewController(vc)
     }
 }
