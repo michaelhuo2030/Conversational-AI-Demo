@@ -72,12 +72,10 @@ sudo dnf install git-all
 - 安装依赖
 
 ```bash
-# 使用你喜爱的包管理器安装依赖 npm/yarn/pnpm/bun
+# 使用你喜爱的包管理器安装依赖 npm/pnpm/bun
+# 不建议使用yarn
 # 使用npm 安装
 npm i
-# 使用yarn 安装
-# npm install -g yarn
-yarn
 # 使用pnpm 安装
 # npm install -g pnpm
 pnpm i
