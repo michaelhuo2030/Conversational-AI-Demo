@@ -372,7 +372,7 @@ extension DeviceIntroductionViewController {
         carouselCollectionView.snp.makeConstraints { make in
             make.top.equalToSuperview().offset(20)
             make.left.right.equalToSuperview().inset(30)
-            make.height.equalTo(190)
+            make.height.equalTo(carouselCollectionView.snp.width).multipliedBy(170.0/315.0)
         }
         
         titleLabel.snp.makeConstraints { make in
@@ -512,7 +512,7 @@ class IntroductionCarouselCell: UICollectionViewCell {
         contentView.addSubview(imageView)
         
         imageView.snp.makeConstraints { make in
-            make.edges.equalTo(UIEdgeInsets.zero)
+            make.top.left.right.bottom.equalTo(0)
         }
     }
     
