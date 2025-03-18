@@ -54,9 +54,11 @@ class DeviceAddingViewController: BaseViewController {
     }
     
     override func navigationBackButtonTapped() {
-        guard let device = self.device else { return }
+        if let device = device {
+            bluetoothManager.disconnect(device)
+        }
         backFlag = true
-        bluetoothManager.disconnect(device)
+        super.navigationBackButtonTapped()
     }
     
     private func setupView() {
@@ -200,8 +202,8 @@ class DeviceAddingViewController: BaseViewController {
             title: ResourceManager.L10n.Iot.deviceAddSuccessTitle,
             description: ResourceManager.L10n.Iot.deviceAddSuccessDescription
         ) { [weak self] in
+            self?.bluetoothManager.dispose()
             guard let self = self else { return }
-            
             // Find and pop to IOTListViewController
             if let targetVC = self.navigationController?.viewControllers.first(where: { $0 is IOTListViewController }) {
                 self.navigationController?.popToViewController(targetVC, animated: true)
@@ -227,6 +229,9 @@ class DeviceAddingViewController: BaseViewController {
     }
     
     private func goToDeviceViewController() {
+        if let device = device {
+            bluetoothManager.disconnect(device)
+        }
         if let targetVC = self.navigationController?.viewControllers.first(where: { $0 is IOTListViewController }) {
             self.navigationController?.popToViewController(targetVC, animated: true)
         }
