@@ -200,6 +200,7 @@ class AgentInformationViewController: UIViewController {
                 return
             }
         }
+        deviceCard.configure(title: ResourceManager.L10n.Iot.title, subtitle: String(format: ResourceManager.L10n.Iot.device, "\(IoTEntrance.deviceCount())"))
     }
     
     private func registerDelegate() {
