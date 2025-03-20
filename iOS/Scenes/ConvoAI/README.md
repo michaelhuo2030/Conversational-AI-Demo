@@ -80,20 +80,20 @@
 
 | 路径                                                                                                           | 描述                                      |
 | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| [AgentManager.swift](ConvoAI/Classes/Manager/AgentManager.swift)                                              | 对话式 AI 引擎 RESTful 接口实现              |
-| [RTCManager.swift](ConvoAI/Classes/Manager/RTCManager.swift)                                                  | RTC 音视频通信相关实现                       |
-| [AgentPreferenceManager.swift](ConvoAI/Classes/Manager/AgentPreferenceManager.swift)                          | Agent状态管理                              |
-| [Main/](ConvoAI/Classes/Main)                                                                                 | UI 界面组件和交互页面                        |
-| [Main/Chat](ConvoAI/Classes/Main/Chat)                                                                        | 聊天页面的视图及控制器                        |
-| [AgentInformationViewController.swift](ConvoAI/Classes/Main/Setting/VC/AgentInformationViewController.swift)  | 智能体运行状态信息展示对话框                   |
-| [AgentSettingViewController.swift](ConvoAI/Classes/Main/Setting/VC/AgentSettingViewController.swift)          | 智能体参数配置设置对话框                       |
-| [Utils/](ConvoAI/Classes/Utils)                                                                               | 实用工具类和辅助函数                          |
-| [SubRender/](ConvoAI/Classes/Utils/SubRender)                                                                 | 实时对话字幕渲染组件                          |
+| [AgentManager.swift](ConvoAI/ConvoAI/Classes/Manager/AgentManager.swift)                                              | 对话式 AI 引擎 RESTful 接口实现              |
+| [RTCManager.swift](ConvoAI/ConvoAI/Classes/Manager/RTCManager.swift)                                                  | RTC 音视频通信相关实现                       |
+| [AgentPreferenceManager.swift](ConvoAI/ConvoAI/Classes/Manager/AgentPreferenceManager.swift)                          | Agent状态管理                              |
+| [Main/](ConvoAI/ConvoAI/Classes/Main)                                                                                 | UI 界面组件和交互页面                        |
+| [Main/Chat](ConvoAI/ConvoAI/Classes/Main/Chat)                                                                        | 聊天页面的视图及控制器                        |
+| [AgentInformationViewController.swift](ConvoAI/ConvoAI/Classes/Main/Setting/VC/AgentInformationViewController.swift)  | 智能体运行状态信息展示对话框                   |
+| [AgentSettingViewController.swift](ConvoAI/ConvoAI/Classes/Main/Setting/VC/AgentSettingViewController.swift)          | 智能体参数配置设置对话框                       |
+| [Utils/](ConvoAI/ConvoAI/Classes/Utils)                                                                               | 实用工具类和辅助函数                          |
+| [SubRender/](ConvoAI/ConvoAI/Classes/Utils/SubRender)                                                                 | 实时对话字幕渲染组件                          |
 
 ### 2.2 实时字幕
 与对话式智能体进行实时互动时，你可能需要实时字幕显示你与智能体的对话内容。
 - 📖 查看我们的 [实时字幕功能指南](https://doc.shengwang.cn/doc/convoai/restful/user-guides/realtime-sub) 了解如何实现该功能
-- 实现该功能需要使用 [开源字幕处理模块](ConvoAI/Classes/Utils/SubRender)，请参考上述文档将对应文件集成进您的项目
+- 实现该功能需要使用 [开源字幕处理模块](ConvoAI/ConvoAI/Classes/Utils/SubRender)，请参考上述文档将对应文件集成进您的项目
 - ⚠️ 开源字幕处理模块由 Swift 语言开发，如果您的项目是纯 OC 项目，您可以参考 Apple 官方文档 [在Objective-C中导入Swift](https://developer.apple.com/documentation/swift/importing-swift-into-objective-c) 把对应文件集成进您的项目
 
 ## 📚 三、相关资源
