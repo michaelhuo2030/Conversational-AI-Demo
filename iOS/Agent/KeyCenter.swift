@@ -45,7 +45,9 @@ struct KeyCenter {
      TTS
      Get from TTS vendor
      For example:
-     static let TTS_VENDOR: String="microsoft"
+     https://github.com/Shengwang-Community/Conversational-AI-Demo/issues/28
+     
+     static let TTS_VENDOR: String = "bytedance"
      static let TTS_PARAMS: [String : Any] = [
          "token": "***",
          "app_id": "***",
