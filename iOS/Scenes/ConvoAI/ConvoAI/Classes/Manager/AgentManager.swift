@@ -260,7 +260,6 @@ enum AgentServiceUrl {
     case updateAgentPath(String)
     case stopAgentPath(String)
     case fetchAgentPresetsPath(String)
-
     
     public func toHttpUrlSting() -> String {
         switch self {

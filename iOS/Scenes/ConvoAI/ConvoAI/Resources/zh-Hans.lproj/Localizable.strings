@@ -17,7 +17,7 @@
 "join.start.state" = "未加入";
 "join.start.button.title" = "连接 AI 引擎";
 "join.start.agent.name" = "智能体";
-"join.start.tips" = "每次对话限时%d分钟";
+"join.start.tips" = "本次体验对话限制%d分钟";
 "join.timeout.tips" = "智能体加入超时，请稍后重试。";
 
 "conversation.ai.hello" = "你好，人类";
@@ -60,6 +60,7 @@
 "settings.noise.forceResponse" = "Force Response";
 "settings.noise.bhvs" = "启用 对话人声锁定";
 
+"channel.info.device.titie" = "我的设备";
 "channel.info.title" = "信息";
 "channel.info.subtitle" = "频道信息";
 "channel.network.info.title" = "网络信息";
@@ -82,7 +83,7 @@
 "channel.more.feedback.failed" = "提交失败，请稍后重试";
 "channel.more.logout" = "退出登录";
 "channel.time.limited.alert.title" = "本次对话时间到！";
-"channel.time.limited.alert.description" = "每次对话限时%d分钟，本次对话时间已到，你可关闭弹窗后再发起新的对话体验。";
+"channel.time.limited.alert.description" = "体验对话限时%d分钟，本次对话时间已到";
 "channel.time.limited.alert.confim" = "我知道了";
 
 "error.network" = "请求失败：";
@@ -103,3 +104,6 @@
 "devmode.close" = "关闭开发者模式";
 "devmode.graph" = "graph id";
 "devmode.server" = "服务器";
+
+"iot.info.title" = "对话式 AI 设备";
+"iot.info.device" = "%@个设备";
