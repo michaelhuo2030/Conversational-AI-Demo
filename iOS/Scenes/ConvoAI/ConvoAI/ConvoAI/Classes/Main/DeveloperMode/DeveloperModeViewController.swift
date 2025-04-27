@@ -9,6 +9,10 @@ public class DeveloperParams {
     private static let kDeveloperMode = "com.agora.convoai.DeveloperMode"
     private static let kSessionFree = "com.agora.convoai.kSessionFree"
     
+    private let kHost = "toolbox_server_host"
+    private let kAppId = "rtc_app_id"
+    private let kEnvName = "env_name"
+    
     public static func setDeveloperMode(_ enable: Bool) {
         UserDefaults.standard.set(enable, forKey: kDeveloperMode)
     }
