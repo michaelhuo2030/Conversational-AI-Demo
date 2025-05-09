@@ -26,7 +26,7 @@ public class ChatViewController: UIViewController {
     private lazy var timerCoordinator: AgentTimerCoordinator = {
         let coordinator = AgentTimerCoordinator()
         coordinator.delegate = self
-        coordinator.setDurationLimit(limited: !DeveloperParams.getSessionFree())
+        coordinator.setDurationLimit(limited: !DeveloperConfig.shared.getSessionFree())
         return coordinator
     }()
 
@@ -320,7 +320,7 @@ public class ChatViewController: UIViewController {
         let subRenderConfig = SubtitleRenderConfig(rtcEngine: rtcEngine, renderMode: .words, delegate: self)
         subRenderController.setupWithConfig(subRenderConfig)
         
-        devModeButton.isHidden = !DeveloperParams.getDeveloperMode()
+        devModeButton.isHidden = !DeveloperConfig.shared.isDeveloperMode
     }
 
     
@@ -373,6 +373,12 @@ public class ChatViewController: UIViewController {
         rtcManager.joinChannel(rtcToken: token, channelName: channelName, uid: uid, isIndependent: independent)
         AppContext.preferenceManager()?.updateRoomState(.connected)
         AppContext.preferenceManager()?.updateRoomId(channelName)
+        
+        // set debug params
+        DeveloperConfig.shared.sdkParams.forEach {
+            addLog("rtc setParameter \($0)")
+            rtcManager.getRtcEntine().setParameters($0)
+        }
     }
     
     private func leaveChannel() {
@@ -506,7 +512,7 @@ extension ChatViewController {
             return
         }
         manager.updateAgentState(.disconnected)
-        if DeveloperParams.getDeveloperMode() {
+        if DeveloperConfig.shared.isDeveloperMode {
             channelName = "agent_debug_\(UUID().uuidString.prefix(8))"
         } else {
             channelName = "agent_\(UUID().uuidString.prefix(8))"
@@ -593,8 +599,9 @@ extension ChatViewController {
     
     private func getConvoaiBodyMap() -> [String: Any?] {
         return [
-            "graph_id": AppContext.shared.graphId.isEmpty ? nil : AppContext.shared.graphId,
+            "graph_id": DeveloperConfig.shared.graphId,
             "name": nil,
+            "preset": DeveloperConfig.shared.convoaiServerConfig,
             "properties": [
                 "channel": channelName,
                 "token": nil,
@@ -904,9 +911,9 @@ private extension ChatViewController {
     }
     
     func onThresholdReached() {
-        if !DeveloperParams.getDeveloperMode() {
+        if !DeveloperConfig.shared.isDeveloperMode {
             devModeButton.isHidden = false
-            DeveloperParams.setDeveloperMode(true)
+            DeveloperConfig.shared.isDeveloperMode = true
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
@@ -1045,30 +1052,34 @@ extension ChatViewController: LoginManagerDelegate {
 
 extension ChatViewController {
     @objc private func onClickDevMode() {
-        DeveloperModeViewController.show(
-            from: self,
-            audioDump: rtcManager.getAudioDump(),
-            serverHost: AppContext.preferenceManager()?.information.targetServer ?? "")
-        {
-            self.devModeButton.isHidden = true
-            self.switchEnvironment()
-        } onAudioDump: { isOn in
-            self.rtcManager.enableAudioDump(enabled: isOn)
-        } onSwitchServer: {
-            self.switchEnvironment()
-        } onCopy: {
-            let messageContents = self.messageView.getAllMessages()
-                .filter { $0.isMine }
-                .map { $0.content }
-                .joined(separator: "\n")
-            let pasteboard = UIPasteboard.general
-            pasteboard.string = messageContents
-            SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
-        } onSessionLimit: { isOn in
-            self.timerCoordinator.setDurationLimit(limited: isOn)
-        }
+        DeveloperConfig.shared
+            .setServerHost(AppContext.preferenceManager()?.information.targetServer ?? "")
+            .setAudioDump(enabled: rtcManager.getAudioDump(), onChange: { isOn in
+                self.rtcManager.enableAudioDump(enabled: isOn)
+            })
+            .setSessionLimit(enabled: !DeveloperConfig.shared.getSessionFree(), onChange: { isOn in
+                self.timerCoordinator.setDurationLimit(limited: isOn)
+            })
+            .setCloseDevModeCallback {
+                self.devModeButton.isHidden = true
+            }
+            .setSwitchServerCallback {
+                self.switchEnvironment()
+            }
+            .setSDKParamsCallback { [weak self] param in
+                self?.rtcManager.getRtcEntine().setParameters(param)
+            }
+            .setCopyCallback {
+                let messageContents = self.messageView.getAllMessages()
+                    .filter { $0.isMine }
+                    .map { $0.content }
+                    .joined(separator: "\n")
+                let pasteboard = UIPasteboard.general
+                pasteboard.string = messageContents
+                SVProgressHUD.showInfo(withStatus: ResourceManager.L10n.DevMode.copy)
+            }
+        DeveloperModeViewController.show(from: self)
     }
-    
     
     private func switchEnvironment() {
         AppContext.preferenceManager()?.deleteAllPresets()

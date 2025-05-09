@@ -11,6 +11,7 @@ import io.agora.rtc2.RtcEngineConfig
 import io.agora.rtc2.RtcEngineEx
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.ServerConfig
+import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.convoai.CovLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -149,6 +150,11 @@ object CovRtcManager {
             setParameters("{\"che.audio.sf.nsngPredefAgg\":11}")
             setParameters("{\"che.audio.agc.enable\":false}")
         }
+    }
+
+    fun setParameter(parameter:String){
+        CovLogger.d(TAG, "setParameter $parameter")
+        rtcEngine?.setParameters(parameter)
     }
 
     // leave rtc channel

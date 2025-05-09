@@ -19,12 +19,31 @@ object DebugConfigSettings {
 
     private var instance: DevEnvConfig? = null
 
-
     var graphId: String = ""
         private set
 
-    fun updateGraphId(graphId: String) {
+    fun setGraphId(graphId: String) {
         this.graphId = graphId
+    }
+
+    private val _sdkAudioParameters = LinkedHashSet<String>()
+    val sdkAudioParameters: List<String>
+        get() = _sdkAudioParameters.toList()
+
+    /**
+     * Add SDK audio parameters, preserving the order and avoiding duplicates
+     * @param sdkParameters The list of parameters to add
+     */
+    fun updateSdkAudioParameter(sdkParameters: List<String>) {
+        _sdkAudioParameters.clear()
+        _sdkAudioParameters.addAll(sdkParameters)
+    }
+
+    var convoAIParameter: String = ""
+        private set
+
+    fun setConvoAIParameter(apiParameter: String) {
+        this.convoAIParameter = apiParameter
     }
 
     var isDebug: Boolean = false
@@ -74,6 +93,8 @@ object DebugConfigSettings {
         graphId = ""
         isDebug = false
         isAudioDumpEnabled = false
+        _sdkAudioParameters.clear()
+        convoAIParameter = ""
     }
 
     // Counter for debug mode activation
