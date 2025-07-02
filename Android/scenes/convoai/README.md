@@ -30,26 +30,31 @@
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_2.jpg)
 - 获取项目 APP ID 与 APP 证书
 
-#### 1.2.2 开启对话式 AI 引擎功能权限
+#### 1.2.2 开通 RTM 权限
+
+![在声网控制台开通 RTM 功能](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/sdhy_7.jpg)
+*截图：在声网控制台项目设置中开通 RTM 功能*
+
+#### 1.2.3 开启对话式 AI 引擎功能权限
 
 - 在 [声网控制台](https://console.shengwang.cn/product/ConversationAI?tab=config) 开启权限
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/ConvoAI.png)
 
-#### 1.2.3 获取 RESTful API 密钥
+#### 1.2.4 获取 RESTful API 密钥
 
 - 在 [声网控制台](https://console.shengwang.cn/settings/restfulApi) 点击添加密钥
   ![图片](https://accktvpic.oss-cn-beijing.aliyuncs.com/pic/github_readme/ent-full/restful.png)
 - 下载密钥文件，复制 BASIC_AUTH_KEY 和 BASIC_AUTH_SECRET
 
-#### 1.2.4 获取 LLM 配置信息
+#### 1.2.5 获取 LLM 配置信息
 
 - 自行在 LLM 厂商官网获取相关配置信息
 
-#### 1.2.5 获取 TTS 配置信息
+#### 1.2.6 获取 TTS 配置信息
 
 - 自行在 TTS 厂商官网获取相关配置信息
 
-#### 1.2.6 配置项目
+#### 1.2.7 配置项目
 
 - 在项目的 [**gradle.properties**](../../gradle.properties) 里填写必须的配置信息：
 
@@ -78,22 +83,23 @@ TTS_PARAMS=<TTS 参数>
 ## 🗂️ 二、项目结构导览
 
 ### 2.1 基本结构
-| 路径                                                                                                    | 描述                                      |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| [api/](src/main/java/io/agora/scene/convoai/api)                                    | 对话式 AI 引擎 RESTful 接口实现和数据模型 |
-| [animation/](src/main/java/io/agora/scene/convoai/animation)                        | 智能体交互动画效果实现                    |
-| [constant/](src/main/java/io/agora/scene/convoai/constant)                          | 常量和枚举类型定义                        |
-| [subRender/](src/main/java/io/agora/scene/convoai/subRender/v2)                     | 实时对话字幕渲染组件                      |
-| [rtc/](src/main/java/io/agora/scene/convoai/rtc)                                    | RTC 音视频通信相关实现                    |
-| [ui/](src/main/java/io/agora/scene/convoai/ui)                                      | UI 界面组件和交互页面                     |
-| [CovLivingActivity.kt](src/main/java/io/agora/scene/convoai/ui/CovLivingActivity.kt)   | AI 对话主交互界面                         |
-| [CovSettingsDialog.kt](src/main/java/io/agora/scene/convoai/ui/CovSettingsDialog.kt)   | 智能体参数配置设置对话框                  |
+| 路径                                                                                    | 描述                          |
+|---------------------------------------------------------------------------------------|-----------------------------|
+| [api/](src/main/java/io/agora/scene/convoai/api)                                      | 对话式 AI 引擎 RESTful 接口实现和数据模型 |
+| [animation/](src/main/java/io/agora/scene/convoai/animation)                          | 智能体交互动画效果实现                 |
+| [constant/](src/main/java/io/agora/scene/convoai/constant)                            | 常量和枚举类型定义                   |
+| [convoaiApi/](src/main/java/io/agora/scene/convoai/convoaiApi/)                       | ConversationalAI组件                  |
+| [rtc/](src/main/java/io/agora/scene/convoai/rtc)                                      | RTC 音视频通信相关实现               |
+| [rtm/](src/main/java/io/agora/scene/convoai/rtm)                                      | RTM 实时消息相关实现                |
+| [ui/](src/main/java/io/agora/scene/convoai/ui)                                        | UI 界面组件和交互页面                |
+| [CovLivingActivity.kt](src/main/java/io/agora/scene/convoai/ui/CovLivingActivity.kt)  | AI 对话主交互界面                  |
+| [CovSettingsDialog.kt](src/main/java/io/agora/scene/convoai/ui/CovSettingsDialog.kt)  | 智能体参数配置设置对话框                |
 | [CovAgentInfoDialog.kt](src/main/java/io/agora/scene/convoai/ui/CovAgentInfoDialog.kt) | 智能体运行状态信息展示对话框              |
 
 ### 2.2 实时字幕
 与对话式智能体进行实时互动时，你可能需要实时字幕显示你与智能体的对话内容。
 - 📖 查看我们的 [实时字幕功能指南](https://doc.shengwang.cn/doc/convoai/restful/user-guides/realtime-sub) 了解如何实现该功能
-- 实现该功能需要使用 [开源字幕处理模块](src/main/java/io/agora/scene/convoai/subRender/v2)，请参考上述文档将对应文件集成进您的项目
+- 实现该功能请参考 [convoaiApi 目录下的 README.md](src/main/java/io/agora/scene/convoai/convoaiApi/README.md) 进行集成
 - ⚠️ 开源字幕处理模块由 Kotlin 语言开发，如果您的项目是纯 Java 项目，您可以参考 Google 官方文档 [将 Kotlin 添加到现有应用](https://developer.android.com/kotlin/add-kotlin?hl=zh-cn) 把对应文件集成进您的项目
 
 ## 📚 三、相关资源

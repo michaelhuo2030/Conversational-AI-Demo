@@ -1,4 +1,4 @@
-package io.agora.scene.convoai.subRender.v2
+package io.agora.scene.convoai.ui.widget
 
 import android.content.Context
 import android.os.Handler
@@ -11,7 +11,10 @@ import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.agora.scene.convoai.CovLogger
+import io.agora.scene.convoai.constant.CovAgentManager
+import io.agora.scene.convoai.convoaiApi.Transcription
+import io.agora.scene.convoai.convoaiApi.TranscriptionStatus
+import io.agora.scene.convoai.convoaiApi.TranscriptionType
 import io.agora.scene.convoai.databinding.CovMessageAgentItemBinding
 import io.agora.scene.convoai.databinding.CovMessageListViewBinding
 import io.agora.scene.convoai.databinding.CovMessageMineItemBinding
@@ -24,7 +27,7 @@ class CovMessageListView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : LinearLayout(context, attrs, defStyleAttr), IConversationSubtitleCallback {
+) : LinearLayout(context, attrs, defStyleAttr) {
 
     private val binding = CovMessageListViewBinding.inflate(LayoutInflater.from(context), this, true)
     private val messageAdapter = MessageAdapter()
@@ -40,9 +43,6 @@ class CovMessageListView @JvmOverloads constructor(
     // Runnable for scrolling to bottom
     private val scrollRunnable = Runnable { scrollToBottom() }
 
-    // Callback for AI conversation status changes
-    var onAIStatusChanged: ((AgentMessageState) -> Unit)? = null
-
     init {
         setupRecyclerView()
         setupBottomButton()
@@ -57,14 +57,14 @@ class CovMessageListView @JvmOverloads constructor(
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
-                    
+
                     when (newState) {
                         RecyclerView.SCROLL_STATE_IDLE -> {
                             // Check if at bottom when scrolling stops
                             isScrollBottom = !recyclerView.canScrollVertically(1)
                             updateBottomButtonVisibility()
                         }
-                        
+
                         RecyclerView.SCROLL_STATE_DRAGGING -> {
                             // When user actively drags
                             autoScrollToBottom = false
@@ -74,14 +74,14 @@ class CovMessageListView @JvmOverloads constructor(
 
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
-                    
+
                     // Show button when scrolling up a significant distance
                     if (dy < -50) {
                         if (!recyclerView.canScrollVertically(1)) {
                             // Don't show button if already at bottom
-                            binding.cvToBottom.visibility = View.INVISIBLE
+                            binding.cvToBottom.visibility = INVISIBLE
                         } else {
-                            binding.cvToBottom.visibility = View.VISIBLE
+                            binding.cvToBottom.visibility = VISIBLE
                             autoScrollToBottom = false
                         }
                     }
@@ -96,7 +96,7 @@ class CovMessageListView @JvmOverloads constructor(
     private fun setupBottomButton() {
         binding.btnToBottom.setOnClickListener {
             binding.btnToBottom.isEnabled = false
-            binding.cvToBottom.visibility = View.INVISIBLE
+            binding.cvToBottom.visibility = INVISIBLE
             autoScrollToBottom = true
             scrollToBottom()
             binding.btnToBottom.postDelayed({ binding.btnToBottom.isEnabled = true }, 300)
@@ -112,8 +112,8 @@ class CovMessageListView @JvmOverloads constructor(
             scrollToBottom()
         } else if (!isScrollBottom) {
             // Show button and visual cue when not at bottom
-            binding.cvToBottom.visibility = View.VISIBLE
-            
+            binding.cvToBottom.visibility = VISIBLE
+
             // Only show visual cue for new messages to avoid frequent flashing during updates
             if (isNewMessage) {
                 showVisualCueForNewMessage()
@@ -126,7 +126,7 @@ class CovMessageListView @JvmOverloads constructor(
      */
     fun clearMessages() {
         autoScrollToBottom = true
-        binding.cvToBottom.visibility = View.INVISIBLE
+        binding.cvToBottom.visibility = INVISIBLE
         messageAdapter.clearMessages()
     }
 
@@ -147,17 +147,17 @@ class CovMessageListView @JvmOverloads constructor(
     /**
      * Handle received subtitle messages - fix scrolling issues
      */
-    private fun handleMessage(subtitleMessage: SubtitleMessage) {
-        val isNewMessage = messageAdapter.getMessageByTurnId(subtitleMessage.turnId, subtitleMessage.userId == 0) == null
+    private fun handleMessage(transcription: Transcription) {
+        val isNewMessage = messageAdapter.getMessageByTurnId(transcription.turnId, transcription.type == TranscriptionType.USER) == null
 
         // Handle existing message updates
-        messageAdapter.getMessageByTurnId(subtitleMessage.turnId, subtitleMessage.userId == 0)?.let { existingMessage ->
+        messageAdapter.getMessageByTurnId(transcription.turnId, transcription.type == TranscriptionType.USER)?.let { existingMessage ->
             existingMessage.apply {
-                content = subtitleMessage.text
-                status = subtitleMessage.status
+                content = transcription.text
+                status = transcription.status
             }
             messageAdapter.updateMessage(existingMessage)
-            
+
             // Decide whether to scroll based on message position
             // 1. For last message, handle scrolling logic
             val index = messageAdapter.getMessageIndex(existingMessage)
@@ -169,23 +169,23 @@ class CovMessageListView @JvmOverloads constructor(
 
         // Create new message
         val newMessage = Message(
-            isMe = subtitleMessage.userId == 0,
-            turnId = subtitleMessage.turnId,
-            content = subtitleMessage.text,
-            status = subtitleMessage.status
+            isMe = transcription.type == TranscriptionType.USER,
+            turnId = transcription.turnId,
+            content = transcription.text,
+            status = transcription.status
         )
 
         // Unified message insertion position logic based on turnId and isMe
         var insertPosition = -1
         for (i in 0 until messageAdapter.itemCount) {
             val message = messageAdapter.getMessageAt(i)
-            
+
             // Case 1: Insert before a message with greater turnId
             if (message.turnId > newMessage.turnId) {
                 insertPosition = i
                 break
             }
-            
+
             // Case 2: For same turnId, ensure user messages come before agent messages
             if (message.turnId == newMessage.turnId) {
                 // If this is an agent message and we're inserting a user message, insert here
@@ -193,19 +193,19 @@ class CovMessageListView @JvmOverloads constructor(
                     insertPosition = i
                     break
                 }
-                
+
                 // If both are agent messages or both are user messages, continue to next message
                 // (this allows multiple user messages with same turnId to maintain their order)
                 // (and multiple agent messages with same turnId to maintain their order)
                 if (message.isMe == newMessage.isMe) {
                     continue
                 }
-                
+
                 // If this is a user message and we're inserting an agent message,
                 // continue to find the position after all user messages with this turnId
             }
         }
-        
+
         if (insertPosition != -1) {
             // Found proper position
             messageAdapter.insertMessage(insertPosition, newMessage)
@@ -225,16 +225,16 @@ class CovMessageListView @JvmOverloads constructor(
         // Only update when not scrolling
         if (binding.rvMessages.scrollState == RecyclerView.SCROLL_STATE_IDLE) {
             val isAtBottom = !binding.rvMessages.canScrollVertically(1)
-            
+
             if (isAtBottom) {
-                if (binding.cvToBottom.visibility != View.INVISIBLE) {
-                    binding.cvToBottom.visibility = View.INVISIBLE
+                if (binding.cvToBottom.visibility != INVISIBLE) {
+                    binding.cvToBottom.visibility = INVISIBLE
                 }
                 autoScrollToBottom = true
                 isScrollBottom = true
             } else {
-                if (binding.cvToBottom.visibility != View.VISIBLE) {
-                    binding.cvToBottom.visibility = View.VISIBLE
+                if (binding.cvToBottom.visibility != VISIBLE) {
+                    binding.cvToBottom.visibility = VISIBLE
                 }
                 // Don't auto-change autoScrollToBottom, let user trigger manually
             }
@@ -247,7 +247,7 @@ class CovMessageListView @JvmOverloads constructor(
     private fun showVisualCueForNewMessage() {
         if (!autoScrollToBottom) {
             binding.cvToBottom.apply {
-                if (visibility == View.VISIBLE) {
+                if (visibility == VISIBLE) {
                     // Create "bounce" effect to indicate new message
                     animate().scaleX(1.2f).scaleY(1.2f).setDuration(150).withEndAction {
                         animate().scaleX(1f).scaleY(1f).setDuration(150)
@@ -255,7 +255,7 @@ class CovMessageListView @JvmOverloads constructor(
                 } else {
                     // Fade in effect
                     alpha = 0f
-                    visibility = View.VISIBLE
+                    visibility = VISIBLE
                     animate().alpha(1f).setDuration(200).start()
                 }
             }
@@ -269,7 +269,7 @@ class CovMessageListView @JvmOverloads constructor(
         val isMe: Boolean,
         val turnId: Long,
         var content: String,
-        var status: SubtitleStatus
+        var status: TranscriptionStatus
     )
 
     /**
@@ -297,7 +297,7 @@ class CovMessageListView @JvmOverloads constructor(
             override fun bind(message: Message) {
                 binding.tvMessageTitle.text = agentName
                 binding.tvMessageContent.text = message.content
-                binding.layoutMessageInterrupt.isVisible = message.status == SubtitleStatus.Interrupted
+                binding.layoutMessageInterrupt.isVisible = message.status == TranscriptionStatus.INTERRUPTED
             }
         }
 
@@ -388,16 +388,16 @@ class CovMessageListView @JvmOverloads constructor(
                 // Record old content length to decide whether to scroll
                 val oldContentLength = messages[index].content.length
                 val newContentLength = message.content.length
-                
+
                 // Update message
                 messages[index] = message
                 notifyItemChanged(index)
-                
+
                 // Only handle scrolling for significantly grown messages at the end
-                if (newContentLength > oldContentLength + 50 && 
-                    index == messages.size - 1 && 
+                if (newContentLength > oldContentLength + 50 &&
+                    index == messages.size - 1 &&
                     autoScrollToBottom) {
-                    
+
                     // Use more reliable scrolling method to avoid flickering
                     binding.rvMessages.post {
                         scrollToBottom()
@@ -424,17 +424,12 @@ class CovMessageListView @JvmOverloads constructor(
         }
     }
 
-    override fun onSubtitleUpdated(subtitle: SubtitleMessage) {
-        handleMessage(subtitle)
-    }
-
-    override fun onAgentStateChange(agentMessageState: AgentMessageState) {
-        // Forward AI conversation status to the callback
-        onAIStatusChanged?.invoke(agentMessageState)
-    }
-
-    override fun onDebugLog(tag: String, msg: String) {
-        CovLogger.d(tag, msg)
+    fun onTranscriptionUpdated(transcription: Transcription) {
+        // Transcription for other users
+        if (transcription.type == TranscriptionType.USER && transcription.userId != CovAgentManager.uid.toString()) {
+            return
+        }
+        handleMessage(transcription)
     }
 
     // Schedule scrolling to bottom with debouncing
@@ -449,18 +444,18 @@ class CovMessageListView @JvmOverloads constructor(
     private fun scrollToBottom() {
         val lastPosition = messageAdapter.itemCount - 1
         if (lastPosition < 0) return
-        
+
         // Stop any ongoing scrolling
         binding.rvMessages.stopScroll()
-        
+
         // Get layout manager
         val layoutManager = binding.rvMessages.layoutManager as LinearLayoutManager
-        
+
         // Use single post call to handle all scrolling logic
         binding.rvMessages.post {
             // First jump to target position
             layoutManager.scrollToPosition(lastPosition)
-            
+
             // Handle extra-long messages within the same post
             val lastView = layoutManager.findViewByPosition(lastPosition)
             if (lastView != null) {
@@ -470,10 +465,10 @@ class CovMessageListView @JvmOverloads constructor(
                     layoutManager.scrollToPositionWithOffset(lastPosition, offset)
                 }
             }
-            
+
             // Update UI state
             isScrollBottom = true
-            binding.cvToBottom.visibility = View.INVISIBLE
+            binding.cvToBottom.visibility = INVISIBLE
         }
     }
 }

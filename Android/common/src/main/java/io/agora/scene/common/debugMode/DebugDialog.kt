@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.rtc2.RtcEngine
+import io.agora.rtm.RtmClient
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.R
 import io.agora.scene.common.constant.AgentScenes
@@ -33,6 +34,8 @@ interface DebugDialogCallback {
     fun onAudioDumpEnable(enable: Boolean) = Unit
 
     fun onSeamlessPlayMode(enable: Boolean) = Unit  // Default implementation
+
+    fun onMetricsEnable(enable: Boolean) = Unit  // Default implementation
 
     fun onEnvConfigChange() = Unit  // Default implementation
 
@@ -89,6 +92,7 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
             rcOptions.addItemDecoration(divider)
 
             mtvRtcVersion.text = RtcEngine.getSdkVersion()
+            mtvRtmVersion.text = RtmClient.getVersion()
 
             btnClose.setOnClickListener {
                 dismiss()
@@ -107,11 +111,20 @@ class DebugDialog constructor(val agentScene: AgentScenes) : BaseSheetDialog<Com
                     onDebugDialogCallback?.onAudioDumpEnable(isChecked)
                 }
             }
+
             cbSeamlessPlayMode.setChecked(DebugConfigSettings.isSessionLimitMode)
             cbSeamlessPlayMode.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (buttonView.isPressed) {
                     DebugConfigSettings.enableSessionLimitMode(isChecked)
                     onDebugDialogCallback?.onSeamlessPlayMode(isChecked)
+                }
+            }
+
+            cbMetrics.setChecked(DebugConfigSettings.isMetricsEnabled)
+            cbMetrics.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (buttonView.isPressed) {
+                    DebugConfigSettings.enableMetricsEnabled(isChecked)
+                    onDebugDialogCallback?.onMetricsEnable(isChecked)
                 }
             }
 
