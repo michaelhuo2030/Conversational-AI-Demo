@@ -734,19 +734,7 @@ extension ChatViewController {
                     "vendor": nil,
                     "vendor_model": nil
                 ],
-                "llm": [
-                    "url": AppContext.shared.llmUrl.isEmpty ? nil : AppContext.shared.llmUrl,
-                    "api_key": AppContext.shared.llmApiKey.isEmpty ? nil : AppContext.shared.llmApiKey,
-                    "system_messages": AppContext.shared.llmSystemMessages.isEmpty ? nil : AppContext.shared.llmSystemMessages,
-                    "greeting_message": nil,
-                    "params": AppContext.shared.llmParams.isEmpty ? nil : AppContext.shared.llmParams,
-                    "style": nil,
-                    "max_history": nil,
-                    "ignore_empty": nil,
-                    "input_modalities": nil,
-                    "output_modalities": nil,
-                    "failure_message": nil
-                ],
+                "llm": getLLMConfig(),
                 "tts": [
                     "vendor": AppContext.shared.ttsVendor.isEmpty ? nil : AppContext.shared.ttsVendor as Any,
                     "params": AppContext.shared.ttsParams.isEmpty ? nil : AppContext.shared.ttsParams,
@@ -780,6 +768,26 @@ extension ChatViewController {
                     ]
                 ]
             ]
+        ]
+    }
+    
+    private func getLLMConfig() -> [String: Any?] {
+        if let customLLM = AppContext.preferenceManager()?.preference.customLLM, !customLLM.isEmpty {
+            return customLLM
+        }
+        
+        return [
+            "url": AppContext.shared.llmUrl.isEmpty ? nil : AppContext.shared.llmUrl,
+            "api_key": AppContext.shared.llmApiKey.isEmpty ? nil : AppContext.shared.llmApiKey,
+            "system_messages": AppContext.shared.llmSystemMessages.isEmpty ? nil : AppContext.shared.llmSystemMessages,
+            "greeting_message": nil,
+            "params": AppContext.shared.llmParams.isEmpty ? nil : AppContext.shared.llmParams,
+            "style": nil,
+            "max_history": nil,
+            "ignore_empty": nil,
+            "input_modalities": nil,
+            "output_modalities": nil,
+            "failure_message": nil
         ]
     }
     

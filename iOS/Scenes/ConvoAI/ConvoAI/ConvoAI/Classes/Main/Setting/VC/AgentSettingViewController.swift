@@ -15,13 +15,16 @@ class AgentSettingViewController: UIViewController {
     private let titleLabel = UILabel()
     private let connectTipsLabel = UILabel()
     private let closeButton = UIButton(type: .system)
-    private let backgroundViewHeight: CGFloat = 360
+    private let backgroundViewHeight: CGFloat = 500
+    private var isLLMSectionVisible: Bool = false
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
     private var basicSettingItems: [UIView] = []
     private var advancedSettingItems: [UIView] = []
     weak var agentManager: AgentManager!
     var channelName = ""
+    
+    private let llmPlaceholder = "请输入LLM Json配置..."
     
     private let topView = UIView()
     
@@ -121,6 +124,37 @@ class AgentSettingViewController: UIViewController {
         return view
     }()
     
+    private lazy var llmSettingView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.themColor(named: "ai_block2")
+        view.layerCornerRadius = 10
+        view.layer.borderWidth = 1.0
+        view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
+        view.isHidden = true // 默认隐藏
+        return view
+    }()
+    
+    private lazy var llmTextView: UITextView = {
+        let textView = UITextView()
+        textView.backgroundColor = UIColor.clear
+        textView.font = UIFont.systemFont(ofSize: 14)
+        textView.textColor = UIColor.themColor(named: "ai_icontext3")
+        textView.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+        textView.text = llmPlaceholder
+        textView.isScrollEnabled = true
+        textView.showsVerticalScrollIndicator = false
+        textView.delegate = self
+        return textView
+    }()
+    
+    private lazy var llmTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "LLM"
+        label.font = UIFont.boldSystemFont(ofSize: 14)
+        label.textColor = UIColor.themColor(named: "ai_icontext3")
+        return label
+    }()
+    
     private lazy var selectTableMask: UIButton = {
         let button = UIButton(type: .custom)
         button.addTarget(self, action: #selector(onClickHideTable(_:)), for: .touchUpInside)
@@ -141,6 +175,7 @@ class AgentSettingViewController: UIViewController {
         createViews()
         createConstrains()
         setupPanGesture()
+        refreshView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -164,6 +199,20 @@ class AgentSettingViewController: UIViewController {
     
     private func unRegisterDelegate() {
         AppContext.preferenceManager()?.removeDelegate(self)
+    }
+    
+    func refreshView() {
+        let customLLM = AppContext.preferenceManager()?.preference.customLLM
+        setLLMSectionVisible(customLLM != nil)
+        if let llm = customLLM, !llm.isEmpty,
+           let data = try? JSONSerialization.data(withJSONObject: llm, options: [.prettyPrinted]),
+           let jsonString = String(data: data, encoding: .utf8) {
+            llmTextView.text = jsonString
+            llmTextView.textColor = UIColor.themColor(named: "ai_icontext1")
+        } else {
+            llmTextView.text = llmPlaceholder
+            llmTextView.textColor = UIColor.themColor(named: "ai_icontext3")
+        }
     }
     
     private func requestPresetsIfNeed() {
@@ -194,6 +243,9 @@ class AgentSettingViewController: UIViewController {
     private func setupPanGesture() {
         panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
         backgroundView.addGestureRecognizer(panGesture!)
+        
+        let contentTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleContentViewTap(_:)))
+        contentView.addGestureRecognizer(contentTapGesture)
     }
     
     private func animateBackgroundViewIn() {
@@ -311,6 +363,12 @@ class AgentSettingViewController: UIViewController {
         selectTable = nil
         selectTableMask.isHidden = true
     }
+    
+    // MARK: - LLM Configuration Control
+    func setLLMSectionVisible(_ visible: Bool) {
+        isLLMSectionVisible = visible
+        llmSettingView.isHidden = !visible
+    }
 }
 // MARK: - Creations
 extension AgentSettingViewController {
@@ -348,6 +406,10 @@ extension AgentSettingViewController {
         contentView.addSubview(basicSettingView)
         contentView.addSubview(advancedSettingTitle)
         contentView.addSubview(advancedSettingView)
+        contentView.addSubview(llmSettingView)
+        
+        llmSettingView.addSubview(llmTitleLabel)
+        llmSettingView.addSubview(llmTextView)
         
         basicSettingItems.forEach { basicSettingView.addSubview($0) }
         advancedSettingItems.forEach { advancedSettingView.addSubview($0) }
@@ -429,7 +491,6 @@ extension AgentSettingViewController {
             make.top.equalTo(advancedSettingTitle.snp.bottom).offset(8)
             make.left.equalTo(20)
             make.right.equalTo(-20)
-            make.bottom.equalToSuperview()
         }
 
         for (index, item) in advancedSettingItems.enumerated() {
@@ -451,6 +512,25 @@ extension AgentSettingViewController {
             }
         }
         
+        llmSettingView.snp.makeConstraints { make in
+            make.top.equalTo(advancedSettingView.snp.bottom).offset(32)
+            make.left.equalTo(20)
+            make.right.equalTo(-20)
+            make.bottom.equalToSuperview().offset(-200)
+        }
+        
+        llmTitleLabel.snp.makeConstraints { make in
+            make.top.equalTo(16)
+            make.left.equalTo(16)
+        }
+        
+        llmTextView.snp.makeConstraints { make in
+            make.top.equalTo(llmTitleLabel.snp.bottom).offset(8)
+            make.left.right.equalToSuperview()
+            make.height.equalTo(100)
+            make.bottom.equalTo(-16)
+        }
+        
         selectTableMask.snp.makeConstraints { make in
             make.top.left.right.bottom.equalToSuperview()
         }
@@ -458,6 +538,10 @@ extension AgentSettingViewController {
     
     @objc func handleTapGesture(_: UIGestureRecognizer) {
         animateBackgroundViewOut()
+    }
+
+    @objc private func handleContentViewTap(_ gesture: UITapGestureRecognizer) {
+        llmTextView.resignFirstResponder()
     }
 }
 
@@ -478,8 +562,10 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         }
         if preset.presetType.contains("independent") {
             aiVadItem.setEnable(false)
+            setLLMSectionVisible(true)
         } else {
             aiVadItem.setEnable(true)
+            setLLMSectionVisible(false)
         }
     }
     
@@ -491,9 +577,11 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
                presetType.contains("independent") {
                 aiVadItem.setEnable(false)
                 AppContext.preferenceManager()?.updateAiVadState(false)
+                setLLMSectionVisible(true)
             } else {
                 aiVadItem.setEnable(true)
                 AppContext.preferenceManager()?.updateAiVadState(false)
+                setLLMSectionVisible(false)
             }
         }
     }
@@ -510,5 +598,46 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
 extension AgentSettingViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         return touch.view == view
+    }
+}
+
+extension AgentSettingViewController: UITextViewDelegate {
+   
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        let scrollOffset = CGPoint(x: 0, y: 200)
+        scrollView.setContentOffset(scrollOffset, animated: true)
+
+        if textView.text == llmPlaceholder {
+            textView.text = ""
+            textView.textColor = UIColor.themColor(named: "ai_icontext1")
+        }        
+    }
+    
+    func textViewDidEndEditing(_ textView: UITextView) {
+        let scrollOffset = CGPoint(x: 0, y: 0)
+        scrollView.setContentOffset(scrollOffset, animated: true)
+
+        if textView.text.isEmpty {
+            textView.text = llmPlaceholder
+            textView.textColor = UIColor.themColor(named: "ai_icontext3")
+            AppContext.preferenceManager()?.updateCustomLLM(nil)
+            return
+        }
+        if textView.text == llmPlaceholder {
+            AppContext.preferenceManager()?.updateCustomLLM(nil)
+            return
+        }
+        let data = textView.text.data(using: .utf8) ?? Data()
+        do {
+            if let dict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                AppContext.preferenceManager()?.updateCustomLLM(dict)
+            } else {
+                SVProgressHUD.showError(withStatus: "LLM配置格式错误，请输入合法的JSON对象！")
+                AppContext.preferenceManager()?.updateCustomLLM(nil)
+            }
+        } catch {
+            SVProgressHUD.showError(withStatus: "LLM配置格式错误，请输入合法的JSON对象！")
+            AppContext.preferenceManager()?.updateCustomLLM(nil)
+        }
     }
 }

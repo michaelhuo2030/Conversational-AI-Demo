@@ -39,6 +39,7 @@ protocol AgentPreferenceManagerProtocol {
 
     func updateAiVadState(_ state: Bool)
     func updateForceThresholdState(_ state: Bool)
+    func updateCustomLLM(_ customLLM: [String: Any?]?)
     
     // Information Updates
     func updateNetworkState(_ state: NetworkStatus)
@@ -90,6 +91,10 @@ class AgentPreferenceManager: AgentPreferenceManagerProtocol {
     func updateForceThresholdState(_ state: Bool) {
         preference.bhvs = state
         notifyDelegates { $0.preferenceManager(self, bhvsStateDidUpdated: state) }
+    }
+    
+    func updateCustomLLM(_ customLLM: [String: Any?]?) {
+        preference.customLLM = customLLM
     }
     
     // MARK: - Information Updates
@@ -253,6 +258,7 @@ class AgentPreference {
     var language: SupportLanguage?
     var aiVad = false
     var bhvs = true
+    var customLLM: [String: Any?]?
 }
 
 class AgentInfomation {
