@@ -3,6 +3,8 @@ package io.agora.scene.convoai.ui
 import android.content.DialogInterface
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -50,7 +52,6 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         binding?.apply {
             setOnApplyWindowInsets(root)
             rcOptions.adapter = optionsAdapter
@@ -83,12 +84,27 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 }
             })
             btnClose.setOnClickListener {
+                // Save custom LLM JSON before closing
+                saveCustomLLMJson()
                 dismiss()
             }
+            
+            // Initialize custom LLM input
+            etCustomLlmJson.setText(CovAgentManager.customLLMJson)
+            
+            // Add TextWatcher to save custom LLM JSON in real time
+            etCustomLlmJson.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    CovAgentManager.customLLMJson = s?.toString() ?: ""
+                }
+            })
         }
         updatePageEnable()
         updateBaseSettings()
         setAiVadBySelectLanguage()
+        updateCustomLLMVisibility()
     }
 
     override fun disableDragging(): Boolean {
@@ -115,6 +131,8 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 cbAiVad.isEnabled = isIdle
             }
         }
+        // Also update CustomLLM visibility when preset might have changed
+        updateCustomLLMVisibility()
     }
 
     private var connectionState = AgentConnectionState.IDLE
@@ -141,6 +159,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clPreset.isEnabled = true
                 clLanguage.isEnabled = true
                 cbAiVad.isEnabled = true
+                etCustomLlmJson.isEnabled = true
                 tvTitleConnectedTips.isVisible = false
             }
         } else {
@@ -158,6 +177,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 clPreset.isEnabled = false
                 clLanguage.isEnabled = false
                 cbAiVad.isEnabled = false
+                etCustomLlmJson.isEnabled = false
                 tvTitleConnectedTips.isVisible = true
             }
         }
@@ -204,6 +224,7 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
                 CovAgentManager.setPreset(preset)
                 updateBaseSettings()
                 setAiVadBySelectLanguage()
+                updateCustomLLMVisibility()
                 vOptionsMask.visibility = View.INVISIBLE
             }
         }
@@ -258,6 +279,20 @@ class CovSettingsDialog : BaseSheetDialog<CovSettingDialogBinding>() {
     private fun onClickMaskView() {
         binding?.apply {
             vOptionsMask.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun updateCustomLLMVisibility() {
+        binding?.apply {
+            val isCustomLLM = CovAgentManager.getPreset()?.isCustomLLM() == true
+            clCustomLlm.visibility = if (isCustomLLM) View.VISIBLE else View.GONE
+            dividerLlm.visibility = if (isCustomLLM) View.VISIBLE else View.GONE
+        }
+    }
+
+    private fun saveCustomLLMJson() {
+        binding?.apply {
+            CovAgentManager.customLLMJson = etCustomLlmJson.text.toString()
         }
     }
 
