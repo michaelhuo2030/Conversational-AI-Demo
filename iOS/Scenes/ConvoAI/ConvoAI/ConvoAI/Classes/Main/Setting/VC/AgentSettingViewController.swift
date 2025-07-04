@@ -130,7 +130,7 @@ class AgentSettingViewController: UIViewController {
         view.layerCornerRadius = 10
         view.layer.borderWidth = 1.0
         view.layer.borderColor = UIColor.themColor(named: "ai_line1").cgColor
-        view.isHidden = true // 默认隐藏
+        view.isHidden = true
         return view
     }()
     
@@ -202,16 +202,20 @@ class AgentSettingViewController: UIViewController {
     }
     
     func refreshView() {
-        let customLLM = AppContext.preferenceManager()?.preference.customLLM
-        setLLMSectionVisible(customLLM != nil)
-        if let llm = customLLM, !llm.isEmpty,
-           let data = try? JSONSerialization.data(withJSONObject: llm, options: [.prettyPrinted]),
-           let jsonString = String(data: data, encoding: .utf8) {
-            llmTextView.text = jsonString
-            llmTextView.textColor = UIColor.themColor(named: "ai_icontext1")
+        if let presetType = AppContext.preferenceManager()?.preference.preset?.presetType, presetType == "standard_custom_llm" {
+            setLLMSectionVisible(true)
+            let customLLM = AppContext.preferenceManager()?.preference.customLLM
+            if let llm = customLLM, !llm.isEmpty,
+               let data = try? JSONSerialization.data(withJSONObject: llm, options: [.prettyPrinted]),
+               let jsonString = String(data: data, encoding: .utf8) {
+                llmTextView.text = jsonString
+                llmTextView.textColor = UIColor.themColor(named: "ai_icontext1")
+            } else {
+                llmTextView.text = llmPlaceholder
+                llmTextView.textColor = UIColor.themColor(named: "ai_icontext3")
+            }
         } else {
-            llmTextView.text = llmPlaceholder
-            llmTextView.textColor = UIColor.themColor(named: "ai_icontext3")
+            setLLMSectionVisible(false)
         }
     }
     
@@ -368,6 +372,7 @@ class AgentSettingViewController: UIViewController {
     func setLLMSectionVisible(_ visible: Bool) {
         isLLMSectionVisible = visible
         llmSettingView.isHidden = !visible
+        llmTextView.resignFirstResponder()
     }
 }
 // MARK: - Creations
@@ -562,11 +567,10 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
         }
         if preset.presetType.contains("independent") {
             aiVadItem.setEnable(false)
-            setLLMSectionVisible(true)
         } else {
             aiVadItem.setEnable(true)
-            setLLMSectionVisible(false)
         }
+        refreshView()
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, agentStateDidUpdated agentState: ConnectionStatus) {
@@ -577,13 +581,12 @@ extension AgentSettingViewController: AgentPreferenceManagerDelegate {
                presetType.contains("independent") {
                 aiVadItem.setEnable(false)
                 AppContext.preferenceManager()?.updateAiVadState(false)
-                setLLMSectionVisible(true)
             } else {
                 aiVadItem.setEnable(true)
                 AppContext.preferenceManager()?.updateAiVadState(false)
-                setLLMSectionVisible(false)
             }
         }
+        refreshView()
     }
     
     func preferenceManager(_ manager: AgentPreferenceManager, languageDidUpdated language: SupportLanguage) {

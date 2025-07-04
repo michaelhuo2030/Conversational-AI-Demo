@@ -772,10 +772,11 @@ extension ChatViewController {
     }
     
     private func getLLMConfig() -> [String: Any?] {
-        if let customLLM = AppContext.preferenceManager()?.preference.customLLM, !customLLM.isEmpty {
+        if let presetType = AppContext.preferenceManager()?.preference.preset?.presetType,
+           presetType == "standard_custom_llm",
+           let customLLM = AppContext.preferenceManager()?.preference.customLLM {
             return customLLM
         }
-        
         return [
             "url": AppContext.shared.llmUrl.isEmpty ? nil : AppContext.shared.llmUrl,
             "api_key": AppContext.shared.llmApiKey.isEmpty ? nil : AppContext.shared.llmApiKey,
