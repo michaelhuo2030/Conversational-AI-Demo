@@ -13,6 +13,10 @@ data class CovAgentPreset(
     fun isIndependent(): Boolean {
         return preset_type.startsWith("independent")
     }
+    
+    fun isCustomLLM(): Boolean {
+        return name == "custom_llm"
+    }
 }
 
 data class CovAgentLanguage(

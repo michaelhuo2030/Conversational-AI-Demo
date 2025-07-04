@@ -25,6 +25,9 @@ object CovAgentManager {
 
     var enableAiVad = false
     val enableBHVS = true
+    
+    // Custom LLM JSON for CustomLLM preset
+    var customLLMJson: String = ""
 
     // values
     val uid = Random.nextInt(10000, 100000000)
@@ -36,7 +39,7 @@ object CovAgentManager {
         private set
 
     fun setPresetList(l: List<CovAgentPreset>) {
-        presetList = l.filter { it.preset_type != "custom" }
+        presetList = l.filter { it.preset_type != "custom" } // Keep CustomLLM but filter out "custom"
         setPreset(presetList?.firstOrNull())
     }
 
@@ -64,5 +67,6 @@ object CovAgentManager {
 
     fun resetData() {
         enableAiVad = false
+        customLLMJson = ""
     }
 }

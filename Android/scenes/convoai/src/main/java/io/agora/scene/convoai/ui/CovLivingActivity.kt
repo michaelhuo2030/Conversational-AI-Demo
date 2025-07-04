@@ -278,35 +278,50 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     "vendor" to null,
                     "vendor_model" to null,
                 ),
-                "llm" to mapOf(
-                    "url" to BuildConfig.LLM_URL.takeIf { it.isNotEmpty() },
-                    "api_key" to BuildConfig.LLM_API_KEY.takeIf { it.isNotEmpty() },
-                    "system_messages" to try {
-                        // Parse system_messages as JSON if not empty
-                        BuildConfig.LLM_SYSTEM_MESSAGES.takeIf { it.isNotEmpty() }?.let {
-                            org.json.JSONArray(it)
+                "llm" to if (CovAgentManager.getPreset()?.isCustomLLM() == true) {
+                    // For CustomLLM preset, use user input JSON directly
+                    try {
+                        if (CovAgentManager.customLLMJson.isNotEmpty()) {
+                            JSONObject(CovAgentManager.customLLMJson)
+                        } else {
+                            mapOf<String, Any?>()
                         }
                     } catch (e: Exception) {
-                        CovLogger.e(TAG, "Failed to parse system_messages as JSON: ${e.message}")
-                        BuildConfig.LLM_SYSTEM_MESSAGES.takeIf { it.isNotEmpty() }
-                    },
-                    "greeting_message" to null,
-                    "params" to try {
-                        // Parse params as JSON if not empty
-                        BuildConfig.LLM_PARRAMS.takeIf { it.isNotEmpty() }?.let {
-                            JSONObject(it)
-                        }
-                    } catch (e: Exception) {
-                        CovLogger.e(TAG, "Failed to parse LLM params as JSON: ${e.message}")
-                        BuildConfig.LLM_PARRAMS.takeIf { it.isNotEmpty() }
-                    },
-                    "style" to null,
-                    "max_history" to null,
-                    "ignore_empty" to null,
-                    "input_modalities" to null,
-                    "output_modalities" to null,
-                    "failure_message" to null,
-                ),
+                        CovLogger.e(TAG, "Failed to parse custom LLM JSON: ${e.message}")
+                        mapOf<String, Any?>()
+                    }
+                } else {
+                    // For other presets, use BuildConfig values
+                    mapOf(
+                        "url" to BuildConfig.LLM_URL.takeIf { it.isNotEmpty() },
+                        "api_key" to BuildConfig.LLM_API_KEY.takeIf { it.isNotEmpty() },
+                        "system_messages" to try {
+                            // Parse system_messages as JSON if not empty
+                            BuildConfig.LLM_SYSTEM_MESSAGES.takeIf { it.isNotEmpty() }?.let {
+                                org.json.JSONArray(it)
+                            }
+                        } catch (e: Exception) {
+                            CovLogger.e(TAG, "Failed to parse system_messages as JSON: ${e.message}")
+                            BuildConfig.LLM_SYSTEM_MESSAGES.takeIf { it.isNotEmpty() }
+                        },
+                        "greeting_message" to null,
+                        "params" to try {
+                            // Parse params as JSON if not empty
+                            BuildConfig.LLM_PARRAMS.takeIf { it.isNotEmpty() }?.let {
+                                JSONObject(it)
+                            }
+                        } catch (e: Exception) {
+                            CovLogger.e(TAG, "Failed to parse LLM params as JSON: ${e.message}")
+                            BuildConfig.LLM_PARRAMS.takeIf { it.isNotEmpty() }
+                        },
+                        "style" to null,
+                        "max_history" to null,
+                        "ignore_empty" to null,
+                        "input_modalities" to null,
+                        "output_modalities" to null,
+                        "failure_message" to null,
+                    )
+                },
                 "tts" to mapOf(
                     "vendor" to BuildConfig.TTS_VENDOR.takeIf { it.isNotEmpty() },
                     "params" to try {
