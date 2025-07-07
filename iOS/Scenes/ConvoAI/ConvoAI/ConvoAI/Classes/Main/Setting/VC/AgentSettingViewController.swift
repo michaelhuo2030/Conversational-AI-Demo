@@ -15,7 +15,6 @@ class AgentSettingViewController: UIViewController {
     private let titleLabel = UILabel()
     private let connectTipsLabel = UILabel()
     private let closeButton = UIButton(type: .system)
-    private let backgroundViewHeight: CGFloat = 500
     private var isLLMSectionVisible: Bool = false
     private var initialCenter: CGPoint = .zero
     private var panGesture: UIPanGestureRecognizer?
@@ -23,6 +22,9 @@ class AgentSettingViewController: UIViewController {
     private var advancedSettingItems: [UIView] = []
     weak var agentManager: AgentManager!
     var channelName = ""
+    
+    // 添加键盘相关属性
+    private let originalBackgroundViewHeight: CGFloat = 500
     
     private let llmPlaceholder = "请输入LLM Json配置..."
     
@@ -166,6 +168,7 @@ class AgentSettingViewController: UIViewController {
         
     deinit {
         unRegisterDelegate()
+        removeKeyboardNotifications()
     }
     
     override func viewDidLoad() {
@@ -175,6 +178,7 @@ class AgentSettingViewController: UIViewController {
         createViews()
         createConstrains()
         setupPanGesture()
+        setupKeyboardNotifications()
         refreshView()
     }
     
@@ -252,16 +256,70 @@ class AgentSettingViewController: UIViewController {
         contentView.addGestureRecognizer(contentTapGesture)
     }
     
+    // MARK: - Keyboard Handling
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillShow(_:)),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide(_:)),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
+    }
+    
+    private func removeKeyboardNotifications() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
+            return
+        }
+        
+        let keyboardHeight = keyboardFrame.height
+        
+        // 更新backgroundView的高度约束
+        backgroundView.snp.updateConstraints { make in
+            make.height.equalTo(originalBackgroundViewHeight + keyboardHeight)
+        }
+        
+        // 动画更新布局
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        // 恢复原始高度
+        backgroundView.snp.updateConstraints { make in
+            make.height.equalTo(originalBackgroundViewHeight)
+        }
+        
+        // 动画更新布局
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
     private func animateBackgroundViewIn() {
-        backgroundView.transform = CGAffineTransform(translationX: 0, y: backgroundViewHeight)
+        backgroundView.transform = CGAffineTransform(translationX: 0, y: originalBackgroundViewHeight)
         UIView.animate(withDuration: 0.3) {
             self.backgroundView.transform = .identity
         }
     }
     
     private func animateBackgroundViewOut() {
+        llmTextView.resignFirstResponder()
+        
         UIView.animate(withDuration: 0.3, animations: {
-            self.backgroundView.transform = CGAffineTransform(translationX:0, y: self.backgroundViewHeight)
+            self.backgroundView.transform = CGAffineTransform(translationX:0, y: self.originalBackgroundViewHeight)
         }) { _ in
             self.dismiss(animated: false)
         }
@@ -278,7 +336,7 @@ class AgentSettingViewController: UIViewController {
             backgroundView.transform = CGAffineTransform(translationX:0, y: newY)
         case .ended:
             let velocity = gesture.velocity(in: view)
-            let shouldDismiss = translation.y > backgroundViewHeight / 2 || velocity.y > 500
+            let shouldDismiss = translation.y > originalBackgroundViewHeight / 2 || velocity.y > 500
             
             if shouldDismiss {
                 animateBackgroundViewOut()
@@ -429,7 +487,7 @@ extension AgentSettingViewController {
     private func createConstrains() {
         backgroundView.snp.makeConstraints { make in
             make.left.right.bottom.equalToSuperview()
-            make.height.equalTo(backgroundViewHeight)
+            make.height.equalTo(originalBackgroundViewHeight)
         }
         topView.snp.makeConstraints { make in
             make.top.left.right.equalToSuperview()
@@ -521,7 +579,7 @@ extension AgentSettingViewController {
             make.top.equalTo(advancedSettingView.snp.bottom).offset(32)
             make.left.equalTo(20)
             make.right.equalTo(-20)
-            make.bottom.equalToSuperview().offset(-200)
+            make.bottom.equalToSuperview().offset(-20)
         }
         
         llmTitleLabel.snp.makeConstraints { make in
@@ -607,9 +665,6 @@ extension AgentSettingViewController: UIGestureRecognizerDelegate {
 extension AgentSettingViewController: UITextViewDelegate {
    
     func textViewDidBeginEditing(_ textView: UITextView) {
-        let scrollOffset = CGPoint(x: 0, y: 200)
-        scrollView.setContentOffset(scrollOffset, animated: true)
-
         if textView.text == llmPlaceholder {
             textView.text = ""
             textView.textColor = UIColor.themColor(named: "ai_icontext1")
@@ -617,9 +672,6 @@ extension AgentSettingViewController: UITextViewDelegate {
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
-        let scrollOffset = CGPoint(x: 0, y: 0)
-        scrollView.setContentOffset(scrollOffset, animated: true)
-
         if textView.text.isEmpty {
             textView.text = llmPlaceholder
             textView.textColor = UIColor.themColor(named: "ai_icontext3")
