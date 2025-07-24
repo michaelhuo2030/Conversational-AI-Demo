@@ -1,34 +1,11 @@
 import * as z from 'zod'
 
-import {
-  agentBasicSettingsSchema,
-  agentSettingsSchema
-} from '@/constants/agent/schema'
-
 export const basicRemoteResSchema = z.object({
   tip: z.string().optional(),
   code: z.number().optional(),
   msg: z.string().optional(),
   data: z.any().optional()
 })
-
-export const remoteAgentBasicSettingsSchema = agentBasicSettingsSchema.and(
-  z.object({
-    app_id: z.string(),
-    app_cert: z.string().optional(),
-    basic_auth_username: z.string().optional(),
-    basic_auth_password: z.string().optional()
-  })
-)
-
-export const remoteAgentStartReqSchema = agentSettingsSchema.and(
-  z.object({
-    app_id: z.string(),
-    app_cert: z.string().optional(),
-    basic_auth_username: z.string().optional(),
-    basic_auth_password: z.string().optional()
-  })
-)
 
 export const remoteAgentStartRespDataSchema = z.object({
   agent_id: z.string()
