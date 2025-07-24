@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
       url,
       basicAuthKey,
       basicAuthSecret,
-      customParameter
+      customParameter,
+      authorizationHeader
     },
     'getEndpointFromNextRequest'
   )

@@ -18,7 +18,7 @@ const appCert = process.env.AGORA_APP_CERT || undefined
 export const getEndpointFromNextRequest = (request: NextRequest) => {
   const query = request.nextUrl.searchParams
   const isDev = query.get(DEV_MODE_QUERY_KEY) === 'true'
-  const authorizationHeader = request.headers.get('authorization')
+  const authorizationHeader = request.headers.get('Authorization')
   // normal mode: prod
   if (!isDev) {
     return {

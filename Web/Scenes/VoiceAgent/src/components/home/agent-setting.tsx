@@ -641,22 +641,6 @@ function FullAgentSettingsForm() {
             logger.error(parsedData.error, '[FullAgentSettingsForm] form error')
             return
           }
-          try {
-            const llm_system_messages =
-              parsedData.data.llm?.system_messages?.trim()
-                ? JSON.parse(parsedData.data.llm.system_messages)
-                : undefined
-            if (llm_system_messages) {
-              parsedData.data.llm.system_messages = llm_system_messages
-            }
-            const tts_params = JSON.parse(parsedData.data.tts.params.trim())
-            parsedData.data.tts.params = tts_params
-          } catch (error) {
-            toast.error(
-              "Invalid JSON format in 'llm.system_messages' or 'tts.params'"
-            )
-            logger.error(error, '[FullAgentSettingsForm] JSON parse error')
-          }
           toast.success('Settings updated successfully')
           console.log(parsedData.data)
           updateSettings(parsedData.data as unknown as TAgentSettings)

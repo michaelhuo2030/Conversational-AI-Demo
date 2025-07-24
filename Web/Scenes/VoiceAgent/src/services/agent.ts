@@ -16,6 +16,7 @@ import {
   basicRemoteResSchema,
   ERROR_CODE,
   ERROR_MESSAGE,
+  localOpensourceStartAgentPropertiesSchema,
   localStartAgentPropertiesSchema,
   remoteAgentPingReqSchema,
   remoteAgentStartRespDataDevSchema,
@@ -189,11 +190,40 @@ export const getAgentToken = async (
 }
 
 export const startAgent = async (
-  payload: z.infer<typeof localStartAgentPropertiesSchema>,
+  payload: z.infer<
+    | typeof localStartAgentPropertiesSchema
+    | typeof localOpensourceStartAgentPropertiesSchema
+  >,
   abortController?: AbortController
 ) => {
   const url = API_AGENT
-  const data = localStartAgentPropertiesSchema.parse(payload)
+  const data = (payload as z.infer<typeof localStartAgentPropertiesSchema>)
+    ?.preset_name
+    ? localStartAgentPropertiesSchema.parse(payload)
+    : localOpensourceStartAgentPropertiesSchema.parse(payload)
+
+  try {
+    const opensourceData = data as z.infer<
+      typeof localOpensourceStartAgentPropertiesSchema
+    >
+    const llm_system_messages = opensourceData.llm?.system_messages?.trim()
+      ? JSON.parse(opensourceData.llm.system_messages)
+      : undefined
+    if (llm_system_messages) {
+      opensourceData.llm.system_messages = llm_system_messages
+    }
+    const llm_params = opensourceData.llm.params?.trim()
+      ? JSON.parse(opensourceData.llm.params.trim())
+      : undefined
+    if (llm_params) {
+      opensourceData.llm.params = llm_params
+    }
+    const tts_params = JSON.parse(opensourceData.tts.params.trim())
+    opensourceData.tts.params = tts_params
+  } catch (error) {
+    console.error(error, '[FullAgentSettingsForm] JSON parse error')
+    throw new Error('JSON parse error in agent settings')
+  }
 
   const resp = await fetchWithTimeout(
     url,

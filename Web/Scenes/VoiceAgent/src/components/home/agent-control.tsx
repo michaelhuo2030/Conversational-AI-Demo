@@ -39,7 +39,9 @@ import {
   FIRST_START_TIMEOUT,
   FIRST_START_TIMEOUT_DEV,
   HEARTBEAT_INTERVAL,
+  localOpensourceStartAgentPropertiesSchema,
   localStartAgentPropertiesSchema,
+  opensourceAgentSettingSchema,
   publicAgentSettingSchema
 } from '@/constants'
 import { ConversationalAIAPI } from '@/conversational-ai-api'
@@ -291,7 +293,11 @@ export default function AgentControl() {
     // updateAgentStatus(EConnectionStatus.CONNECTING)
     // updateRoomStatus(EConnectionStatus.CONNECTING)
     try {
-      const payload = localStartAgentPropertiesSchema.parse({
+      const targetSchema =
+        presets?.length > 0
+          ? localStartAgentPropertiesSchema
+          : localOpensourceStartAgentPropertiesSchema
+      const payload = targetSchema.parse({
         ...settings,
         // avatar releated
         avatar: settings.avatar
@@ -631,10 +637,15 @@ export default function AgentControl() {
 
   const isFormValid = React.useMemo(() => {
     logger.info({ settings }, 'settings')
+    if (!presets || presets.length === 0) {
+      const res = opensourceAgentSettingSchema.safeParse(settings)
+      logger.info({ res }, 'settings res')
+      return res.success
+    }
     const res = publicAgentSettingSchema.safeParse(settings)
     logger.info({ res }, 'settings res')
     return res.success
-  }, [settings])
+  }, [settings, presets])
 
   // pre-fetch token
   React.useEffect(() => {

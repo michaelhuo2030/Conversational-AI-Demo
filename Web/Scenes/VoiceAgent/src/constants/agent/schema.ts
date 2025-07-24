@@ -69,7 +69,7 @@ export const agentPresetSchema = z.object({
 })
 
 export const publicAgentSettingSchema = z.object({
-  preset_name: z.string().min(1).describe('preset-name'),
+  preset_name: z.string().describe('preset-name'),
   asr: z
     .object({
       language: z
@@ -127,15 +127,15 @@ export const opensourceAgentSettingSchema = z.object({
     .object({
       url: z.string().url().describe('LLM URL'),
       api_key: z.string().describe('LLM API Key').optional(),
-      system_messages: z.string().describe('LLM System Messages').optional(),
+      system_messages: z.string().describe('LLM System Messages').optional(), // transform to object in service
       greeting_message: z.string().describe('LLM Greeting Message').optional(),
-      params: z.string().describe('LLM Params').optional()
+      params: z.string().describe('LLM Params').optional() // transform to object in service
     })
     .describe('LLM'),
   tts: z
     .object({
       vendor: z.string().describe('TTS Vendor'),
-      params: z.string().describe('TTS Params')
+      params: z.string().describe('TTS Params') // transform to object in service
     })
     .describe('TTS'),
   parameters: z
@@ -149,14 +149,15 @@ export const opensourceAgentSettingSchema = z.object({
     .describe('Parameters')
 })
 
-export const localStartAgentPropertiesSchema = z
-  .object({
-    channel: z.string().describe('channel-name'),
-    token: z.string().describe('token').optional(),
-    agent_rtc_uid: z.string().describe('agent-rtc-uid'),
-    remote_rtc_uids: z.array(z.string()).describe('remote-rtc-uid list')
-  })
-  .merge(
+export const localStartAgentPropertiesBaseSchema = z.object({
+  channel: z.string().describe('channel-name'),
+  token: z.string().describe('token').optional(),
+  agent_rtc_uid: z.string().describe('agent-rtc-uid'),
+  remote_rtc_uids: z.array(z.string()).describe('remote-rtc-uid list')
+})
+
+export const localStartAgentPropertiesSchema =
+  localStartAgentPropertiesBaseSchema.merge(
     publicAgentSettingSchema.extend({
       avatar: z
         .object({
@@ -174,3 +175,6 @@ export const localStartAgentPropertiesSchema = z
         .optional()
     })
   )
+
+export const localOpensourceStartAgentPropertiesSchema =
+  localStartAgentPropertiesBaseSchema.merge(opensourceAgentSettingSchema)
