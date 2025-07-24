@@ -102,7 +102,7 @@ AGENT_BASIC_AUTH_SECRET=<声网 RESTful API SECRET>
 #----------- LLM -----------
 NEXT_PUBLIC_CUSTOM_LLM_URL="<your-LLM-url>"
 NEXT_PUBLIC_CUSTOM_LLM_KEY="<your-LLM-key>"
-NEXT_PUBLIC_CUSTOM_LLM_SYSTEM_MESSAGES="<your-TTS-vendor>"
+NEXT_PUBLIC_CUSTOM_LLM_SYSTEM_MESSAGES="<your-LLM-system-messages>"
 NEXT_PUBLIC_CUSTOM_LLM_PARAMS="<your-LLM-params>"
 
 #----------- TTS -----------
