@@ -212,14 +212,18 @@ export const startAgent = async (
     if (llm_system_messages) {
       opensourceData.llm.system_messages = llm_system_messages
     }
-    const llm_params = opensourceData.llm.params?.trim()
+    const llm_params = opensourceData?.llm.params?.trim()
       ? JSON.parse(opensourceData.llm.params.trim())
       : undefined
     if (llm_params) {
       opensourceData.llm.params = llm_params
     }
-    const tts_params = JSON.parse(opensourceData.tts.params.trim())
-    opensourceData.tts.params = tts_params
+    const tts_params = opensourceData?.tts?.params?.trim()
+      ? JSON.parse(opensourceData.tts.params.trim())
+      : undefined
+    if (tts_params) {
+      opensourceData.tts.params = tts_params
+    }
   } catch (error) {
     console.error(error, '[FullAgentSettingsForm] JSON parse error')
     throw new Error('JSON parse error in agent settings')
