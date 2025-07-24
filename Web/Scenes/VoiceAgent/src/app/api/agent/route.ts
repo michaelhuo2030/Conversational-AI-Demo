@@ -3,7 +3,6 @@ import { type NextRequest, NextResponse } from 'next/server'
 import {
   basicAuthKey,
   basicAuthSecret,
-  customParameter,
   getEndpointFromNextRequest
 } from '@/app/api/_utils'
 import { REMOTE_CONVOAI_AGENT_START } from '@/constants'
@@ -32,22 +31,10 @@ export async function POST(request: NextRequest) {
       url,
       basicAuthKey,
       basicAuthSecret,
-      customParameter,
       authorizationHeader
     },
     'getEndpointFromNextRequest'
   )
-
-  let customParam = customParameter
-  try {
-    if (customParam && typeof customParameter === 'string') {
-      console.log('customParameter', customParameter)
-      customParam = JSON.parse(customParameter)
-    }
-  } catch (error) {
-    console.info('Error parsing customParameter:', error)
-    customParam = customParameter
-  }
 
   try {
     const reqBody = await request.json()
