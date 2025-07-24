@@ -1,6 +1,7 @@
 {
   "name": "convoai-v2",
   "version": "1.7.0",
+  "description": "Conversational AI Demo",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

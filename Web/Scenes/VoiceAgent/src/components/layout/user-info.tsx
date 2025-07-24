@@ -2,7 +2,6 @@
 
 import Cookies from 'js-cookie'
 import { LogOutIcon } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { parseAsString, useQueryState } from 'nuqs'
 import * as React from 'react'
@@ -17,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { SSO_LOGIN_ID, SSO_LOGOUT, SSO_STATE, SSO_TOKEN } from '@/constants'
+import { SSO_LOGIN_ID, SSO_STATE, SSO_TOKEN } from '@/constants'
 import { getUserInfo, login } from '@/services/agent'
 import { useUserInfoStore } from '@/store'
 
@@ -32,7 +31,6 @@ export function UserInfo() {
     updateUserInfo,
     updateGlobalLoading
   } = useUserInfoStore()
-  const router = useRouter()
 
   const handleLogout = () => {
     clearUserInfo()
@@ -40,15 +38,6 @@ export function UserInfo() {
       window.dispatchEvent(new Event('stop-agent'))
     }
     Cookies.remove('token')
-    const currentUrl =
-      typeof window !== 'undefined' ? new URL(window.location.href) : null
-    router.push(
-      SSO_LOGOUT +
-        '?redirect_uri=' +
-        (currentUrl
-          ? encodeURIComponent(`${currentUrl.protocol}//${currentUrl.host}`)
-          : '')
-    )
   }
 
   const getSSOUserInfo = React.useCallback(async () => {
