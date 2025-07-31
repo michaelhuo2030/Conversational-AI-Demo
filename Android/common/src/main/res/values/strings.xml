@@ -24,6 +24,7 @@
     <string name="common_close">关闭</string>
     <string name="common_preview">预览</string>
     <string name="common_confirm">确定</string>
+    <string name="common_cancel">取消</string>
 
     <string name="common_login_chat">一键登录</string>
     <string name="common_login_chat_tips">解锁 \u221E 免费畅聊</string>
@@ -48,4 +49,5 @@
     <string name="common_login_typing_text3">秒应智答，零滞畅聊</string>
     <string name="common_app_version">v%1s</string>
     <string name="common_app_build_no">Build %1s</string>
+    <string name="common_app_no_more_reminder">不再提示</string>
 </resources>

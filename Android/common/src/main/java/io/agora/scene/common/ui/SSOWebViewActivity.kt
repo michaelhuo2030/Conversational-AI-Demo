@@ -8,7 +8,6 @@ import android.os.Looper
 import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -176,9 +175,7 @@ class SSOWebViewActivity : BaseActivity<CommonActivitySsoBinding>() {
                     // Add a delay before clearing cookies and reloading
                     mainHandler.postDelayed({
                         // Clear cookies and reload to allow re-login
-                        val cookieManager = CookieManager.getInstance()
-                        cookieManager.removeAllCookies(null)
-                        cookieManager.flush()
+                        cleanCookie()
                         mBinding?.webView?.loadUrl(ssoUrl)
                     }, 1500) // 1.5-second delay
                 }

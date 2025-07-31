@@ -56,17 +56,23 @@ extension RTCManager: RTCManagerProtocol {
         let config = AgoraRtcEngineConfig()
         config.appId = AppContext.shared.appId
         config.channelProfile = .liveBroadcasting
-        config.audioScenario = .aiClient
+        config.audioScenario = .default
         rtcEngine = AgoraRtcEngineKit.sharedEngine(with: config, delegate: delegate)
         ConvoAILogger.info("rtc version: \(AgoraRtcEngineKit.getSdkVersion())")
         return rtcEngine
     }
     
     func joinChannel(rtcToken: String, channelName: String, uid: String, isIndependent: Bool = false) {
+        rtcEngine.enableVideo()
+
         // Calling this API enables the onAudioVolumeIndication callback to report volume values,
         // which can be used to drive microphone volume animation rendering
         // If you don't need this feature, you can skip this setting
         rtcEngine.enableAudioVolumeIndication(100, smooth: 3, reportVad: false)
+        
+        let cameraConfig = AgoraCameraCapturerConfiguration()
+        cameraConfig.cameraDirection = .rear
+        rtcEngine.setCameraCapturerConfiguration(cameraConfig)
 
         // Audio pre-dump is enabled by default in demo, you don't need to set this in your app
         rtcEngine.setParameters("{\"che.audio.enable.predump\":{\"enable\":\"true\",\"duration\":\"60\"}}")
@@ -76,7 +82,7 @@ extension RTCManager: RTCManagerProtocol {
         options.publishMicrophoneTrack = true
         options.publishCameraTrack = false
         options.autoSubscribeAudio = true
-        options.autoSubscribeVideo = false
+        options.autoSubscribeVideo = true
         let _ = rtcEngine.joinChannel(byToken: rtcToken, channelId: channelName, uid: UInt(uid) ?? 0, mediaOptions: options)
     }
     

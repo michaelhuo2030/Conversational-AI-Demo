@@ -103,6 +103,86 @@
    ```
 ---
 
+## 发送图片消息
+- **发送图片**
+使用 sendImage 接口发送图片消息给 AI agent：
+```swift
+let uuid = UUID().uuidString
+let imageUrl = "https://example.com/image.jpg"
+let message = ImageMessage(uuid: uuid, url: imageUrl)
+self.convoAIAPI.chat(agentUserId: "\(agentUid)", message: message) { [weak self] error in
+    if let error = error {
+        print("send image failed, error: \(error.message)")
+    } else {
+        print("send image success")
+    }
+}
+```
+##处理图片发送状态
+图片发送的实际成功或失败状态通过以下两个回调来确认：
+1. **图片发送成功 - onMessageReceiptUpdated**
+当收到 onMessageReceiptUpdated 回调时，需要按以下步骤解析来确认图片发送状态：
+```swift
+struct PictureInfo: Codable {
+    let uuid: String
+}
+
+public func onMessageReceiptUpdated(agentUserId: String, messageReceipt: MessageReceipt) {
+      if messageReceipt.type == .context {
+          guard let messageData = messageReceipt.message.data(using: .utf8) else {
+              return
+          }
+          
+          do {
+              let imageInfo = try JSONDecoder().decode(PictureInfo.self, from: messageData)
+              let uuid = imageInfo.uuid
+              //更新UI
+              self.messageView.viewModel.updateImageMessage(uuid: uuid, state: .success)
+          } catch {
+              print("Failed to decode PictureInfo: \(error)")
+          }
+
+        print("Failed to parse message string from image info message")
+        return
+    }
+      
+  }
+```
+2. **图片发送失败 - onMessageError**
+```swift
+struct ImageUploadError: Codable {
+    let code: Int
+    let message: String
+}
+
+struct ImageUploadErrorResponse: Codable {
+    let uuid: String
+    let success: Bool
+    let error: ImageUploadError?
+}
+
+public func onMessageError(agentUserId: String, error: MessageError) {
+    if let messageData = error.message.data(using: .utf8) {
+        do {
+            let errorResponse = try JSONDecoder().decode(ImageUploadErrorResponse.self, from: messageData)
+            if !errorResponse.success {
+                let errorMessage = errorResponse.error?.message ?? "Unknown error"
+                let errorCode = errorResponse.error?.code ?? 0
+                
+                addLog("<<< [ImageUploadError] Image upload failed: \(errorMessage) (code: \(errorCode))")
+                
+                // Update UI to show error state
+                DispatchQueue.main.async { [weak self] in
+                    self?.messageView.viewModel.updateImageMessage(uuid: errorResponse.uuid, state: .failed)
+                }
+            }
+        } catch {
+            addLog("<<< [onMessageError] Failed to parse error message JSON: \(error)")
+        }
+    }
+}
+```
+
 ## 注意事项
 - **订阅频道消息**
  在开始会话调用：
@@ -131,6 +211,17 @@
     convoAIAPI.loadAudioSettings()
     rtcEngine.joinChannel(rtcToken: token, channelName: channelName, uid: uid, isIndependent: independent)
   ```
+- **数字人音频设置：**
+如果启用数字人功能，必须使用 `.default` 音频场景以获得最佳的音频混音效果：
+  ```swift
+    // 启用数字人时的正确音频设置
+    convoAIAPI.loadAudioSettings(secnario: .default)
+    rtcEngine.joinChannel(rtcToken: token, channelName: channelName, uid: uid, isIndependent: independent)
+  ```
+
+不同场景的音频设置建议：
+- **数字人模式**：`.default` - 提供更好的音频混音效果
+- **标准模式**：`.aiClient` - 适用于标准AI对话场景
 
 - **所有事件回调均在主线程执行。**
   可直接在回调中安全更新 UI。
