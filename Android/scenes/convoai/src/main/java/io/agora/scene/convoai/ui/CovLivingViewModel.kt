@@ -75,6 +75,9 @@ class CovLivingViewModel : ViewModel() {
     private val _isAgentJoinedRtc = MutableStateFlow(false)
     val isAgentJoinedRtc: StateFlow<Boolean> = _isAgentJoinedRtc.asStateFlow()
 
+    private val _interruptEvent = MutableStateFlow<InterruptEvent?>(null)
+    val interruptEvent: StateFlow<InterruptEvent?> = _interruptEvent.asStateFlow()
+
     // Transcription state
     private val _transcriptionUpdate = MutableStateFlow<Transcription?>(null)
     val transcriptionUpdate: StateFlow<Transcription?> = _transcriptionUpdate.asStateFlow()
@@ -140,6 +143,7 @@ class CovLivingViewModel : ViewModel() {
 
         override fun onAgentInterrupted(agentUserId: String, event: InterruptEvent) {
             // Handle interruption
+            _interruptEvent.value = event
         }
 
         override fun onAgentMetrics(agentUserId: String, metrics: Metric) {
@@ -257,7 +261,7 @@ class CovLivingViewModel : ViewModel() {
 
                 // Configure audio settings
                 val isIndependent = CovAgentManager.getPreset()?.isIndependent() == true
-                val scenario = if (CovAgentManager.isEnableAvatar()) {
+                val scenario = if (CovAgentManager.isEnableAvatar) {
                     // If digital avatar is enabled, use AUDIO_SCENARIO_DEFAULT for better audio mixing
                     Constants.AUDIO_SCENARIO_DEFAULT
                 } else {
@@ -455,7 +459,7 @@ class CovLivingViewModel : ViewModel() {
             }
 
             private fun checkAndSetConnected() {
-                val enableAvatar = CovAgentManager.isEnableAvatar()
+                val enableAvatar = CovAgentManager.isEnableAvatar
                 if (enableAvatar) {
                     if (_isAgentJoinedRtc.value && _isAvatarJoinedRtc.value) {
                         _connectionState.value = AgentConnectionState.CONNECTED
@@ -487,7 +491,7 @@ class CovLivingViewModel : ViewModel() {
             }
 
             private fun checkAndSetDisconnected(reason: Int) {
-                val enableAvatar = CovAgentManager.isEnableAvatar()
+                val enableAvatar = CovAgentManager.isEnableAvatar
                 if (enableAvatar) {
                     // Only set to IDLE/ERROR if both agent and avatar are offline
                     if (!_isAgentJoinedRtc.value && !_isAvatarJoinedRtc.value) {
@@ -767,6 +771,7 @@ class CovLivingViewModel : ViewModel() {
         _transcriptionUpdate.value = null
         _mediaInfoUpdate.value = null
         _resourceError.value = null
+        _interruptEvent.value = null
     }
 
     private fun getConvoaiBodyMap(channel: String, dataChannel: String = "rtm"): Map<String, Any?> {
@@ -848,7 +853,7 @@ class CovLivingViewModel : ViewModel() {
                     "audio_scenario" to null,
                     "transcript" to mapOf(
                         "enable" to true,
-                        "enable_words" to !CovAgentManager.isEnableAvatar(),
+                        "enable_words" to !CovAgentManager.isTextRenderMode,
                         "protocol_version" to "v2",
                         "redundant" to null,
                     ),

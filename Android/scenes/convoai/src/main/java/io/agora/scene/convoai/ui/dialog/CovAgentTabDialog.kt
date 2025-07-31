@@ -1,10 +1,13 @@
 package io.agora.scene.convoai.ui.dialog
 
+import android.animation.ValueAnimator
+import android.animation.AnimatorListenerAdapter
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -27,12 +30,16 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
     private var agentState: AgentConnectionState? = null
     private var initialTab: Int = TAB_AGENT_SETTINGS
 
+    // Tab indicator animation variables
+    private var tabIndicatorAnimator: ValueAnimator? = null
+    private var tabWidth: Int = 0
+
     companion object {
         private const val TAG = "CovInfoTabDialog"
 
         // Tab indices
-        private const val TAB_CHANNEL_INFO = 0
-        private const val TAB_AGENT_SETTINGS = 1
+        const val TAB_AGENT_SETTINGS = 0
+        const val TAB_CHANNEL_INFO = 1
 
         fun newInstance(
             agentState: AgentConnectionState?,
@@ -75,6 +82,9 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
+        // Clean up animation resources
+        tabIndicatorAnimator?.cancel()
+        tabIndicatorAnimator = null
         onDismissCallback?.invoke()
     }
 
@@ -83,8 +93,35 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
             val adapter = InfoTabPagerAdapter(this@CovAgentTabDialog)
             vpContent.adapter = adapter
 
-            // Disable swiping for ViewPager2
-            vpContent.isUserInputEnabled = false
+            // Enable swiping for ViewPager2 to support horizontal sliding
+            vpContent.isUserInputEnabled = true
+
+            // Add page change callback to sync with tab indicator
+            vpContent.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    // Sync TabLayout selection
+                    tabLayout.getTabAt(position)?.select()
+                    // Ensure indicator scale is reset to normal when page is fully selected
+                    binding?.vTabIndicator?.scaleX = 1f
+                }
+
+                override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                    super.onPageScrolled(position, positionOffset, positionOffsetPixels)
+                    // Smooth indicator movement during swipe with scale effect
+                    if (tabWidth > 0) {
+                        val indicatorX = (position + positionOffset) * tabWidth
+                        binding?.vTabIndicator?.translationX = indicatorX
+
+                        // Add scale effect during swipe: shrink when in the middle, normal at edges
+                        // positionOffset ranges from 0 to 1, we want minimum scale at 0.5
+                        val scaleProgress = kotlin.math.abs(positionOffset - 0.5f) * 2f // 0 at middle, 1 at edges
+                        val minScale = 0.6f
+                        val scale = minScale + (1f - minScale) * scaleProgress
+                        binding?.vTabIndicator?.scaleX = scale
+                    }
+                }
+            })
 
             // Set offscreen page limit to keep both fragments alive
             vpContent.offscreenPageLimit = 2
@@ -100,7 +137,11 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
             tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab?) {
                     tab?.let {
-                        vpContent.currentItem = it.position
+                        // Only set ViewPager position if not currently swiping (to avoid conflicts)
+                        if (vpContent.currentItem != it.position) {
+                            // Start custom animation with scale effect, then switch page
+                            vpContent.setCurrentItem(it.position, true)
+                        }
                         updateTabAppearance(it.position)
                     }
                 }
@@ -128,7 +169,7 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
         binding?.apply {
             tabLayout.post {
                 val tabCount = 2
-                val tabWidth = tabLayout.width / tabCount
+                tabWidth = tabLayout.width / tabCount
 
                 val channelInfoTab = tabLayout.newTab()
                 val agentSettingsTab = tabLayout.newTab()
@@ -148,8 +189,8 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
                 agentSettingsTab.customView = agentSettingsView
 
                 tabLayout.removeAllTabs()
-                tabLayout.addTab(channelInfoTab)
                 tabLayout.addTab(agentSettingsTab)
+                tabLayout.addTab(channelInfoTab)
 
                 // Remove tab padding and minWidth for each tab
                 val tabStrip = tabLayout.getChildAt(0) as? LinearLayout
@@ -160,6 +201,9 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
                         tab.minimumWidth = 0
                     }
                 }
+
+                // Initialize tab indicator
+                initializeTabIndicator()
             }
         }
     }
@@ -186,8 +230,8 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
                     val textView = tabView.findViewById<TextView>(R.id.tvTabText)
 
                     if (isSelected) {
-                        // Selected state: blue rounded background, white text and icon
-                        tabView.setBackgroundResource(R.drawable.cov_tab_bg_selected)
+                        // Selected state: white text and icon (background handled by sliding indicator)
+                        tabView.background = null
                         textView.setTextColor(
                             ContextCompat.getColor(
                                 context,
@@ -201,8 +245,8 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
                             )
                         )
                     } else {
-                        // Unselected state: transparent rounded background, semi-transparent white text and icon
-                        tabView.setBackgroundResource(R.drawable.cov_tab_bg_unselected)
+                        // Unselected state: transparent background, semi-transparent white text and icon
+                        tabView.background = null
                         textView.setTextColor(
                             ContextCompat.getColor(context, io.agora.scene.common.R.color.ai_icontext2)
                         )
@@ -211,6 +255,85 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Initialize the tab indicator position and visibility
+     */
+    private fun initializeTabIndicator() {
+        binding?.apply {
+            vTabIndicator.layoutParams = vTabIndicator.layoutParams.apply {
+                width = tabWidth
+            }
+
+            // Position indicator at the initial tab
+            vTabIndicator.translationX = initialTab * tabWidth.toFloat()
+            vTabIndicator.visibility = View.VISIBLE
+        }
+    }
+
+    /**
+     * Animate tab indicator with scale effect
+     * First shrinks to 70%, then moves to target position, finally scales back to 100%
+     */
+    private fun animateTabIndicatorWithScale(targetPosition: Int) {
+        binding?.apply {
+            // Cancel any existing animation
+            tabIndicatorAnimator?.cancel()
+
+            val currentX = vTabIndicator.translationX
+            val targetX = targetPosition * tabWidth.toFloat()
+
+            // Create animator for the complete sequence
+            tabIndicatorAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 300 // Total animation duration
+
+                addUpdateListener { animator ->
+                    val progress = animator.animatedValue as Float
+
+                    when {
+                        // Phase 1: Scale down (0% - 30% of animation)
+                        progress <= 0.3f -> {
+                            val scaleProgress = progress / 0.3f
+                            val scale = 1f - (scaleProgress * 0.3f) // Scale from 100% to 70%
+                            vTabIndicator.scaleX = scale
+                            // Keep position unchanged during initial scaling
+                            vTabIndicator.translationX = currentX
+                        }
+                        // Phase 2: Move to target position (30% - 70% of animation)
+                        progress <= 0.7f -> {
+                            val moveProgress = (progress - 0.3f) / 0.4f
+                            vTabIndicator.scaleX = 0.7f // Keep at 70% during movement
+
+                            // Move from current position to target position
+                            val moveX = currentX + (targetX - currentX) * moveProgress
+                            vTabIndicator.translationX = moveX
+                        }
+                        // Phase 3: Scale back up (70% - 100% of animation)
+                        else -> {
+                            val scaleProgress = (progress - 0.7f) / 0.3f
+                            val scale = 0.7f + (scaleProgress * 0.3f) // Scale from 70% to 100%
+                            vTabIndicator.scaleX = scale
+                            // Keep at target position during final scaling
+                            vTabIndicator.translationX = targetX
+                        }
+                    }
+                }
+
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        // Ensure final state is correct
+                        vTabIndicator.scaleX = 1f
+                        vTabIndicator.translationX = targetX
+
+                        // Now switch the ViewPager2 page
+                        vpContent.setCurrentItem(targetPosition, true)
+                    }
+                })
+
+                start()
             }
         }
     }
@@ -245,8 +368,8 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
 
         override fun createFragment(position: Int): Fragment {
             val fragment = when (position) {
-                TAB_CHANNEL_INFO -> CovAgentInfoFragment.newInstance(agentState)
                 TAB_AGENT_SETTINGS -> CovAgentSettingsFragment.newInstance(agentState)
+                TAB_CHANNEL_INFO -> CovAgentInfoFragment.newInstance(agentState)
                 else -> throw IllegalArgumentException("Invalid position: $position")
             }
             fragments[position] = fragment
@@ -255,4 +378,4 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
 
         fun getFragmentAt(position: Int): Fragment? = fragments[position]
     }
-} 
+}

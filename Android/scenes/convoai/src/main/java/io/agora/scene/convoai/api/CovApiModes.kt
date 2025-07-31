@@ -34,9 +34,9 @@ data class CovAgentLanguage(
     val language_code: String,
     val language_name: String
 ) {
-    fun englishEnvironment(): Boolean {
-        return language_code == "en-US"
-    }
+
+    val isChinese: Boolean
+        get() = language_code == "zh-CN" || language_code == "zh-TW" || language_code == "zh-HK"
 }
 
 @Parcelize

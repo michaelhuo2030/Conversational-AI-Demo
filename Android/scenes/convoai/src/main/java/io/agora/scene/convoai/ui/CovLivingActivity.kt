@@ -19,12 +19,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import io.agora.rtc2.Constants
 import io.agora.rtc2.video.VideoCanvas
-import io.agora.scene.common.constant.AgentScenes
 import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.debugMode.DebugConfigSettings
-import io.agora.scene.common.debugMode.DebugDialog
-import io.agora.scene.common.debugMode.DebugDialogCallback
+import io.agora.scene.common.debugMode.RenderMode
+import io.agora.scene.common.debugMode.DebugTabDialog
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.ui.CommonDialog
 import io.agora.scene.common.ui.LoginDialog
@@ -77,7 +76,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     // UI related
     private var appInfoDialog: CovAppInfoDialog? = null
     private var mLoginDialog: LoginDialog? = null
-    private var mDebugDialog: DebugDialog? = null
+    private var mDebugDialog: DebugTabDialog? = null
     private var appTabDialog: CovAgentTabDialog? = null
 
     private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
@@ -208,10 +207,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 )
             }
             clTop.setOnSettingsClickListener {
-                showSettingDialogWithPresetCheck(1) // Agent Settings tab
+                showSettingDialogWithPresetCheck(CovAgentTabDialog.TAB_AGENT_SETTINGS) // Agent Settings tab
             }
             clTop.setOnWifiClickListener {
-                showSettingDialogWithPresetCheck(0) // Channel Info tab
+                showSettingDialogWithPresetCheck(CovAgentTabDialog.TAB_CHANNEL_INFO) // Channel Info tab
             }
             clTop.setOnInfoClickListener {
                 showInfoDialog()
@@ -489,24 +488,32 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             viewModel.transcriptionUpdate.collect { transcription ->
                 if (isSelfSubRender) return@collect
                 transcription?.let {
-                    mBinding?.messageListViewV2?.onTranscriptionUpdated(it)
+                    mBinding?.messageListViewV2?.onTranscriptionUpdated(it, CovAgentManager.isTextRenderMode)
+                }
+            }
+        }
+        lifecycleScope.launch {  // Observe transcription updates
+            viewModel.interruptEvent.collect { transcription ->
+                if (isSelfSubRender) return@collect
+                transcription?.let {
+                    mBinding?.messageListViewV2?.onAgentInterrupted(it)
                 }
             }
         }
         lifecycleScope.launch {  // Observe message receipt updates
             viewModel.mediaInfoUpdate.collect { messageInfo ->
                 if (isSelfSubRender) return@collect
-                    when (messageInfo) {
-                        is PictureInfo -> {
-                            mBinding?.messageListViewV2?.updateLocalImageMessage(
-                                messageInfo.uuid, CovMessageListView.UploadStatus.SUCCESS
-                            )
-                        }
-
-                        null -> {
-                            // nothing
-                        }
+                when (messageInfo) {
+                    is PictureInfo -> {
+                        mBinding?.messageListViewV2?.updateLocalImageMessage(
+                            messageInfo.uuid, CovMessageListView.UploadStatus.SUCCESS
+                        )
                     }
+
+                    null -> {
+                        // nothing
+                    }
+                }
             }
         }
         lifecycleScope.launch {  // Observe image updates
@@ -613,7 +620,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private fun updateLightBackground(isLight: Boolean){
+    private fun updateLightBackground(isLight: Boolean) {
         mBinding?.apply {
             clTop.updateLightBackground(isLight)
 
@@ -647,6 +654,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 selfRenderController?.enable(false)
                 messageListViewV2.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
+                messageListViewV2.setIsChinese(CovAgentManager.language?.isChinese == true)
             }
         }
 
@@ -721,7 +729,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 clBottomLogged.btnMic.setImageResource(io.agora.scene.common.R.drawable.agent_user_speaker)
 
-                val isLight = (vDragBigWindow.isVisible || ivAvatarPreview.isVisible) && !viewModel.isShowMessageList.value
+                val isLight =
+                    (vDragBigWindow.isVisible || ivAvatarPreview.isVisible) && !viewModel.isShowMessageList.value
                 if (isLight) {
                     clBottomLogged.btnMic.setBackgroundResource(io.agora.scene.common.R.drawable.btn_bg_brand_black4_selector)
                 } else {
@@ -775,7 +784,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         }
     }
 
-    private fun showSettingDialog(initialTab: Int = 1) {
+    private fun showSettingDialog(initialTab: Int) {
         appTabDialog = CovAgentTabDialog.newInstance(
             viewModel.connectionState.value,
             initialTab,
@@ -943,38 +952,62 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun showCovAiDebugDialog() {
         if (isFinishing || isDestroyed) return
         if (mDebugDialog?.dialog?.isShowing == true) return
-        mDebugDialog = DebugDialog(AgentScenes.ConvoAi)
-        mDebugDialog?.onDebugDialogCallback = object : DebugDialogCallback {
-            override fun onDialogDismiss() {
-                mDebugDialog = null
-            }
 
-            override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
+        mDebugDialog = DebugTabDialog.newInstance(
+            onDebugCallback = object : DebugTabDialog.DebugCallback {
+                override fun onDialogDismiss() {
+                    mDebugDialog = null
+                }
 
-            override fun onAudioDumpEnable(enable: Boolean) {
-                CovRtcManager.onAudioDump(enable)
-            }
+                override fun onRenderModeChange(mode: Int) {
+                    // Handle render mode change
+                    when (mode) {
+                        RenderMode.WORD -> {
+                            CovLogger.d(TAG, "Render mode changed to WORD")
+                            // Apply word rendering configuration
+                        }
 
-            override fun onClickCopy() {
-                mBinding?.apply {
-                    val messageContents = if (isSelfSubRender) {
-                        messageListViewV1.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
-                    } else {
-                        messageListViewV2.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
+                        RenderMode.TEXT -> {
+                            CovLogger.d(TAG, "Render mode changed to TEXT")
+                            // Apply text rendering configuration
+                        }
+
                     }
-                    this@CovLivingActivity.copyToClipboard(messageContents)
-                    ToastUtil.show(getString(R.string.cov_copy_succeed))
+                    val modeText = if (mode == RenderMode.TEXT) {
+                        "Text"
+                    } else {
+                        "Word"
+                    }
+                    ToastUtil.show("Render mode changed to: $modeText")
+                }
+
+                override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
+
+                override fun onAudioDumpEnable(enable: Boolean) {
+                    CovRtcManager.onAudioDump(enable)
+                }
+
+                override fun onClickCopy() {
+                    mBinding?.apply {
+                        val messageContents = if (isSelfSubRender) {
+                            messageListViewV1.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
+                        } else {
+                            messageListViewV2.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
+                        }
+                        this@CovLivingActivity.copyToClipboard(messageContents)
+                        ToastUtil.show(getString(R.string.cov_copy_succeed))
+                    }
+                }
+
+                override fun onEnvConfigChange() {
+                    restartActivity()
+                }
+
+                override fun onAudioParameter(parameter: String) {
+                    CovRtcManager.setParameter(parameter)
                 }
             }
-
-            override fun onEnvConfigChange() {
-                restartActivity()
-            }
-
-            override fun onAudioParameter(parameter: String) {
-                CovRtcManager.setParameter(parameter)
-            }
-        }
+        )
         mDebugDialog?.show(supportFragmentManager, "debug_dialog")
     }
 
