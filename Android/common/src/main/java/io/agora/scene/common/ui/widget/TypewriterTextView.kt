@@ -21,7 +21,6 @@ class TypewriterTextView @JvmOverloads constructor(
 
     private var texts = listOf(
         context.getString(R.string.common_login_typing_text1),
-        context.getString(R.string.common_login_typing_text2),
         context.getString(R.string.common_login_typing_text3)
     )
     private val cursor = "●"
