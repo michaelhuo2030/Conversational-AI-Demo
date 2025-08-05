@@ -122,7 +122,7 @@
     <string name="cov_official_agent_title">官方智能体</string>
     <string name="cov_custom_agent_title">自定义智能体</string>
     <string name="cov_custom_agent_acquire">获取你的智能助手</string>
-    <string name="cov_custom_agent_acquire_tip">请联系声网员工获取自定义智能体ID</string>
+    <string name="cov_custom_agent_acquire_tip">请找声网员工获取自定义智能体ID</string>
     <string name="cov_custom_agent_input_tip">输入智能体ID获取</string>
     <string name="cov_custom_agent_get">获取</string>
     <string name="cov_voiceprint_lock">声纹锁定</string>

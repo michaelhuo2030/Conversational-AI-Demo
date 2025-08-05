@@ -32,8 +32,9 @@ class CovLoginActivity : BaseActivity<CovActivityLoginBinding>() {
 
     override fun getViewBinding(): CovActivityLoginBinding = CovActivityLoginBinding.inflate(layoutInflater)
 
-    override fun initView() {
+    override fun supportOnBackPressed(): Boolean = false
 
+    override fun initView() {
         activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val data: Intent? = result.data
