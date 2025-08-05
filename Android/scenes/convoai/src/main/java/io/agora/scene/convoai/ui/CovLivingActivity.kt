@@ -1,6 +1,5 @@
 package io.agora.scene.convoai.ui
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Build
@@ -11,26 +10,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import io.agora.rtc2.Constants
 import io.agora.rtc2.video.VideoCanvas
-import io.agora.scene.common.constant.ServerConfig
 import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.debugMode.RenderMode
 import io.agora.scene.common.debugMode.DebugTabDialog
 import io.agora.scene.common.ui.BaseActivity
 import io.agora.scene.common.ui.CommonDialog
-import io.agora.scene.common.ui.LoginDialog
-import io.agora.scene.common.ui.LoginDialogCallback
 import io.agora.scene.common.ui.OnFastClickListener
-import io.agora.scene.common.ui.SSOWebViewActivity
-import io.agora.scene.common.ui.TermsActivity
 import io.agora.scene.common.ui.vm.LoginState
 import io.agora.scene.common.ui.vm.UserViewModel
 import io.agora.scene.common.ui.widget.TextureVideoViewOutlineProvider
@@ -49,13 +42,10 @@ import io.agora.scene.convoai.constant.AgentConnectionState
 import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.convoaiApi.AgentState
 import io.agora.scene.convoai.databinding.CovActivityLivingBinding
-import io.agora.scene.convoai.iot.manager.CovIotPresetManager
-import io.agora.scene.convoai.iot.ui.CovIotDeviceListActivity
 import io.agora.scene.convoai.rtc.CovRtcManager
 import io.agora.scene.convoai.rtm.CovRtmManager
 import io.agora.scene.convoai.convoaiApi.subRender.v1.SelfRenderConfig
 import io.agora.scene.convoai.convoaiApi.subRender.v1.SelfSubRenderController
-import io.agora.scene.convoai.ui.dialog.CovAppInfoDialog
 import io.agora.scene.convoai.ui.dialog.CovAgentTabDialog
 import io.agora.scene.convoai.ui.dialog.CovImagePreviewDialog
 import io.agora.scene.convoai.ui.photo.PhotoNavigationActivity
@@ -74,12 +64,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private val userViewModel: UserViewModel by viewModels()
 
     // UI related
-    private var appInfoDialog: CovAppInfoDialog? = null
-    private var mLoginDialog: LoginDialog? = null
     private var mDebugDialog: DebugTabDialog? = null
     private var appTabDialog: CovAgentTabDialog? = null
 
-    private lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
     private lateinit var mPermissionHelp: PermissionHelp
 
     // Animation and rendering
@@ -92,6 +79,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun initView() {
         setupView()
+        
         // Create RTC and RTM engines
         val rtcEngine = CovRtcManager.createRtcEngine(viewModel.handleRtcEvents())
         val rtmClient = CovRtmManager.createRtmClient()
@@ -99,13 +87,15 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         // Initialize ViewModel
         viewModel.initializeAPIs(rtcEngine, rtmClient)
 
-        userViewModel.checkLogin()
-
         // v1 Subtitle Rendering Controller
         selfRenderController = SelfSubRenderController(SelfRenderConfig(rtcEngine, mBinding?.messageListViewV1))
 
         // Observe ViewModel states
         observeViewModelStates()
+    }
+
+    override fun onHandleOnBackPressed() {
+
     }
 
     override fun finish() {
@@ -140,19 +130,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
     private fun setupView() {
-        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-                val token = data?.getStringExtra("token")
-                if (token != null) {
-                    userViewModel.getUserInfoByToken(token)
-                } else {
-                    showLoginLoading(false)
-                }
-            } else {
-                showLoginLoading(false)
-            }
-        }
         mPermissionHelp = PermissionHelp(this)
         mBinding?.apply {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -212,8 +189,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             clTop.setOnWifiClickListener {
                 showSettingDialogWithPresetCheck(CovAgentTabDialog.TAB_CHANNEL_INFO) // Channel Info tab
             }
-            clTop.setOnInfoClickListener {
-                showInfoDialog()
+            clTop.setOnBackClickListener {
+                finish()
             }
             clTop.setOnIvTopClickListener {
                 DebugConfigSettings.checkClickDebug()
@@ -255,12 +232,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             })
 
-            clBottomNotLogged.btnStartWithoutLogin.setOnClickListener(object : OnFastClickListener() {
-                override fun onClickJacking(view: View) {
-                    showLoginDialog()
-                }
-            })
-
             btnSendMsg.setOnClickListener {
                 viewModel.sendTextMessage()   // For test only
             }
@@ -270,7 +241,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
 
             vDragSmallWindow.setOnViewClick {
-                // Hide transcription when small window is clicked while transcription is visible
+                // Hide transcript when small window is clicked while transcript is visible
                 if (viewModel.isShowMessageList.value) {
                     viewModel.toggleMessageList()
                 }
@@ -297,19 +268,16 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 when (state) {
                     is LoginState.Success -> {
                         viewModel.getPresetTokenConfig()
-                        showLoginLoading(false)
                         updateLoginStatus(true)
                     }
 
                     is LoginState.Loading -> {
-                        showLoginLoading(true)
                     }
 
                     is LoginState.LoggedOut -> {
                         viewModel.setAvatar(null)
                         viewModel.stopAgentAndLeaveChannel()
                         CovRtmManager.logout()
-                        showLoginLoading(false)
                         updateLoginStatus(false)
                     }
                 }
@@ -484,18 +452,18 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
         }
-        lifecycleScope.launch {  // Observe transcription updates
-            viewModel.transcriptionUpdate.collect { transcription ->
+        lifecycleScope.launch {  // Observe transcript updates
+            viewModel.transcriptUpdate.collect { transcript ->
                 if (isSelfSubRender) return@collect
-                transcription?.let {
-                    mBinding?.messageListViewV2?.onTranscriptionUpdated(it, CovAgentManager.isTextRenderMode)
+                transcript?.let {
+                    mBinding?.messageListViewV2?.onTranscriptUpdated(it, CovAgentManager.isTextRenderMode)
                 }
             }
         }
-        lifecycleScope.launch {  // Observe transcription updates
-            viewModel.interruptEvent.collect { transcription ->
+        lifecycleScope.launch {  // Observe interrupt event updates
+            viewModel.interruptEvent.collect { interruptEvent ->
                 if (isSelfSubRender) return@collect
-                transcription?.let {
+                interruptEvent?.let {
                     mBinding?.messageListViewV2?.onAgentInterrupted(it)
                 }
             }
@@ -564,12 +532,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun updateWindowContent() {
         val showAvatar = viewModel.isAvatarJoinedRtc.value
         val showVideo = viewModel.isPublishVideo.value
-        val showTranscription = viewModel.isShowMessageList.value
+        val showTranscript = viewModel.isShowMessageList.value
         mBinding?.apply {
             var newBigContent: View? = null
             var newSmallContent: View? = null
 
-            if (showTranscription) {
+            if (showTranscript) {
                 if (showAvatar && showVideo) {
                     newBigContent = remoteAvatarView
                     newSmallContent = localVisionView
@@ -613,8 +581,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             vDragBigWindow.isVisible = newBigContent != null
             vDragSmallWindow.isVisible = newSmallContent != null
 
-            agentSpeakingIndicator.isVisible = !showAvatar && showVideo && !showTranscription
-            val isLight = vDragBigWindow.isVisible && !showTranscription
+            agentSpeakingIndicator.isVisible = !showAvatar && showVideo && !showTranscript
+            val isLight = vDragBigWindow.isVisible && !showTranscript
 
             updateLightBackground(isLight)
         }
@@ -694,8 +662,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     vConnecting.visibility = View.VISIBLE
                     agentStateView.visibility = View.GONE
 
-                    val showTranscription = viewModel.isShowMessageList.value
-                    val isLight = (vDragBigWindow.isVisible || ivAvatarPreview.isVisible) && !showTranscription
+                    val showTranscript = viewModel.isShowMessageList.value
+                    val isLight = (vDragBigWindow.isVisible || ivAvatarPreview.isVisible) && !showTranscript
                     updateLightBackground(isLight)
                 }
 
@@ -818,28 +786,8 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             clTop.updateLoginStatus(isLogin)
             if (isLogin) {
                 clBottomLogged.root.visibility = View.VISIBLE
-                clBottomNotLogged.root.visibility = View.INVISIBLE
-                clBottomNotLogged.tvTyping.stopAnimation()
-
-                initBugly()
             } else {
                 clBottomLogged.root.visibility = View.INVISIBLE
-                clBottomNotLogged.root.visibility = View.VISIBLE
-
-                clBottomNotLogged.tvTyping.stopAnimation()
-                clBottomNotLogged.tvTyping.startAnimation()
-            }
-        }
-    }
-
-    private fun showLoginLoading(show: Boolean) {
-        mBinding?.apply {
-            if (show) {
-                clBottomNotLogged.layoutLoading.visibility = View.VISIBLE
-                clBottomNotLogged.loadingView.startAnimation()
-            } else {
-                clBottomNotLogged.layoutLoading.visibility = View.GONE
-                clBottomNotLogged.loadingView.stopAnimation()
             }
         }
     }
@@ -885,69 +833,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         )
     }
 
-    private fun showInfoDialog() {
-        if (isFinishing || isDestroyed) return
-        if (appInfoDialog?.dialog?.isShowing == true) return
-        appInfoDialog = CovAppInfoDialog.newInstance(
-            onDismissCallback = {
-                appInfoDialog = null
-            },
-            onLogout = {
-                showLogoutConfirmDialog {
-                    appInfoDialog?.dismiss()
-                }
-            },
-            onIotDeviceClick = {
-                if (CovIotPresetManager.getPresetList().isNullOrEmpty()) {
-                    lifecycleScope.launch {
-                        val success = viewModel.fetchIotPresetsAsync()
-                        if (success) {
-                            CovIotDeviceListActivity.startActivity(this@CovLivingActivity)
-                        } else {
-                            ToastUtil.show(getString(io.agora.scene.convoai.iot.R.string.cov_detail_net_state_error))
-                        }
-                    }
-                } else {
-                    CovIotDeviceListActivity.startActivity(this@CovLivingActivity)
-                }
-            }
-        )
-        appInfoDialog?.show(supportFragmentManager, "info_dialog")
-    }
-
-    private fun showLoginDialog() {
-        if (isFinishing || isDestroyed) return
-        if (mLoginDialog?.dialog?.isShowing == true) return
-        mLoginDialog = LoginDialog().apply {
-            onLoginDialogCallback = object : LoginDialogCallback {
-                override fun onDialogDismiss() {
-                    mLoginDialog = null
-                }
-
-                override fun onClickStartSSO() {
-                    activityResultLauncher.launch(
-                        Intent(this@CovLivingActivity, SSOWebViewActivity::class.java)
-                    )
-                    showLoginLoading(true)
-                }
-
-                override fun onTermsOfServices() {
-                    TermsActivity.startActivity(this@CovLivingActivity, ServerConfig.termsOfServicesUrl)
-                }
-
-                override fun onPrivacyPolicy() {
-                    TermsActivity.startActivity(this@CovLivingActivity, ServerConfig.privacyPolicyUrl)
-                }
-
-                override fun onPrivacyChecked(isChecked: Boolean) {
-                    if (isChecked) {
-                        initBugly()
-                    }
-                }
-            }
-        }
-        mLoginDialog?.show(supportFragmentManager, "login_dialog")
-    }
 
     private fun showCovAiDebugDialog() {
         if (isFinishing || isDestroyed) return
@@ -1021,24 +906,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             .hideNegativeButton()
             .build()
             .show(supportFragmentManager, "end_dialog_tag")
-    }
-
-    private fun showLogoutConfirmDialog(onLogout: () -> Unit) {
-        if (isFinishing || isDestroyed) return
-        CommonDialog.Builder()
-            .setTitle(getString(io.agora.scene.common.R.string.common_logout_confirm_title))
-            .setContent(getString(io.agora.scene.common.R.string.common_logout_confirm_text))
-            .setPositiveButton(
-                getString(io.agora.scene.common.R.string.common_logout_confirm_known),
-                onClick = {
-                    cleanCookie()
-                    userViewModel.logout()
-                    onLogout.invoke()
-                })
-            .setNegativeButton(getString(io.agora.scene.common.R.string.common_logout_confirm_cancel))
-            .hideTopImage()
-            .build()
-            .show(supportFragmentManager, "logout_dialog_tag")
     }
 
     private fun checkMicrophonePermission(granted: (Boolean) -> Unit, force: Boolean) {
@@ -1148,7 +1015,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private fun showPreviewDialog(imagePath: String, imageBounds: Rect) {
         if (isFinishing || isDestroyed) return
         CovImagePreviewDialog.newInstance(imagePath, imageBounds)
-            .show(supportFragmentManager, "preview_image__dialog")
+            .show(supportFragmentManager, "preview_image_dialog")
     }
 
     private fun startRecordingService() {
@@ -1187,7 +1054,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             }
             try {
                 isReleased = true   // Mark as releasing
-                userViewModel.logout()  // User logout
                 // lifecycleScope will be automatically cancelled when activity is destroyed
                 // Release animation resources
                 mCovBallAnim?.let { anim ->

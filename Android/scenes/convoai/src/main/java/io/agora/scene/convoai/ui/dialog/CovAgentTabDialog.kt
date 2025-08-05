@@ -19,6 +19,8 @@ import io.agora.scene.common.ui.BaseSheetDialog
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.constant.AgentConnectionState
 import io.agora.scene.convoai.databinding.CovAgentTabDialogBinding
+import io.agora.scene.convoai.ui.fragment.CovAgentInfoFragment
+import io.agora.scene.convoai.ui.fragment.CovAgentSettingsFragment
 
 /**
  * Bottom sheet dialog with tab switching functionality
@@ -271,70 +273,6 @@ class CovAgentTabDialog : BaseSheetDialog<CovAgentTabDialogBinding>() {
             // Position indicator at the initial tab
             vTabIndicator.translationX = initialTab * tabWidth.toFloat()
             vTabIndicator.visibility = View.VISIBLE
-        }
-    }
-
-    /**
-     * Animate tab indicator with scale effect
-     * First shrinks to 70%, then moves to target position, finally scales back to 100%
-     */
-    private fun animateTabIndicatorWithScale(targetPosition: Int) {
-        binding?.apply {
-            // Cancel any existing animation
-            tabIndicatorAnimator?.cancel()
-
-            val currentX = vTabIndicator.translationX
-            val targetX = targetPosition * tabWidth.toFloat()
-
-            // Create animator for the complete sequence
-            tabIndicatorAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = 300 // Total animation duration
-
-                addUpdateListener { animator ->
-                    val progress = animator.animatedValue as Float
-
-                    when {
-                        // Phase 1: Scale down (0% - 30% of animation)
-                        progress <= 0.3f -> {
-                            val scaleProgress = progress / 0.3f
-                            val scale = 1f - (scaleProgress * 0.3f) // Scale from 100% to 70%
-                            vTabIndicator.scaleX = scale
-                            // Keep position unchanged during initial scaling
-                            vTabIndicator.translationX = currentX
-                        }
-                        // Phase 2: Move to target position (30% - 70% of animation)
-                        progress <= 0.7f -> {
-                            val moveProgress = (progress - 0.3f) / 0.4f
-                            vTabIndicator.scaleX = 0.7f // Keep at 70% during movement
-
-                            // Move from current position to target position
-                            val moveX = currentX + (targetX - currentX) * moveProgress
-                            vTabIndicator.translationX = moveX
-                        }
-                        // Phase 3: Scale back up (70% - 100% of animation)
-                        else -> {
-                            val scaleProgress = (progress - 0.7f) / 0.3f
-                            val scale = 0.7f + (scaleProgress * 0.3f) // Scale from 70% to 100%
-                            vTabIndicator.scaleX = scale
-                            // Keep at target position during final scaling
-                            vTabIndicator.translationX = targetX
-                        }
-                    }
-                }
-
-                addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: android.animation.Animator) {
-                        // Ensure final state is correct
-                        vTabIndicator.scaleX = 1f
-                        vTabIndicator.translationX = targetX
-
-                        // Now switch the ViewPager2 page
-                        vpContent.setCurrentItem(targetPosition, true)
-                    }
-                })
-
-                start()
-            }
         }
     }
 

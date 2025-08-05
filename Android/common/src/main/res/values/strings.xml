@@ -7,7 +7,7 @@
     <string name="common_debug_user_config">用户配置</string>
     <string name="common_debug_quick_setting_for_current_user">当前使用者的快捷设置</string>
     <string name="common_debug_click_to_copy">点击复制</string>
-    <string name="common_debug_transcription_render_mode">字幕渲染模式</string>
+    <string name="common_debug_transcript_render_mode">字幕渲染模式</string>
     <string name="common_debug_text_mode">Text</string>
     <string name="common_debug_word_mode">Word</string>
     <string name="common_debug_text_word_mode">Text-Word</string>

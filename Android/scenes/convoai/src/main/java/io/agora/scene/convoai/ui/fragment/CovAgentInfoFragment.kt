@@ -1,4 +1,4 @@
-package io.agora.scene.convoai.ui.dialog
+package io.agora.scene.convoai.ui.fragment
 
 import android.graphics.PorterDuff
 import android.os.Bundle
@@ -210,4 +210,4 @@ class CovAgentInfoFragment : BaseFragment<CovAgentInfoFragmentBinding>() {
             // This method can be called when data changes
         }
     }
-} 
+}
