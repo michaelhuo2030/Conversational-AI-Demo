@@ -18,15 +18,13 @@ import io.agora.scene.common.ui.CommonDialog
 import io.agora.scene.common.ui.vm.LoginState
 import io.agora.scene.common.ui.vm.UserViewModel
 import io.agora.scene.common.util.dp
-import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.databinding.CovActivityAgentListBinding
-import io.agora.scene.convoai.iot.manager.CovIotPresetManager
 import io.agora.scene.convoai.iot.ui.CovIotDeviceListActivity
 import io.agora.scene.convoai.rtm.CovRtmManager
 import io.agora.scene.convoai.ui.dialog.CovAppInfoDialog
-import io.agora.scene.convoai.ui.fragment.OfficialAgentFragment
-import io.agora.scene.convoai.ui.fragment.CustomAgentFragment
+import io.agora.scene.convoai.ui.fragment.CovOfficialAgentFragment
+import io.agora.scene.convoai.ui.fragment.CovCustomAgentFragment
 import kotlinx.coroutines.launch
 import kotlin.getValue
 import kotlin.math.abs
@@ -59,8 +57,6 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
 
 
     override fun getViewBinding(): CovActivityAgentListBinding = CovActivityAgentListBinding.inflate(layoutInflater)
-
-    override fun immersiveMode(): ImmersiveMode = ImmersiveMode.FULLY_IMMERSIVE
 
     override fun initView() {
         mBinding?.apply {
@@ -195,9 +191,9 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
     }
 
 
-    fun getCustomAgentFragment(): CustomAgentFragment? {
+    fun getCustomAgentFragment(): CovCustomAgentFragment? {
         val fragment =
-            (mBinding?.vpContent?.adapter as? AgentPagerAdapter)?.getFragmentAt(TAB_CUSTOM_AGENT) as? CustomAgentFragment
+            (mBinding?.vpContent?.adapter as? AgentPagerAdapter)?.getFragmentAt(TAB_CUSTOM_AGENT) as? CovCustomAgentFragment
         // Only return fragment if it's still alive
         return if (fragment?.isAdded == true && !fragment.isDetached) fragment else null
     }
@@ -463,18 +459,7 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
                 }
             },
             onIotDeviceClick = {
-                if (CovIotPresetManager.getPresetList().isNullOrEmpty()) {
-                    lifecycleScope.launch {
-                        val success = viewModel.fetchIotPresetsAsync()
-                        if (success) {
-                            CovIotDeviceListActivity.startActivity(this@CovAgentListActivity)
-                        } else {
-                            ToastUtil.show(getString(io.agora.scene.convoai.iot.R.string.cov_detail_net_state_error))
-                        }
-                    }
-                } else {
-                    CovIotDeviceListActivity.startActivity(this@CovAgentListActivity)
-                }
+                CovIotDeviceListActivity.startActivity(this@CovAgentListActivity)
             }
         )
         appInfoDialog?.show(supportFragmentManager, "info_dialog")
@@ -506,8 +491,8 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
 
         override fun createFragment(position: Int): Fragment {
             val fragment = when (position) {
-                TAB_OFFICIAL_AGENT -> OfficialAgentFragment()
-                TAB_CUSTOM_AGENT -> CustomAgentFragment()
+                TAB_OFFICIAL_AGENT -> CovOfficialAgentFragment()
+                TAB_CUSTOM_AGENT -> CovCustomAgentFragment()
                 else -> throw IllegalArgumentException("Invalid position: $position")
             }
             fragments[position] = fragment
