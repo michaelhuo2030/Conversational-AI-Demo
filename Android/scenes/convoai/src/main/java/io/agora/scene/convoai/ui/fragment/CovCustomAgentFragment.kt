@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.common.ui.BaseFragment
+import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.api.CovAgentPreset
@@ -23,7 +24,7 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
 
     // Mock data for demonstration - replace with actual data source
     private val mockCustomPresets = listOf<CovAgentPreset>()
-    
+
     // Keyboard handling
     private var isKeyboardVisible = false
     private var isHeaderCollapsed = false
@@ -49,12 +50,12 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
             btnGetAgent.setOnClickListener {
                 onGetAgentClicked()
             }
-            
+
             // Setup EditText for agent ID input
             setupAgentIdInput()
         }
     }
-    
+
     private fun setupAgentIdInput() {
         mBinding?.apply {
             // Set input filter to allow only digits
@@ -66,23 +67,19 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
                 }
                 null
             }
-            
+
             // Apply input filters: digits only + max length 8
             etAgentId.filters = arrayOf(digitFilter, InputFilter.LengthFilter(8))
-            
+
             // Add text watcher to update character count
             etAgentId.doAfterTextChanged {
                 val currentLength = it?.length ?: 0
                 val remainingLength = 8 - currentLength
                 tvCount.text = remainingLength.toString()
-
-                // Update button state based on input
-                btnGetAgent.isEnabled = currentLength > 0
             }
-            
+
             // Initialize character count display (show remaining characters)
             tvCount.text = "8"
-            btnGetAgent.isEnabled = false
         }
     }
 
@@ -146,37 +143,42 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
 
     private fun onGetAgentClicked() {
         CovLogger.d("CustomAgentFragment", "Get agent button clicked")
-        // TODO: Implement get agent functionality
-        // This could open a dialog to input agent ID or navigate to another screen
+        mBinding?.apply {
+            if (etAgentId.text.toString().isEmpty()) {
+                ToastUtil.show(R.string.cov_custom_agent_input_tip)
+            } else {
+                ToastUtil.show("Get agent ID: ${etAgentId.text}")
+            }
+        }
     }
-    
+
     private fun setupKeyboardListener() {
         view?.viewTreeObserver?.addOnGlobalLayoutListener(globalLayoutListener)
     }
-    
+
     private fun handleKeyboardVisibility() {
         val rootView = view ?: return
         val rect = android.graphics.Rect()
         rootView.getWindowVisibleDisplayFrame(rect)
-        
+
         val screenHeight = rootView.context.resources.displayMetrics.heightPixels
         val isKeyboardNowVisible = (screenHeight - rect.bottom) > screenHeight * 0.15
-        
+
         if (isKeyboardNowVisible != isKeyboardVisible) {
             isKeyboardVisible = isKeyboardNowVisible
-            
+
             mBinding?.apply {
                 if (isKeyboardVisible) {
                     val location = IntArray(2)
                     llBottomAction.getLocationInWindow(location)
-                    
+
                     val effectiveBottom = if (isHeaderCollapsed) {
                         location[1] + llBottomAction.height
                     } else {
                         val bottomSpaceHeight = if (viewBottomSpace.isVisible) viewBottomSpace.height else 0
                         location[1] + llBottomAction.height - bottomSpaceHeight
                     }
-                    
+
                     val overlap = effectiveBottom - rect.bottom
                     llBottomAction.translationY = if (overlap > 0) -overlap.toFloat() else 0f
                 } else {
@@ -185,22 +187,22 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
             }
         }
     }
-    
+
     override fun onDestroyView() {
         view?.viewTreeObserver?.removeOnGlobalLayoutListener(globalLayoutListener)
         super.onDestroyView()
     }
-    
+
     fun setBottomActionVisibility(visible: Boolean) {
         isHeaderCollapsed = !visible
-        
+
         mBinding?.apply {
             viewBottomSpace.isVisible = !isHeaderCollapsed
             if (!isHeaderCollapsed) {
                 viewBottomSpace.alpha = 1f
                 viewBottomSpace.translationY = 0f
             }
-            
+
             if (isKeyboardVisible) {
                 handleKeyboardVisibility()
             }
