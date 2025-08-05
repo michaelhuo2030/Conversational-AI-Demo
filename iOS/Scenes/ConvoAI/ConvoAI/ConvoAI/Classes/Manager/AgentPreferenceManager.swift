@@ -314,7 +314,7 @@ enum TranscriptDisplayMode: CaseIterable {
     //10 words every second
     case text
     
-    var renderMode: TranscriptionRenderMode {
+    var renderMode: TranscriptRenderMode {
         if self == .words {
             return .words
         }
