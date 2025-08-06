@@ -18,13 +18,15 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import io.agora.scene.common.constant.SSOUserManager
 import io.agora.scene.common.constant.ServerConfig
-import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.debugMode.DebugConfigSettings
+import io.agora.scene.common.debugMode.DebugTabDialog
+import io.agora.scene.common.debugMode.DebugSupportActivity
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.ui.SSOWebViewActivity
 import io.agora.scene.common.ui.TermsActivity
 import io.agora.scene.convoai.databinding.CovActivityLoginBinding
 
-class CovLoginActivity : BaseActivity<CovActivityLoginBinding>() {
+class CovLoginActivity : DebugSupportActivity<CovActivityLoginBinding>() {
 
     private val TAG = "CovLoginActivity"
 
@@ -70,6 +72,9 @@ class CovLoginActivity : BaseActivity<CovActivityLoginBinding>() {
                 if (tvCheckTips.isVisible) {
                     tvCheckTips.isInvisible = true
                 }
+            }
+            ivAgentSample.setOnClickListener {
+                DebugConfigSettings.checkClickDebug()
             }
         }
     }
@@ -173,5 +178,19 @@ class CovLoginActivity : BaseActivity<CovActivityLoginBinding>() {
             tvCheckTips.clearAnimation()
             tvCheckTips.startAnimation(animation)
         }
+    }
+
+    // Override debug callback to provide custom behavior for login screen
+    override fun createDefaultDebugCallback(): DebugTabDialog.DebugCallback {
+        return object : DebugTabDialog.DebugCallback {
+            override fun onEnvConfigChange() {
+                handleEnvironmentChange()
+            }
+        }
+    }
+    
+    override fun handleEnvironmentChange() {
+        // Already on login page, just recreate activity to refresh environment
+        recreate()
     }
 }
