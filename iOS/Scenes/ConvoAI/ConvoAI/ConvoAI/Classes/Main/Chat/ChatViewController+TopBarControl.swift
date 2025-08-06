@@ -18,7 +18,7 @@ extension ChatViewController {
         let settingVC = AgentSettingViewController()
         settingVC.agentManager = agentManager
         settingVC.rtcManager = rtcManager
-        settingVC.currentTabIndex = 0
+        settingVC.currentTabIndex = 1
         let navigationController = UINavigationController(rootViewController: settingVC)
         navigationController.modalPresentationStyle = .overFullScreen
         present(navigationController, animated: false)
@@ -28,7 +28,7 @@ extension ChatViewController {
         let settingVC = AgentSettingViewController()
         settingVC.agentManager = agentManager
         settingVC.rtcManager = rtcManager
-        settingVC.currentTabIndex = 1
+        settingVC.currentTabIndex = 0
         let navigationController = UINavigationController(rootViewController: settingVC)
         navigationController.modalPresentationStyle = .overFullScreen
         present(navigationController, animated: false)
@@ -66,12 +66,6 @@ extension ChatViewController {
         sender.isSelected = !sender.isSelected
         
         showTranscription(state: sender.isSelected)
-    }
-    
-    @objc internal func onClickStopSpeakingButton(_ sender: UIButton) {
-        convoAIAPI.interrupt(agentUserId: "\(agentUid)") { error in
-            
-        }
     }
     
     @objc internal func onClickLogo(_ sender: UIButton) {
