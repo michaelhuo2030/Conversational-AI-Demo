@@ -80,6 +80,10 @@ class CovLivingViewModel : ViewModel() {
     private val _transcriptUpdate = MutableStateFlow<Transcript?>(null)
     val transcriptUpdate: StateFlow<Transcript?> = _transcriptUpdate.asStateFlow()
 
+    // Transcript state
+    private val _voicePrint = MutableStateFlow<String?>(null)
+    val voicePrint: StateFlow<String?> = _voicePrint.asStateFlow()
+
     // Media info
     private val _mediaInfoUpdate = MutableStateFlow<MediaInfo?>(null)
     val mediaInfoUpdate: StateFlow<MediaInfo?> = _mediaInfoUpdate.asStateFlow()
@@ -187,6 +191,11 @@ class CovLivingViewModel : ViewModel() {
                     CovLogger.d(TAG, "onMessageReceiptUpdated ${e.message}")
                 }
             }
+        }
+
+        override fun onAgentVoicePrint(agentUserId: String, state: String) {
+            // Update voice print state to notify Activity
+            _voicePrint.value = state
         }
 
         override fun onDebugLog(log: String) {
@@ -726,6 +735,7 @@ class CovLivingViewModel : ViewModel() {
         _mediaInfoUpdate.value = null
         _resourceError.value = null
         _interruptEvent.value = null
+        _voicePrint.value = null
     }
 
     private fun getConvoaiBodyMap(channel: String, dataChannel: String = "rtm"): Map<String, Any?> {

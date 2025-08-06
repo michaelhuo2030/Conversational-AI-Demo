@@ -126,6 +126,7 @@
     <string name="cov_custom_agent_input_tip">输入智能体ID获取</string>
     <string name="cov_custom_agent_get">获取</string>
     <string name="cov_voiceprint_lock">声纹锁定</string>
+    <string name="cov_voiceprint_lock_success">引擎将学习您说话的声纹，过滤周围其他人的声音和噪音</string>
     <string name="cov_word_mode">Word 模式</string>
     <string name="cov_word_mode_tips">逐字渲染，字幕和语音同步</string>
     <string name="cov_text_sync_mode">Text-同步模式</string>
