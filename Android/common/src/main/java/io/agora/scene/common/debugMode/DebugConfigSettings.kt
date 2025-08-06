@@ -8,18 +8,6 @@ import io.agora.scene.common.constant.EnvConfig
 import io.agora.scene.common.util.LocalStorageUtil
 import java.io.BufferedReader
 
-/**
- * Render mode constants and annotation
- */
-@IntDef(RenderMode.TEXT, RenderMode.WORD)
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER)
-annotation class RenderMode {
-    companion object {
-        const val TEXT = 0 // Text-based rendering
-        const val WORD = 1 // Word-based rendering
-    }
-}
 
 data class DevEnvConfig(
     val china: List<EnvConfig>,
@@ -30,9 +18,6 @@ object DebugConfigSettings {
 
     private const val DEV_CONFIG_FILE = "dev_env_config.json"
     private const val DEV_SESSION_LIMIT_MODE = "dev_session_limit_mode"
-
-    @RenderMode
-    var renderMode: Int = RenderMode.WORD
 
     private var instance: DevEnvConfig? = null
 
@@ -118,7 +103,6 @@ object DebugConfigSettings {
         isDebug = false
         isAudioDumpEnabled = false
         isMetricsEnabled = false
-        renderMode = RenderMode.WORD
         _sdkAudioParameters.clear()
         convoAIParameter = ""
     }

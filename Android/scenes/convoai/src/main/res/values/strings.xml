@@ -102,7 +102,7 @@
     <string name="cov_captions">字幕</string>
 
     <!-- vision -->
-    <string name="cov_preset_not_support_vision">当前 Preset 不支持视觉理解相关功能，请点击右上角设置按钮切换其他 Preset 体验！</string>
+    <string name="cov_preset_not_support_vision">当前 Preset 不支持视觉理解相关功能，请切换其他 Preset 体验！</string>
     <string name="cov_vision_connect_and_try_again">请连接后重试！</string>
 
     <!-- photo -->
@@ -126,5 +126,12 @@
     <string name="cov_custom_agent_input_tip">输入智能体ID获取</string>
     <string name="cov_custom_agent_get">获取</string>
     <string name="cov_voiceprint_lock">声纹锁定</string>
+    <string name="cov_word_mode">Word 模式</string>
+    <string name="cov_word_mode_tips">逐字渲染，字幕和语音同步</string>
+    <string name="cov_text_sync_mode">Text-同步模式</string>
+    <string name="cov_text_sync_mode_tips">字幕和语音同步展示的 Text 模式</string>
+    <string name="cov_text_first_mode">Text-字幕先出模式</string>
+    <string name="cov_text_first_mode_tips">字幕一次性展示</string>
+    <string name="cov_transcript_render_mode">字幕渲染模式</string>
 
 </resources>

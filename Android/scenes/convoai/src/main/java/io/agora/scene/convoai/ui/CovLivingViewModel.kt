@@ -24,8 +24,6 @@ import android.widget.Toast
 import io.agora.scene.common.BuildConfig
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.api.CovAgentPreset
-import io.agora.scene.convoai.iot.api.CovIotApiManager
-import io.agora.scene.convoai.iot.manager.CovIotPresetManager
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -103,15 +101,7 @@ class CovLivingViewModel : ViewModel() {
         _avatar.value = avatar
     }
 
-    private val _agentPreset = MutableStateFlow<CovAgentPreset?>(null)
-    val agentPreset: StateFlow<CovAgentPreset?> = _agentPreset.asStateFlow()
-
-    fun setAgentPreset(preset: CovAgentPreset?) {
-        _agentPreset.value = preset
-    }
-
-    val isVisionSupported: StateFlow<Boolean> = agentPreset.map { it?.is_support_vision == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isVisionSupported: Boolean get() = CovAgentManager.getPreset()?.is_support_vision == true
 
     // Business states
     private var integratedToken: String? = null
@@ -221,11 +211,7 @@ class CovLivingViewModel : ViewModel() {
     fun getPresetTokenConfig() {
         // Fetch token when entering the scene (presets now handled in ViewModel)
         viewModelScope.launch {
-            val deferreds = listOf(
-                async { updateTokenAsync() },
-                async { fetchPresetsAsync() },
-            )
-            deferreds.awaitAll()
+            updateTokenAsync()
         }
     }
 
@@ -239,18 +225,10 @@ class CovLivingViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                // Fetch token and presets in parallel
-                val needToken = integratedToken == null
-                val needPresets = CovAgentManager.getPresetList().isNullOrEmpty()
-
-                if (needToken || needPresets) {
-                    val deferreds = buildList {
-                        if (needToken) add(async { updateTokenAsync() })
-                        if (needPresets) add(async { fetchPresetsAsync() })
-                    }
-
-                    val results = deferreds.awaitAll()
-                    if (results.any { !it }) {
+                // Fetch token if needed
+                if (integratedToken == null) {
+                    val tokenResult = updateTokenAsync()
+                    if (!tokenResult) {
                         _connectionState.value = AgentConnectionState.IDLE
                         _ballAnimState.value = BallAnimState.STATIC
                         ToastUtil.show(R.string.cov_detail_join_call_failed, Toast.LENGTH_LONG)
@@ -646,18 +624,6 @@ class CovLivingViewModel : ViewModel() {
         )
     }
 
-    suspend fun fetchPresetsAsync(): Boolean = suspendCoroutine { cont ->
-        CovAgentApiManager.fetchPresets { err, presets ->
-            if (err == null) {
-                CovAgentManager.setPresetList(presets)
-                setAgentPreset(CovAgentManager.getPreset())
-                cont.resume(true)
-            } else {
-                cont.resume(false)
-            }
-        }
-    }
-
     private suspend fun startAgentAsync(): Pair<String, Int> = suspendCoroutine { cont ->
         CovAgentApiManager.startAgentWithMap(
             channelName = CovAgentManager.channelName,
@@ -841,7 +807,7 @@ class CovLivingViewModel : ViewModel() {
                     "audio_scenario" to null,
                     "transcript" to mapOf(
                         "enable" to true,
-                        "enable_words" to !CovAgentManager.isTextRenderMode,
+                        "enable_words" to CovAgentManager.isWordRenderMode,
                         "protocol_version" to "v2",
                         "redundant" to null,
                     ),
