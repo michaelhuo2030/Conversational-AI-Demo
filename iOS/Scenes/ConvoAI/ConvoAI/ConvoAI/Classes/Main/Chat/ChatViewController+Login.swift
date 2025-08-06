@@ -11,7 +11,6 @@ import SVProgressHUD
 
 extension ChatViewController: LoginManagerDelegate {
     func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
-        welcomeMessageView.isHidden = loginState
         topBar.updateButtonVisible(loginState)
         if loginState {
             // setup presets
@@ -34,7 +33,6 @@ extension ChatViewController: LoginManagerDelegate {
     
     func userLoginSessionExpired() {
         addLog("[Call] userLoginSessionExpired")
-        welcomeMessageView.isHidden = false
         topBar.updateButtonVisible(false)
         SSOWebViewController.clearWebViewCache()
         stopLoading()
@@ -70,40 +68,7 @@ extension ChatViewController: LoginManagerDelegate {
         }
         
         await MainActor.run {
-            let loginVC = LoginViewController()
-            loginVC.modalPresentationStyle = .overFullScreen
-            loginVC.loginAction = { [weak self] in
-                self?.goToSSOViewController()
-            }
-            self.present(loginVC, animated: false)
+            LoginViewController.start(from: self)
         }
-    }
-    
-    private func goToSSOViewController() {
-        let ssoWebVC = SSOWebViewController()
-        let baseUrl = AppContext.shared.baseServerUrl
-        ssoWebVC.urlString = "\(baseUrl)/v1/convoai/sso/login"
-        ssoWebVC.completionHandler = { [weak self] token in
-            guard let self = self else { return }
-            if let token = token {
-                self.addLog("SSO token: \(token)")
-                let model = LoginModel()
-                model.token = token
-                AppContext.loginManager()?.updateUserInfo(userInfo: model)
-                let localToken = UserCenter.user?.token ?? ""
-                self.addLog("local token: \(localToken)")
-                self.bottomBar.startLoadingAnimation()
-                LoginApiService.getUserInfo { [weak self] error in
-                    self?.bottomBar.stopLoadingAnimation()
-                    if let err = error {
-                        AppContext.loginManager()?.logout()
-                        SVProgressHUD.showInfo(withStatus: err.localizedDescription)
-                    }
-                }
-            } else {
-                AppContext.loginManager()?.logout()
-            }
-        }
-        self.navigationController?.pushViewController(ssoWebVC, animated: false)
     }
 }
