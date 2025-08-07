@@ -12,7 +12,7 @@ import SVProgressHUD
 extension ChatViewController: LoginManagerDelegate {
     func loginManager(_ manager: LoginManager, userInfoDidChange userInfo: LoginModel?, loginState: Bool) {
         welcomeMessageView.isHidden = loginState
-        topBar.updateButtonVisible(loginState)
+        navivationBar.updateButtonVisible(loginState)
         if loginState {
             // setup presets
             Task {
@@ -35,7 +35,7 @@ extension ChatViewController: LoginManagerDelegate {
     func userLoginSessionExpired() {
         addLog("[Call] userLoginSessionExpired")
         welcomeMessageView.isHidden = false
-        topBar.updateButtonVisible(false)
+        navivationBar.updateButtonVisible(false)
         SSOWebViewController.clearWebViewCache()
         stopLoading()
         stopAgent()
@@ -51,7 +51,7 @@ extension ChatViewController: LoginManagerDelegate {
             await MainActor.run {
                 let needsShowMicrophonePermissionAlert = PermissionManager.getMicrophonePermission() == .denied
                 if needsShowMicrophonePermissionAlert {
-                    self.bottomBar.setMircophoneButtonSelectState(state: true)
+                    self.callControlBar.setMircophoneButtonSelectState(state: true)
                 }
             }
             
@@ -60,7 +60,7 @@ extension ChatViewController: LoginManagerDelegate {
                     await self.prepareToStartAgent()
                     await MainActor.run {
                         if !res {
-                            self.bottomBar.setMircophoneButtonSelectState(state: true)
+                            self.callControlBar.setMircophoneButtonSelectState(state: true)
                         }
                     }
                 }
@@ -92,9 +92,9 @@ extension ChatViewController: LoginManagerDelegate {
                 AppContext.loginManager()?.updateUserInfo(userInfo: model)
                 let localToken = UserCenter.user?.token ?? ""
                 self.addLog("local token: \(localToken)")
-                self.bottomBar.startLoadingAnimation()
+                self.callControlBar.startLoadingAnimation()
                 LoginApiService.getUserInfo { [weak self] error in
-                    self?.bottomBar.stopLoadingAnimation()
+                    self?.callControlBar.stopLoadingAnimation()
                     if let err = error {
                         AppContext.loginManager()?.logout()
                         SVProgressHUD.showInfo(withStatus: err.localizedDescription)

@@ -27,21 +27,27 @@ class ChatWindowState {
 extension ChatViewController {
     internal func setupViews() {
         view.backgroundColor = .black
-        [animateContentView, fullSizeContainerView, upperBackgroundView, lowerBackgroundView, messageMaskView, messageView, smallSizeContainerView, agentStateView, topBar, welcomeMessageView, bottomBar, volumeAnimateView, annotationView, devModeButton, sendMessageButton].forEach { view.addSubview($0) }
+        [animateContentView, fullSizeContainerView, upperBackgroundView, lowerBackgroundView, messageMaskView, messageView, smallSizeContainerView, agentStateView, navivationBar, sideNavigationBar, welcomeMessageView, callControlBar, volumeAnimateView, annotationView, devModeButton, sendMessageButton].forEach { view.addSubview($0) }
         [miniView].forEach { smallSizeContainerView.addSubview($0) }
         [remoteAvatarView].forEach { miniView.addSubview($0) }
         [localVideoView].forEach { fullSizeContainerView.addSubview($0) }
     }
     
     internal func setupConstraints() {
-        topBar.snp.makeConstraints { make in
+        navivationBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(5)
             make.left.right.equalToSuperview()
             make.height.equalTo(48)
         }
         
+        sideNavigationBar.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.height.equalTo(32)
+            make.top.equalTo(navivationBar.snp.bottom)
+        }
+        
         volumeAnimateView.snp.makeConstraints { make in
-            make.top.equalTo(topBar.snp.bottom).offset(0)
+            make.top.equalTo(navivationBar.snp.bottom).offset(0)
             make.centerX.equalToSuperview()
         }
         
@@ -57,14 +63,14 @@ extension ChatViewController {
             make.left.right.top.bottom.equalTo(0)
         }
         
-        bottomBar.snp.makeConstraints { make in
+        callControlBar.snp.makeConstraints { make in
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-30)
             make.left.right.equalTo(0)
             make.height.equalTo(76)
         }
         
         agentStateView.snp.makeConstraints { make in
-            make.bottom.equalTo(bottomBar.snp.top).offset(-24)
+            make.bottom.equalTo(callControlBar.snp.top).offset(-24)
             make.left.right.equalTo(0)
             make.height.equalTo(58)
         }
@@ -74,7 +80,7 @@ extension ChatViewController {
         }
         
         messageView.snp.makeConstraints { make in
-            make.top.equalTo(topBar.snp.bottom).offset(22)
+            make.top.equalTo(navivationBar.snp.bottom).offset(22)
             make.left.right.equalTo(0)
             make.bottom.equalTo(agentStateView.snp.top)
         }
@@ -95,7 +101,7 @@ extension ChatViewController {
         }
         
         annotationView.snp.makeConstraints { make in
-            make.bottom.equalTo(bottomBar.snp.top).offset(-94)
+            make.bottom.equalTo(callControlBar.snp.top).offset(-94)
             make.left.right.equalTo(0)
             make.height.equalTo(44)
         }
@@ -104,7 +110,7 @@ extension ChatViewController {
             make.left.equalTo(29)
             make.right.equalTo(-29)
             make.height.equalTo(60)
-            make.bottom.equalTo(bottomBar.snp.top).offset(-41)
+            make.bottom.equalTo(callControlBar.snp.top).offset(-41)
         }
         
         devModeButton.snp.makeConstraints { make in
@@ -165,7 +171,7 @@ extension ChatViewController {
 
         let isLogin = UserCenter.shared.isLogin()
         welcomeMessageView.isHidden = isLogin
-        topBar.updateButtonVisible(isLogin)
+        navivationBar.updateButtonVisible(isLogin)
     }
         
     func resetUIDisplay() {
@@ -175,7 +181,7 @@ extension ChatViewController {
         messageView.clearMessages()
         messageView.isHidden = true
         messageMaskView.isHidden = true
-        bottomBar.resetState()
+        callControlBar.resetState()
         timerCoordinator.stopAllTimer()
         agentStateView.isHidden = true
         updateWindowContent()
@@ -283,8 +289,9 @@ extension ChatViewController {
             }
         }
         let isLight = !fullSizeContainerView.isHidden && !showTranscription
-        bottomBar.setButtonColorTheme(showLight: isLight)
-        topBar.setButtonColorTheme(showLight: isLight)
+        callControlBar.setButtonColorTheme(showLight: isLight)
+        navivationBar.setButtonColorTheme(showLight: isLight)
+        sideNavigationBar.setButtonColorTheme(showLight: isLight)
     }
     
     @objc func smallWindowClicked() {
