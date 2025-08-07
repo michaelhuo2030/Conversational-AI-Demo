@@ -148,7 +148,7 @@ class CovAgentSettingsFragment : BaseFragment<CovAgentSettingsFragmentBinding>()
     // The non-English overseas version must disable AiVad.
     private fun setAiVadBySelectLanguage() {
         mBinding?.apply {
-            if (CovAgentManager.getPreset()?.isIndependent() == true) {
+            if (CovAgentManager.getPreset()?.isIndependent == true) {
                 CovAgentManager.enableAiVad = false
                 cbAiVad.isChecked = false
                 cbAiVad.isEnabled = false
