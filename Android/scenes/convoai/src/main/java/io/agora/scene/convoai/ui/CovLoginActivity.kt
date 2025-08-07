@@ -73,7 +73,7 @@ class CovLoginActivity : DebugSupportActivity<CovActivityLoginBinding>() {
                     tvCheckTips.isInvisible = true
                 }
             }
-            ivAgentSample.setOnClickListener {
+            viewTop.setOnClickListener {
                 DebugConfigSettings.checkClickDebug()
             }
         }

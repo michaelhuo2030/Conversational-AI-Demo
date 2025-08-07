@@ -97,4 +97,9 @@ object CovAgentManager {
         language = null
         avatar = null
     }
+
+    val isOpenSource: Boolean
+        get() {
+            return BuildConfig.LLM_API_KEY.isNotEmpty() || BuildConfig.TTS_VENDOR.isNotEmpty() || BuildConfig.AVATAR_VENDOR.isNotEmpty()
+        }
 }

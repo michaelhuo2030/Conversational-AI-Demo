@@ -15,15 +15,14 @@ import io.agora.scene.convoai.convoaiApi.*
 import io.agora.scene.convoai.rtc.CovRtcManager
 import io.agora.scene.convoai.rtm.CovRtmManager
 import io.agora.scene.convoai.rtm.IRtmManagerListener
-import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.common.net.AgoraTokenType
 import io.agora.scene.common.net.TokenGenerator
 import io.agora.scene.common.net.TokenGeneratorType
 import io.agora.scene.common.util.toast.ToastUtil
 import android.widget.Toast
 import io.agora.scene.common.BuildConfig
+import io.agora.scene.common.debugMode.DebugConfigSettings
 import io.agora.scene.convoai.R
-import io.agora.scene.convoai.api.CovAgentPreset
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,9 +32,6 @@ import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import io.agora.scene.convoai.api.CovAvatar
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 /**
  * view model
@@ -246,7 +242,7 @@ class CovLivingViewModel : ViewModel() {
                 }
 
                 // Configure audio settings
-                val isIndependent = CovAgentManager.getPreset()?.isIndependent() == true
+                val isIndependent = CovAgentManager.getPreset()?.isIndependent == true
                 val scenario = if (CovAgentManager.isEnableAvatar) {
                     // If digital avatar is enabled, use AUDIO_SCENARIO_DEFAULT for better audio mixing
                     Constants.AUDIO_SCENARIO_DEFAULT
