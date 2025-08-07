@@ -17,6 +17,10 @@ import android.view.animation.Animation
 import android.widget.ImageButton
 import androidx.core.view.isVisible
 import io.agora.scene.common.R
+import io.agora.scene.common.util.GlideImageLoader
+import android.animation.ObjectAnimator
+import android.animation.AnimatorSet
+import android.view.animation.AccelerateDecelerateInterpolator
 
 /**
  * Top bar view for living activity, encapsulating info/settings/net buttons, ViewFlipper switching, and timer logic.
@@ -87,6 +91,16 @@ class CovLivingTopView @JvmOverloads constructor(
      */
     fun setOnCCClickListener(listener: (() -> Unit)?) {
         onCCClick = listener
+    }
+
+    fun updateTitleName(name: String,url:String) {
+        binding.tvPresetName.text = name
+        GlideImageLoader.load(
+            binding.ivPreset,
+            url,
+            R.drawable.common_default_agent,
+            R.drawable.common_default_agent
+        )
     }
 
     /**
@@ -251,6 +265,34 @@ class CovLivingTopView @JvmOverloads constructor(
     fun stopCountDownTask() {
         countDownJob?.cancel()
         countDownJob = null
+    }
+
+    fun showVoicePrint() {
+        binding.cvVoicePrint.apply {
+            // Set initial state: invisible, scaled down and transparent
+            alpha = 0f
+            scaleX = 0.3f
+            scaleY = 0.3f
+            isVisible = true
+            
+            // Create scale animations
+            val scaleXAnimator = ObjectAnimator.ofFloat(this, "scaleX", 0.3f, 1.0f)
+            val scaleYAnimator = ObjectAnimator.ofFloat(this, "scaleY", 0.3f, 1.0f)
+            val alphaAnimator = ObjectAnimator.ofFloat(this, "alpha", 0f, 1f)
+            
+            // Create animator set and configure
+            val animatorSet = AnimatorSet().apply {
+                playTogether(scaleXAnimator, scaleYAnimator, alphaAnimator)
+                duration = 300 // 300ms animation
+                interpolator = AccelerateDecelerateInterpolator()
+            }
+            
+            animatorSet.start()
+        }
+    }
+
+    fun hideVoicePrint() {
+        binding.cvVoicePrint.isVisible = false
     }
 
     /**

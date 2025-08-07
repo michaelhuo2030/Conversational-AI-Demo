@@ -16,11 +16,9 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import io.agora.rtc2.Constants
 import io.agora.rtc2.video.VideoCanvas
-import io.agora.scene.common.debugMode.DebugButton
 import io.agora.scene.common.debugMode.DebugConfigSettings
-import io.agora.scene.common.debugMode.RenderMode
 import io.agora.scene.common.debugMode.DebugTabDialog
-import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.debugMode.DebugSupportActivity
 import io.agora.scene.common.ui.CommonDialog
 import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.ui.vm.LoginState
@@ -54,7 +52,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
 
-class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
+class CovLivingActivity : DebugSupportActivity<CovActivityLivingBinding>() {
 
     private val TAG = "CovLivingActivity"
 
@@ -63,7 +61,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     private val userViewModel: UserViewModel by viewModels()
 
     // UI related
-    private var mDebugDialog: DebugTabDialog? = null
     private var appTabDialog: CovAgentTabDialog? = null
 
     private lateinit var mPermissionHelp: PermissionHelp
@@ -76,9 +73,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun getViewBinding(): CovActivityLivingBinding = CovActivityLivingBinding.inflate(layoutInflater)
 
+    override fun supportOnBackPressed(): Boolean = false
+
     override fun initView() {
         setupView()
-        
+
         // Create RTC and RTM engines
         val rtcEngine = CovRtcManager.createRtcEngine(viewModel.handleRtcEvents())
         val rtmClient = CovRtmManager.createRtmClient()
@@ -95,10 +94,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         viewModel.getPresetTokenConfig()
     }
 
-    override fun onHandleOnBackPressed() {
-
-    }
-
     override fun finish() {
         release()
         super.finish()
@@ -111,17 +106,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
 
     override fun onPause() {
         super.onPause()
-        // Clear debug callback when activity is paused
-        DebugButton.setDebugCallback(null)
         startRecordingService()
     }
 
     override fun onResume() {
         super.onResume()
-        // Set debug callback when page is resumed
-        DebugButton.setDebugCallback {
-            showCovAiDebugDialog()
-        }
         stopRecordingService()
     }
 
@@ -139,6 +128,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             val layoutParams = clTop.layoutParams as ViewGroup.MarginLayoutParams
             layoutParams.topMargin = statusBarHeight
             clTop.layoutParams = layoutParams
+            updateTitle()
             agentStateView.configureStateTexts(
                 silent = getString(R.string.cov_agent_silent),
                 listening = getString(R.string.cov_agent_listening),
@@ -146,6 +136,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 speaking = getString(R.string.cov_agent_speaking),
                 mute = getString(R.string.cov_user_muted),
             )
+
+            clBottomLogged.btnCamera.alpha = if (viewModel.isVisionSupported) 1.0f else 0.5f
+            clBottomLogged.btnImageContainer.alpha = if (viewModel.isVisionSupported) 1.0f else 0.5f
 
             clBottomLogged.btnEndCall.setOnClickListener(object : OnFastClickListener() {
                 override fun onClickJacking(view: View) {
@@ -164,7 +157,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 )
             }
             clBottomLogged.btnCamera.setOnClickListener {
-                if (!viewModel.isVisionSupported.value) {
+                if (!viewModel.isVisionSupported) {
                     CovLogger.d(TAG, "click add pic: This preset does not support vision-related features.")
                     ToastUtil.show(R.string.cov_preset_not_support_vision, Toast.LENGTH_LONG)
                     return@setOnClickListener
@@ -185,10 +178,10 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 )
             }
             clTop.setOnSettingsClickListener {
-                showSettingDialogWithPresetCheck(CovAgentTabDialog.TAB_AGENT_SETTINGS) // Agent Settings tab
+                showSettingDialog(CovAgentTabDialog.TAB_AGENT_SETTINGS) // Agent Settings tab
             }
             clTop.setOnWifiClickListener {
-                showSettingDialogWithPresetCheck(CovAgentTabDialog.TAB_CHANNEL_INFO) // Channel Info tab
+                showSettingDialog(CovAgentTabDialog.TAB_CHANNEL_INFO) // Channel Info tab
             }
             clTop.setOnBackClickListener {
                 finish()
@@ -204,7 +197,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                     viewModel.switchCamera()
                 } else {
                     // Camera is off - add picture
-                    if (!viewModel.isVisionSupported.value) {
+                    if (!viewModel.isVisionSupported) {
                         CovLogger.d(TAG, "click add pic: This preset does not support vision-related features.")
                         ToastUtil.show(R.string.cov_preset_not_support_vision, Toast.LENGTH_LONG)
                         return@setOnClickListener
@@ -242,7 +235,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             agentStateView.setOnInterruptClickListener {
                 viewModel.interruptAgent()
             }
-            
+
             vDragSmallWindow.setOnViewClick {
                 // Hide transcript when small window is clicked while transcript is visible
                 if (viewModel.isShowMessageList.value) {
@@ -260,6 +253,22 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 message.uuid?.let { uuid ->
                     replayUploadImage(uuid, File(message.content))
                 }
+            }
+        }
+    }
+
+    private fun updateTitle() {
+        mBinding?.apply {
+            if (CovAgentManager.isEnableAvatar) {
+                clTop.updateTitleName(
+                    CovAgentManager.avatar?.avatar_name ?: "",
+                    CovAgentManager.avatar?.thumb_img_url ?: ""
+                )
+            } else {
+                clTop.updateTitleName(
+                    CovAgentManager.getPreset()?.display_name ?: "",
+                    "xxx"
+                )
             }
         }
     }
@@ -429,7 +438,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                         videoView.isVisible = true
                         setupBallAnimView()
                     }
-
+                    updateTitle()
                 } else {
                     mBinding?.apply {
                         clAnimationContent.isVisible = false
@@ -448,6 +457,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             it.release()
                             mCovBallAnim = null
                         }
+                        updateTitle()
                     }
                 }
             }
@@ -456,7 +466,9 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             viewModel.transcriptUpdate.collect { transcript ->
                 if (isSelfSubRender) return@collect
                 transcript?.let {
-                    mBinding?.messageListViewV2?.onTranscriptUpdated(it, CovAgentManager.isTextRenderMode)
+                    mBinding?.messageListViewV2?.onTranscriptUpdated(
+                        it, CovAgentManager.renderMode == CovRenderMode.SYNC_TEXT
+                    )
                 }
             }
         }
@@ -500,11 +512,14 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 }
             }
         }
-        lifecycleScope.launch {
-            viewModel.isVisionSupported.collect { supported ->
-                mBinding?.apply {
-                    clBottomLogged.btnCamera.alpha = if (supported) 1.0f else 0.5f
-                    clBottomLogged.btnImageContainer.alpha = if (supported) 1.0f else 0.5f
+        lifecycleScope.launch {  // Observe voice print updates
+            viewModel.voicePrint.collect { voicePrint ->
+                if (isSelfSubRender) return@collect
+                if (voicePrint == "VP_REGISTER_SUCCESS") {
+                    mBinding?.clTop?.showVoicePrint()
+                    ToastUtil.show(R.string.cov_voiceprint_lock_success, Toast.LENGTH_LONG)
+                } else {
+                    mBinding?.clTop?.hideVoicePrint()
                 }
             }
         }
@@ -624,7 +639,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 selfRenderController?.enable(false)
                 messageListViewV2.updateAgentName(CovAgentManager.getPreset()?.display_name ?: "")
-                messageListViewV2.setIsChinese(CovAgentManager.language?.isChinese == true)
             }
         }
 
@@ -726,19 +740,20 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         mBinding?.apply {
             val ivAddPic = clBottomLogged.ivAddPic
             val ivCameraSwitch = clBottomLogged.ivCameraSwitch
-            
+
             // Clear any existing animations
             ivAddPic.clearAnimation()
             ivCameraSwitch.clearAnimation()
-            
+
             if (isPublishVideo) {
                 // Camera is on - show camera switch icon
                 if (ivAddPic.isVisible) {
                     // Show camera switch icon immediately and start both animations simultaneously
                     ivCameraSwitch.isVisible = true
-                    
+
                     // Start out animation for add pic icon
-                    val outAnim = android.view.animation.AnimationUtils.loadAnimation(this@CovLivingActivity, R.anim.slide_up_out)
+                    val outAnim =
+                        android.view.animation.AnimationUtils.loadAnimation(this@CovLivingActivity, R.anim.slide_up_out)
                     outAnim.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
                         override fun onAnimationStart(animation: android.view.animation.Animation?) {}
                         override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
@@ -747,10 +762,11 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             ivAddPic.isVisible = false
                         }
                     })
-                    
+
                     // Start in animation for camera switch icon simultaneously
-                    val inAnim = android.view.animation.AnimationUtils.loadAnimation(this@CovLivingActivity, R.anim.slide_up_in)
-                    
+                    val inAnim =
+                        android.view.animation.AnimationUtils.loadAnimation(this@CovLivingActivity, R.anim.slide_up_in)
+
                     // Start both animations at the same time
                     ivAddPic.startAnimation(outAnim)
                     ivCameraSwitch.startAnimation(inAnim)
@@ -764,9 +780,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 if (ivCameraSwitch.isVisible) {
                     // Show add pic icon immediately and start both animations simultaneously
                     ivAddPic.isVisible = true
-                    
+
                     // Start out animation for camera switch icon
-                    val outAnim = android.view.animation.AnimationUtils.loadAnimation(this@CovLivingActivity, R.anim.slide_down_out)
+                    val outAnim = android.view.animation.AnimationUtils.loadAnimation(
+                        this@CovLivingActivity,
+                        R.anim.slide_down_out
+                    )
                     outAnim.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
                         override fun onAnimationStart(animation: android.view.animation.Animation?) {}
                         override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
@@ -775,10 +794,13 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                             ivCameraSwitch.isVisible = false
                         }
                     })
-                    
+
                     // Start in animation for add pic icon simultaneously
-                    val inAnim = android.view.animation.AnimationUtils.loadAnimation(this@CovLivingActivity, R.anim.slide_down_in)
-                    
+                    val inAnim = android.view.animation.AnimationUtils.loadAnimation(
+                        this@CovLivingActivity,
+                        R.anim.slide_down_in
+                    )
+
                     // Start both animations at the same time
                     ivCameraSwitch.startAnimation(outAnim)
                     ivAddPic.startAnimation(inAnim)
@@ -805,22 +827,6 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
             } else {
                 layoutMessage.isVisible = false
             }
-        }
-    }
-
-
-    private fun showSettingDialogWithPresetCheck(initialTab: Int) {
-        if (CovAgentManager.getPresetList().isNullOrEmpty()) {
-            lifecycleScope.launch {
-                val success = viewModel.fetchPresetsAsync()
-                if (success) {
-                    showSettingDialog(initialTab)
-                } else {
-                    ToastUtil.show(getString(R.string.cov_detail_net_state_error))
-                }
-            }
-        } else {
-            showSettingDialog(initialTab)
         }
     }
 
@@ -895,67 +901,7 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
     }
 
 
-    private fun showCovAiDebugDialog() {
-        if (isFinishing || isDestroyed) return
-        if (mDebugDialog?.dialog?.isShowing == true) return
 
-        mDebugDialog = DebugTabDialog.newInstance(
-            onDebugCallback = object : DebugTabDialog.DebugCallback {
-                override fun onDialogDismiss() {
-                    mDebugDialog = null
-                }
-
-                override fun onRenderModeChange(mode: Int) {
-                    // Handle render mode change
-                    when (mode) {
-                        RenderMode.WORD -> {
-                            CovLogger.d(TAG, "Render mode changed to WORD")
-                            // Apply word rendering configuration
-                        }
-
-                        RenderMode.TEXT -> {
-                            CovLogger.d(TAG, "Render mode changed to TEXT")
-                            // Apply text rendering configuration
-                        }
-
-                    }
-                    val modeText = if (mode == RenderMode.TEXT) {
-                        "Text"
-                    } else {
-                        "Word"
-                    }
-                    ToastUtil.show("Render mode changed to: $modeText")
-                }
-
-                override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
-
-                override fun onAudioDumpEnable(enable: Boolean) {
-                    CovRtcManager.onAudioDump(enable)
-                }
-
-                override fun onClickCopy() {
-                    mBinding?.apply {
-                        val messageContents = if (isSelfSubRender) {
-                            messageListViewV1.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
-                        } else {
-                            messageListViewV2.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
-                        }
-                        this@CovLivingActivity.copyToClipboard(messageContents)
-                        ToastUtil.show(getString(R.string.cov_copy_succeed))
-                    }
-                }
-
-                override fun onEnvConfigChange() {
-                    restartActivity()
-                }
-
-                override fun onAudioParameter(parameter: String) {
-                    CovRtcManager.setParameter(parameter)
-                }
-            }
-        )
-        mDebugDialog?.show(supportFragmentManager, "debug_dialog")
-    }
 
     private fun showRoomEndDialog() {
         if (isFinishing || isDestroyed) return
@@ -1095,17 +1041,12 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
         stopService(intent)
     }
 
-    private fun restartActivity() {
-        release()
-        recreate()
-    }
-
     private var isReleased = false
     private val releaseLock = Any()
 
     /**
      * Safely release all resources, supports multiple calls (idempotent)
-     * Can be safely called in both restartActivity() and finish()
+     * Can be safely called finish()
      */
     private fun release() {
         synchronized(releaseLock) {
@@ -1128,5 +1069,67 @@ class CovLivingActivity : BaseActivity<CovActivityLivingBinding>() {
                 CovLogger.w(TAG, "Release failed: ${e.message}")
             }
         }
+    }
+
+    // Override debug callback to provide custom behavior
+    override fun createDefaultDebugCallback(): DebugTabDialog.DebugCallback {
+        return object : DebugTabDialog.DebugCallback {
+
+            override fun getConvoAiHost(): String = CovAgentApiManager.currentHost ?: ""
+
+            override fun onAudioDumpEnable(enable: Boolean) {
+                CovRtcManager.onAudioDump(enable)
+                ToastUtil.show("onAudioDumpEnable: $enable")
+            }
+
+            override fun onSeamlessPlayMode(enable: Boolean) {
+                // Handle seamless play mode toggle
+                CovLogger.d(TAG, "Seamless play mode: $enable")
+
+                ToastUtil.show("onSeamlessPlayMode: $enable")
+            }
+
+            override fun onMetricsEnable(enable: Boolean) {
+                // Handle metrics toggle
+                CovLogger.d(TAG, "Metrics enabled: $enable")
+
+                ToastUtil.show("onMetricsEnable: $enable")
+            }
+
+            override fun onClickCopy() {
+                mBinding?.apply {
+                    val messageContents = if (isSelfSubRender) {
+                        messageListViewV1.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
+                    } else {
+                        messageListViewV2.getAllMessages().filter { it.isMe }.joinToString("\n") { it.content }
+                    }
+                    this@CovLivingActivity.copyToClipboard(messageContents)
+                    ToastUtil.show(getString(R.string.cov_copy_succeed))
+                }
+            }
+
+            override fun onEnvConfigChange() {
+                handleEnvironmentChange()
+            }
+
+            override fun onAudioParameter(parameter: String) {
+                CovRtcManager.setParameter(parameter)
+            }
+        }
+    }
+
+    override fun handleEnvironmentChange() {
+        // Clean up current session and navigate to login
+        viewModel.stopAgentAndLeaveChannel()
+        userViewModel.logout()
+        release()
+        navigateToLogin()
+    }
+
+    private fun navigateToLogin() {
+        val intent = Intent(this, CovLoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }
