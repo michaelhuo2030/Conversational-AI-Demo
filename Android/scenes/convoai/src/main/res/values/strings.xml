@@ -134,5 +134,12 @@
     <string name="cov_text_first_mode">Text-字幕先出模式</string>
     <string name="cov_text_first_mode_tips">字幕一次性展示</string>
     <string name="cov_transcript_render_mode">字幕渲染模式</string>
+    <string name="cov_remove_agent_title">删除智能体</string>
+    <string name="cov_remove_agent_content">确定要删除智能体「%s」吗？</string>
+    <string name="cov_remove_agent_confirm">删除</string>
+    <string name="cov_remove_agent_cancel">取消</string>
+    <string name="cov_get_agent_success">智能体获取成功</string>
+    <string name="cov_get_agent_failed">智能体获取失败，当前数据库无此智能体</string>
+    <string name="cov_get_agent_offline">智能体已被下线，请联系声网工作人员</string>
 
 </resources>
