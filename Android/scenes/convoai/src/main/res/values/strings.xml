@@ -141,5 +141,6 @@
     <string name="cov_get_agent_success">智能体获取成功</string>
     <string name="cov_get_agent_failed">智能体获取失败，当前数据库无此智能体</string>
     <string name="cov_get_agent_offline">智能体已被下线，请联系声网工作人员</string>
+    <string name="cov_retry_tips">页面加载失败，请重试</string>
 
 </resources>
