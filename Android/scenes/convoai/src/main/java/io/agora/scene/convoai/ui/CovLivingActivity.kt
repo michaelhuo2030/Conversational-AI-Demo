@@ -759,7 +759,9 @@ class CovLivingActivity : DebugSupportActivity<CovActivityLivingBinding>() {
                         override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
                         override fun onAnimationEnd(animation: android.view.animation.Animation?) {
                             // Hide add pic icon after out animation completes
-                            ivAddPic.isVisible = false
+                            if (viewModel.isPublishVideo.value == true) {
+                                ivAddPic.isVisible = false
+                            }
                         }
                     })
 
@@ -791,7 +793,9 @@ class CovLivingActivity : DebugSupportActivity<CovActivityLivingBinding>() {
                         override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
                         override fun onAnimationEnd(animation: android.view.animation.Animation?) {
                             // Hide camera switch icon after out animation completes
-                            ivCameraSwitch.isVisible = false
+                            if (viewModel.isPublishVideo.value == false) {
+                                ivCameraSwitch.isVisible = false
+                            }
                         }
                     })
 
