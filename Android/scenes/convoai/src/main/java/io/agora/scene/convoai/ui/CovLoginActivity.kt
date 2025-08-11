@@ -8,6 +8,7 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.View
+import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.widget.CompoundButton
@@ -25,6 +26,7 @@ import io.agora.scene.common.ui.OnFastClickListener
 import io.agora.scene.common.ui.SSOWebViewActivity
 import io.agora.scene.common.ui.TermsActivity
 import io.agora.scene.convoai.databinding.CovActivityLoginBinding
+import androidx.core.graphics.toColorInt
 
 class CovLoginActivity : DebugSupportActivity<CovActivityLoginBinding>() {
 
@@ -49,14 +51,18 @@ class CovLoginActivity : DebugSupportActivity<CovActivityLoginBinding>() {
                         startActivity(Intent(this@CovLoginActivity, CovAgentListActivity::class.java))
                         finish()
                     }, 500L)
-                } else {
-                    showLoginLoading(false)
                 }
-            } else {
-                showLoginLoading(false)
             }
         }
         mBinding?.apply {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            tvTyping.setGradientColors( listOf(
+                "#ffffffff".toColorInt(),
+                "#ccffffff".toColorInt(),
+                "#99ffffff".toColorInt(),
+                "#ccffffff".toColorInt(),
+                "#e6ffffff".toColorInt()
+            ))
             tvTyping.startAnimation()
             setupRichTextTerms(tvTermsRichText)
             btnStartWithoutLogin.setOnClickListener(object : OnFastClickListener() {
@@ -83,19 +89,6 @@ class CovLoginActivity : DebugSupportActivity<CovActivityLoginBinding>() {
         activityResultLauncher.launch(
             Intent(this@CovLoginActivity, SSOWebViewActivity::class.java)
         )
-        showLoginLoading(true)
-    }
-
-    private fun showLoginLoading(show: Boolean) {
-        mBinding?.apply {
-            if (show) {
-                layoutLoading.visibility = View.VISIBLE
-                loadingView.startAnimation()
-            } else {
-                layoutLoading.visibility = View.GONE
-                loadingView.stopAnimation()
-            }
-        }
     }
 
     private fun setupRichTextTerms(textView: TextView) {

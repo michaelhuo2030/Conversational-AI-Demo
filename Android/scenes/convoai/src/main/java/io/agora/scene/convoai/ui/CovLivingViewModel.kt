@@ -32,6 +32,9 @@ import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import io.agora.scene.convoai.api.CovAvatar
+import io.agora.scene.convoai.ui.CovRenderMode
+
+
 
 /**
  * view model
@@ -111,6 +114,127 @@ class CovLivingViewModel : ViewModel() {
     // API instances
     private var conversationalAIAPI: IConversationalAIAPI? = null
 
+    // Typing animation related properties
+    private var currentTypingTurnId: Long = -1
+    private var currentTypingText: String = ""
+    private var typingProgress: Int = 0
+    private var isTypingAnimationRunning = false
+    private var typingJob: Job? = null
+
+    /**
+     * Start typing animation for agent messages
+     * Renders text character by character at 10 characters per second
+     */
+    fun startTypingAnimation(transcript: Transcript) {
+        val newText = transcript.text
+
+        // Handle same turn updates
+        if (currentTypingTurnId == transcript.turnId) {
+            // Skip if no text change
+            if (newText == currentTypingText) {
+                return
+            }
+
+            // Skip if new text is a prefix of current (truncated content)
+            if (currentTypingText.startsWith(newText)) {
+                return
+            }
+
+            // Update text and continue from current position
+            currentTypingText = newText
+        } else {
+            // New turn, stop previous animation and restart
+            stopTypingAnimation()
+
+            currentTypingTurnId = transcript.turnId
+            currentTypingText = newText
+            typingProgress = 0
+
+            // Create initial empty message to show typing dots
+            _transcriptUpdate.value = transcript.copy(text = "", status = TranscriptStatus.IN_PROGRESS)
+        }
+
+        // Start animation if not already running
+        if (!isTypingAnimationRunning) {
+            isTypingAnimationRunning = true
+            startTypingAnimationJob()
+        }
+    }
+
+    /**
+     * Stop typing animation and clean up resources
+     */
+    fun stopTypingAnimation() {
+        // Cancel existing typing job
+        typingJob?.cancel()
+        typingJob = null
+
+        // Update current message to remove dots if it exists
+        if (currentTypingTurnId != -1L && currentTypingText.isNotEmpty() && typingProgress > 0) {
+            val displayText = currentTypingText.substring(0, typingProgress)
+            _transcriptUpdate.value = Transcript(
+                turnId = currentTypingTurnId,
+                text = displayText,
+                status = TranscriptStatus.END,
+                type = TranscriptType.AGENT,
+                userId = CovAgentManager.agentUID.toString()
+            )
+        }
+
+        // Clean up state
+        currentTypingTurnId = -1
+        currentTypingText = ""
+        typingProgress = 0
+        isTypingAnimationRunning = false
+    }
+
+    /**
+     * Start typing animation job using coroutines
+     */
+    private fun startTypingAnimationJob() {
+        typingJob = viewModelScope.launch {
+            while (isTypingAnimationRunning && typingProgress < currentTypingText.length && currentTypingTurnId != -1L) {
+                // Calculate current display text
+                val displayText = currentTypingText.substring(0, typingProgress + 1)
+
+                // Update transcript for UI
+                _transcriptUpdate.value = Transcript(
+                    turnId = currentTypingTurnId,
+                    text = displayText,
+                    status = TranscriptStatus.IN_PROGRESS,
+                    type = TranscriptType.AGENT,
+                    userId = CovAgentManager.agentUID.toString()
+                )
+
+                typingProgress++
+                delay(100L) // 10 characters per second
+            }
+
+            // Animation complete, show full text
+            if (currentTypingText.isNotEmpty()) {
+                _transcriptUpdate.value = Transcript(
+                    turnId = currentTypingTurnId,
+                    text = currentTypingText,
+                    status = TranscriptStatus.END,
+                    type = TranscriptType.AGENT,
+                    userId = CovAgentManager.agentUID.toString()
+                )
+            }
+
+            // Clean up state
+            isTypingAnimationRunning = false
+        }
+    }
+
+    /**
+     * Handle agent interruption
+     */
+    fun handleAgentInterruption(interruptEvent: InterruptEvent) {
+        if (interruptEvent.turnId == currentTypingTurnId) {
+            stopTypingAnimation()
+        }
+    }
+
     fun initializeAPIs(rtcEngine: RtcEngineEx, rtmClient: RtmClient) {
         conversationalAIAPI = ConversationalAIAPIImpl(
             ConversationalAIAPIConfig(
@@ -134,6 +258,7 @@ class CovLivingViewModel : ViewModel() {
         override fun onAgentInterrupted(agentUserId: String, event: InterruptEvent) {
             // Handle interruption
             _interruptEvent.value = event
+            handleAgentInterruption(event)
         }
 
         override fun onAgentMetrics(agentUserId: String, metrics: Metric) {
@@ -163,8 +288,20 @@ class CovLivingViewModel : ViewModel() {
         }
 
         override fun onTranscriptUpdated(agentUserId: String, transcript: Transcript) {
-            // Update transcript state to notify Activity
-            _transcriptUpdate.value = transcript
+            // Handle transcript updates with typing animation for agent messages
+            if (transcript.type == TranscriptType.AGENT) {
+                // Only start typing animation in SYNC_TEXT mode
+                if (CovAgentManager.renderMode == CovRenderMode.SYNC_TEXT) {
+                    startTypingAnimation(transcript)
+                } else {
+                    // In non-sync mode, directly update transcript
+                    _transcriptUpdate.value = transcript
+                }
+            } else {
+                // For user messages, stop any ongoing typing animation and update directly
+                stopTypingAnimation()
+                _transcriptUpdate.value = transcript
+            }
         }
 
         override fun onMessageReceiptUpdated(agentUserId: String, messageReceipt: MessageReceipt) {
@@ -219,6 +356,20 @@ class CovLivingViewModel : ViewModel() {
             updateTokenAsync()
         }
     }
+
+    val agentName: String
+        get() = if (CovAgentManager.isEnableAvatar) {
+            CovAgentManager.avatar?.avatar_name ?: ""
+        } else {
+            CovAgentManager.getPreset()?.display_name ?: ""
+        }
+
+    val agentUrl: String
+        get() = if (CovAgentManager.isEnableAvatar) {
+            CovAgentManager.avatar?.thumb_img_url ?: ""
+        } else {
+            CovAgentManager.getPreset()?.avatar_url ?: ""
+        }
 
     // Start Agent connection
     fun startAgentConnection() {
@@ -716,9 +867,20 @@ class CovLivingViewModel : ViewModel() {
             CovLogger.w(TAG, "Failed to cancel waiting agent job: ${it.message}")
         }
         waitingAgentJob = null
+
+        // Cancel typing animation job safely
+        runCatching {
+            typingJob?.cancel()
+        }.onFailure {
+            CovLogger.w(TAG, "Failed to cancel typing job: ${it.message}")
+        }
+        typingJob = null
     }
 
     private fun resetState() {
+        // Stop typing animation
+        stopTypingAnimation()
+        
         _isShowMessageList.value = false
         _isLocalAudioMuted.value = false
         _isPublishVideo.value = false
