@@ -7,6 +7,7 @@
 
 import UIKit
 import Common
+import Kingfisher
 
 fileprivate let kCustomPresetSave = "io.agora.customPresets"
 class CustomAgentsViewController: UIViewController {
@@ -20,6 +21,7 @@ class CustomAgentsViewController: UIViewController {
         tableView.register(AgentTableViewCell.self, forCellReuseIdentifier: "AgentTableViewCell")
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
+        tableView.showsVerticalScrollIndicator = false
         return tableView
     }()
 
@@ -167,7 +169,7 @@ extension CustomAgentsViewController: UITableViewDataSource, UITableViewDelegate
         let preset = presets[indexPath.row]
         cell.nameLabel.text = preset.name
         cell.descriptionLabel.text = preset.description ?? ""
-        cell.avatarImageView.kf.setImage(with: URL(string: preset.avatarUrl.stringValue()), placeholder: UIImage(named: "default_avatar"))
+        cell.avatarImageView.kf.setImage(with: URL(string: preset.avatarUrl.stringValue()), placeholder: UIImage.ag_named("ic_default_avatar_icon"))
         return cell
     }
     
