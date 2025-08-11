@@ -2,8 +2,6 @@ package io.agora.scene.convoai.ui.widget
 
 import android.content.Context
 import android.graphics.Rect
-import android.os.Handler
-import android.os.Looper
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -13,21 +11,16 @@ import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.agora.scene.common.R
+import io.agora.scene.common.util.GlideImageLoader
 import io.agora.scene.common.util.dp
 import io.agora.scene.convoai.constant.CovAgentManager
-import io.agora.scene.convoai.convoaiApi.InterruptEvent
 import io.agora.scene.convoai.convoaiApi.Transcript
 import io.agora.scene.convoai.convoaiApi.TranscriptStatus
 import io.agora.scene.convoai.convoaiApi.TranscriptType
 import io.agora.scene.convoai.databinding.CovMessageAgentItemBinding
 import io.agora.scene.convoai.databinding.CovMessageListViewBinding
 import io.agora.scene.convoai.databinding.CovMessageMineItemBinding
-import android.graphics.Color
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.animation.ValueAnimator
-import android.view.animation.LinearInterpolator
-
 
 /**
  * CovMessageListView is a custom view for displaying a conversation message list.
@@ -48,55 +41,6 @@ class CovMessageListView @JvmOverloads constructor(
     private var autoScrollToBottom = true
 
     private var isScrollBottom = false
-
-    // Typing animation related properties
-    private var currentTypingTurnId: Long = -1
-    private var currentTypingText: String = ""
-    private var typingProgress: Int = 0
-
-    // Use Handler for typing animation instead of Timer
-    private val typingHandler = Handler(Looper.getMainLooper())
-    private var isTypingAnimationRunning = false
-    private val typingRunnable = object : Runnable {
-        override fun run() {
-            if (typingProgress < currentTypingText.length && currentTypingTurnId != -1L) {
-                // Calculate current display text
-                val displayText = currentTypingText.substring(0, typingProgress + 1)
-
-                // Update message content
-                val updatedMessage = Message(
-                    isMe = false,
-                    turnId = currentTypingTurnId,
-                    content = displayText,
-                    status = TranscriptStatus.IN_PROGRESS,
-                    localTurn = currentTypingTurnId
-                )
-
-                messageAdapter.addOrUpdateMessage(updatedMessage)
-                handleScrollAfterUpdate(false)
-
-                typingProgress++
-
-                typingHandler.postDelayed(this, 100L)
-            } else {
-                // Animation complete, show full text
-                if (currentTypingText.isNotEmpty()) {
-                    val finalMessage = Message(
-                        isMe = false,
-                        turnId = currentTypingTurnId,
-                        content = currentTypingText,
-                        status = TranscriptStatus.END,
-                        localTurn = currentTypingTurnId
-                    )
-                    messageAdapter.addOrUpdateMessage(finalMessage)
-                    handleScrollAfterUpdate(false)
-                }
-
-                // Clean up state
-                isTypingAnimationRunning = false
-            }
-        }
-    }
 
     /**
      * Callback invoked when the user clicks the error icon on an image message.
@@ -195,7 +139,6 @@ class CovMessageListView @JvmOverloads constructor(
      * Clear all messages
      */
     fun clearMessages() {
-        stopTypingAnimation()
         autoScrollToBottom = true
         binding.cvToBottom.visibility = INVISIBLE
         messageAdapter.clearMessages()
@@ -211,8 +154,8 @@ class CovMessageListView @JvmOverloads constructor(
     /**
      * Update agent name
      */
-    fun updateAgentName(name: String) {
-        messageAdapter.updateAgentName(name)
+    fun updateAgentName(name: String, url: String) {
+        messageAdapter.updateAgentName(name, url)
     }
 
     /**
@@ -312,6 +255,7 @@ class CovMessageListView @JvmOverloads constructor(
     inner class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 
         private var agentName: String = ""
+        private var agentUrl: String = ""
         private val messages = mutableListOf<Message>()
 
 
@@ -376,8 +320,18 @@ class CovMessageListView @JvmOverloads constructor(
         inner class AgentMessageViewHolder(private val binding: CovMessageAgentItemBinding) :
             MessageViewHolder(binding.root) {
             override fun bind(message: Message) {
+                binding.tvMessageTitle.text = agentName
+                if (agentUrl.isEmpty()) {
+                    binding.ivMessageIcon.setImageResource(R.drawable.common_default_agent)
+                } else {
+                    GlideImageLoader.load(
+                        binding.ivMessageIcon,
+                        agentUrl,
+                        R.drawable.common_default_agent,
+                        R.drawable.common_default_agent
+                    )
+                }
                 if (message.type == MessageType.TEXT) {
-                    binding.tvMessageTitle.text = agentName
                     binding.tvMessageContent.isVisible = true
                     binding.layoutImageMessage.isVisible = false
 
@@ -533,8 +487,9 @@ class CovMessageListView @JvmOverloads constructor(
         /**
          * Update agent name
          */
-        fun updateAgentName(name: String) {
+        fun updateAgentName(name: String, url: String) {
             agentName = name
+            agentUrl = url
             notifyDataSetChanged()
         }
 
@@ -581,31 +536,16 @@ class CovMessageListView @JvmOverloads constructor(
      * Called when a new transcript is received or updated.
      * Handles both user and agent messages, and triggers scroll logic if needed.
      * @param transcript The incoming transcript data.
-     * @param textSync Whether to show typing animation (default: true)
      */
-    fun onTranscriptUpdated(transcript: Transcript, textSync: Boolean = true) {
+    fun onTranscriptUpdated(transcript: Transcript) {
         // Transcript for other users
         if (transcript.type == TranscriptType.USER && transcript.userId != CovAgentManager.uid.toString()) {
             return
         }
 
-        if (textSync) {
-            if (transcript.type == TranscriptType.USER) {
-                stopTypingAnimation()
-                handleMessage(transcript)
-            } else {
-                startTypingAnimation(transcript)
-            }
-        } else {
-            handleMessage(transcript)
-        }
+        handleMessage(transcript)
     }
 
-    fun onAgentInterrupted(interruptEvent: InterruptEvent) {
-        if (interruptEvent.turnId == currentTypingTurnId) {
-            stopTypingAnimation()
-        }
-    }
 
     /**
      * Add a local image message to the message list.
@@ -634,83 +574,6 @@ class CovMessageListView @JvmOverloads constructor(
 
     fun updateLocalImageMessage(uuid: String, uploadStatus: UploadStatus) {
         messageAdapter.updateLocalImageMessage(uuid, uploadStatus)
-    }
-
-    /**
-     * Start typing animation for agent messages
-     * Renders text character by character at 10 characters per second
-     */
-    private fun startTypingAnimation(transcript: Transcript) {
-        val newText = transcript.text
-
-        // Handle same turn updates
-        if (currentTypingTurnId == transcript.turnId) {
-            // Skip if no text change
-            if (newText == currentTypingText) {
-                return
-            }
-
-            // Skip if new text is a prefix of current (truncated content)
-            if (currentTypingText.startsWith(newText)) {
-                return
-            }
-
-            // Update text and continue from current position
-            currentTypingText = newText
-        } else {
-            // New turn, stop previous animation and restart
-            stopTypingAnimation()
-
-            currentTypingTurnId = transcript.turnId
-            currentTypingText = newText
-            typingProgress = 0
-
-            // Create initial empty message to show typing dots
-            val initialMessage = Message(
-                isMe = false,
-                turnId = transcript.turnId,
-                content = "",
-                status = TranscriptStatus.IN_PROGRESS,
-                localTurn = transcript.turnId
-            )
-            messageAdapter.addOrUpdateMessage(initialMessage)
-            handleScrollAfterUpdate(true)
-        }
-
-        // Start animation if not already running
-        if (!isTypingAnimationRunning) {
-            isTypingAnimationRunning = true
-            // Start text animation
-            typingHandler.post(typingRunnable)
-        }
-    }
-
-    /**
-     * Stop typing animation and clean up resources
-     */
-    private fun stopTypingAnimation() {
-        // Remove pending callbacks
-        typingHandler.removeCallbacks(typingRunnable)
-
-        // Update current message to remove dots if it exists
-        if (currentTypingTurnId != -1L && currentTypingText.isNotEmpty() && typingProgress > 0) {
-            val displayText = currentTypingText.substring(0, typingProgress)
-            val finalMessage = Message(
-                isMe = false,
-                turnId = currentTypingTurnId,
-                content = displayText,
-                status = TranscriptStatus.END,
-                localTurn = currentTypingTurnId
-            )
-            messageAdapter.addOrUpdateMessage(finalMessage)
-            handleScrollAfterUpdate(false)
-        }
-
-        // Clean up state
-        currentTypingTurnId = -1
-        currentTypingText = ""
-        typingProgress = 0
-        isTypingAnimationRunning = false
     }
 
     /**
@@ -749,7 +612,5 @@ class CovMessageListView @JvmOverloads constructor(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        // Stop typing animation to prevent memory leaks
-        stopTypingAnimation()
     }
 }

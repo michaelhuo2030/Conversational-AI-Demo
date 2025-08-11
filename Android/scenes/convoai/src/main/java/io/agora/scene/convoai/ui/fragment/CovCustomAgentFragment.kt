@@ -1,5 +1,6 @@
 package io.agora.scene.convoai.ui.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter
 import android.view.LayoutInflater
@@ -8,22 +9,31 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import io.agora.scene.common.ui.BaseFragment
+import io.agora.scene.common.ui.CommonDialog
+import io.agora.scene.common.ui.LoadingDialog
 import io.agora.scene.common.util.GlideImageLoader
 import io.agora.scene.common.util.toast.ToastUtil
 import io.agora.scene.convoai.CovLogger
 import io.agora.scene.convoai.R
 import io.agora.scene.convoai.api.CovAgentPreset
+import io.agora.scene.convoai.constant.CovAgentManager
 import io.agora.scene.convoai.databinding.CovFragmentCustomAgentBinding
 import io.agora.scene.convoai.databinding.CovItemOfficialAgentBinding
+import io.agora.scene.convoai.ui.CovLivingActivity
+import io.agora.scene.convoai.ui.vm.CovListViewModel
 
 class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
 
-    private lateinit var adapter: CustomAgentAdapter
+    companion object {
+        private const val TAG = "CovCustomAgentFragment"
+    }
 
-    // Mock data for demonstration - replace with actual data source
-    private val mockCustomPresets = listOf<CovAgentPreset>()
+    private lateinit var adapter: CustomAgentAdapter
+    private val viewModel: CovListViewModel by activityViewModels()
+    private var loadingDialog: LoadingDialog? = null
 
     // Keyboard handling
     private var isKeyboardVisible = false
@@ -40,7 +50,7 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         setupAdapter()
-        loadCustomPresets()
+        observeViewModel()
         setupKeyboardListener()
     }
 
@@ -48,9 +58,46 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
         mBinding?.apply {
             // Setup button click listener
             btnGetAgent.setOnClickListener {
-                onGetAgentClicked()
+                val agentName = etAgentName.text.toString()
+                if (agentName.isEmpty()) {
+                    ToastUtil.show(R.string.cov_custom_agent_input_tip)
+                } else {
+                    viewModel.loadCustomAgent(
+                        customAgentName = agentName,
+                        isUpdate = false,
+                        onLoading = { show ->
+                            if (show) {
+                                showLoadingDialog()
+                            } else {
+                                hideLoadingDialog()
+                            }
+                        },
+                        completion = { isSuccess, preset ->
+                            if (isSuccess && preset != null) {
+                                // If original list was empty, show content
+                                if (adapter.itemCount == 0) {
+                                    showContent()
+                                }
+                                adapter.updateDataToTop(preset)
+                            }
+                            // Clear input and hide keyboard
+                            clearInputAndHideKeyboard()
+                        }
+                    )
+                }
             }
-
+            
+            // Setup SwipeRefreshLayout
+            swipeRefreshLayout.setOnRefreshListener {
+                CovLogger.d(TAG, "SwipeRefreshLayout triggered")
+                viewModel.loadCustomAgents(showLoading = false)
+            }
+            
+            // Set refresh colors
+            swipeRefreshLayout.setColorSchemeResources(
+                io.agora.scene.common.R.color.ai_brand_main6
+            )
+            
             // Setup EditText for agent ID input
             setupAgentIdInput()
         }
@@ -69,10 +116,10 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
             }
 
             // Apply input filters: digits only + max length 8
-            etAgentId.filters = arrayOf(digitFilter, InputFilter.LengthFilter(8))
+            etAgentName.filters = arrayOf(digitFilter, InputFilter.LengthFilter(8))
 
             // Add text watcher to update character count
-            etAgentId.doAfterTextChanged {
+            etAgentName.doAfterTextChanged {
                 val currentLength = it?.length ?: 0
                 val remainingLength = 8 - currentLength
                 tvCount.text = remainingLength.toString()
@@ -84,72 +131,132 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
     }
 
     private fun setupAdapter() {
-        adapter = CustomAgentAdapter { preset ->
-            onPresetSelected(preset)
-        }
+        adapter = CustomAgentAdapter(
+            onItemClick = { preset ->
+                onPresetSelected(preset)
+            },
+            onItemLongClick = { preset ->
+                onPresetLongClicked(preset)
+            }
+        )
         mBinding?.apply {
             rvCustomAgents.adapter = adapter
         }
     }
 
-    private fun loadCustomPresets() {
-        showLoading()
-
-        // For now, using mock data
-        // TODO: Replace with actual custom presets API call
-        if (mockCustomPresets.isNotEmpty()) {
-            adapter.updateData(mockCustomPresets)
-            showContent()
-        } else {
-            showEmptyState()
+    private fun observeViewModel() {
+        // Observe data changes
+        viewModel.customAgents.observe(viewLifecycleOwner) { presets ->
+            adapter.updateData(presets)
         }
-    }
 
-    private fun showLoading() {
-        mBinding?.apply {
-            pbLoading.visibility = View.VISIBLE
-            rvCustomAgents.visibility = View.GONE
-            llEmptyState.visibility = View.GONE
-            // Keep bottom action always visible
-            llBottomAction.visibility = View.VISIBLE
+        // Observe state changes
+        viewModel.customState.observe(viewLifecycleOwner) { state ->
+            CovLogger.d(TAG, "State changed: $state")
+            when (state) {
+                is CovListViewModel.AgentListState.Loading -> {
+                    // Loading state is handled by SwipeRefreshLayout, no need for additional loading UI
+                }
+
+                is CovListViewModel.AgentListState.Success -> {
+                    showContent()
+                }
+
+                is CovListViewModel.AgentListState.Error -> {
+                    if (adapter.itemCount == 0) {
+                        showEmptyState()
+                    }
+                }
+
+                is CovListViewModel.AgentListState.Empty -> {
+                    if (adapter.itemCount == 0) {
+                        showEmptyState()
+                    }
+                }
+            }
         }
     }
 
     private fun showContent() {
         mBinding?.apply {
-            pbLoading.visibility = View.GONE
             rvCustomAgents.visibility = View.VISIBLE
             llEmptyState.visibility = View.GONE
-            // Bottom action is always visible
             llBottomAction.visibility = View.VISIBLE
+            swipeRefreshLayout.isEnabled = true
+            swipeRefreshLayout.isRefreshing = false
         }
     }
 
     private fun showEmptyState() {
         mBinding?.apply {
-            pbLoading.visibility = View.GONE
             rvCustomAgents.visibility = View.GONE
             llEmptyState.visibility = View.VISIBLE
-            // Bottom action is always visible
             llBottomAction.visibility = View.VISIBLE
+            swipeRefreshLayout.isEnabled = false
+            swipeRefreshLayout.isRefreshing = false
         }
     }
 
     private fun onPresetSelected(preset: CovAgentPreset) {
-        CovLogger.d("CustomAgentFragment", "Selected custom preset: ${preset.name}")
-        // TODO: Handle custom preset selection
-        // You can add navigation logic here or communicate with parent activity
+        CovLogger.d(TAG, "Selected custom preset: ${preset.name}")
+
+        viewModel.loadCustomAgent(
+            customAgentName = preset.name,
+            isUpdate = true,
+            onLoading = { show ->
+                if (show) {
+                    showLoadingDialog()
+                } else {
+                    hideLoadingDialog()
+                }
+            },
+            completion = { isSuccess, selectedPreset ->
+                if (isSuccess) {
+                    if (selectedPreset != null) {
+                        // Move selected preset to first position in UI
+                        adapter.updateDataToTop(selectedPreset)
+                        CovAgentManager.setPreset(selectedPreset)
+                        context?.let {
+                            it.startActivity(Intent(it, CovLivingActivity::class.java))
+                        }
+                    } else {
+                        // Request successful but agent not found
+                        adapter.removeAgentByName(preset.name)
+                        // If list becomes empty after removal, show empty state
+                        if (adapter.itemCount == 0) {
+                            showEmptyState()
+                        }
+                    }
+                }
+
+            }
+        )
     }
 
-    private fun onGetAgentClicked() {
-        CovLogger.d("CustomAgentFragment", "Get agent button clicked")
-        mBinding?.apply {
-            if (etAgentId.text.toString().isEmpty()) {
-                ToastUtil.show(R.string.cov_custom_agent_input_tip)
-            } else {
-                ToastUtil.show("Get agent ID: ${etAgentId.text}")
+    private fun onPresetLongClicked(preset: CovAgentPreset) {
+        CovLogger.d(TAG, "Long clicked custom preset: ${preset.name}")
+        // Show confirmation dialog for removal
+        showRemoveConfirmationDialog(preset)
+    }
+
+    private fun showRemoveConfirmationDialog(preset: CovAgentPreset) {
+        CommonDialog.Builder()
+            .setTitle(getString(R.string.cov_remove_agent_title))
+            .setContent(getString(R.string.cov_remove_agent_content, preset.display_name))
+            .setPositiveButton(getString(R.string.cov_remove_agent_confirm)) {
+                viewModel.removeCustomAgentName(preset.name)
+                // Remove from current UI list
+                adapter.removeAgentByName(preset.name)
+                // If list becomes empty after removal, show empty state
+                if (adapter.itemCount == 0) {
+                    showEmptyState()
+                }
             }
-        }
+            .setNegativeButton(getString(R.string.cov_remove_agent_cancel)) {}
+            .hideTopImage()
+            .setCancelable(true)
+            .build()
+            .show(childFragmentManager, "remove_agent_dialog")
     }
 
     private fun setupKeyboardListener() {
@@ -190,7 +297,44 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
 
     override fun onDestroyView() {
         view?.viewTreeObserver?.removeOnGlobalLayoutListener(globalLayoutListener)
+        hideLoadingDialog()
         super.onDestroyView()
+    }
+
+    private fun showLoadingDialog() {
+        context?.let { context ->
+            if (loadingDialog?.isShowing == true) {
+                loadingDialog?.dismiss()
+            }
+            loadingDialog = LoadingDialog(context).apply {
+                show()
+            }
+        }
+    }
+
+    private fun hideLoadingDialog() {
+        loadingDialog?.dismiss()
+        loadingDialog = null
+    }
+
+    /**
+     * Clear input field and hide keyboard
+     */
+    private fun clearInputAndHideKeyboard() {
+        mBinding?.apply {
+            // Clear input text
+            etAgentName.setText("")
+            
+            // Clear focus and hide keyboard
+            etAgentName.clearFocus()
+            
+            // Hide keyboard
+            val imm = context?.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            imm?.hideSoftInputFromWindow(etAgentName.windowToken, 0)
+            
+            // Update character count
+            tvCount.text = "8"
+        }
     }
 
     fun setBottomActionVisibility(visible: Boolean) {
@@ -210,7 +354,8 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
     }
 
     inner class CustomAgentAdapter(
-        private val onItemClick: (CovAgentPreset) -> Unit
+        private val onItemClick: (CovAgentPreset) -> Unit,
+        private val onItemLongClick: (CovAgentPreset) -> Unit
     ) : RecyclerView.Adapter<CustomAgentAdapter.CustomAgentViewHolder>() {
 
         private var presets: List<CovAgentPreset> = emptyList()
@@ -218,6 +363,43 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
         fun updateData(newPresets: List<CovAgentPreset>) {
             presets = newPresets
             notifyDataSetChanged()
+        }
+
+        fun updateDataToTop(selectedPreset: CovAgentPreset) {
+            val selectedName = selectedPreset.name
+
+            // Find existing preset with same name
+            val existingIndex = presets.indexOfFirst { it.name == selectedName }
+
+            if (existingIndex == -1) {
+                // New item added to top
+                presets = listOf(selectedPreset) + presets
+                notifyItemInserted(0)
+            } else if (existingIndex == 0) {
+                // Already at top, just update
+                presets = presets.toMutableList().apply {
+                    set(0, selectedPreset)
+                }
+                notifyItemChanged(0)
+            } else {
+                // Move to top
+                val newList = presets.toMutableList()
+                newList.removeAt(existingIndex)
+                newList.add(0, selectedPreset)
+                presets = newList
+                notifyItemMoved(existingIndex, 0)
+            }
+        }
+
+        fun removeAgentByName(agentName: String) {
+            val indexToRemove = presets.indexOfFirst { it.name == agentName }
+            if (indexToRemove != -1) {
+                val newList = presets.toMutableList()
+                newList.removeAt(indexToRemove)
+                presets = newList
+                notifyItemRemoved(indexToRemove)
+                CovLogger.d(TAG, "Removed agent from adapter: $agentName")
+            }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomAgentViewHolder {
@@ -242,11 +424,11 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
             fun bind(preset: CovAgentPreset) {
                 binding.apply {
                     tvTitle.text = preset.display_name
-                    tvDescription.text = preset.display_name
+                    tvDescription.text = preset.description
                     // For now, using default avatar
                     GlideImageLoader.load(
                         ivAvatar,
-                        "xxx",
+                        preset.avatar_url,
                         io.agora.scene.common.R.drawable.common_default_agent,
                         io.agora.scene.common.R.drawable.common_default_agent
                     )
@@ -255,6 +437,14 @@ class CovCustomAgentFragment : BaseFragment<CovFragmentCustomAgentBinding>() {
                         if (position != RecyclerView.NO_POSITION) {
                             onItemClick(presets[position])
                         }
+                    }
+
+                    rootView.setOnLongClickListener {
+                        val position = adapterPosition
+                        if (position != RecyclerView.NO_POSITION) {
+                            onItemLongClick(presets[position])
+                        }
+                        true // Return true to indicate the long click was handled
                     }
                 }
             }

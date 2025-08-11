@@ -148,7 +148,7 @@ class CovAgentSettingsFragment : BaseFragment<CovAgentSettingsFragmentBinding>()
     // The non-English overseas version must disable AiVad.
     private fun setAiVadBySelectLanguage() {
         mBinding?.apply {
-            if (CovAgentManager.getPreset()?.isIndependent() == true) {
+            if (CovAgentManager.getPreset()?.isIndependent == true) {
                 CovAgentManager.enableAiVad = false
                 cbAiVad.isChecked = false
                 cbAiVad.isEnabled = false
@@ -330,7 +330,7 @@ class CovAgentSettingsFragment : BaseFragment<CovAgentSettingsFragmentBinding>()
             vOptionsMask.visibility = View.VISIBLE
 
             // Calculate popup position using getDistanceFromScreenEdges
-            val itemDistances = clRenderMode.getDistanceFromScreenEdges()
+            val itemDistances = llDevice.getDistanceFromScreenEdges()
             val maskDistances = vOptionsMask.getDistanceFromScreenEdges()
             val targetY = itemDistances.top - maskDistances.top + 30.dp
             cvOptions.x = vOptionsMask.width - 250.dp
@@ -338,9 +338,9 @@ class CovAgentSettingsFragment : BaseFragment<CovAgentSettingsFragmentBinding>()
 
             // Calculate height with constraints
             val params = cvOptions.layoutParams
-            val itemHeight = 56.dp.toInt()
+            val itemHeight = 72.dp.toInt()
             // Ensure maxHeight is at least one item height
-            val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight)
+            val finalMaxHeight = itemDistances.bottom.coerceAtLeast(itemHeight) + 40.dp.toInt()
             val finalHeight = (itemHeight * transcriptRenders.size).coerceIn(itemHeight, finalMaxHeight)
 
             params.height = finalHeight

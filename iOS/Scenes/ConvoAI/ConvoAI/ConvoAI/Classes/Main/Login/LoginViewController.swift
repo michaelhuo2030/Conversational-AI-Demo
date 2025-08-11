@@ -67,7 +67,7 @@ class LoginViewController: UIViewController {
     
     private lazy var registerButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("海外的按钮2", for: .normal)
+        button.setTitle("GlobalButton2", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 18)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 20

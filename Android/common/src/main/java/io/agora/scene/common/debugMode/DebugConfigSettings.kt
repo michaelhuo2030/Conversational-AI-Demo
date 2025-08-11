@@ -1,7 +1,6 @@
 package io.agora.scene.common.debugMode
 
 import android.content.Context
-import androidx.annotation.IntDef
 import com.google.gson.Gson
 import io.agora.scene.common.AgentApp
 import io.agora.scene.common.constant.EnvConfig
@@ -123,6 +122,8 @@ object DebugConfigSettings {
             counts = 0
             enableDebugMode(true)
             DebugButton.getInstance(AgentApp.instance()).show()
+            // Immediately notify DebugManager to activate debug for current activity
+            DebugManager.onDebugModeEnabled()
         }
     }
 }

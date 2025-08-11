@@ -4,6 +4,7 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.viewModels
@@ -14,7 +15,8 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import io.agora.scene.common.debugMode.DebugConfigSettings
-import io.agora.scene.common.ui.BaseActivity
+import io.agora.scene.common.debugMode.DebugTabDialog
+import io.agora.scene.common.debugMode.DebugSupportActivity
 import io.agora.scene.common.ui.CommonDialog
 import io.agora.scene.common.ui.vm.LoginState
 import io.agora.scene.common.ui.vm.UserViewModel
@@ -26,11 +28,12 @@ import io.agora.scene.convoai.rtm.CovRtmManager
 import io.agora.scene.convoai.ui.dialog.CovAppInfoDialog
 import io.agora.scene.convoai.ui.fragment.CovOfficialAgentFragment
 import io.agora.scene.convoai.ui.fragment.CovCustomAgentFragment
+import io.agora.scene.convoai.ui.vm.CovListViewModel
 import kotlinx.coroutines.launch
 import kotlin.getValue
 import kotlin.math.abs
 
-class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
+class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>() {
 
     private val TAG = "CovAgentListActivity"
 
@@ -40,8 +43,8 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
 
 
     // ViewModel instances
-    private val viewModel: CovLivingViewModel by viewModels()
     private val userViewModel: UserViewModel by viewModels()
+    private val listViewModel: CovListViewModel by viewModels()
     
     // State tracking to avoid frequent calls
     private var isCollapsed: Boolean = false
@@ -63,6 +66,7 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
 
     override fun initView() {
         mBinding?.apply {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             btnInfo.setOnClickListener {
                 showInfoDialog()
             }
@@ -104,6 +108,11 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
         setupViewPager()
         setupTabLayout()
         hideLoadingState()
+        
+        // Load agent data after fragments are created
+        // This ensures fragments can observe the data changes
+        listViewModel.loadOfficialAgents()
+        listViewModel.loadCustomAgents() // Load from local storage
     }
     
     private fun showLoadingState() {
@@ -511,5 +520,28 @@ class CovAgentListActivity : BaseActivity<CovActivityAgentListBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         // Clean up resources if needed
+    }
+
+    // Override debug callback to provide custom behavior for login screen
+    override fun createDefaultDebugCallback(): DebugTabDialog.DebugCallback {
+        return object : DebugTabDialog.DebugCallback {
+
+            override fun onEnvConfigChange() {
+                handleEnvironmentChange()
+            }
+        }
+    }
+    
+    override fun handleEnvironmentChange() {
+        // Clean up current session and navigate to login
+        userViewModel.logout()
+        navigateToLogin()
+    }
+    
+    private fun navigateToLogin() {
+        val intent = Intent(this, CovLoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }
