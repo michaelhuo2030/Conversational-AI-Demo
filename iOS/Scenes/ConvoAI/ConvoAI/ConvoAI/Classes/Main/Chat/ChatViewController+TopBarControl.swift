@@ -11,7 +11,7 @@ import SVProgressHUD
 
 extension ChatViewController {
     @objc internal func onClickInformationButton() {
-        AgentInformationViewController.show(in: self)
+        self.navigationController?.popToRootViewController(animated: true)
     }
     
     @objc internal func onClickWifiInfoButton() {
@@ -66,27 +66,5 @@ extension ChatViewController {
         sender.isSelected = !sender.isSelected
         
         showTranscription(state: sender.isSelected)
-    }
-    
-    @objc internal func onClickLogo(_ sender: UIButton) {
-        let currentTime = Date()
-        if let lastTime = lastClickTime, currentTime.timeIntervalSince(lastTime) > 1.0 {
-            clickCount = 0
-        }
-        lastClickTime = currentTime
-        clickCount += 1
-        if clickCount >= 5 {
-            onThresholdReached()
-            clickCount = 0
-        }
-    }
-    
-    internal func onThresholdReached() {
-        if !DeveloperConfig.shared.isDeveloperMode {
-            devModeButton.isHidden = false
-            sendMessageButton.isHidden = false
-            DeveloperConfig.shared.isDeveloperMode = true
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-        }
     }
 }

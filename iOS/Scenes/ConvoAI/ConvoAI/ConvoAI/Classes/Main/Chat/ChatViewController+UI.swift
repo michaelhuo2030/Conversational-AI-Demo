@@ -27,7 +27,7 @@ class ChatWindowState {
 extension ChatViewController {
     internal func setupViews() {
         view.backgroundColor = .black
-        [animateContentView, fullSizeContainerView, upperBackgroundView, lowerBackgroundView, messageMaskView, messageView, smallSizeContainerView, agentStateView, topBar, bottomBar, volumeAnimateView, annotationView, devModeButton, sendMessageButton].forEach { view.addSubview($0) }
+        [animateContentView, fullSizeContainerView, upperBackgroundView, lowerBackgroundView, messageMaskView, messageView, smallSizeContainerView, agentStateView, topBar, bottomBar, volumeAnimateView, annotationView, sendMessageButton].forEach { view.addSubview($0) }
         [miniView].forEach { smallSizeContainerView.addSubview($0) }
         [remoteAvatarView].forEach { miniView.addSubview($0) }
         [localVideoView].forEach { fullSizeContainerView.addSubview($0) }
@@ -98,12 +98,6 @@ extension ChatViewController {
             make.bottom.equalTo(bottomBar.snp.top).offset(-94)
             make.left.right.equalTo(0)
             make.height.equalTo(44)
-        }
-        
-        devModeButton.snp.makeConstraints { make in
-            make.centerY.equalToSuperview()
-            make.right.equalTo(-20)
-            make.size.equalTo(CGSize(width: 44, height: 44))
         }
         
         upperBackgroundView.snp.makeConstraints { make in

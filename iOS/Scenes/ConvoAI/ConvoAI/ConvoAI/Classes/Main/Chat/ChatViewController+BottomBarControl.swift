@@ -20,6 +20,27 @@ extension ChatViewController: AgentControlToolbarDelegate {
         updateWindowContent()
     }
     
+    func clickTheStartButton() async {
+        addLog("[Call] clickTheStartButton()")
+        await MainActor.run {
+            let needsShowMicrophonePermissionAlert = PermissionManager.getMicrophonePermission() == .denied
+            if needsShowMicrophonePermissionAlert {
+                self.bottomBar.setMircophoneButtonSelectState(state: true)
+            }
+        }
+        
+        PermissionManager.checkMicrophonePermission { res in
+            Task {
+                await self.prepareToStartAgent()
+                await MainActor.run {
+                    if !res {
+                        self.bottomBar.setMircophoneButtonSelectState(state: true)
+                    }
+                }
+            }
+        }
+    }
+    
     func mute(selectedState: Bool) -> Bool{
         return clickMuteButton(state: selectedState)
     }
@@ -108,7 +129,6 @@ extension ChatViewController {
                 if !rtmManager.isLogin {
                     try await loginRTM()
                 }
-                try await fetchPresetsIfNeeded()
                 try await fetchTokenIfNeeded()
                 await MainActor.run {
                     if bottomBar.style == .startButton { return }

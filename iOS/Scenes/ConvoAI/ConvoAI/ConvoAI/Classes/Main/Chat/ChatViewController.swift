@@ -23,10 +23,7 @@ public class ChatViewController: UIViewController {
     internal var isDenoise = true
     internal var windowState = ChatWindowState()
     
-    internal lazy var enableMetric: Bool = {
-        let res = DeveloperConfig.shared.metrics
-        return res
-    }()
+    internal var enableMetric: Bool = false
     
     internal lazy var fullSizeContainerView: UIView = {
         let view = UIView()
@@ -74,7 +71,7 @@ public class ChatViewController: UIViewController {
     internal lazy var timerCoordinator: AgentTimerCoordinator = {
         let coordinator = AgentTimerCoordinator()
         coordinator.delegate = self
-        coordinator.setDurationLimit(limited: !DeveloperConfig.shared.getSessionFree())
+        coordinator.setDurationLimit(limited: DeveloperConfig.shared.getSessionLimit())
         return coordinator
     }()
     
@@ -89,10 +86,7 @@ public class ChatViewController: UIViewController {
         return manager
     }()
     
-    internal lazy var agentManager: AgentManager = {
-        let manager = AgentManager(host: AppContext.shared.baseServerUrl)
-        return manager
-    }()
+    internal lazy var agentManager = AgentManager()
     
     internal lazy var topBar: AgentSettingBar = {
         let view = AgentSettingBar()
@@ -102,7 +96,6 @@ public class ChatViewController: UIViewController {
         view.addButton.addTarget(self, action: #selector(onClickAddButton), for: .touchUpInside)
         view.cameraButton.addTarget(self, action: #selector(clickCameraButton), for: .touchUpInside)
         view.transcriptionButton.addTarget(self, action: #selector(onClickTranscriptionButton(_:)), for: .touchUpInside)
-        view.centerTitleButton.addTarget(self, action: #selector(onClickLogo), for: .touchUpInside)
         return view
     }()
 
@@ -170,13 +163,6 @@ public class ChatViewController: UIViewController {
         return view
     }()
     
-    internal lazy var devModeButton: UIButton = {
-        let button = UIButton(type: .custom)
-        button.setImage(UIImage.ag_named("ic_setting_debug"), for: .normal)
-        button.addTarget(self, action: #selector(onClickDevMode), for: .touchUpInside)
-        return button
-    }()
-    
     internal var traceId: String {
         get {
             return "\(UUID().uuidString.prefix(8))"
@@ -197,13 +183,11 @@ public class ChatViewController: UIViewController {
         let renderCtrl = ConversationSubtitleController2()
         return renderCtrl
     }()
-
-    var clickCount = 0
-    var lastClickTime: Date?
     
     deinit {
         print("liveing view controller deinit")
         deregisterDelegate()
+        DeveloperConfig.shared.remove(delegate: self)
     }
     
     public override func viewWillAppear(_ animated: Bool) {
@@ -225,6 +209,7 @@ public class ChatViewController: UIViewController {
         } else {
             stopShowAvatar()
         }
+        configDevMode()
     }
     
     public override func viewDidLayoutSubviews() {
@@ -254,22 +239,6 @@ public class ChatViewController: UIViewController {
             if let error = error {
                 self.addLog("[PreloadData error - userInfo]: \(error)")
             }
-            
-            Task {
-                do {
-                    try await self.fetchIotPresetsIfNeeded()
-                } catch {
-                    self.addLog("[PreloadData error - iot presets]: \(error)")
-                }
-            }
-            
-            Task {
-                do {
-                    try await self.fetchPresetsIfNeeded()
-                } catch {
-                    self.addLog("[PreloadData error - presets]: \(error)")
-                }
-            }
                 
             Task {
                 do {
@@ -285,7 +254,6 @@ public class ChatViewController: UIViewController {
         let rtcEngine = rtcManager.getRtcEntine()
         animateView.setupMediaPlayer(rtcEngine)
         animateView.updateAgentState(.idle)
-        devModeButton.isHidden = !DeveloperConfig.shared.isDeveloperMode
         sendMessageButton.isHidden = !DeveloperConfig.shared.isDeveloperMode
 
         guard let rtmEngine = rtmManager.getRtmEngine() else {
