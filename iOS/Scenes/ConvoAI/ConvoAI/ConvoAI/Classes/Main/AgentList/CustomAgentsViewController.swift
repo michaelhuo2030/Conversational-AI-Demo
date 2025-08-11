@@ -7,6 +7,7 @@
 
 import UIKit
 import Common
+import CryptoKit
 
 fileprivate let kCustomPresetSave = "io.agora.customPresets"
 class CustomAgentsViewController: UIViewController {
@@ -75,14 +76,24 @@ class CustomAgentsViewController: UIViewController {
         }
     }
     
+    private func getCacheKey() -> String {
+        let rawKey = AppContext.shared.appId + AppContext.shared.baseServerUrl
+        let inputData = Data(rawKey.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        let hashString = hashedData.compactMap {
+            return String(format: "%02x", $0)
+        }.joined()
+        return hashString
+    }
+    
     private func getSavedPresetIds() -> [String] {
-        let key = (AppContext.shared.appId + AppContext.shared.baseServerUrl).hashValue.description
+        let key = getCacheKey()
         let saved = UserDefaults.standard.dictionary(forKey: kCustomPresetSave) as? [String: [String]]
         return saved?[key] ?? []
     }
     
     private func save(presetId: String) {
-        let key = (AppContext.shared.appId + AppContext.shared.baseServerUrl).hashValue.description
+        let key = getCacheKey()
         var saved = UserDefaults.standard.dictionary(forKey: kCustomPresetSave) as? [String: [String]] ?? [:]
         var ids = saved[key] ?? []
         if !ids.contains(presetId) {
@@ -93,7 +104,7 @@ class CustomAgentsViewController: UIViewController {
     }
     
     private func remove(presetId: String) {
-        let key = (AppContext.shared.appId + AppContext.shared.baseServerUrl).hashValue.description
+        let key = getCacheKey()
         var saved = UserDefaults.standard.dictionary(forKey: kCustomPresetSave) as? [String: [String]] ?? [:]
         var ids = saved[key] ?? []
         ids.removeAll { $0 == presetId }
@@ -167,7 +178,7 @@ extension CustomAgentsViewController: UITableViewDataSource, UITableViewDelegate
         let preset = presets[indexPath.row]
         cell.nameLabel.text = preset.name
         cell.descriptionLabel.text = preset.description ?? ""
-        cell.avatarImageView.kf.setImage(with: URL(string: preset.avatarUrl ?? ""), placeholder: UIImage(named: "default_avatar"))
+        cell.avatarImageView.kf.setImage(with: URL(string: preset.avatarUrl ?? ""), placeholder: UIImage.ag_named("ic_head_ai_sister"))
         return cell
     }
     
