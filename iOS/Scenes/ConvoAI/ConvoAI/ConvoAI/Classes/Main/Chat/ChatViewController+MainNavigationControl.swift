@@ -40,30 +40,8 @@ extension ChatViewController {
         showTranscription(state: sender.isSelected)
     }
     
-    @objc internal func onCharacterButton() {
-        let currentTime = Date()
-        if let lastTime = lastClickTime, currentTime.timeIntervalSince(lastTime) > 1.0 {
-            clickCount = 0
-        }
-        lastClickTime = currentTime
-        clickCount += 1
-        if clickCount >= 5 {
-            onThresholdReached()
-            clickCount = 0
-        }
-    }
-    
     @objc internal func onCloseButton() {
         self.navigationController?.popViewController(animated: true)
-    }
-    
-    internal func onThresholdReached() {
-        if !DeveloperConfig.shared.isDeveloperMode {
-            devModeButton.isHidden = false
-            sendMessageButton.isHidden = false
-            DeveloperConfig.shared.isDeveloperMode = true
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-        }
     }
     
     internal func updateCharacterInformation() {
