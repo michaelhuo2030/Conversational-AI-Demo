@@ -46,10 +46,10 @@ extension ChatViewController {
     
     internal func updateCharacterInformation() {
         if let avatar = AppContext.preferenceManager()?.preference.avatar {
-            navivationBar.updateCharacterInformation(icon: avatar.thumbImageUrl, name: avatar.avatarName)
+            navivationBar.updateCharacterInformation(icon: avatar.thumbImageUrl ?? "", name: avatar.avatarName ?? "")
         } else {
             if let preset = AppContext.preferenceManager()?.preference.preset {
-                navivationBar.updateCharacterInformation(icon: preset.displayName, name: preset.displayName)
+                navivationBar.updateCharacterInformation(icon: preset.displayName ?? "", name: preset.displayName ?? "")
             }
         }
     }
