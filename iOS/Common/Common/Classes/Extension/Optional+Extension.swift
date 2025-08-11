@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Optional where Wrapped == String {
+public extension Optional where Wrapped == String {
     func stringValue() -> String {
         if let res = self {
             return res
@@ -17,7 +17,7 @@ extension Optional where Wrapped == String {
     }
 }
 
-extension Optional where Wrapped == Bool {
+public extension Optional where Wrapped == Bool {
     func boolValue() -> Bool {
         if let res = self {
             return res
@@ -27,7 +27,7 @@ extension Optional where Wrapped == Bool {
     }
 }
 
-extension Optional where Wrapped == Int {
+public extension Optional where Wrapped == Int {
     func intValue() -> Int {
         if let res = self {
             return res
