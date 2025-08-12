@@ -67,6 +67,10 @@ AG_APP_CERTIFICATE=<声网 App Certificate>
 BASIC_AUTH_KEY=<声网 RESTful API KEY>
 BASIC_AUTH_SECRET=<声网 RESTful API SECRET>
 
+#----------- Open Source --------------
+# 开发者自行编译，需要修改为 true, 填写 LLM,TTS,AVATAR
+IS_OPEN_SOURCE=true
+
 #----------- LLM -----------
 LLM_URL=<LLM 厂商的 API BASE URL>
 LLM_API_KEY=<LLM 厂商的 API KEY>(可选)
@@ -78,7 +82,6 @@ TTS_VENDOR=<TTS 厂商>
 TTS_PARAMS=<TTS 参数>
 
 #----------- AVATAR -----------
-AVATAR_ENABLE=<是否开启 AVATAR>
 AVATAR_VENDOR=<AVATAR 厂商>
 AVATAR_PARAMS=<AVATAR 参数>
 ```
