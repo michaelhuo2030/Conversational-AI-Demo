@@ -11,7 +11,7 @@ import Kingfisher
 import CryptoKit
 
 fileprivate let kCustomPresetSave = "io.agora.customPresets"
-class CustomAgentsViewController: AgentTableViewController {
+class CustomAgentViewController: AgentListViewController {
     private let emptyStateView = CustomAgentEmptyView()
     private let inputContainerView = BottomInputView()
     
@@ -139,7 +139,7 @@ class CustomAgentsViewController: AgentTableViewController {
     }
 }
 
-extension CustomAgentsViewController {
+extension CustomAgentViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let count = presets.count
         emptyStateView.alpha = count > 0 ? 0 : 1
