@@ -17,10 +17,9 @@ import AgoraRtmKit
     case interrupt = 0
     /// Medium priority - The agent will queue this message and process it
     /// after the current interaction completes. Use for follow-up questions.
-    case append = 1
-    /// Low priority - If the agent is currently interacting, this message
-    /// will be discarded. Only processed when agent is idle. Use for optional content.
-    case ignore = 2
+    case queue = 1
+    /// Critical priority - Highest priority message for critical situations
+    case critical = 2
     
     /// Convert priority to string value
     /// - Returns: String representation of the priority
@@ -28,10 +27,10 @@ import AgoraRtmKit
         switch self {
         case .interrupt:
             return "INTERRUPT"
-        case .append:
-            return "APPEND"
-        case .ignore:
-            return "IGNORE"
+        case .queue:
+            return "QUEUE"
+        case .critical:
+            return "CRITICAL"
         }
     }
     
@@ -41,12 +40,44 @@ import AgoraRtmKit
         switch stringValue.uppercased() {
         case "INTERRUPT":
             self = .interrupt
-        case "APPEND":
-            self = .append
-        case "IGNORE":
-            self = .ignore
+        case "QUEUE":
+            self = .queue
+        case "CRITICAL":
+            self = .critical
         default:
             return nil
+        }
+    }
+}
+
+/// Audio encoding format enumeration
+/// Specifies different audio encoding formats supported by the voice messaging system
+@objc public enum AudioEncoding: Int {
+    /// PCM (Pulse Code Modulation) - Uncompressed audio format
+    case pcm = 0
+    /// AAC (Advanced Audio Coding) - Compressed audio format
+    case aac = 1
+    /// MP3 (MPEG Audio Layer III) - Compressed audio format
+    case mp3 = 2
+    /// WAV (Waveform Audio File Format) - Uncompressed audio format
+    case wav = 3
+    /// Unknown audio encoding format
+    case unknown = 4
+    
+    /// Convert audio encoding to string value
+    /// - Returns: String representation of the audio encoding
+    public var stringValue: String {
+        switch self {
+        case .pcm:
+            return "pcm"
+        case .aac:
+            return "aac"
+        case .mp3:
+            return "mp3"
+        case .wav:
+            return "wav"
+        default:
+            return "unknown"
         }
     }
 }
@@ -58,8 +89,10 @@ import AgoraRtmKit
     case text = 0
     /// Image message type
     case image = 1
+    /// Voice message type
+    case voice = 2
     /// Unknown message type
-    case unknown = 2
+    case unknown = 3
 }
 
 /// Chat message protocol
@@ -83,6 +116,7 @@ import AgoraRtmKit
 /// @property priority Message processing priority (default: INTERRUPT, means the message will interrupt the current conversation)
 /// @property responseInterruptable Whether this message's response can be interrupted by higher priority messages (default: true)
 /// @property text Text content of the message (required)
+/// @property isInterruptible Whether this message can be interrupted during processing
 ///
 @objc public class TextMessage: NSObject, ChatMessage {
     /// Message type
@@ -93,16 +127,20 @@ import AgoraRtmKit
     @objc public let responseInterruptable: Bool
     /// Text content of the message (optional)
     @objc public let text: String?
+    /// Whether this message can be interrupted during processing
+    @objc public let isInterruptible: Bool
     
     /// Initialize a chat message
     /// - Parameters:
     ///   - priority: Message processing priority
     ///   - interruptable: Whether this message can be interrupted
     ///   - text: Text content
-    @objc public init(priority: Priority = .interrupt, interruptable: Bool = true, text: String? = "") {
+    ///   - isInterruptible: Whether this message can be interrupted during processing
+    @objc public init(priority: Priority = .interrupt, interruptable: Bool = true, text: String? = "", isInterruptible: Bool = true) {
         self.priority = priority
         self.responseInterruptable = interruptable
         self.text = text
+        self.isInterruptible = isInterruptible
         super.init()
     }
 }
@@ -111,7 +149,6 @@ import AgoraRtmKit
 ///
 /// Supports two image formats:
 /// - url: HTTP/HTTPS URL pointing to an image file (recommended for large images)
-/// - base64: Base64 encoded image data (use with caution for large images)
 ///
 /// IMPORTANT: When using base64, ensure the total message size (including JSON structure)
 /// is less than 32KB as per RTM Message Channel limitations. For larger images, use url instead.
@@ -120,11 +157,9 @@ import AgoraRtmKit
 ///
 /// Usage examples:
 /// - URL image: ImageMessage(uuid = "img_123", url = "https://example.com/image.jpg")
-/// - Base64 image: ImageMessage(uuid = "img_456", base64 = "data:image/jpeg;base64,...")
 ///
 /// @property uuid Unique identifier for the image message (required)
-/// @property url HTTP/HTTPS URL pointing to an image file (optional, mutually exclusive with base64)
-/// @property base64 Base64 encoded image data (optional, mutually exclusive with url, limited to 32KB total message size)
+/// @property url HTTP/HTTPS URL pointing to an image file (optional)
 @objc public class ImageMessage: NSObject, ChatMessage {
     /// Message type
     @objc public let messageType: ChatMessageType = .image
@@ -132,17 +167,63 @@ import AgoraRtmKit
     @objc public let uuid: String
     /// Image url, The agent will use this url to download the image and to identify the image.
     @objc public let url: String?
-    /// Image base64, The agent will use this base64 to identify the image.
-    @objc public let base64: String?
 
-    init(uuid: String, url: String?, base64: String? = nil) {
+    init(uuid: String, url: String?) {
         self.uuid = uuid
         self.url = url
-        self.base64 = base64
     }
     
     public override var description: String {
-        return "ImageMessage(url: \(url ?? ""), uuid: \(uuid), base64: \(base64?.count ?? 0))"
+        return "ImageMessage(url: \(url ?? ""), uuid: \(uuid))"
+    }
+}
+
+/// Voice message for sending audio content to AI agents.
+///
+/// Supports various audio formats including PCM, AAC, MP3, and WAV.
+/// Voice messages can be sent as base64 encoded data or via URL reference.
+///
+/// Usage examples:
+/// - Base64 voice: VoiceMessage(data = "data:audio/wav;base64,...")
+/// - URL voice: VoiceMessage(url = "https://example.com/audio.wav")
+///
+/// @property data Base64 encoded audio data (optional)
+/// @property url HTTP/HTTPS URL pointing to an audio file (optional)
+/// @property encoding Audio encoding format
+/// @property sampleRate Audio sample rate in Hz
+/// @property channels Number of audio channels
+@objc public class VoiceMessage: NSObject, ChatMessage {
+    /// Message type
+    @objc public let messageType: ChatMessageType = .voice
+    /// Base64 encoded audio data
+    @objc public let data: String?
+    /// HTTP/HTTPS URL pointing to an audio file
+    @objc public let url: String?
+    /// Audio encoding format
+    @objc public let encoding: AudioEncoding
+    /// Audio sample rate in Hz
+    @objc public let sampleRate: Int
+    /// Number of audio channels
+    @objc public let channels: Int
+    
+    /// Initialize a voice message
+    /// - Parameters:
+    ///   - data: Base64 encoded audio data
+    ///   - url: HTTP/HTTPS URL pointing to an audio file
+    ///   - encoding: Audio encoding format
+    ///   - sampleRate: Audio sample rate in Hz
+    ///   - channels: Number of audio channels
+    @objc public init(data: String? = nil, url: String? = nil, encoding: AudioEncoding = .wav, sampleRate: Int = 16000, channels: Int = 1) {
+        self.data = data
+        self.url = url
+        self.encoding = encoding
+        self.sampleRate = sampleRate
+        self.channels = channels
+        super.init()
+    }
+    
+    public override var description: String {
+        return "VoiceMessage(data: \(data?.count ?? 0) bytes, url: \(url ?? ""), encoding: \(encoding.stringValue), sampleRate: \(sampleRate), channels: \(channels))"
     }
 }
 
@@ -237,8 +318,10 @@ import AgoraRtmKit
     case tts = 2
     /// Context module
     case context = 3
+    /// A new module type
+    case asr = 4
     /// Unknown module type
-    case unknown = 4
+    case unknown = 5
     
     /// Create ModuleType from string value
     /// - Parameter value: String representation of module type
@@ -253,6 +336,8 @@ import AgoraRtmKit
             return .tts
         case "context":
             return .context
+        case "asr":
+            return .asr
         default:
             return .unknown
         }
@@ -270,6 +355,8 @@ import AgoraRtmKit
             return "tts"
         case .context:
             return "context"
+        case .asr:
+            return "asr"
         default:
             return "unknown"
         }
@@ -321,15 +408,22 @@ import AgoraRtmKit
     @objc public let message: String
     /// Error occurrence timestamp (milliseconds since January 1, 1970 UTC)
     @objc public let timestamp: TimeInterval
+    /// Additional error details
+    @objc public let details: String?
+    
     /// Initialize a message error
     /// - Parameters:
     ///   - type: Message type where error occurred
+    ///   - code: Error code
     ///   - message: Error message
-    @objc public init(type: ChatMessageType, code: Int, message: String, timestamp: TimeInterval) {
+    ///   - timestamp: Error timestamp
+    ///   - details: Additional error details
+    @objc public init(type: ChatMessageType, code: Int, message: String, timestamp: TimeInterval, details: String? = nil) {
         self.type = type
         self.code = code
         self.message = message
         self.timestamp = timestamp
+        self.details = details
     }
 }
 
@@ -379,8 +473,8 @@ public enum MessageType: String, CaseIterable {
     case interrupt = "message.interrupt"
     /// State message type
     case state = "message.state"
-    /// Image info message type
-    case imageInfo = "message.info"
+    /// Message receipt type
+    case messageReceipt = "message.info"
     /// Unknown message type
     case unknown = "unknown"
     
@@ -522,17 +616,22 @@ public enum MessageType: String, CaseIterable {
     @objc public let message: String
     /// Conversation turn ID, used to identify specific conversation rounds
     @objc public let turnId: Int
+    /// Processing time for the message
+    @objc public let processingTime: TimeInterval?
 
     /// Initialize a message receipt object
     /// - Parameters:
-    ///   - type: Message type
+    ///   - moduleType: Module type
+    ///   - messageType: Message type
     ///   - message: Image information
     ///   - turnId: Turn ID
-    @objc public init(moduleType: ModuleType, messageType: ChatMessageType, message: String, turnId: Int) {
+    ///   - processingTime: Processing time for the message
+    @objc public init(moduleType: ModuleType, messageType: ChatMessageType, message: String, turnId: Int, processingTime: TimeInterval? = nil) {
         self.moduleType = moduleType
         self.messageType = messageType
         self.message = message
         self.turnId = turnId
+        self.processingTime = processingTime
         super.init()
     }
     
@@ -578,6 +677,14 @@ public enum MessageType: String, CaseIterable {
     }
 }
 
+
+/// Protocol for subscribing to raw audio data
+@objc public protocol AudioDataSubscriber {
+    /// Called when audio data is available
+    /// - Parameter audioData: The raw audio data
+    func onAudioData(_ audioData: Data)
+}
+
 /// ConversationalAI API event handler protocol
 /// Protocol for receiving callbacks about conversation events and state changes
 /// This protocol defines callback interfaces for receiving Agent conversation events,
@@ -602,17 +709,6 @@ public enum MessageType: String, CaseIterable {
     /// - Note: The interrupt callback is not necessarily synchronized with the agent's state,
     ///   so it is not recommended to process business logic in this callback
     @objc func onAgentInterrupted(agentUserId: String, event: InterruptEvent)
- 
-    /// Called when performance metrics are available
-    /// This method provides performance data, such as LLM inference latency
-    /// and TTS speech synthesis latency, for monitoring system performance.
-    ///
-    /// - Parameters:
-    ///   - agentUserId: Agent RTM user ID
-    ///   - metrics: Performance metrics containing type, value, and timestamp
-    /// - Note: The metrics callback is not necessarily synchronized with the agent's state,
-    ///   so it is not recommended to process business logic in this callback
-    @objc func onAgentMetrics(agentUserId: String, metrics: Metric)
      
     /// Called when AI module errors occur
     /// This method is called when module components (LLM, TTS, etc.) encounter errors,
@@ -640,6 +736,13 @@ public enum MessageType: String, CaseIterable {
     ///   - agentUserId: Agent RTM user ID
     ///   - messageReceipt: Message receipt containing type, module, and image information
     @objc func onMessageReceiptUpdated(agentUserId: String, messageReceipt: MessageReceipt)
+
+    /// Called when a voice message is received.
+    ///
+    /// - Parameters:
+    ///   - agentUserId: Agent user ID
+    ///   - message: The voice message.
+    @objc func onVoiceMessageReceived(agentUserId: String, message: VoiceMessage)
     
     /// Called when message error occurs
     /// This method is called when message processing encounters errors,
@@ -647,7 +750,7 @@ public enum MessageType: String, CaseIterable {
     ///
     /// - Parameters:
     ///   - agentUserId: Agent RTM user ID
-    ///   - error: Message error containing type, message
+    ///   - error: log The log message.
     @objc func onMessageError(agentUserId: String, error: MessageError)
 
 }
@@ -666,16 +769,6 @@ public enum MessageType: String, CaseIterable {
     ///   - completion: Callback function called when the operation completes.
     ///                 Returns nil on success, ConversationalAIAPIError on failure
     @objc func chat(agentUserId: String, message: ChatMessage, completion: @escaping (ConversationalAIAPIError?) -> Void)
-    
-    /// Interrupt the AI Agent's current speech or processing
-    /// Use this method to interrupt the currently speaking or processing Agent.
-    ///
-    /// - Parameters:
-    ///   - agentUserId: Agent RTM user ID, must be globally unique
-    ///   - completion: Callback function called when the operation completes
-    /// - Note: If error has a value, it indicates message sending failed.
-    ///   If error is nil, it indicates message sending succeeded, but doesn't guarantee Agent interruption success
-    @objc func interrupt(agentUserId: String, completion: @escaping (ConversationalAIAPIError?) -> Void)
     
     /// Set audio best practice parameters for optimal performance
     /// Configure audio parameters required for optimal performance in AI conversations
@@ -728,11 +821,11 @@ public enum MessageType: String, CaseIterable {
     /// - Parameter handler: Event handler implementing ConversationalAIAPIEventHandler protocol
     @objc func addHandler(handler: ConversationalAIAPIEventHandler)
     
-    /// Remove event handler
+    /// Unregister event handler
     /// Unregister a previously added event handler
     ///
-    /// - Parameter handler: Event handler to remove
-    @objc func removeHandler(handler: ConversationalAIAPIEventHandler)
+    /// - Parameter handler: Event handler to unregister
+    @objc func unregisterHandler(handler: ConversationalAIAPIEventHandler)
     
     /// Destroy the API instance and release all resources
     /// After calling this method, the instance cannot be used again. All resources will be released.

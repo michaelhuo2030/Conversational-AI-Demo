@@ -174,6 +174,7 @@ export class ConversationalAIAPI extends EventHelper<IConversationalAIAPIEventHa
       onAgentMetrics: this.onAgentMetrics.bind(this),
       onAgentError: this.onAgentError.bind(this),
       onMessageReceipt: this.onMessageReceiptUpdated.bind(this),
+      onVoiceMessage: this.onVoiceMessage.bind(this),
       onMessageError: this.onMessageError.bind(this)
     })
   }
@@ -340,20 +341,24 @@ export class ConversationalAIAPI extends EventHelper<IConversationalAIAPIEventHa
    */
   public async chat(
     agentUserId: string,
-    message: IChatMessageText | IChatMessageImage
+    message: IChatMessageText | IChatMessageImage | IChatMessageVoice
   ) {
     switch (message.messageType) {
       case EChatMessageType.TEXT:
         return this.sendText(agentUserId, message as IChatMessageText)
       case EChatMessageType.IMAGE:
         return this.sendImage(agentUserId, message as IChatMessageImage)
+      case EChatMessageType.VOICE:
+        return this.sendVoice(agentUserId, message as IChatMessageVoice)
       default:
         throw new Error('Unsupported chat message type')
     }
   }
 
+
+
   /**
-   * Sends a text message to the specified agent user through RTM engine.
+   * Sends a voice message to the specified agent user through RTM engine.
    *
    * @param agentUserId - The unique identifier of the agent user to send the message to
    * @param message - The chat message object containing text content and optional settings
@@ -603,6 +608,17 @@ export class ConversationalAIAPI extends EventHelper<IConversationalAIAPIEventHa
     )
     this.emit(EConversationalAIAPIEvents.AGENT_ERROR, agentUserId, error)
   }
+
+  private onVoiceMessage(agentUserId: string, message: TVoiceMessage) {
+    this.callMessagePrint(
+      ELoggerType.debug,
+      `>>> ${EConversationalAIAPIEvents.VOICE_MESSAGE}`,
+      agentUserId,
+      message
+    )
+    this.emit(EConversationalAIAPIEvents.VOICE_MESSAGE, agentUserId, message)
+  }
+
   private onMessageReceiptUpdated(
     agentUserId: string,
     messageReceipt: TMessageReceipt

@@ -26,29 +26,32 @@ const val ConversationalAIAPI_VERSION = "1.7.0"
  * Message priority levels for AI agent processing.
  *
  * Controls how the AI agent handles incoming messages during ongoing interactions.
+ * This enum has been updated to include a CRITICAL priority and QUEUE instead of APPEND.
  *
+ * @property CRITICAL Highest priority - The agent will immediately stop any and all interactions and process this message.
  * @property INTERRUPT High priority - The agent will immediately stop the current interaction and process this message. Use for urgent or time-sensitive messages.
- * @property APPEND Medium priority - The agent will queue this message and process it after the current interaction completes. Use for follow-up questions.
- * @property IGNORE Low priority - If the agent is currently interacting, this message will be discarded. Only processed when agent is idle. Use for optional content.
+ * @property QUEUE Medium priority - The agent will queue this message and process it after the current interaction completes. Use for follow-up questions.
  */
 enum class Priority {
     /**
-     * High priority - Immediately interrupt the current interaction and process this message. Suitable for urgent or time-sensitive content.
+     * Highest priority - This is a critical message that must be processed immediately.
+     */
+    CRITICAL,
+
+    /**
+     * High priority - Immediately interrupt the current interaction and process this message. Suitable for urgent or time-sensitive content. This comment has been updated.
      */
     INTERRUPT,
 
     /**
      * Medium priority - Queued for processing after the current interaction completes. Suitable for follow-up questions.
      */
-    APPEND,
-
-    /**
-     * Low priority - Only processed when the agent is idle. Will be discarded during ongoing interactions. Suitable for optional content.
-     */
-    IGNORE
+    QUEUE
 }
 
 /**
+ * @technical preview
+ *
  * Base sealed class for all message types sent to AI agents.
  *
  * This sealed class hierarchy provides type-safe message handling for different content types.
@@ -57,6 +60,7 @@ enum class Priority {
  * Usage examples:
  * - Text message: TextMessage(text = "Hello, how are you?", priority = Priority.INTERRUPT)
  * - Image message: ImageMessage(uuid = "img_123", imageUrl = "https://...")
+ * - Voice message: VoiceMessage(uuid = "voice_456", voice = byteArrayOf(...))
  */
 sealed class ChatMessage
 
@@ -67,15 +71,17 @@ sealed class ChatMessage
  *
  * Text messages support priority control and interruptable response settings,
  * allowing fine-grained control over how the AI processes and responds to text input.
+ * This class has been updated to allow for interruptible responses to be configured.
  *
  * Usage examples:
  * - Basic text: TextMessage(text = "Hello, how are you?")
  * - High priority: TextMessage(text = "Urgent message", priority = Priority.INTERRUPT)
- * - Non-interruptable: TextMessage(text = "Important question", responseInterruptable = false)
+ * - Non-interruptable: TextMessage(text = "Important question", isInterruptible = false)
  *
  * @property priority Message processing priority (default: null, uses system default)
- * @property responseInterruptable Whether this message's response can be interrupted by higher priority messages (default: null, uses system default)
+ * @property isInterruptible Whether this message's response can be interrupted by higher priority messages (default: null, uses system default)
  * @property text Text content of the message (required)
+ * @property customData Custom data to be sent with the message.
  */
 data class TextMessage(
     /**
@@ -85,38 +91,58 @@ data class TextMessage(
     /**
      * Whether the response to this message can be interrupted by higher priority messages. Default is true.
      */
-    val responseInterruptable: Boolean? = null,
+    val isInterruptible: Boolean? = null,
     /**
-     * Text content of the message. Optional.
+     * Text content of the message. Can be null if other content is provided.
      */
     val text: String? = null,
+    /**
+     * Custom data for the message.
+     */
+    val customData: Map<String, String>? = null
 ) : ChatMessage()
 
 /**
  * Image message for sending visual content to AI agents.
  *
- * Supports two image formats:
- * - imageUrl: HTTP/HTTPS URL pointing to an image file (recommended for large images)
- * - imageBase64: Base64 encoded image data (use with caution for large images)
+ * Supports image URL format.
  *
- * IMPORTANT: When using imageBase64, ensure the total message size (including JSON structure)
- * is less than 32KB as per RTM Message Channel limitations. For larger images, use imageUrl instead.
+ * IMPORTANT: For larger images, use imageUrl. The base64 option has been removed for performance reasons.
  *
  * Reference: https://doc.shengwang.cn/doc/rtm2/android/user-guide/message/send-message
  *
  * Usage examples:
  * - URL image: ImageMessage(uuid = "img_123", imageUrl = "https://example.com/image.jpg")
- * - Base64 image: ImageMessage(uuid = "img_456", imageBase64 = "data:image/jpeg;base64,...")
  *
  * @property uuid Unique identifier for the image message (required)
- * @property imageUrl HTTP/HTTPS URL pointing to an image file (optional, mutually exclusive with imageBase64)
- * @property imageBase64 Base64 encoded image data (optional, mutually exclusive with imageUrl, limited to 32KB total message size)
+ * @property imageUrl HTTP/HTTPS URL pointing to an image file (optional)
  */
 data class ImageMessage(
     val uuid: String,
     val imageUrl: String? = null,
-    val imageBase64: String? = null,
 ) : ChatMessage()
+
+/**
+ * Voice message for sending audio content to AI agents.
+ *
+ * @property uuid Unique identifier for the voice message.
+ * @property voice The audio data.
+ * @property encoding The encoding of the audio data.
+ */
+data class VoiceMessage(
+    val uuid: String,
+    val voice: ByteArray,
+    val encoding: AudioEncoding = AudioEncoding.PCM
+) : ChatMessage()
+
+/**
+ * Audio encoding formats.
+ */
+enum class AudioEncoding {
+    PCM,
+    AAC,
+    OPUS
+}
 
 /**
  * Message type enumeration
@@ -218,12 +244,15 @@ enum class AgentState(val value: String) {
  * Used for tracking conversation flow and updating user interface state indicators.
  *
  * @property state Current agent state (silent, listening, thinking, speaking)
+ * @property reason A description of why the state changed.
  * @property turnId Conversation turn ID, used to identify specific conversation rounds
  * @property timestamp Event occurrence timestamp (milliseconds since epoch, i.e., since January 1, 1970 UTC)
  */
 data class StateChangeEvent(
     /** Current agent state */
     val state: AgentState,
+    /** Reason for state change */
+    val reason: String,
     /** Conversation turn ID */
     val turnId: Long,
     /** Event occurrence timestamp (milliseconds since epoch, i.e., since January 1, 1970 UTC) */
@@ -268,6 +297,9 @@ enum class ModuleType(val value: String) {
     TTS("tts"),
 
     Context("context"),
+
+    /** A new module type. */
+    ASR("asr"),
 
     /** Unknown type */
     UNKNOWN("unknown");
@@ -407,8 +439,8 @@ data class Transcription constructor(
     val userId: String = "",
     /** The actual transcription text content */
     val text: String,
-    /** Current status of the transcription */
-    var status: TranscriptionStatus,
+    /** Current status of the transcription. The original enum was removed. */
+    var status: String,
     /** Transcription type (AGENT/USER) */
     var type: TranscriptionType,
 )
@@ -523,7 +555,7 @@ interface IConversationalAIAPIEventHandler {
     /**
      * Called when the agent state changes (silent, listening, thinking, speaking).
      * @param agentUserId Agent user ID
-     * @param event State change event
+     * @param event State change event, now includes a reason.
      */
     fun onAgentStateChanged(agentUserId: String, event: StateChangeEvent)
 
@@ -533,13 +565,6 @@ interface IConversationalAIAPIEventHandler {
      * @param event Interrupt event
      */
     fun onAgentInterrupted(agentUserId: String, event: InterruptEvent)
-
-    /**
-     * Called when performance metrics are available.
-     * @param agentUserId Agent user ID
-     * @param metric Performance metrics
-     */
-    fun onAgentMetrics(agentUserId: String, metric: Metric)
 
     /**
      * Called when an AI error occurs.
@@ -573,22 +598,38 @@ interface IConversationalAIAPIEventHandler {
     fun onTranscriptionUpdated(agentUserId: String, transcription: Transcription)
 
     /**
+     * Called when a voice message is received.
+     * @param agentUserId Agent user ID
+     * @param message The voice message.
+     */
+    fun onVoiceMessageReceived(agentUserId: String, message: VoiceMessage)
+
+    /**
      * Called for internal debug logs.
-     * @param log Debug log message
+     * @param log The log message.
      */
     fun onDebugLog(log: String)
 }
 
 /**
- * Conversational AI API interface.
- *
- * Provides methods for sending messages, interrupting conversations, managing audio settings, and subscribing to events.
- *
- * Typical usage:
+ * A new interface for subscribing to raw audio data.
+ */
+interface IAudioDataSubscriber {
+    /**
+     * Called when audio data is available.
+     * @param audioData The raw audio data.
+     */
+    fun onAudioData(audioData: ByteArray)
+}
+
+/**
+ * The main interface for the Conversational AI API.
  * val api = ConversationalAIAPI(config)
- * api.addHandler(handler)
+ * api.addHandler(object : IConversationalAIAPIEventHandler { ... })
  * api.subscribeMessage("channelName") { ... }
- * api.chat("agentUserId", ChatMessage(text = "Hi")) { ... }
+ * api.chat("agentUserId", TextMessage(priority = Priority.INTERRUPT, responseInterruptable = true, text = "Hello!")) { ... }
+ * api.chat("agentUserId", ImageMessage(uuid = "img_123", imageUrl = "https://example.com/image.jpg")) { ... }
+ * // ...
  * api.destroy()
  */
 interface IConversationalAIAPI {
@@ -599,13 +640,13 @@ interface IConversationalAIAPI {
     fun addHandler(handler: IConversationalAIAPIEventHandler)
 
     /**
-     * Remove a registered event handler.
-     * @param handler Event handler instance
+     * Unregisters a previously registered event handler.
+     * @param eventHandler The event handler instance to unregister.
      */
-    fun removeHandler(handler: IConversationalAIAPIEventHandler)
+    fun unregisterEventHandler(eventHandler: IConversationalAIAPIEventHandler)
 
     /**
-     * Subscribe to a channel to receive AI conversation events.
+     * Subscribes to a channel to receive AI conversation events.
      * @param channelName Channel name
      * @param completion Callback, error is null on success, non-null on failure
      */
@@ -631,13 +672,6 @@ interface IConversationalAIAPI {
      * @param completion Callback, error is null on success, non-null on failure
      */
     fun chat(agentUserId: String, message: ChatMessage, completion: (error: ConversationalAIAPIError?) -> Unit)
-
-    /**
-     * Interrupt the AI agent's speaking.
-     * @param agentUserId Agent user ID
-     * @param completion Callback, error is null on success, non-null on failure
-     */
-    fun interrupt(agentUserId: String, completion: (error: ConversationalAIAPIError?) -> Unit)
 
     /**
      * Set audio parameters for optimal AI conversation performance.

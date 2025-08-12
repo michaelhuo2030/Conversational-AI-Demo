@@ -9,6 +9,9 @@ import type {
 } from 'agora-rtc-sdk-ng'
 import type { RTMEvents } from 'agora-rtm'
 
+/**
+ * @deprecated This enum is deprecated and will be removed in a future version.
+ */
 export enum ESubtitleHelperMode {
   TEXT = 'text',
   WORD = 'word',
@@ -114,6 +117,7 @@ export enum EModuleType {
   MLLM = 'mllm',
   TTS = 'tts',
   CONTEXT = 'context',
+  ASR = 'asr',
   UNKNOWN = 'unknown'
 }
 
@@ -181,6 +185,7 @@ export type TModuleError = {
   code: number
   message: string
   timestamp: number
+  turnId?: number
 }
 
 /**
@@ -244,7 +249,7 @@ export type TStateChangeEvent = {
  * @see {@link TStateChangeEvent} for state change event structure
  * @see {@link TAgentMetric} for agent metrics structure
  * @see {@link TModuleError} for error structure
- * @see {@link ISubtitleHelperItem} for transcription item structure
+ * @see {@link ITranscription} for transcription item structure
  * @see {@link TMessageReceipt} for message receipt structure
  * @see {@link EChatMessageType} for message type enumeration
  */
@@ -269,9 +274,7 @@ export interface IConversationalAIAPIEventHandlers {
     error: TModuleError
   ) => void
   [EConversationalAIAPIEvents.TRANSCRIPTION_UPDATED]: (
-    transcription: ISubtitleHelperItem<
-      Partial<IUserTranscription | IAgentTranscription>
-    >[]
+    transcription: ITranscription[]
   ) => void
   [EConversationalAIAPIEvents.DEBUG_LOG]: (message: string) => void
   [EConversationalAIAPIEvents.MESSAGE_RECEIPT_UPDATED]: (
@@ -490,18 +493,18 @@ export interface IUserTracks {
  *
  * @remarks
  * Values include:
- * - INTERRUPTED: Interrupt current processing and handle immediately
- * - APPEND: Add to processing queue for sequential handling
- * - IGNORE: Discard the message without processing
+ * - CRITICAL: Immediate processing, interrupting any ongoing operations
+ * - INTERRUPT: Interrupt current processing and handle immediately
+ * - QUEUE: Add to processing queue for sequential handling
  *
  * @enum {string}
  *
  * @since 1.7.0
  */
 export enum EChatMessagePriority {
-  INTERRUPTED = 'interrupted',
-  APPEND = 'append',
-  IGNORE = 'ignore'
+  CRITICAL = 3,
+  INTERRUPT = 2,
+  QUEUE = 1
 }
 
 /**
@@ -511,6 +514,7 @@ export enum EChatMessagePriority {
  * Values include:
  * - TEXT: Text-based message
  * - IMAGE: Image-based message
+ * - VOICE: Voice-based message
  * - UNKNOWN: Unknown message type
  *
  * @enum {string}
@@ -519,7 +523,8 @@ export enum EChatMessagePriority {
  */
 export enum EChatMessageType {
   TEXT = 'text',
-  IMAGE = 'image',
+  IMAGE = 'picture',
+  VOICE = 'voice',
   UNKNOWN = 'unknown'
 }
 
@@ -541,16 +546,18 @@ export interface IChatMessageBase {
  *
  * @property messageType - The type of message, must be TEXT
  * @property priority - The priority level of the chat message
- * @property responseInterruptable - Whether the response can be interrupted
+ * @property isInterruptible - Whether the response can be interrupted
  * @property text - The optional text content of the message
+ * @property customData - Custom data to be included with the message
  *
  * @since 1.7.0
  */
 export interface IChatMessageText extends IChatMessageBase {
   messageType: EChatMessageType.TEXT
-  priority: EChatMessagePriority
-  responseInterruptable: boolean
+  priority?: EChatMessagePriority
+  isInterruptible?: boolean
   text?: string
+  customData?: Record<string, string>
 }
 
 /**
@@ -561,14 +568,100 @@ export interface IChatMessageText extends IChatMessageBase {
  *
  * @property messageType - The type of message, must be IMAGE
  * @property uuid - Unique identifier for the image message
- * @property url - Optional URL pointing to the image resource
- * @property base64 - Optional base64 encoded image data
+ * @property imageUrl - Optional URL pointing to the image resource
  */
 export interface IChatMessageImage extends IChatMessageBase {
   messageType: EChatMessageType.IMAGE
   uuid: string
-  url?: string
-  base64?: string
+  imageUrl?: string
+}
+
+/**
+ * Represents a voice-based chat message with priority and interruption settings.
+ *
+ * @interface IChatMessageVoice
+ * @extends IChatMessageBase
+ *
+ * @property messageType - The type of message, must be VOICE
+ * @property priority - The priority level of the chat message
+ * @property isInterruptible - Whether the response can be interrupted
+ * @property voice - The optional voice content of the message
+ * @property customData - Custom data to be included with the message
+ *
+ * @since 1.7.0
+ */
+export interface IChatMessageVoice extends IChatMessageBase {
+  messageType: EChatMessageType.VOICE
+  priority?: EChatMessagePriority
+  isInterruptible?: boolean
+  voice?: Uint8Array
+  customData?: Record<string, string>
+}
+
+/**
+ * Represents the current status of a transcription.
+ *
+ * @property IN_PROGRESS Transcription is still being generated or spoken
+ * @property END Transcription has completed normally
+ * @property INTERRUPTED Transcription was interrupted before completion
+ * @property UNKNOWN Unknown status
+ */
+export enum ETranscriptionStatus {
+  IN_PROGRESS = 'IN_PROGRESS',
+  END = 'END',
+  INTERRUPTED = 'INTERRUPTED',
+  UNKNOWN = 'UNKNOWN'
+}
+
+/**
+ * Transcription type enum.
+ *
+ * @property AGENT AI assistant transcription
+ * @property USER User transcription
+ */
+export enum ETranscriptionType {
+  AGENT = 'AGENT',
+  USER = 'USER'
+}
+
+/**
+ * Data class representing a complete transcription message for UI rendering.
+ *
+ * @property turnId Unique identifier for the conversation turn
+ * @property userId User identifier associated with this transcription
+ * @property text The actual transcription text content
+ * @property status Current status of the transcription
+ * @property type Transcription type (AGENT/USER)
+ */
+export interface ITranscription {
+  turnId: number
+  userId: string
+  text: string
+  status: string
+  type: ETranscriptionType
+}
+
+/**
+ * Audio encoding formats.
+ */
+export enum EAudioEncoding {
+  PCM = 'pcm',
+  AAC = 'aac',
+  OPUS = 'opus'
+}
+
+/**
+ * Voice message for sending audio content to AI agents.
+ *
+ * @property uuid Unique identifier for the voice message.
+ * @property voice The audio data.
+ * @property encoding The encoding of the audio data.
+ */
+export interface IVoiceMessage extends IChatMessageBase {
+  messageType: EChatMessageType.VOICE
+  uuid: string
+  voice: Uint8Array
+  encoding?: EAudioEncoding
 }
 
 // --- local ---
