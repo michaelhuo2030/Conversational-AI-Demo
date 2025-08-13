@@ -132,6 +132,7 @@
         android:inAnimation="@anim/cov_flip_in"
         android:outAnimation="@anim/cov_flip_out"
         android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -187,6 +188,7 @@
         app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="@id/viewFlipper"
         app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible"
         app:layout_constraintTop_toTopOf="@id/viewFlipper">
 
         <LinearLayout
