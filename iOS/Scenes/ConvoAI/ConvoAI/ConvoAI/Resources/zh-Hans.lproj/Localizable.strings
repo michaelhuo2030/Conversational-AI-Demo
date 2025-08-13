@@ -121,6 +121,9 @@
 "error.microphone.permission.alert.description" = "请在设置中打开麦克风权限";
 "error.permission.alert.cancel" = "取消";
 "error.permission.alert.confirm" = "设置";
+"error.agent.is.not.exist" = "智能体获取失败，当前数据库无此智能体";
+"error.agent.is.offline" = "智能体已被下线，请联系声网工作人员";
+
 
 "devmode.title" = "开发者模式";
 "devmode.rtc" = "RTC 版本";
@@ -169,3 +172,8 @@
 "agent.list.official" = "官方智能体";
 "agent.list.get" = "获取";
 "agent.list.get.agent" = "获取你的智能助手";
+"agent.search.success" = "智能体获取成功";
+
+/* 空状态视图 */
+"empty.state.loading.failed" = "页面加载失败，请重试";
+"empty.state.retry" = "重试";

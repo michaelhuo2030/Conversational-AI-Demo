@@ -101,6 +101,9 @@ extension ResourceManager {
             public static let microphonePermissionDescription = ResourceManager.localizedString("error.microphone.permission.alert.description")
             public static let permissionCancel = ResourceManager.localizedString("error.permission.alert.cancel")
             public static let permissionConfirm = ResourceManager.localizedString("error.permission.alert.confirm")
+            public static let agentNotFound = ResourceManager.localizedString("error.agent.is.not.exist")
+            public static let agentOffline = ResourceManager.localizedString("error.agent.is.offline")
+            public static let agentListFetchFailed = ResourceManager.localizedString("error.agent.list.fetch.failed")
         }
 
         public enum Settings {
@@ -221,6 +224,14 @@ extension ResourceManager {
             public static let official = ResourceManager.localizedString("agent.list.official")
             public static let fetch = ResourceManager.localizedString("agent.list.get")
             public static let getAgent = ResourceManager.localizedString("agent.list.get.agent")
+            public static let agentSearchSuccess = ResourceManager.localizedString("agent.search.success")
+        }
+        
+        public enum Empty {
+            public static let loadingFailed = ResourceManager.localizedString("empty.state.loading.failed")
+            public static let retry = ResourceManager.localizedString("empty.state.retry")
         }
     }
 }
+
+
