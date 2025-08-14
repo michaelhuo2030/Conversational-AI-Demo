@@ -65,10 +65,11 @@
 "settings.speaker" = "扬声器";
 "settings.noise.cancellation" = "噪声取消";
 "settings.noise.aiVad.highlight" = "优雅打断";
+"settings.noise.aiVad.tips" = "优雅打断是声网自研高阶打断功能，支持让智能体临时i停下逻辑推理去做其实事情，返回后继续让智能体按照打断前的节点继续的技术";
 "settings.transcript.render.mode" = "字幕渲染模式";
 "settings.transcript.render.word.mode" = "Word 模式";
-"settings.transcript.render.text.mode" = "Text - 同步模式";
-"settings.transcript.render.pretext.mode" = "Text - 字幕先出模式";
+"settings.transcript.render.text.mode" = "Text - 字幕先出模式";
+"settings.transcript.render.pretext.mode" = "Text - 同步模式";
 "settings.transcript.render.word.mode.description" = "逐字渲染，字幕和音频同步";
 "settings.transcript.render.pretext.mode.description" = "字幕和语音同步展示的Text模式";
 "settings.transcript.render.text.mode.description" = "字幕一次性渲染";

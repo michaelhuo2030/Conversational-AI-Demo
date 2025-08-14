@@ -240,7 +240,7 @@ class LoginViewController: UIViewController {
             make.bottom.equalTo(termsCheckbox.snp.top).offset(-3)
         }
         phoneLoginButton.snp.makeConstraints { make in
-            make.bottom.equalTo(termsCheckbox.snp.top).offset(-50)
+            make.bottom.equalTo(termsCheckbox.snp.top).offset(-125)
             make.left.equalToSuperview().offset(30)
             make.right.equalToSuperview().offset(-30)
             make.height.equalTo(58)
@@ -251,7 +251,7 @@ class LoginViewController: UIViewController {
 //            make.height.equalTo(58)
 //        }
         welcomeMessageView.snp.makeConstraints { make in
-            make.bottom.equalTo(phoneLoginButton.snp.top).offset(-40)
+            make.bottom.equalTo(phoneLoginButton.snp.top).offset(-53)
             make.centerX.equalToSuperview()
             make.width.equalToSuperview()
         }
