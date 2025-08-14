@@ -292,7 +292,7 @@ extension AgentSettingViewController: AgentSettingsViewDelegate {
         let currentMode = preference.transcriptMode
         var allModes = TranscriptDisplayMode.allCases
         if language.languageCode != "zh-CN" {
-            allModes.removeAll { $0 == .chunk}
+            allModes.removeAll { $0 == .text}
         }
         
         let currentIndex = allModes.firstIndex { $0 == currentMode } ?? 0
