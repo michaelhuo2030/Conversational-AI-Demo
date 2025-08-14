@@ -290,9 +290,14 @@ extension AgentSettingViewController: AgentSettingsViewDelegate {
         selectTableMask.isHidden = false
         guard let preference = AppContext.preferenceManager()?.preference, let language = preference.language else { return }
         let currentMode = preference.transcriptMode
+        let isCustomPreset = preference.isCustomPreset
         var allModes = TranscriptDisplayMode.allCases
-        if language.languageCode != "zh-CN" {
+        if isCustomPreset {
             allModes.removeAll { $0 == .text}
+        } else {
+            if language.languageCode != "zh-CN" {
+                allModes.removeAll { $0 == .text}
+            }
         }
         
         let currentIndex = allModes.firstIndex { $0 == currentMode } ?? 0
