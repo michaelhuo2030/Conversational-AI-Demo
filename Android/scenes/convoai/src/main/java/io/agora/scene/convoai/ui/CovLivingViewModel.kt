@@ -203,7 +203,7 @@ class CovLivingViewModel : ViewModel() {
                 )
 
                 typingProgress++
-                delay(100L) // 10 characters per second
+                delay(125L) // 8 characters per second
             }
 
             // Animation complete, show full text

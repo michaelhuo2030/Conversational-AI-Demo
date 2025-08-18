@@ -41,7 +41,6 @@ class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>()
     private var tabWidth: Int = 0
     private var initialTab: Int = TAB_OFFICIAL_AGENT
 
-
     // ViewModel instances
     private val userViewModel: UserViewModel by viewModels()
     private val listViewModel: CovListViewModel by viewModels()
@@ -162,9 +161,7 @@ class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>()
             // Calculate adaptive width based on content and screen size
             val params = tabContainer.layoutParams as ViewGroup.MarginLayoutParams
             val screenWidth = resources.displayMetrics.widthPixels
-            val originalMargin = 16.dp.toInt()
-            val originalWidth = screenWidth - (originalMargin * 2)
-            
+
             // Calculate minimum width needed for tab content
             val minTabWidth = calculateMinimumTabWidth()
             val minContainerWidth = minTabWidth * 2 + 4.dp.toInt() // 2 tabs + padding
@@ -182,6 +179,8 @@ class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>()
             params.width = finalWidth
             params.marginStart = newMargin
             params.marginEnd = newMargin
+            // Set collapsed height: 42dp - 4dp = 38dp
+            params.height = 38.dp.toInt()
             tabContainer.layoutParams = params
 
             // Update tab indicator for new width (subtract padding from tabContainer)
@@ -207,6 +206,8 @@ class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>()
             params.width = ViewGroup.LayoutParams.MATCH_PARENT
             params.marginStart = originalMargin
             params.marginEnd = originalMargin
+            // Restore to original height: 42dp
+            params.height = 42.dp.toInt()
             tabContainer.layoutParams = params
 
             // Update tab indicator for original width
