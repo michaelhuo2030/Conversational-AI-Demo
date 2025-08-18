@@ -65,7 +65,7 @@
        override fun onAgentError(agentUserId: String, error: ModuleError) { /* ... */ }
        override fun onMessageError(agentUserId: String, error: MessageError) { /* ... */ }
        override fun onMessageReceiptUpdated(agentUserId: String, receipt: MessageReceipt) { /* ... */ }
-       override fun onAgentVoiceprintStateChanged(agentUserId: String, event: VoiceprintEvent) { /* ... */ }
+       override fun onAgentVoiceprintStateChanged(agentUserId: String, event: VoiceprintStateChangeEvent) { /* ... */ }
        override fun onTranscriptUpdated(agentUserId: String, transcript: Transcript) { /* ... */ }  
        override fun onDebugLog(log: String) { /* ... */ }
    })

@@ -420,7 +420,7 @@ enum class VoiceprintStatus(val value: String) {
  * @property timestamp Event occurrence timestamp (milliseconds since epoch, i.e., since January 1, 1970 UTC)
  * @property status Voice print status
  */
-data class VoiceprintEvent(
+data class VoiceprintStateChangeEvent(
     /** Milliseconds duration of the status，Offset duration relative to the first audios，Using this data, the duration of switching between the two states can be calculated.*/
     val timeOffset: Int,
     /** Milliseconds relative to the start of the audio */
@@ -621,7 +621,7 @@ interface IConversationalAIAPIEventHandler {
      * @param agentUserId Agent User ID
      * @param event voice print event
      */
-    fun onAgentVoiceprintStateChanged(agentUserId: String, event: VoiceprintEvent)
+    fun onAgentVoiceprintStateChanged(agentUserId: String, event: VoiceprintStateChangeEvent)
 
     /**
      * Called when Transcript content is updated.
