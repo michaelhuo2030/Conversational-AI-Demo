@@ -52,6 +52,7 @@
 "conversation.alert.cancel" = "取消";
 "conversation.alert.confirm" = "确定";
 "conversation.alert.clear" = "清除";
+"conversation.agent.voiceprint.lock.toast" = "引擎将学习您说话的声纹，过滤周围其他人的声音和噪音";
 
 "settings.title" = "人物设定";
 "settings.connected.tips" = "(连接中不可修改)";
