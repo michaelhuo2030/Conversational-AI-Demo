@@ -491,7 +491,7 @@ class CovLivingActivity : DebugSupportActivity<CovActivityLivingBinding>() {
             }
         }
         lifecycleScope.launch {  // Observe voiceprint event updates
-            viewModel.voiceprintEvent.collect { voicePrint ->
+            viewModel.voiceprintStateChangeEvent.collect { voicePrint ->
                 if (isSelfSubRender) return@collect
                 if (voicePrint?.status == VoiceprintStatus.REGISTER_SUCCESS) {
                     mBinding?.clTop?.showVoicePrint()
