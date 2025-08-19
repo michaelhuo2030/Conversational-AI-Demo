@@ -72,6 +72,11 @@ class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>()
             ivTop.setOnClickListener {
                 DebugConfigSettings.checkClickDebug()
             }
+            activityKeyboardOverlayMask.setOnClickListener {
+                activityKeyboardOverlayMask.visibility = View.GONE
+                // Also hide keyboard in custom agent fragment if it's active
+                getCustomAgentFragment()?.hideKeyboardAndMask()
+            }
         }
         
         // Check user login status first
@@ -226,6 +231,22 @@ class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>()
             (mBinding?.vpContent?.adapter as? AgentPagerAdapter)?.getFragmentAt(TAB_CUSTOM_AGENT) as? CovCustomAgentFragment
         // Only return fragment if it's still alive
         return if (fragment?.isAdded == true && !fragment.isDetached) fragment else null
+    }
+
+    private fun setupFragmentKeyboardCallback() {
+        getCustomAgentFragment()?.setKeyboardStateCallback { isVisible ->
+            mBinding?.apply {
+                if (isVisible) {
+                    activityKeyboardOverlayMask.visibility = View.VISIBLE
+                    val appBarHeight = appBarLayout.height
+                    activityKeyboardOverlayMask.layoutParams = activityKeyboardOverlayMask.layoutParams.apply {
+                        height = appBarHeight
+                    }
+                } else {
+                    activityKeyboardOverlayMask.visibility = View.GONE
+                }
+            }
+        }
     }
 
     /**
@@ -469,6 +490,11 @@ class CovAgentListActivity : DebugSupportActivity<CovActivityAgentListBinding>()
                     tabLayout.getTabAt(position)?.select()
                     // Ensure indicator scale is reset to normal when page is fully selected
                     vTabIndicator.scaleX = 1f
+                    
+                    // Setup keyboard callback for custom agent fragment
+                    if (position == TAB_CUSTOM_AGENT) {
+                        setupFragmentKeyboardCallback()
+                    }
                 }
 
                 override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
