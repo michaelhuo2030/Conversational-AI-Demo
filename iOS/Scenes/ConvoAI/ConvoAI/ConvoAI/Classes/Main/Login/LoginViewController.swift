@@ -40,53 +40,19 @@ class LoginViewController: UIViewController {
         return imageView
     }()
     
-    private var gradientLayer: CAGradientLayer?
-    
     private lazy var phoneLoginButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setTitle(ResourceManager.L10n.Login.buttonTitle, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18)
+        button.setImage(UIImage.ag_named("ic_agent_join_button_icon"), for: .normal)
         button.setTitleColor(UIColor.themColor(named: "ai_brand_white10"), for: .normal)
-        button.layer.cornerRadius = 20
-        button.clipsToBounds = true
+        button.titleLabel?.font = .systemFont(ofSize: 18)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 10)
+        button.titleEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 0)
         button.addTarget(self, action: #selector(onClickLogin), for: .touchUpInside)
-        
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [
-            UIColor(hexString: "#17C5FF")?.cgColor as Any,
-            UIColor(hexString: "#315DFF")?.cgColor as Any,
-            UIColor(hexString: "#446CFF")?.cgColor as Any
-        ]
-        gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
-        button.layer.insertSublayer(gradientLayer, at: 0)
-        self.gradientLayer = gradientLayer
-        
+        button.setBackgroundImage(UIImage.ag_named("btn_gradient_borderd"), for: .normal)
         return button
     }()
     
-//    private lazy var registerButton: UIButton = {
-//        let button = UIButton(type: .custom)
-//        button.setTitle("GlobalButton2", for: .normal)
-//        button.titleLabel?.font = .systemFont(ofSize: 18)
-//        button.setTitleColor(.white, for: .normal)
-//        button.layer.cornerRadius = 20
-//        button.layer.borderWidth = 0.5
-//        button.layer.borderColor = UIColor(white: 1.0, alpha: 0.2).cgColor
-//        button.clipsToBounds = true
-//        button.addTarget(self, action: #selector(onClickRegister), for: .touchUpInside)
-//        
-//        let gradientLayer = CAGradientLayer()
-//        gradientLayer.colors = [
-//            UIColor(hexString: "#181818")?.cgColor as Any,
-//            UIColor(hexString: "#131313")?.cgColor as Any
-//        ]
-//        gradientLayer.startPoint = CGPoint(x: 0.5, y: 0)
-//        gradientLayer.endPoint = CGPoint(x: 0.5, y: 1)
-//        button.layer.insertSublayer(gradientLayer, at: 0)
-//        return button
-//    }()
-//    
     private lazy var termsCheckbox: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage.ag_named("ic_login_terms_n"), for: .normal)
@@ -186,17 +152,6 @@ class LoginViewController: UIViewController {
         self.navigationController?.setNavigationBarHidden(true, animated: true)
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        gradientLayer?.frame = phoneLoginButton.bounds
-//        if let registerGradient = phoneLoginButton.layer.sublayers?.first as? CAGradientLayer {
-//            registerGradient.frame = phoneLoginButton.bounds
-//        }
-        CATransaction.commit()
-    }
-    
     private func goToSSOViewController() {
         let ssoWebVC = SSOWebViewController()
         let baseUrl = AppContext.shared.baseServerUrl
@@ -225,15 +180,15 @@ class LoginViewController: UIViewController {
             make.centerX.equalToSuperview()
             make.top.equalToSuperview().offset(100)
         }
-        termsCheckbox.snp.makeConstraints { make in
-            make.bottom.equalTo(self.view.safeAreaLayoutGuide.snp.bottom).offset(-40)
-            make.left.equalTo(phoneLoginButton.snp.left)
-            make.width.height.equalTo(20)
-        }
         termsTextLabel.snp.makeConstraints { make in
-            make.centerY.equalTo(termsCheckbox)
+            make.centerX.equalToSuperview()
+            make.bottom.equalTo(self.view.safeAreaLayoutGuide.snp.bottom).offset(-40)
             make.left.equalTo(termsCheckbox.snp.right).offset(8)
-            make.right.equalTo(phoneLoginButton.snp.right)
+        }
+        termsCheckbox.snp.makeConstraints { make in
+            make.centerY.equalTo(termsTextLabel)
+            make.right.equalTo(termsTextLabel.snp.left)
+            make.width.height.equalTo(20)
         }
         warningButton.snp.makeConstraints { make in
             make.left.equalTo(termsCheckbox.snp.left).offset(-5)
@@ -245,11 +200,6 @@ class LoginViewController: UIViewController {
             make.right.equalToSuperview().offset(-30)
             make.height.equalTo(58)
         }
-//        phoneLoginButton.snp.makeConstraints { make in
-//            make.bottom.equalTo(registerButton.snp.top).offset(-15)
-//            make.left.right.equalTo(registerButton)
-//            make.height.equalTo(58)
-//        }
         welcomeMessageView.snp.makeConstraints { make in
             make.bottom.equalTo(phoneLoginButton.snp.top).offset(-53)
             make.centerX.equalToSuperview()
