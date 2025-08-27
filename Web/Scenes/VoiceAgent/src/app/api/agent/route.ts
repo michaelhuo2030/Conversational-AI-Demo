@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
             audio_scenario: 'default',
             transcript: {
               enable: true,
-              enable_words: !reqBody?.avatar, // Disable words for avatar
+              enable_words: false, // Disable words to avoid TTS error
               protocol_version: 'v2'
             },
             data_channel: 'rtm',
